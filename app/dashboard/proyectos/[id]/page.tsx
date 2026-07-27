@@ -8,7 +8,7 @@ import {
   Users, Palette, Settings, ChevronDown, ChevronUp, AlertTriangle,
   Layers, Monitor, Smartphone, Globe, PieChart as PieIcon,
   HeartPulse, RefreshCw, MousePointer, Shield,
-  Tag, Building, MapPin, Link, ShieldCheck
+  Tag, Building, MapPin, Link, ShieldCheck, Plus
 } from "lucide-react";
 
 
@@ -28,8 +28,9 @@ import { TrafficAnalytics } from "@/components/proyectos/TrafficAnalytics";
 import { ChartTheme } from "@/components/ui/charts/ChartTheme";
 import { CustomTooltip } from "@/components/ui/charts/CustomTooltip";
 
-/* â•â•â• DASHBOARD GRID SYSTEM â•â•â• */
+/* �" �" �"  DASHBOARD GRID SYSTEM �" �" �"  */
 import { DashboardGrid, type WidgetDefinition } from "@/components/projects/DashboardGrid";
+import { useDashboardLayoutStore } from "@/stores/dashboardLayoutStore";
 import { ProyeccionWidget } from "@/components/projects/widgets/ProyeccionWidget";
 import { InversionChartWidget, CtrCpcChartWidget } from "@/components/projects/widgets/ChartWidgets";
 import { CuentasWidget, PresupuestoWidget } from "@/components/projects/widgets/SidebarWidgets";
@@ -37,9 +38,12 @@ import { HeatmapWidget } from "@/components/projects/widgets/HeatmapWidget";
 import { AlertasGastoWidget, BudgetCardsWidget } from "@/components/projects/widgets/GastoWidgets";
 import { GastoSpendTableInline } from "@/components/projects/widgets/GastoSpendTableInline";
 
-/* â•â•â• TYPES â•â•â• */
+import { DynamicComposedChartWidget, DynamicKpiCardWidget } from "@/components/projects/widgets/DynamicWidgetTemplates";
+import { WidgetBuilderModal, type WidgetType } from "@/components/projects/WidgetBuilderModal";
+
+/* �" �" �"  TYPES �" �" �"  */
 interface ChannelConfig { platformId: string; platformName: string; adAccounts: string[]; budget: string; period: string; goal: string; cpr: string; monthlyOverrides?: Record<string, { budget?: string; cpr?: string; goal?: string }>; }
-interface Project { id: string; alias: string; client: string; vertical: string; fanpage: string[]; instagram: string[]; whatsapp: string[]; website: string; channels: ChannelConfig[]; dateStart: string; dateEnd: string; persona: string; geo: string; status: "Activo"|"Pausado"|"Draft"|"Completado"|"EN VUELO"|"EN Ã“RBITA"; createdAt: string; crmIntegrationId?: string | null; crmType?: string | null; crmIntegrationIds?: string[]; googleSources?: { adsCustomerId?: string; ga4PropertyId?: string; gtmAccountId?: string; gtmContainerId?: string; } | null; }
+interface Project { id: string; alias: string; client: string; vertical: string; fanpage: string[]; instagram: string[]; whatsapp: string[]; website: string; channels: ChannelConfig[]; dateStart: string; dateEnd: string; persona: string; geo: string; status: "Activo"|"Pausado"|"Draft"|"Completado"|"EN VUELO"|"EN �RBITA"; createdAt: string; crmIntegrationId?: string | null; crmType?: string | null; crmIntegrationIds?: string[]; googleSources?: { adsCustomerId?: string; ga4PropertyId?: string; gtmAccountId?: string; gtmContainerId?: string; } | null; }
 
 
 const PLATFORMS = [
@@ -50,9 +54,9 @@ const PLATFORMS = [
 ];
 const STATUS_COLORS: Record<string, string> = { Activo: "emerald", Pausado: "amber", Draft: "muted", Completado: "cyan" };
 const CPR_MAP: Record<string, string> = {
-  "Conversaciones": "Costo / conversaciÃ³n", "Clics al sitio": "CPC", "Seguidores": "Costo / seguidor",
+  "Conversaciones": "Costo / conversación", "Clics al sitio": "CPC", "Seguidores": "Costo / seguidor",
   "Leads": "CPL", "Ventas (Purchase)": "CPA", "Registros": "Costo / registro", "Descargas app": "CPI",
-  "Video views": "CPV", "Alcance (Reach)": "CPM", "TrÃ¡fico a tienda": "Costo / visita",
+  "Video views": "CPV", "Alcance (Reach)": "CPM", "Tráfico a tienda": "Costo / visita",
 };
 const goalLabel = (goal?: string) => {
   if (!goal) return "Resultados";
@@ -62,7 +66,7 @@ const goalLabel = (goal?: string) => {
   if (goal.includes("Registro")) return "Registros";
   return "Resultados";
 };
-// Goal â†’ Meta action_type mapping
+// Goal �  Meta action_type mapping
 const GOAL_ACTION_MAP: Record<string, string[]> = {
   "Conversaciones (WhatsApp / Messenger)": ["onsite_conversion.messaging_conversation_started_7d"],
   "Leads (Formulario Meta)": ["onsite_conversion.flow_complete", "lead", "leadgen", "leadgen_grouped", "onsite_conversion.lead_grouped", "onsite_conversion.lead", "omni_lead"],
@@ -81,7 +85,7 @@ const GOAL_ACTION_MAP: Record<string, string[]> = {
   "Video views": ["video_view"],
   "Alcance (Reach)": ["reach"],
   "Seguidores": ["page_engagement", "like"],
-  "TrÃ¡fico a tienda": ["store_visit"],
+  "Tráfico a tienda": ["store_visit"],
 };
 
 const NATIVE_OBJECTIVE_MAP: Record<string, string[]> = {
@@ -126,7 +130,7 @@ const findResultAction = (actions: any[] | undefined, goal?: string, objective?:
       const exact = actions.find((a: any) => a.action_type === t);
       if (exact) return exact;
     }
-    // Goal has explicit map but no matching action found â€” return null (0 results)
+    // Goal has explicit map but no matching action found � return null (0 results)
     // NEVER fall through to generic fallback, which would pick page_engagement/link_click
     return null;
   }
@@ -149,7 +153,7 @@ const fmtMXN0 = (n: number) => new Intl.NumberFormat('es-MX', { style: 'currency
 const fmtNum = (n: number) => new Intl.NumberFormat('es-MX').format(n);
 const pct = (n: number) => `${n.toFixed(1)}%`;
 
-/* â•â•â• HELPERS â•â•â• */
+/* �"��"��"� HELPERS �"��"��"� */
 function getDaysInCurrentMonth() { const n = new Date(); return new Date(n.getFullYear(), n.getMonth() + 1, 0).getDate(); }
 function getDaysElapsedInMonth() { return new Date().getDate(); }
 function getDaysRemainingInMonth() { return getDaysInCurrentMonth() - getDaysElapsedInMonth(); }
@@ -159,13 +163,13 @@ function getBudgetBreakdown(budget: number, period: string) {
   switch (period.toLowerCase()) {
     case "mensual": case "mes": return { daily: budget / daysInMonth, weekly: (budget / daysInMonth) * 7, monthly: budget, label: "Mensual" };
     case "semanal": case "semana": return { daily: budget / 7, weekly: budget, monthly: budget * 4.33, label: "Semanal" };
-    case "anual": case "aÃ±o": return { daily: budget / 365, weekly: budget / 52, monthly: budget / 12, label: "Anual" };
-    case "diario": case "dia": case "dÃ­a": return { daily: budget, weekly: budget * 7, monthly: budget * daysInMonth, label: "Diario" };
+    case "anual": case "año": return { daily: budget / 365, weekly: budget / 52, monthly: budget / 12, label: "Anual" };
+    case "diario": case "dia": case "día": return { daily: budget, weekly: budget * 7, monthly: budget * daysInMonth, label: "Diario" };
     default: return { daily: budget / daysInMonth, weekly: (budget / daysInMonth) * 7, monthly: budget, label: period || "Mensual" };
   }
 }
 
-/* â•â•â• SHARED UI â•â•â• */
+/* �"��"��"� SHARED UI �"��"��"� */
 const panelStyle: React.CSSProperties = {
   background: "var(--surface)",
   border: "1px solid var(--border)",
@@ -238,7 +242,7 @@ function TabButton({ active, label, icon, onClick }: { active: boolean; label: s
 function TimeToggle({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <div style={{ display: "flex", gap: 4, background: "var(--row-hover)", borderRadius: 6, padding: 3 }}>
-      {[{ k: "day", l: "DÃ­a" }, { k: "week", l: "Semana" }, { k: "month", l: "Mes" }].map(t => (
+      {[{ k: "day", l: "Día" }, { k: "week", l: "Semana" }, { k: "month", l: "Mes" }].map(t => (
         <button key={t.k} onClick={() => onChange(t.k)} style={{
           padding: "4px 12px", fontSize: 10, fontWeight: 600, borderRadius: 4, border: "none", cursor: "pointer",
           background: value === t.k ? "rgba(59,130,246,0.12)" : "transparent",
@@ -249,7 +253,7 @@ function TimeToggle({ value, onChange }: { value: string; onChange: (v: string) 
   );
 }
 
-/* â•â•â• DB â†’ Frontend Channel Mapper â•â•â• */
+/* �"��"��"� DB �  Frontend Channel Mapper �"��"��"� */
 function mapDbChannelsToConfig(dbChannels: any[]): ChannelConfig[] {
   if (!dbChannels?.length) return [];
   return dbChannels.map((ch: any) => {
@@ -267,7 +271,7 @@ function mapDbChannelsToConfig(dbChannels: any[]): ChannelConfig[] {
   });
 }
 
-/* â•â•â• MAIN PAGE â•â•â• */
+/* �"��"��"� MAIN PAGE �"��"��"� */
 export default function ProjectDashboardPage() {
   const params = useParams();
   const router = useRouter();
@@ -292,6 +296,7 @@ export default function ProjectDashboardPage() {
   const [heatMetricState, setHeatMetricState] = useState<"results" | "impressions" | "spend">("results");
   const [audienceMetric, setAudienceMetric] = useState<"spend" | "impressions" | "clicks">("impressions");
   const [editingMonth, setEditingMonth] = useState<string>("global"); // "global" or "YYYY-MM"
+  const [isWidgetBuilderOpen, setIsWidgetBuilderOpen] = useState(false);
 
   // Load project from API
   useEffect(() => {
@@ -337,7 +342,7 @@ export default function ProjectDashboardPage() {
   // Load account names + pages + integrations
   useEffect(() => {
     fetch("/api/meta/adaccounts").then(r => r.json()).then(d => {
-      if (d.data) { const n: Record<string, string> = {}; d.data.forEach((a: any) => { n[a.id] = a.name?.split(" â€” ")[0] || a.id; }); setAccountNames(n); }
+      if (d.data) { const n: Record<string, string> = {}; d.data.forEach((a: any) => { n[a.id] = a.name?.split(" � ")[0] || a.id; }); setAccountNames(n); }
     }).catch(() => {});
     Promise.all([
       fetch("/api/meta/pages?module=social").catch(() => null),
@@ -362,7 +367,7 @@ export default function ProjectDashboardPage() {
     fetch("/api/workspace/integrations").then(r => r.json()).then(d => { if (Array.isArray(d.data?.data)) setActiveIntegrations(d.data.data.filter((i: any) => i.connected)); }).catch(() => {});
   }, []);
 
-  // Load insights â€” cache-first with background revalidation
+  // Load insights � cache-first with background revalidation
   const insightsStore = useInsightsStore();
   useEffect(() => {
     if (!project || !activePlatform) return;
@@ -376,7 +381,7 @@ export default function ProjectDashboardPage() {
     const cached = insightsStore.getCached(project.id, effectivePreset, dateStart, dateEnd);
     if (cached) {
       setInsights(cached);
-      // Don't show loading for revalidation â€” data is already visible
+      // Don't show loading for revalidation � data is already visible
     } else {
       setIsLoading(true);
     }
@@ -407,7 +412,7 @@ export default function ProjectDashboardPage() {
     breakdownFetchedRef.current = {};
   }, [project, activePlatform, dateStart, dateEnd, datePreset, selectedAccountId, heatmapTimezone]);
 
-  // Load breakdowns for audience/creative tabs â€” uses same date range
+  // Load breakdowns for audience/creative tabs � uses same date range
   // KEY FIX: Aggregate across ALL ad accounts when "all" selected (not just first)
   const loadBreakdown = useCallback(async (key: string) => {
     // Skip if already fetched for this key
@@ -537,7 +542,7 @@ export default function ProjectDashboardPage() {
   let resolvedCpr = ch?.cpr || "0";
   let resolvedGoal = ch?.goal || "";
   
-  // Si estamos filtrando por un mes especÃ­fico, buscar el override
+  // Si estamos filtrando por un mes específico, buscar el override
   let viewedMonth = "";
   if (datePreset === "this_month") {
     const now = new Date();
@@ -623,6 +628,15 @@ export default function ProjectDashboardPage() {
     }).sort((a: any, b: any) => a.fullDate.localeCompare(b.fullDate));
   })();
 
+  const totalsData = {
+    spend: totalSpend,
+    results: totalResults,
+    cpr: cpr,
+    impressions: totalImpressions,
+    clicks: totalClicks,
+    reach: totalReach,
+  };
+
   // Spend table with aggregation
   const getSpendTable = () => {
     const grouped: Record<string, any> = {};
@@ -650,7 +664,7 @@ export default function ProjectDashboardPage() {
   return (
     <div className="space-y-4 page-enter">
       <svg style={{ width: 0, height: 0, position: "absolute" }}><ChartTheme /></svg>
-      {/* â”€â”€ HEADER â”€â”€ */}
+      {/* ���� HEADER ���� */}
       <div style={{
         position: "relative", zIndex: 999,
         display: "flex", alignItems: "flex-start", justifyContent: "space-between",
@@ -683,11 +697,11 @@ export default function ProjectDashboardPage() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
               {project.client && <span style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 500 }}>{project.client}</span>}
-              {project.client && project.vertical && <span style={{ fontSize: 10, color: "rgba(108,124,147,0.5)" }}>Â·</span>}
+              {project.client && project.vertical && <span style={{ fontSize: 10, color: "rgba(108,124,147,0.5)" }}>·</span>}
               {project.vertical && <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>{project.vertical}</span>}
               {project.channels.length > 0 && (
                 <>
-                  <span style={{ fontSize: 10, color: "rgba(108,124,147,0.5)" }}>Â·</span>
+                  <span style={{ fontSize: 10, color: "rgba(108,124,147,0.5)" }}>·</span>
                   {project.channels.slice(0, 3).map(c => {
                     const pl = PLATFORMS.find(x => x.id === c.platformId);
                     return (
@@ -711,11 +725,11 @@ export default function ProjectDashboardPage() {
           onCustomRange={(s: string, e: string) => { setDatePreset("custom"); setDateStart(s); setDateEnd(e); setBreakdownData({}); }} />
       </div>
 
-      {/* â”€â”€ KPIs â”€â”€ (hidden on Ads Manager tab) */}
+      {/* ���� KPIs ���� (hidden on Ads Manager tab) */}
       {activeTab !== "ads" && (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3" style={{ position: "relative" }}>
         {isLoading && <LoadingOverlay />}
-        <KpiBox title="InversiÃ³n" value={fmtMXN0(totalSpend)} sub={`de ${fmtMXN0(budgetNum)} (${bk.label})`} icon={<DollarSign style={{ width: 16, height: 16 }} />} color="amber" progress={spendProgress} />
+        <KpiBox title="Inversión" value={fmtMXN0(totalSpend)} sub={`de ${fmtMXN0(budgetNum)} (${bk.label})`} icon={<DollarSign style={{ width: 16, height: 16 }} />} color="amber" progress={spendProgress} />
         <KpiBox title="Resultados" value={fmtNum(totalResults)} sub={ch?.goal || "Objetivo"} icon={<Target style={{ width: 16, height: 16 }} />} color="emerald" progress={goalCompletion} />
         <KpiBox title="CPR" value={fmtMXN(cpr)} sub={cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Costo por resultado"} icon={<Activity style={{ width: 16, height: 16 }} />} color="cyan" />
         <KpiBox title="CTR" value={pct(ctr)} sub="Click-through rate" icon={<Eye style={{ width: 16, height: 16 }} />} color="purple" />
@@ -723,7 +737,7 @@ export default function ProjectDashboardPage() {
       </div>
       )}
 
-      {/* â”€â”€ TABS + PLATFORM SELECTOR â”€â”€ */}
+      {/* ���� TABS + PLATFORM SELECTOR ���� */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
         {/* Tabs scrollable container */}
         <div style={{ overflowX: "auto", flexShrink: 1, minWidth: 0, paddingBottom: 2 }}>
@@ -737,10 +751,10 @@ export default function ProjectDashboardPage() {
             <TabButton active={activeTab === "ads"} label="Ads Manager" icon={<Layers style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("ads")} />
 
             {!!project.website && (
-              <TabButton active={activeTab === "trafico"} label="TrÃ¡fico" icon={<Globe style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("trafico")} />
+              <TabButton active={activeTab === "trafico"} label="Tráfico" icon={<Globe style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("trafico")} />
             )}
             <TabButton active={activeTab === "historial"} label="Historial" icon={<TrendingUp style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("historial")} />
-            <TabButton active={activeTab === "config"} label="ConfiguraciÃ³n" icon={<Settings style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("config")} />
+            <TabButton active={activeTab === "config"} label="Configuración" icon={<Settings style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("config")} />
           </div>
         </div>
         {/* Platform + Account selectors */}
@@ -774,7 +788,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
         </div>
       </div>
 
-      {/* â•â•â• TAB: HISTORIAL â•â•â• */}
+      {/* �"��"��"� TAB: HISTORIAL �"��"��"� */}
       {activeTab === "historial" && (
         <ErrorBoundary name="Tab Historial">
           <div style={panelStyle}>
@@ -789,7 +803,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
             {datePreset !== "this_year" && datePreset !== "all_time" && (
               <div style={{ padding: "10px 14px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.15)", borderRadius: 6, marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
                 <Activity style={{ width: 16, height: 16, color: "var(--cyan)" }} />
-                <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Para ver un historial completo, cambia el filtro de fechas a <strong>"Este AÃ±o"</strong>.</span>
+                <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Para ver un historial completo, cambia el filtro de fechas a <strong>"Este Año"</strong>.</span>
               </div>
             )}
 
@@ -798,8 +812,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 <thead>
                   <tr style={{ border: "1px solid var(--border)" }}>
                     <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Mes</th>
-                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>InversiÃ³n Real</th>
-                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>InversiÃ³n Meta</th>
+                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Inversión Real</th>
+                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Inversión Meta</th>
                     <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>CPA Real</th>
                     <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>CPA Meta</th>
                     <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Resultados</th>
@@ -886,7 +900,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
         </ErrorBoundary>
       )}
 
-      {/* â•â•â• TAB: CONFIABILIDAD â•â•â• */}
+      {/* �" �" �"  TAB: CONFIABILIDAD �" �" �"  */}
       {activeTab === "confiabilidad" && activePlatform === "meta" && (
         <ErrorBoundary name="Tab Confiabilidad">
           <UserReliabilityModule 
@@ -899,7 +913,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
         </ErrorBoundary>
       )}
 
-      {/* â•â•â• TAB: RESUMEN â•â•â• */}
+      {/* " " "  TAB: RESUMEN " " "  */}
       {activeTab === "resumen" && activePlatform === "google" && (
         <GoogleAdsDashboard project={project} dateStart={dateStart} dateEnd={dateEnd} preset={datePreset} />
       )}
@@ -908,10 +922,54 @@ background: "var(--surface)", border: "1px solid var(--border)",
         <DashboardGrid
           layoutKey="project-resumen"
           columns={4}
+          templates={{
+            DynamicComposedChart: {
+              id: "template-composed",
+              title: "Gráfico Dinámico",
+              icon: <BarChart2 style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 2,
+              minColSpan: 2,
+              render: (w) => (
+                <DynamicComposedChartWidget
+                  timeSeriesData={timeSeriesData}
+                  config={w.config}
+                  isLoading={isLoading}
+                  fmtMXN={fmtMXN}
+                />
+              ),
+            },
+            DynamicKpiCard: {
+              id: "template-kpi",
+              title: "KPI Dinámico",
+              icon: <Target style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 1,
+              minColSpan: 1,
+              render: (w) => (
+                <DynamicKpiCardWidget
+                  totalData={totalsData}
+                  config={w.config}
+                  fmtMXN={fmtMXN}
+                />
+              ),
+            },
+          }}
+          renderToolbarActions={() => (
+            <button
+              onClick={() => setIsWidgetBuilderOpen(true)}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "6px 12px", fontSize: 11, fontWeight: 600,
+                background: "var(--brand)", color: "white",
+                border: "none", borderRadius: 4, cursor: "pointer",
+              }}
+            >
+              <Plus size={14} /> A�adir Gr�fico
+            </button>
+          )}
           widgets={[
             {
               id: "proyeccion",
-              title: "ProyecciÃ³n al Cierre",
+              title: "Proyección al Cierre",
               icon: <Target style={{ width: 13, height: 13 }} />,
               defaultColSpan: 4,
               minColSpan: 2,
@@ -936,7 +994,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
             },
             {
               id: "inversion-chart",
-              title: "InversiÃ³n vs Resultados",
+              title: "Inversión vs Resultados",
               icon: <BarChart2 style={{ width: 13, height: 13 }} />,
               defaultColSpan: 2,
               minColSpan: 2,
@@ -992,7 +1050,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
             },
             {
               id: "heatmap",
-              title: "DistribuciÃ³n por Hora y DÃ­a",
+              title: "Distribución por Hora y Día",
               icon: <Calendar style={{ width: 13, height: 13 }} />,
               defaultColSpan: 4,
               minColSpan: 3,
@@ -1081,7 +1139,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
         </ErrorBoundary>
       )}
 
-      {/* â•â•â• TAB: AUDIENCIA â•â•â• */}
+      {/* �"��"��"� TAB: AUDIENCIA �"��"��"� */}
       {activeTab === "audiencia" && (
         <ErrorBoundary name="Tab Audiencia">
         <DashboardGrid
@@ -1090,7 +1148,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
           widgets={[
             {
               id: "audiencia-header",
-              title: "Análisis de Audiencia",
+              title: "An�lisis de Audiencia",
               icon: <Users style={{ width: 13, height: 13 }} />,
               defaultColSpan: 4,
               minColSpan: 2,
@@ -1099,7 +1157,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
           {/* Loading state when no breakdowns loaded yet */}
           {Object.keys(breakdownData).length === 0 && <LoadingOverlay />}
 
-          {/* Section header â€” enriched banner */}
+          {/* Section header � enriched banner */}
           <div style={{
             ...panelStyle,
             padding: "18px 22px",
@@ -1112,10 +1170,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </div>
               <div style={{ flex: 1 }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", marginBottom: 3 }}>
-                  Â¿A quiÃ©n estÃ¡s llegando?
+                  ¿A quién estás llegando?
                 </h3>
                 <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                  DemografÃ­a, ubicaciÃ³n geogrÃ¡fica, plataformas y dispositivos â€” basado en inversiÃ³n del periodo.
+                  Demografía, ubicación geográfica, plataformas y dispositivos � basado en inversión del periodo.
                 </p>
               </div>
               <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
@@ -1129,12 +1187,12 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   }}
                 >
                   <option value="impressions">Impresiones (Alcance)</option>
-                  <option value="spend">InversiÃ³n ($)</option>
+                  <option value="spend">Inversión ($)</option>
                   <option value="clicks">Clics</option>
                 </select>
                 {[
-                  { label: "Edad/GÃ©nero", color: "var(--cyan)" },
-                  { label: "RegiÃ³n", color: "var(--amber)" },
+                  { label: "Edad/Género", color: "var(--cyan)" },
+                  { label: "Región", color: "var(--amber)" },
                   { label: "Dispositivo", color: "var(--purple)" },
                   { label: "Plataforma", color: "var(--emerald)" },
                 ].map((chip, i) => (
@@ -1150,7 +1208,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
             },
             {
               id: "audiencia-demographics",
-              title: "Demografía y Geografía",
+              title: "Demograf�a y Geograf�a",
               icon: <Globe style={{ width: 13, height: 13 }} />,
               defaultColSpan: 4,
               minColSpan: 2,
@@ -1158,10 +1216,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
-            {/* â”€â”€ Edad y GÃ©nero â”€â”€ */}
+            {/* ���� Edad y Género ���� */}
             <div style={panelStyle}>
-              <h3 style={headingStyle}><Users style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Edad y GÃ©nero</h3>
-              <p style={subStyle}>Â¿QuiÃ©nes ven tus anuncios? DistribuciÃ³n por rango de edad y gÃ©nero</p>
+              <h3 style={headingStyle}><Users style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Edad y Género</h3>
+              <p style={subStyle}>¿Quiénes ven tus anuncios? Distribución por rango de edad y género</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   // 3-state: undefined = loading, [] = empty, [...] = data
@@ -1192,7 +1250,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
                         <XAxis dataKey="age" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} />
                         <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => audienceMetric === "spend" ? `$${v}` : v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
-                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "InversiÃ³n" : audienceMetric === "impressions" ? "Impresiones" : "Clics"]} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "Inversión" : audienceMetric === "impressions" ? "Impresiones" : "Clics"]} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
                         <Bar dataKey="Mujeres" stackId="a" fill="var(--purple)" />
                         <Bar dataKey="Hombres" stackId="a" fill="var(--cyan)" radius={[3, 3, 0, 0]} barSize={12} />
@@ -1203,10 +1261,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </div>
             </div>
 
-            {/* â”€â”€ Top Regiones â”€â”€ */}
+            {/* ���� Top Regiones ���� */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Globe style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Top Regiones</h3>
-              <p style={subStyle}>Â¿De dÃ³nde vienen? Estados y ciudades con mayor alcance</p>
+              <p style={subStyle}>¿De dónde vienen? Estados y ciudades con mayor alcance</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   const raw = breakdownData["region"];
@@ -1215,14 +1273,14 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     .map((r: any) => ({ region: r.region || "?", metric: Number(r[audienceMetric]) || 0 }))
                     .sort((a: any, b: any) => b.metric - a.metric)
                     .slice(0, 8);
-                  if (!d.length) return <NoData msg="Sin datos de regiÃ³n" />;
+                  if (!d.length) return <NoData msg="Sin datos de región" />;
                   return (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
                         <XAxis type="number" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => audienceMetric === "spend" ? `$${v}` : v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
                         <YAxis type="category" dataKey="region" stroke="var(--text-secondary)" fontSize={9} tickLine={false} axisLine={false} width={90} />
-                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "InversiÃ³n" : audienceMetric === "impressions" ? "Impresiones" : "Clics"]} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "Inversión" : audienceMetric === "impressions" ? "Impresiones" : "Clics"]} />
                         <Bar dataKey="metric" fill="var(--amber)" radius={[0, 4, 4, 0]} barSize={14} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -1231,10 +1289,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </div>
             </div>
 
-            {/* â”€â”€ PaÃ­s â”€â”€ */}
+            {/* ���� País ���� */}
             <div style={panelStyle}>
-              <h3 style={headingStyle}><Globe style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />PaÃ­s</h3>
-              <p style={subStyle}>Â¿Desde quÃ© paÃ­s te ven? Ãštil para campaÃ±as multi-paÃ­s</p>
+              <h3 style={headingStyle}><Globe style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />País</h3>
+              <p style={subStyle}>¿Desde qué país te ven? �atil para campañas multi-país</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   const raw = breakdownData["country"];
@@ -1247,7 +1305,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     return acc;
                   }, {});
                   const dCountry = Object.values(aggregatedCountry).sort((a: any, b: any) => b.metric - a.metric);
-                  if (!dCountry.length) return <NoData msg="Sin datos de paÃ­s" />;
+                  if (!dCountry.length) return <NoData msg="Sin datos de país" />;
                   return (
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -1259,7 +1317,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                           {dCountry.map((_: any, i: number) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                         </Pie>
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => {
-                          return [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "InversiÃ³n" : audienceMetric === "impressions" ? "Impresiones" : "Clics"];
+                          return [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "Inversión" : audienceMetric === "impressions" ? "Impresiones" : "Clics"];
                         }} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
                       </PieChart>
@@ -1269,10 +1327,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </div>
             </div>
 
-            {/* â”€â”€ Plataforma â”€â”€ */}
+            {/* ���� Plataforma ���� */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Layers style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Plataforma</h3>
-              <p style={subStyle}>Â¿DÃ³nde ven tus anuncios? Facebook, Instagram o Audience Network</p>
+              <p style={subStyle}>¿Dónde ven tus anuncios? Facebook, Instagram o Audience Network</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   const raw = breakdownData["platform"];
@@ -1309,7 +1367,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                           {d.map((entry: any, i: number) => <Cell key={i} fill={platformColors[entry.name] || CHART_COLORS[i % CHART_COLORS.length]} />)}
                         </Pie>
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => {
-                          return [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "InversiÃ³n" : audienceMetric === "impressions" ? "Impresiones" : "Clics"];
+                          return [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "Inversión" : audienceMetric === "impressions" ? "Impresiones" : "Clics"];
                         }} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
                       </PieChart>
@@ -1319,10 +1377,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </div>
             </div>
 
-            {/* â”€â”€ Dispositivo â”€â”€ */}
+            {/* ���� Dispositivo ���� */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Monitor style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Dispositivo</h3>
-              <p style={subStyle}>Â¿Desde quÃ© dispositivo? Mobile suele dominar en campaÃ±as de Social</p>
+              <p style={subStyle}>¿Desde qué dispositivo? Mobile suele dominar en campañas de Social</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   const raw = breakdownData["device"];
@@ -1352,7 +1410,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                           {cd.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                         </Pie>
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => {
-                          if (name === "spend") return [fmtMXN(Number(v)), "InversiÃ³n"];
+                          if (name === "spend") return [fmtMXN(Number(v)), "Inversión"];
                           return [Number(v).toLocaleString(), name];
                         }} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
@@ -1365,13 +1423,13 @@ background: "var(--surface)", border: "1px solid var(--border)",
 
           </div>
 
-          {/* â”€â”€ Row 3: Placement + Hora del DÃ­a â”€â”€ */}
+          {/* ���� Row 3: Placement + Hora del Día ���� */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
-            {/* â”€â”€ Placement â”€â”€ */}
+            {/* ���� Placement ���� */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Layers style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Placement</h3>
-              <p style={subStyle}>Â¿DÃ³nde rinde mejor? Feed, Stories, Reels, Explore y mÃ¡s</p>
+              <p style={subStyle}>¿Dónde rinde mejor? Feed, Stories, Reels, Explore y más</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   const raw = breakdownData["placement"];
@@ -1380,7 +1438,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     .map((r: any) => {
                       const plat = r.publisher_platform || "";
                       const pos = r.platform_position || "";
-                      const label = pos ? `${plat.charAt(0).toUpperCase() + plat.slice(1)} â€” ${pos.replace(/_/g, " ")}` : plat;
+                      const label = pos ? `${plat.charAt(0).toUpperCase() + plat.slice(1)} � ${pos.replace(/_/g, " ")}` : plat;
                       return { placement: label, spend: Number(r.spend) || 0, impressions: Number(r.impressions) || 0, clicks: Number(r.clicks) || 0 };
                     })
                     .sort((a: any, b: any) => b.spend - a.spend)
@@ -1392,7 +1450,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
                         <XAxis type="number" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
                         <YAxis type="category" dataKey="placement" stroke="var(--text-secondary)" fontSize={8} tickLine={false} axisLine={false} width={120} />
-                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), name === "spend" ? "InversiÃ³n" : name === "impressions" ? "Impresiones" : "Clicks"]} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), name === "spend" ? "Inversión" : name === "impressions" ? "Impresiones" : "Clicks"]} />
                         <Bar dataKey="spend" fill="#9b7be8" radius={[0, 4, 4, 0]} barSize={12} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -1401,10 +1459,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </div>
             </div>
 
-            {/* â”€â”€ Hora del DÃ­a â”€â”€ */}
+            {/* ���� Hora del Día ���� */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Clock style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Rendimiento por Hora</h3>
-              <p style={subStyle}>Â¿A quÃ© hora publicar? Identifica los mejores horarios para tu audiencia</p>
+              <p style={subStyle}>¿A qué hora publicar? Identifica los mejores horarios para tu audiencia</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   const raw = breakdownData["time_of_day"];
@@ -1429,8 +1487,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
                         <XAxis dataKey="hour" stroke="var(--text-secondary)" fontSize={9} tickLine={false} axisLine={false} interval={1} />
                         <YAxis yAxisId="left" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
                         <YAxis yAxisId="right" orientation="right" stroke="rgba(148,163,184,0.65)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
-                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "InversiÃ³n" ? fmtMXN(Number(v)) : fmtNum(Number(v)), name]} />
-                        <Bar yAxisId="left" dataKey="spend" name="InversiÃ³n" fill="var(--cyan)" radius={[3, 3, 0, 0]} barSize={10} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "Inversión" ? fmtMXN(Number(v)) : fmtNum(Number(v)), name]} />
+                        <Bar yAxisId="left" dataKey="spend" name="Inversión" fill="var(--cyan)" radius={[3, 3, 0, 0]} barSize={10} />
                         <Line yAxisId="right" type="monotone" dataKey="impressions" name="Impresiones" stroke="var(--amber)" strokeWidth={2} dot={false} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
                       </ComposedChart>
@@ -1449,7 +1507,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
         </ErrorBoundary>
       )}
 
-      {/* â•â•â• TAB: CREATIVOS â•â•â• */}
+      {/* �"��"��"� TAB: CREATIVOS �"��"��"� */}
       {activeTab === "creativos" && (
         <ErrorBoundary name="Tab Creativos">
         <DashboardGrid
@@ -1458,7 +1516,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
           widgets={[
             {
               id: "creativos-analisis",
-              title: "Análisis de Creativos",
+              title: "An�lisis de Creativos",
               icon: <Palette style={{ width: 13, height: 13 }} />,
               defaultColSpan: 4,
               minColSpan: 2,
@@ -1470,14 +1528,14 @@ background: "var(--surface)", border: "1px solid var(--border)",
           <div style={{ ...panelStyle, padding: "14px 18px", background: "linear-gradient(135deg, rgba(162,93,220,0.06), rgba(253,171,61,0.04))" }}>
             <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", marginBottom: 4 }}>
               <Palette style={{ width: 15, height: 15, display: "inline", verticalAlign: "middle", marginRight: 8, color: "#9b7be8" }} />
-              AnÃ¡lisis de Creativos
+              Análisis de Creativos
             </h3>
             <p style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
-              Identifica quÃ© anuncios funcionan mejor y cuÃ¡les necesitan optimizaciÃ³n. Ordenados por eficiencia (CPR).
+              Identifica qué anuncios funcionan mejor y cuáles necesitan optimización. Ordenados por eficiencia (CPR).
             </p>
           </div>
 
-          {/* â”€â”€ TOP 3 Mejores + TOP 3 Peores â”€â”€ */}
+          {/* ���� TOP 3 Mejores + TOP 3 Peores ���� */}
           {(() => {
             const ranked = adCreatives
               .filter(a => a.spend > 0)
@@ -1503,7 +1561,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 {/* Best */}
                 <div style={panelStyle}>
                   <h3 style={headingStyle}><TrendingUp style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "var(--emerald)" }} />Top 3 Mejores Anuncios</h3>
-                  <p style={subStyle}>Menor costo por resultado â€” clic para ver preview</p>
+                  <p style={subStyle}>Menor costo por resultado � clic para ver preview</p>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginTop: 10, alignItems: "flex-start" }}>
                     {best.length > 0 ? best.map((ad) => (
                       <CreativeCard key={ad.adId} ad={ad} fmtMXN={fmtMXN} cprTarget={cprTarget} onPreview={() => setPreviewAd(ad)} />
@@ -1513,7 +1571,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 {/* Worst */}
                 <div style={panelStyle}>
                   <h3 style={headingStyle}><TrendingDown style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "var(--red)" }} />Top 3 Peores Anuncios</h3>
-                  <p style={subStyle}>Mayor gasto sin resultados o CPR mÃ¡s alto</p>
+                  <p style={subStyle}>Mayor gasto sin resultados o CPR más alto</p>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginTop: 10, alignItems: "flex-start" }}>
                     {worstByEfficiency.length > 0 ? worstByEfficiency.map((ad) => (
                       <CreativeCard key={ad.adId} ad={ad} fmtMXN={fmtMXN} cprTarget={cprTarget} onPreview={() => setPreviewAd(ad)} />
@@ -1524,10 +1582,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
             );
           })()}
 
-          {/* â”€â”€ All Ads table view â”€â”€ */}
+          {/* ���� All Ads table view ���� */}
           <div style={panelStyle}>
             <h3 style={headingStyle}>Todos los Anuncios</h3>
-            <p style={subStyle}>Ranking completo por inversiÃ³n. Haz scroll para ver mÃ¡s.</p>
+            <p style={subStyle}>Ranking completo por inversión. Haz scroll para ver más.</p>
             {adCreatives.length > 0 ? (
               <div style={{ overflowX: "auto", marginTop: 10 }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
@@ -1536,7 +1594,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                       <th style={{ padding: "8px 6px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.05em" }}>#</th>
                       <th style={{ padding: "8px 6px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Anuncio</th>
                       <th style={{ padding: "8px 6px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Estado</th>
-                      <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>InversiÃ³n</th>
+                      <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Inversión</th>
                       <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Result.</th>
                       <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>CPR</th>
                       <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>CTR</th>
@@ -1563,7 +1621,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                                   : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><Eye style={{ width: 14, height: 14, color: "var(--text-secondary)" }} /></div>
                                 }
                                 {ad.format === "video" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--surface)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}></span>}
-                                {ad.format === "carousel" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--surface)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>âŸ¡</span>}
+                                {ad.format === "carousel" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--surface)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>�x�</span>}
                               </div>
                               <span style={{ color: "var(--foreground)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.adName}</span>
                             </div>
@@ -1576,7 +1634,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                           </td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--amber)", fontWeight: 600 }}>{fmtMXN(ad.spend)}</td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--emerald)", fontWeight: 700 }}>{results}</td>
-                          <td style={{ padding: "8px 6px", textAlign: "right", color: results === 0 ? "var(--red)" : cprTarget > 0 && cprVal > cprTarget ? "var(--red)" : "var(--cyan)", fontWeight: 600 }}>{results > 0 ? fmtMXN(cprVal) : "â€”"}</td>
+                          <td style={{ padding: "8px 6px", textAlign: "right", color: results === 0 ? "var(--red)" : cprTarget > 0 && cprVal > cprTarget ? "var(--red)" : "var(--cyan)", fontWeight: 600 }}>{results > 0 ? fmtMXN(cprVal) : "�"}</td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)" }}>{ctrVal.toFixed(2)}%</td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)" }}>{fmtNum(ad.impressions || 0)}</td>
                         </tr>
@@ -1588,10 +1646,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
             ) : !creativesLoading ? <NoData msg="Sin anuncios con datos en el periodo seleccionado" /> : null}
           </div>
 
-          {/* â”€â”€ Text Analysis Panels (powered by allTitles / allBodies from DCO feed) â”€â”€ */}
+          {/* ���� Text Analysis Panels (powered by allTitles / allBodies from DCO feed) ���� */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {([
-              { arrayKey: "allTitles",  fallbackKey: "title",       label: "Mejores TÃ­tulos" },
+              { arrayKey: "allTitles",  fallbackKey: "title",       label: "Mejores Títulos" },
               { arrayKey: "allBodies",  fallbackKey: "body",        label: "Mejores Textos Principales" },
               { arrayKey: null,         fallbackKey: "description",  label: "Mejores Descripciones" },
               { arrayKey: null,         fallbackKey: "cta",          label: "Mejores CTAs" },
@@ -1612,7 +1670,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   if (!text) continue;
                   const key = normalize(text);
                   if (!grouped[key]) grouped[key] = { text: text.trim(), spend: 0, results: 0, clicks: 0, count: 0, isDCO: false };
-                  // Don't split spend across DCO variants â€” assign 100% to each
+                  // Don't split spend across DCO variants � assign 100% to each
                   // (Meta doesn't report per-variant performance)
                   grouped[key].spend += ad.spend;
                   grouped[key].results += adResults;
@@ -1632,7 +1690,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               return (
                 <div key={cfg.fallbackKey} style={panelStyle}>
                   <h3 style={headingStyle}>{cfg.label}</h3>
-                  <p style={subStyle}>Top 5 por inversiÃ³n{data.some(d => d.isDCO) ? " Â· En DCO el gasto se comparte entre variantes" : ""}</p>
+                  <p style={subStyle}>Top 5 por inversión{data.some(d => d.isDCO) ? " · En DCO el gasto se comparte entre variantes" : ""}</p>
                   {!adCreatives.length && creativesLoading
                     ? <NoData msg="Cargando..." />
                     : data.length > 0
@@ -1646,7 +1704,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                               <div style={{ display: "flex", gap: 12, marginTop: 4, flexWrap: "wrap" }}>
                                 <span style={{ fontSize: 10, color: "var(--amber)" }}>{fmtMXN(d.spend)}</span>
                                 <span style={{ fontSize: 10, color: "var(--emerald)" }}>{Math.round(d.results)} result.</span>
-                                <span style={{ fontSize: 10, color: "var(--cyan)" }}>{d.results > 0 ? fmtMXN(d.spend / d.results) : "â€”"} CPR</span>
+                                <span style={{ fontSize: 10, color: "var(--cyan)" }}>{d.results > 0 ? fmtMXN(d.spend / d.results) : "�"} CPR</span>
                                 <span style={{ fontSize: 10, color: "var(--text-secondary)" }}>{d.count} anuncios</span>
                               </div>
                             </div>
@@ -1659,13 +1717,13 @@ background: "var(--surface)", border: "1px solid var(--border)",
             })}
           </div>
 
-          {/* â”€â”€ Formato y CTR por Creativo â”€â”€ */}
+          {/* ���� Formato y CTR por Creativo ���� */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
-            {/* â”€â”€ Formato de Creativos (Imagen vs Video) â”€â”€ */}
+            {/* ���� Formato de Creativos (Imagen vs Video) ���� */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><PieIcon style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Formato de Creativos</h3>
-              <p style={subStyle}>Imagen vs Video â€” Â¿quÃ© formato te da mejores resultados?</p>
+              <p style={subStyle}>Imagen vs Video � ¿qué formato te da mejores resultados?</p>
               <div style={{ width: "100%", height: 250 }}>
                 {(() => {
                   if (!adCreatives.length && creativesLoading) return <NoData msg="Cargando..." />;
@@ -1692,7 +1750,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                           {d.map((_, i) => <Cell key={i} fill={formatColors[i % formatColors.length]} />)}
                         </Pie>
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => {
-                          if (name === "spend") return [fmtMXN(Number(v)), "InversiÃ³n"];
+                          if (name === "spend") return [fmtMXN(Number(v)), "Inversión"];
                           return [Number(v).toLocaleString(), name];
                         }} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
@@ -1719,7 +1777,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                       <div style={{ display: "flex", gap: 12, fontSize: 11 }}>
                         <span style={{ color: "var(--amber)" }}>{fmtMXN(s.spend)}</span>
                         <span style={{ color: "var(--emerald)" }}>{Math.round(s.results)} res.</span>
-                        <span style={{ color: "var(--cyan)" }}>{s.results > 0 ? fmtMXN(s.spend / s.results) : "â€”"} CPR</span>
+                        <span style={{ color: "var(--cyan)" }}>{s.results > 0 ? fmtMXN(s.spend / s.results) : "�"} CPR</span>
                       </div>
                       <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>{s.count} anuncios</p>
                     </div>
@@ -1728,7 +1786,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </div>
             </div>
 
-            {/* â”€â”€ CTR por Creativo (Top 10) â”€â”€ */}
+            {/* ���� CTR por Creativo (Top 10) ���� */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><MousePointer style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />CTR por Creativo</h3>
               <p style={subStyle}>Top 10 anuncios con mejor tasa de clics</p>
@@ -1751,7 +1809,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
                         <XAxis type="number" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v.toFixed(1)}%`} />
                         <YAxis type="category" dataKey="name" stroke="var(--text-secondary)" fontSize={8} tickLine={false} axisLine={false} width={140} />
-                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "ctr" ? `${Number(v).toFixed(2)}%` : fmtMXN(Number(v)), name === "ctr" ? "CTR" : "InversiÃ³n"]} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "ctr" ? `${Number(v).toFixed(2)}%` : fmtMXN(Number(v)), name === "ctr" ? "CTR" : "Inversión"]} />
                         <Bar dataKey="ctr" fill="var(--emerald)" radius={[0, 4, 4, 0]} barSize={12} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -1762,7 +1820,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
 
           </div>
 
-          {/* CombinaciÃ³n Ganadora */}
+          {/* Combinación Ganadora */}
           <div style={{
             ...panelStyle,
             background: "linear-gradient(135deg, rgba(253,171,61,0.06) 0%, rgba(0,0,0,0) 60%)",
@@ -1773,8 +1831,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 <Zap style={{ width: 16, height: 16, color: "var(--amber)" }} />
               </div>
               <div>
-                <h3 style={headingStyle}>CombinaciÃ³n Ganadora</h3>
-                <p style={subStyle}>CampaÃ±a y conjunto de anuncios con mejor rendimiento del periodo</p>
+                <h3 style={headingStyle}>Combinación Ganadora</h3>
+                <p style={subStyle}>Campaña y conjunto de anuncios con mejor rendimiento del periodo</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1789,7 +1847,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "var(--surface)" }} />
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                       <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}></div>
-                      <p style={{ fontSize: 9, color: "var(--amber)", fontWeight: 800, letterSpacing: "0.12em" }}>CAMPAÃ‘A GANADORA</p>
+                      <p style={{ fontSize: 9, color: "var(--amber)", fontWeight: 800, letterSpacing: "0.12em" }}>CAMPA�A GANADORA</p>
                     </div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -1800,11 +1858,11 @@ background: "var(--surface)", border: "1px solid var(--border)",
                         <span style={{ color: "var(--text-secondary)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
                       </div>
                       <div style={{ padding: "4px 10px", background: "var(--surface)", border: "1px solid rgba(253,171,61,0.2)", borderRadius: 20, fontSize: 10 }}>
-                        <span style={{ color: "var(--text-secondary)" }}>InversiÃ³n: </span><span style={{ color: "var(--amber)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
+                        <span style={{ color: "var(--text-secondary)" }}>Inversión: </span><span style={{ color: "var(--amber)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
                       </div>
                     </div>
                   </div>
-                ) : <div style={{ padding: 20, color: "var(--text-muted)", fontSize: 12, textAlign: "center", border: "1px dashed var(--border)", borderRadius: 12 }}>Sin datos de campaÃ±a</div>;
+                ) : <div style={{ padding: 20, color: "var(--text-muted)", fontSize: 12, textAlign: "center", border: "1px dashed var(--border)", borderRadius: 12 }}>Sin datos de campaña</div>;
               })()}
               {(() => {
                 const top = (insights?.adsets || []).map((a: any) => { const s = parseFloat(a.spend || "0"); const ra = findResultAction(a.actions, ch?.goal, getObjective(a, insights)); const r = ra ? parseInt(ra.value, 10) : 0; return { name: a.adset_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
@@ -1828,7 +1886,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                         <span style={{ color: "var(--text-secondary)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
                       </div>
                       <div style={{ padding: "4px 10px", background: "var(--surface)", border: "1px solid rgba(139,141,242,0.2)", borderRadius: 20, fontSize: 10 }}>
-                        <span style={{ color: "var(--text-secondary)" }}>InversiÃ³n: </span><span style={{ color: "var(--purple)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
+                        <span style={{ color: "var(--text-secondary)" }}>Inversión: </span><span style={{ color: "var(--purple)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
                       </div>
                     </div>
                   </div>
@@ -1837,7 +1895,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
             </div>
           </div>
 
-          {/* â”€â”€ Lightbox modal â”€â”€ */}
+          {/* ���� Lightbox modal ���� */}
           {previewAd && (
             <CreativeLightbox
               ad={previewAd}
@@ -1863,7 +1921,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
       )}
 
 
-      {/* â•â•â• TAB: SALUD DEL RESULTADO â•â•â• */}
+      {/* �"��"��"� TAB: SALUD DEL RESULTADO �"��"��"� */}
       {activeTab === "salud" && (
         <ErrorBoundary name="Tab Salud">
         <DashboardGrid
@@ -1899,7 +1957,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
             const trendScore = firstHalfCPR > 0 ? Math.max(0, Math.min(100, Math.round(secondHalfCPR <= firstHalfCPR ? 100 : 100 - ((secondHalfCPR / firstHalfCPR - 1) * 200)))) : 50;
 
             const healthScore = Math.round(cprScore * 0.25 + freqScore * 0.20 + ctrScore * 0.15 + convScore * 0.15 + paceScore * 0.15 + trendScore * 0.10);
-            const healthLabel = healthScore >= 80 ? "Excelente" : healthScore >= 60 ? "Buena" : healthScore >= 40 ? "En Riesgo" : "CrÃ­tica";
+            const healthLabel = healthScore >= 80 ? "Excelente" : healthScore >= 60 ? "Buena" : healthScore >= 40 ? "En Riesgo" : "Crítica";
             const healthColor = healthScore >= 80 ? "var(--emerald)" : healthScore >= 60 ? "var(--amber)" : "var(--red)";
 
             // SVG gauge params
@@ -1911,47 +1969,47 @@ background: "var(--surface)", border: "1px solid var(--border)",
               { name: "Eficiencia CPR", icon: <DollarSign style={{ width: 14, height: 14 }} />, score: cprScore, value: fmtMXN(cpr), bench: cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Sin meta", color: cprScore >= 70 ? "var(--emerald)" : cprScore >= 40 ? "var(--amber)" : "var(--red)" },
               { name: "Frecuencia", icon: <RefreshCw style={{ width: 14, height: 14 }} />, score: freqScore, value: frequency.toFixed(2), bench: "Ideal: 1.0 - 2.5", color: freqScore >= 70 ? "var(--emerald)" : freqScore >= 40 ? "var(--amber)" : "var(--red)" },
               { name: "CTR", icon: <MousePointer style={{ width: 14, height: 14 }} />, score: ctrScore, value: pct(ctr), bench: "Ideal: > 1.5%", color: ctrScore >= 70 ? "var(--emerald)" : ctrScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "Tasa ConversiÃ³n", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "var(--emerald)" : convScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Tasa Conversión", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "var(--emerald)" : convScore >= 40 ? "var(--amber)" : "var(--red)" },
               { name: "Ritmo de Gasto", icon: <TrendingUp style={{ width: 14, height: 14 }} />, score: paceScore, value: pct(spendPaceRatio * 100), bench: "Ideal: 100%", color: paceScore >= 70 ? "var(--emerald)" : paceScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "â†“" : "â†‘"} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "â€”", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--emerald)" : trendScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "� " : "� "} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "�", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--emerald)" : trendScore >= 40 ? "var(--amber)" : "var(--red)" },
             ];
 
             // Recommendations (Cross-diagnostic logic)
             const recs: { severity: string; text: string }[] = [];
             
             if (cprScore >= 80) {
-              recs.push({ severity: "success", text: `Costo por Resultado excelente (${fmtMXN(cpr)}). El embudo estÃ¡ sano y convirtiendo eficientemente. Sugerencia: Escalar presupuesto un 15-20%.` });
+              recs.push({ severity: "success", text: `Costo por Resultado excelente (${fmtMXN(cpr)}). El embudo está sano y convirtiendo eficientemente. Sugerencia: Escalar presupuesto un 15-20%.` });
             } else if (cprScore < 50 && cprTarget > 0) {
-              recs.push({ severity: "critical", text: `Costo por Resultado en riesgo (${fmtMXN(cpr)} vs meta ${fmtMXN(cprTarget)}). Costos de adquisiciÃ³n elevados.` });
+              recs.push({ severity: "critical", text: `Costo por Resultado en riesgo (${fmtMXN(cpr)} vs meta ${fmtMXN(cprTarget)}). Costos de adquisición elevados.` });
             }
 
             if (ctrScore >= 60 && convScore < 50) {
-              recs.push({ severity: "warning", text: `Fuga en Bottom-Funnel: Alto CTR (${pct(ctr)}) pero baja conversiÃ³n (${pct(conversionRate)}). El anuncio atrae pero la landing page no convence o el lead es de baja intenciÃ³n.` });
+              recs.push({ severity: "warning", text: `Fuga en Bottom-Funnel: Alto CTR (${pct(ctr)}) pero baja conversión (${pct(conversionRate)}). El anuncio atrae pero la landing page no convence o el lead es de baja intención.` });
             } else if (ctrScore < 50 && convScore >= 60) {
-              recs.push({ severity: "warning", text: `Fuga en Mid-Funnel: Baja atracciÃ³n (${pct(ctr)}) pero buena conversiÃ³n (${pct(conversionRate)}). Mejora los creativos y hooks, tu landing page funciona bien.` });
+              recs.push({ severity: "warning", text: `Fuga en Mid-Funnel: Baja atracción (${pct(ctr)}) pero buena conversión (${pct(conversionRate)}). Mejora los creativos y hooks, tu landing page funciona bien.` });
             } else if (ctrScore < 50 && convScore < 50) {
-              recs.push({ severity: "critical", text: `Fuga General: Los creativos no atraen (${pct(ctr)}) y la oferta no convierte (${pct(conversionRate)}). RevisiÃ³n total de campaÃ±a requerida.` });
+              recs.push({ severity: "critical", text: `Fuga General: Los creativos no atraen (${pct(ctr)}) y la oferta no convierte (${pct(conversionRate)}). Revisión total de campaña requerida.` });
             }
 
             if (freqScore < 50 && ctrScore < 50) {
-              recs.push({ severity: "warning", text: `Fatiga Creativa: Frecuencia alta (${frequency.toFixed(1)}) y CTR cayendo. La audiencia ya se cansÃ³ de los anuncios actuales. Rota creativos inmediatamente.` });
+              recs.push({ severity: "warning", text: `Fatiga Creativa: Frecuencia alta (${frequency.toFixed(1)}) y CTR cayendo. La audiencia ya se cansó de los anuncios actuales. Rota creativos inmediatamente.` });
             }
 
             if (paceScore < 40) {
                if (spendPaceRatio < 1) {
-                  recs.push({ severity: "warning", text: `Sub-inversiÃ³n: El gasto estÃ¡ por debajo del ritmo ideal. Revisa si las pujas son muy bajas o la audiencia muy pequeÃ±a.` });
+                  recs.push({ severity: "warning", text: `Sub-inversión: El gasto está por debajo del ritmo ideal. Revisa si las pujas son muy bajas o la audiencia muy pequeña.` });
                } else {
-                  recs.push({ severity: "warning", text: `Sobre-inversiÃ³n: El gasto estÃ¡ muy acelerado. Ajusta lÃ­mites diarios para no quedarte sin presupuesto antes de fin de mes.` });
+                  recs.push({ severity: "warning", text: `Sobre-inversión: El gasto está muy acelerado. Ajusta límites diarios para no quedarte sin presupuesto antes de fin de mes.` });
                }
             }
 
-            if (recs.length === 0) recs.push({ severity: "success", text: "Todas las mÃ©tricas estÃ¡n dentro de rangos saludables. MantÃ©n la estrategia actual y monitorea diariamente." });
+            if (recs.length === 0) recs.push({ severity: "success", text: "Todas las métricas están dentro de rangos saludables. Mantén la estrategia actual y monitorea diariamente." });
 
             const funnelSteps = [
-              { ...indicators[1], step: "1. AtracciÃ³n", desc: "Â¿A cuÃ¡ntos llegamos sin saturar?" },
-              { ...indicators[2], step: "2. InteracciÃ³n", desc: "Â¿El creativo llama la atenciÃ³n?" },
-              { ...indicators[3], step: "3. ConversiÃ³n", desc: "Â¿La oferta o pÃ¡gina convence?" },
-              { ...indicators[4], step: "4. Gasto", desc: "Â¿Estamos gastando al ritmo ideal?" },
+              { ...indicators[1], step: "1. Atracción", desc: "¿A cuántos llegamos sin saturar?" },
+              { ...indicators[2], step: "2. Interacción", desc: "¿El creativo llama la atención?" },
+              { ...indicators[3], step: "3. Conversión", desc: "¿La oferta o página convence?" },
+              { ...indicators[4], step: "4. Gasto", desc: "¿Estamos gastando al ritmo ideal?" },
             ];
 
             return (
@@ -1962,7 +2020,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   <div style={{ ...panelStyle, display: "flex", alignItems: "center", justifyContent: "space-between", padding: 20, minHeight: 140 }}>
                     <div>
                       <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 }}>Pulse Check</h3>
-                      <p style={{ fontSize: 11, color: "var(--text-secondary)" }}>Estado general de la campaÃ±a</p>
+                      <p style={{ fontSize: 11, color: "var(--text-secondary)" }}>Estado general de la campaña</p>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
                          <div style={{ width: 12, height: 12, borderRadius: "50%", background: healthColor, boxShadow: `0 0 10px ${healthColor}` }} />
                          <span style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", textTransform: "uppercase" }}>{healthLabel}</span>
@@ -1982,7 +2040,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     </div>
                   </div>
 
-                  {/* Eficiencia CPR (MÃ©trica Estrella) */}
+                  {/* Eficiencia CPR (Métrica Estrella) */}
                   <div className="lg:col-span-2" style={{ ...panelStyle, position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 30px", background: `linear-gradient(135deg, rgba(15,23,42,1) 0%, ${indicators[0].color}15 100%)`, border: `1px solid ${indicators[0].color}30` }}>
                     <div style={{ zIndex: 2 }}>
                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, color: indicators[0].color }}>
@@ -2005,11 +2063,11 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   </div>
                 </div>
 
-                {/* Fila 2: AnÃ¡lisis del Embudo (Funnel Health) */}
+                {/* Fila 2: Análisis del Embudo (Funnel Health) */}
                 <div style={panelStyle}>
                   <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
-                    <h3 style={headingStyle}>AnÃ¡lisis del Embudo de ConversiÃ³n</h3>
-                    <p style={subStyle}>DiagnÃ³stico del viaje del usuario: AtracciÃ³n, InteracciÃ³n, ConversiÃ³n y Gasto.</p>
+                    <h3 style={headingStyle}>Análisis del Embudo de Conversión</h3>
+                    <p style={subStyle}>Diagnóstico del viaje del usuario: Atracción, Interacción, Conversión y Gasto.</p>
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 0 }}>
                     {funnelSteps.map((step, i) => (
@@ -2037,12 +2095,12 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   </div>
                 </div>
 
-                {/* Fila 3: Tendencia vs DiagnÃ³stico Cruzado */}
+                {/* Fila 3: Tendencia vs Diagnóstico Cruzado */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                   {/* CPR Trend Chart */}
                   <div className="lg:col-span-2" style={panelStyle}>
                     <h3 style={headingStyle}>Tendencia de CPR vs Meta</h3>
-                    <p style={subStyle}>EvoluciÃ³n del costo por resultado a lo largo del periodo</p>
+                    <p style={subStyle}>Evolución del costo por resultado a lo largo del periodo</p>
                     <div style={{ width: "100%", height: 280 }}>
                       {tsd.length > 0 ? (
                         <ResponsiveContainer>
@@ -2067,8 +2125,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
 
                   {/* Diagnostic + Recommendations */}
                   <div style={{ ...panelStyle, display: "flex", flexDirection: "column" }}>
-                    <h3 style={headingStyle}><Shield style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: healthColor }} />Plan de AcciÃ³n Inmediato</h3>
-                    <p style={subStyle}>DiagnÃ³stico cruzado y sugerencias</p>
+                    <h3 style={headingStyle}><Shield style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: healthColor }} />Plan de Acción Inmediato</h3>
+                    <p style={subStyle}>Diagnóstico cruzado y sugerencias</p>
                     <div className="space-y-3 flex-1 overflow-y-auto pr-2">
                       {recs.map((r, i) => (
                         <div key={i} style={{ display: "flex", gap: 10, padding: "12px", background: r.severity === "critical" ? "rgba(226,68,92,0.06)" : r.severity === "warning" ? "rgba(253,171,61,0.06)" : "rgba(0,200,117,0.06)", border: `1px solid ${r.severity === "critical" ? "rgba(226,68,92,0.12)" : r.severity === "warning" ? "rgba(253,171,61,0.12)" : "rgba(0,200,117,0.12)"}`, borderRadius: 8 }}>
@@ -2092,7 +2150,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
         </ErrorBoundary>
       )}
 
-      {/* â•â•â• TAB: ADS MANAGER â•â•â• */}
+      {/* �"��"��"� TAB: ADS MANAGER �"��"��"� */}
       {activeTab === "ads" && (
         <ErrorBoundary name="Tab Ads Manager">
           {(() => {
@@ -2126,19 +2184,19 @@ background: "var(--surface)", border: "1px solid var(--border)",
 
 
 
-      {/* â•â•â• TAB: ANÃLISIS DE TRÃFICO (GA4) â•â•â• */}
+      {/* �"��"��"� TAB: ANÁLISIS DE TRÁFICO (GA4) �"��"��"� */}
       {activeTab === "trafico" && (
         <ErrorBoundary name="Tab Trafico">
           <TrafficAnalytics project={project as any} />
         </ErrorBoundary>
       )}
 
-      {/* â•â•â• TAB: CONFIGURACIÃ“N â•â•â• */}
+      {/* �"��"��"� TAB: CONFIGURACI�N �"��"��"� */}
       {activeTab === "config" && (
         <ErrorBoundary name="Tab Configuracion">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
-          {/* â”€â”€ Google Sources Panel â”€â”€ */}
+          {/* ���� Google Sources Panel ���� */}
           <div style={{ ...panelStyle, gridColumn: "1 / -1" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
               <div style={{ width: 30, height: 30, borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(66,133,244,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -2146,7 +2204,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </div>
               <div>
                 <h3 style={headingStyle}>Fuentes de Google</h3>
-                <p style={{ ...subStyle, marginBottom: 0 }}>Vincula las cuentas de Google de este cliente al proyecto para ver su rendimiento 360Â°.</p>
+                <p style={{ ...subStyle, marginBottom: 0 }}>Vincula las cuentas de Google de este cliente al proyecto para ver su rendimiento 360°.</p>
               </div>
             </div>
             <GoogleSourcesPanel projectId={project.id} />
@@ -2158,7 +2216,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 <div style={{ width: 30, height: 30, borderRadius: 8, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Settings style={{ width: 14, height: 14, color: "var(--cyan)" }} />
                 </div>
-                <h3 style={headingStyle}>InformaciÃ³n General</h3>
+                <h3 style={headingStyle}>Información General</h3>
               </div>
               {!isEditing ? (
                 <button onClick={() => setIsEditing(true)} style={{
@@ -2257,7 +2315,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
           <div style={panelStyle}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
               <div>
-                <h3 style={headingStyle}>ConfiguraciÃ³n de Canales</h3>
+                <h3 style={headingStyle}>Configuración de Canales</h3>
                 <p style={subStyle}>{project.channels.length} canales configurados</p>
               </div>
               <select 
@@ -2316,7 +2374,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                         }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(59,130,246,0.15)", color: "var(--foreground)", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} />
                       </div>
                       <div>
-                        <p style={labelStyle}>PerÃ­odo {isGlobal ? "" : "(Global)"}</p>
+                        <p style={labelStyle}>Período {isGlobal ? "" : "(Global)"}</p>
                         <select value={editForm.channels?.[i]?.period || c.period} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], period: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} disabled={!isGlobal} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--foreground)", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: isGlobal ? "pointer" : "not-allowed", opacity: isGlobal ? 1 : 0.6 }}><option value="Diario">Diario</option><option value="Semanal">Semanal</option><option value="Mensual">Mensual</option><option value="Anual">Anual</option></select>
                       </div>
                       <div>
@@ -2359,10 +2417,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-y-3 gap-x-6" style={{ fontSize: 12 }}>
-                      <div><span style={{ color: "var(--text-secondary)" }}>Presupuesto:</span> <span style={{ color: "var(--foreground)", fontWeight: 600 }}>{currentBudget || "â€”"}</span></div>
-                      <div><span style={{ color: "var(--text-secondary)" }}>PerÃ­odo:</span> <span style={{ color: "var(--foreground)" }}>{c.period || "â€”"}</span></div>
-                      <div><span style={{ color: "var(--text-secondary)" }}>Objetivo:</span> <span style={{ color: "var(--emerald)", fontWeight: 600 }}>{currentGoal || "â€”"}</span></div>
-                      <div><span style={{ color: "var(--text-secondary)" }}>CPR Meta:</span> <span style={{ color: "var(--cyan)", fontWeight: 600 }}>{currentCpr || "â€”"}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>Presupuesto:</span> <span style={{ color: "var(--foreground)", fontWeight: 600 }}>{currentBudget || "�"}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>Período:</span> <span style={{ color: "var(--foreground)" }}>{c.period || "�"}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>Objetivo:</span> <span style={{ color: "var(--emerald)", fontWeight: 600 }}>{currentGoal || "�"}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>CPR Meta:</span> <span style={{ color: "var(--cyan)", fontWeight: 600 }}>{currentCpr || "�"}</span></div>
                       <div><span style={{ color: "var(--text-secondary)" }}>Diario ideal:</span> <span style={{ color: "var(--foreground)" }}>{fmtMXN(bk2.daily)}</span></div>
                       <div><span style={{ color: "var(--text-secondary)" }}>Cuentas:</span> <span style={{ color: "var(--foreground)" }}>{c.adAccounts?.length || 0}</span></div>
                     </div>
@@ -2373,6 +2431,30 @@ background: "var(--surface)", border: "1px solid var(--border)",
           </div>
         </div>
         </ErrorBoundary>
+      )}
+
+      {isWidgetBuilderOpen && (
+        <WidgetBuilderModal
+          onClose={() => setIsWidgetBuilderOpen(false)}
+          onAdd={(type, config, colSpan) => {
+            useDashboardLayoutStore.getState().addWidget("project-resumen", {
+              id: `widget-${Date.now()}`,
+              type,
+              config,
+              colSpan,
+              collapsed: false,
+            });
+            setIsWidgetBuilderOpen(false);
+          }}
+          availableMetrics={[
+            { key: "spend", label: "Inversi�n", type: "currency" },
+            { key: "results", label: "Resultados", type: "number" },
+            { key: "cpr", label: "CPA", type: "currency" },
+            { key: "impressions", label: "Impresiones", type: "number" },
+            { key: "clicks", label: "Clics", type: "number" },
+            { key: "reach", label: "Alcance", type: "number" },
+          ]}
+        />
       )}
     </div>
   );

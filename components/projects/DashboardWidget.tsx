@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, ChevronDown, ChevronUp, Maximize2, Minimize2 } from "lucide-react";
+import { GripVertical, ChevronDown, ChevronUp, Maximize2, Minimize2, Trash2 } from "lucide-react";
 
 export interface DashboardWidgetProps {
   id: string;
@@ -16,6 +16,7 @@ export interface DashboardWidgetProps {
   children: React.ReactNode;
   onToggleCollapse?: () => void;
   onResize?: (newColSpan: number) => void;
+  onRemove?: () => void;
   /** Total grid columns (default 4) */
   gridColumns?: number;
 }
@@ -31,6 +32,7 @@ export function DashboardWidget({
   children,
   onToggleCollapse,
   onResize,
+  onRemove,
   gridColumns = 4,
 }: DashboardWidgetProps) {
   const {
@@ -144,6 +146,17 @@ export function DashboardWidget({
               <ChevronUp style={{ width: 12, height: 12 }} />
             )}
           </button>
+
+          {/* Remove button */}
+          {onRemove && (
+            <button
+              className="dashboard-widget__action-btn dashboard-widget__action-btn--danger"
+              onClick={onRemove}
+              title="Eliminar gráfico"
+            >
+              <Trash2 style={{ width: 12, height: 12 }} />
+            </button>
+          )}
         </div>
       </div>
 

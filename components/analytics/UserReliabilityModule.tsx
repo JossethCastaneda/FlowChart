@@ -393,6 +393,11 @@ export function UserReliabilityModule({
         <div style={headStyle}>
           <MapPin style={{ width: 15, height: 15, color: "#8b5cf6" }} />
           Ranking Regional
+          {data.regions.some((r: any) => r.metrics.isEstimated) && (
+            <span style={{ fontSize: 10, color: "var(--amber)", fontWeight: 500, marginLeft: 4 }}>
+              — *Resultados estimados heurísticamente por privacidad de Meta
+            </span>
+          )}
         </div>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", textAlign: "left", borderCollapse: "collapse", fontSize: 12 }}>
@@ -418,7 +423,10 @@ export function UserReliabilityModule({
                     </td>
                     <td style={{ padding: "10px 12px", fontWeight: 600, color: "var(--foreground)" }}>{r.region}</td>
                     <td style={{ padding: "10px 12px", color: "var(--text-secondary)" }}>{fmtNum(r.metrics.linkClicks > 0 ? r.metrics.linkClicks : r.metrics.totalClicks)}{r.metrics.linkClicks === 0 && <span title="Sin datos de link clicks; mostrando clics totales" style={{ color: "var(--text-muted)", fontSize: 9, marginLeft: 3 }}>*</span>}</td>
-                    <td style={{ padding: "10px 12px", color: "#10b981", fontWeight: 600 }}>{fmtNum(r.metrics.goalResults)}</td>
+                    <td style={{ padding: "10px 12px", color: "#10b981", fontWeight: 600 }}>
+                      {r.metrics.isEstimated && <span style={{ color: "var(--amber)", marginRight: 2 }} title="Estimado">*</span>}
+                      {fmtNum(r.metrics.goalResults)}
+                    </td>
                     <td style={{ padding: "10px 12px", color: r.metrics.cvr >= 15 ? "#10b981" : r.metrics.cvr >= 5 ? "var(--amber)" : "#ef4444", fontWeight: 700 }}>
                       {r.metrics.cvr}%
                     </td>

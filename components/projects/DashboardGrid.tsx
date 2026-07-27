@@ -35,29 +35,35 @@ export interface WidgetDefinition {
   minColSpan?: number;
   /** Maximum allowed column span */
   maxColSpan?: number;
-  /** Content render function — receives current layout state */
-  render: () => React.ReactNode;
+  /** Content render function — receives current layout config if dynamic */
+  render: (config?: any) => React.ReactNode;
 }
 
 interface DashboardGridProps {
   /** Unique key for layout persistence (e.g., "project-resumen") */
   layoutKey: string;
-  /** Widget definitions */
+  /** Widget definitions (static/defaults) */
   widgets: WidgetDefinition[];
+  /** Templates for dynamic widgets */
+  templates?: Record<string, WidgetDefinition>;
   /** Number of grid columns (default 4) */
   columns?: number;
   /** Show reset button */
   showReset?: boolean;
+  /** Custom actions in the toolbar */
+  renderToolbarActions?: () => React.ReactNode;
 }
 
 /* ═══ COMPONENT ═══ */
 export function DashboardGrid({
   layoutKey,
   widgets,
+  templates,
   columns = 4,
   showReset = true,
+  renderToolbarActions,
 }: DashboardGridProps) {
-  const { getLayout, setLayout, updateWidget, reorderWidgets, resetLayout } =
+  const { getLayout, setLayout, updateWidget, removeWidget, reorderWidgets, resetLayout } =
     useDashboardLayoutStore();
 
   /* ── Build default layout from widget definitions ── */
@@ -159,19 +165,22 @@ export function DashboardGrid({
 
   return (
     <div className="dashboard-grid-container">
-      {/* Reset button */}
-      {showReset && hasStoredLayout && (
-        <div className="dashboard-grid-toolbar">
-          <button
-            className="dashboard-grid-reset-btn"
-            onClick={handleReset}
-            title="Restaurar layout por defecto"
-          >
-            <RotateCcw style={{ width: 12, height: 12 }} />
-            <span>Reset Layout</span>
-          </button>
+      {/* Toolbar */}
+      {(showReset && hasStoredLayout) || renderToolbarActions ? (
+        <div className="dashboard-grid-toolbar" style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginBottom: 12 }}>
+          {renderToolbarActions?.()}
+          {showReset && hasStoredLayout && (
+            <button
+              className="dashboard-grid-reset-btn"
+              onClick={handleReset}
+              title="Restaurar layout por defecto"
+            >
+              <RotateCcw style={{ width: 12, height: 12 }} />
+              <span>Reset Layout</span>
+            </button>
+          )}
         </div>
-      )}
+      ) : null}
 
       <DndContext
         sensors={sensors}
@@ -187,13 +196,18 @@ export function DashboardGrid({
             }}
           >
             {layout.map((wl) => {
-              const def = widgetMap.get(wl.id);
+              // Si tiene type, es un widget dinámico; si no, es uno estático (legacy)
+              const def = wl.type && templates ? templates[wl.type] : widgetMap.get(wl.id);
               if (!def) return null;
+              
+              // El título puede venir de la configuración del widget o del default de la plantilla
+              const title = wl.config?.title || def.title;
+              
               return (
                 <DashboardWidget
                   key={wl.id}
                   id={wl.id}
-                  title={def.title}
+                  title={title}
                   icon={def.icon}
                   colSpan={wl.colSpan}
                   collapsed={wl.collapsed}
@@ -202,8 +216,9 @@ export function DashboardGrid({
                   gridColumns={columns}
                   onResize={(newSpan) => handleResize(wl.id, newSpan)}
                   onToggleCollapse={() => handleToggleCollapse(wl.id)}
+                  onRemove={() => removeWidget(layoutKey, wl.id)}
                 >
-                  {def.render()}
+                  {def.render(wl.config)}
                 </DashboardWidget>
               );
             })}

@@ -6,6 +6,10 @@ import { create } from "zustand";
 export interface WidgetLayout {
   /** Unique widget identifier */
   id: string;
+  /** Widget template type (for dynamic widgets) */
+  type?: string;
+  /** Custom configuration for the widget (metrics, title, etc) */
+  config?: any;
   /** Column span (1-4 on a 4-column grid) */
   colSpan: number;
   /** Sort order */
@@ -28,8 +32,14 @@ interface DashboardLayoutState {
   updateWidget: (
     tabKey: string,
     widgetId: string,
-    updates: Partial<Pick<WidgetLayout, "colSpan" | "collapsed">>
+    updates: Partial<Pick<WidgetLayout, "colSpan" | "collapsed" | "config">>
   ) => void;
+
+  /** Add a new widget to the layout */
+  addWidget: (tabKey: string, widget: Omit<WidgetLayout, "order">) => void;
+
+  /** Remove a widget from the layout */
+  removeWidget: (tabKey: string, widgetId: string) => void;
 
   /** Reorder widgets after a drag-and-drop */
   reorderWidgets: (tabKey: string, activeId: string, overId: string) => void;
@@ -104,6 +114,26 @@ export const useDashboardLayoutStore = create<DashboardLayoutState>(
         w.id === widgetId ? { ...w, ...updates } : w
       );
       const layouts = { ...get().layouts, [tabKey]: updated };
+      set({ layouts });
+      saveToStorage(layouts);
+    },
+
+    addWidget(tabKey, widget) {
+      const current = get().layouts[tabKey] || [];
+      const maxOrder = current.reduce((m, w) => Math.max(m, w.order), -1);
+      const newWidget: WidgetLayout = { ...widget, order: maxOrder + 1 };
+      const layouts = { ...get().layouts, [tabKey]: [...current, newWidget] };
+      set({ layouts });
+      saveToStorage(layouts);
+    },
+
+    removeWidget(tabKey, widgetId) {
+      const current = get().layouts[tabKey];
+      if (!current) return;
+      const filtered = current.filter((w) => w.id !== widgetId);
+      // Re-assign orders
+      const withOrder = filtered.map((w, i) => ({ ...w, order: i }));
+      const layouts = { ...get().layouts, [tabKey]: withOrder };
       set({ layouts });
       saveToStorage(layouts);
     },

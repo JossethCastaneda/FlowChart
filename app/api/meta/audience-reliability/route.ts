@@ -276,12 +276,15 @@ export async function GET(req: NextRequest) {
     const placementUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?level=ad&breakdowns=publisher_platform,platform_position&fields=${placementFields}${timeRange.replace(/^&/, "?")}&limit=500`;
 
     // ── Fetch all in parallel ────────────────────────────────────────
-    const [demoRes, regionRes, countryRes, deviceRes, placementRes] = await Promise.all([
+    const globalUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?level=account&fields=${INSIGHTS_FIELDS}${timeRange.replace(/^&/, "?")}`;
+
+    const [demoRes, regionRes, countryRes, deviceRes, placementRes, globalRes] = await Promise.all([
       metaFetch(demoUrl, token),
       metaFetch(regionUrl, token),
       metaFetch(countryUrl, token),
       metaFetch(deviceUrl, token),
       metaFetch(placementUrl, token),
+      metaFetch(globalUrl, token),
     ]);
 
     const parseInsights = async (res: Response) => {
@@ -295,6 +298,13 @@ export async function GET(req: NextRequest) {
     const rawCountry = await parseInsights(countryRes);
     const rawDevice = await parseInsights(deviceRes);
     const rawPlacement = await parseInsights(placementRes);
+    const rawGlobal = await parseInsights(globalRes);
+
+    // Extract total true results from the account-level query
+    let globalResults = 0;
+    if (rawGlobal.length > 0) {
+      globalResults = findGoalResults(rawGlobal[0].actions, goal);
+    }
 
     // ── Process data with ICU scoring ────────────────────────────────
     const processWithActions = (data: any[], keyFields: string[]) => {
@@ -328,6 +338,26 @@ export async function GET(req: NextRequest) {
         grouped[key].goalResults += findGoalResults(item.actions, goal);
       });
 
+      // Zefirus Heuristic Estimation Algorithm:
+      // If Meta hides conversions for demographic/regional breakdowns (due to privacy), 
+      // the sum of regional results will be significantly lower than the global total.
+      // We distribute the missing results proportional to the Spend of each region.
+      let totalSegmentResults = 0;
+      let totalSegmentSpend = 0;
+      Object.values(grouped).forEach((g: any) => {
+        totalSegmentResults += g.goalResults;
+        totalSegmentSpend += g.spend;
+      });
+
+      const isEstimated = globalResults > 0 && totalSegmentResults < (globalResults * 0.9);
+
+      if (isEstimated && totalSegmentSpend > 0) {
+        Object.values(grouped).forEach((g: any) => {
+          const spendShare = g.spend / totalSegmentSpend;
+          g.goalResults = Math.round(globalResults * spendShare);
+        });
+      }
+
       return Object.values(grouped)
         .map((g: any) => {
           // effectiveLinkClicks is used ONLY for ICU scoring —
@@ -359,6 +389,7 @@ export async function GET(req: NextRequest) {
               reliabilityScore: icu.score,
               reliabilityLabel: icu.label,
               reliabilityColor: icu.labelColor,
+              isEstimated,
             },
           };
         })
