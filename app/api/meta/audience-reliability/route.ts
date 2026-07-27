@@ -16,7 +16,7 @@ import { logger } from "@/lib/logger";
 const GOAL_ACTION_MAP: Record<string, string[]> = {
   // Explícitas
   "Conversaciones (WhatsApp / Messenger)": ["onsite_conversion.messaging_conversation_started_7d"],
-  "Leads (Formulario Meta)": ["onsite_conversion.flow_complete", "lead", "leadgen", "leadgen_grouped", "onsite_conversion.lead_grouped", "onsite_conversion.lead", "omni_lead"],
+  "Leads (Formulario Meta)": ["leadgen_grouped", "leadgen", "onsite_conversion.flow_complete", "onsite_conversion.lead_grouped", "onsite_conversion.lead", "lead", "omni_lead"],
   "Leads (Sitio Web / Pixel)": ["offsite_conversion.fb_pixel_lead", "lead", "omni_lead"],
   "Leads (Todas las fuentes)": ["onsite_conversion.flow_complete", "lead", "leadgen", "leadgen_grouped", "omni_lead", "offsite_conversion.fb_pixel_lead", "onsite_conversion.lead_grouped", "onsite_conversion.lead"],
   "Ventas (Sitio Web)": ["offsite_conversion.fb_pixel_purchase"],
@@ -164,6 +164,9 @@ function findGoalResults(actions: any[] | undefined, goal: string): number {
       const found = actions.find((a: any) => a.action_type === t);
       if (found) return parseInt(found.value || "0", 10);
     }
+    // Goal has explicit map but no matching action found — return 0
+    // NEVER fall through to generic fallback, which would pick link_click
+    return 0;
   }
 
   // Fallback: try common action types
