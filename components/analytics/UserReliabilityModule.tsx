@@ -125,7 +125,8 @@ export function UserReliabilityModule({
         <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
           <span style={{ color: "var(--cyan)" }}>Score: {m.reliabilityScore}</span>
           <span style={{ color: "#10b981" }}>CVR: {m.cvr}%</span>
-          <span style={{ color: "var(--text-secondary)" }}>Link Clicks: {fmtNum(m.linkClicks)}</span>
+          <span style={{ color: "var(--text-secondary)" }}>Link Clicks: {fmtNum(m.linkClicks > 0 ? m.linkClicks : m.totalClicks)}</span>
+          <span style={{ color: "var(--text-secondary)" }}>Clics Totales: {fmtNum(m.totalClicks)}</span>
           <span style={{ color: "var(--text-secondary)" }}>{config.goalLabel}: {fmtNum(m.goalResults)}</span>
           <span style={{ color: "var(--text-secondary)" }}>CPA: {fmtMXN(m.cpa)}</span>
           <span style={{ color: "var(--amber)" }}>Intención: {m.intentionRate}%</span>
@@ -193,7 +194,7 @@ export function UserReliabilityModule({
           {[
             { label: "Impresiones", value: fmtNum(summary.impressions), icon: <Globe style={{ width: 14, height: 14 }} />, color: "var(--text-muted)" },
             { label: "Clics Totales", value: fmtNum(summary.totalClicks), icon: <Crosshair style={{ width: 14, height: 14 }} />, color: "var(--cyan)" },
-            { label: "Clics en Enlace", value: fmtNum(summary.linkClicks), icon: <Crosshair style={{ width: 14, height: 14 }} />, color: "#3b82f6" },
+            { label: "Clics en Enlace", value: summary.linkClicks > 0 ? fmtNum(summary.linkClicks) : "—", icon: <Crosshair style={{ width: 14, height: 14 }} />, color: "#3b82f6" },
             { label: config.goalLabel, value: fmtNum(summary.goalResults), icon: <ShieldCheck style={{ width: 14, height: 14 }} />, color: "#10b981" },
             { label: "Clics Desperdiciados", value: `${pct(summary.wastedClicksPct)}`, icon: <TrendingDown style={{ width: 14, height: 14 }} />, color: "#ef4444" },
             { label: "CPA Global", value: fmtMXN(summary.globalCPA), icon: <TrendingDown style={{ width: 14, height: 14 }} />, color: "var(--amber)" },
@@ -323,7 +324,7 @@ export function UserReliabilityModule({
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={data.devices.slice(0, 6).map((d: any) => ({ name: d.impression_device, value: d.metrics.reliabilityScore, ...d }))}
+                 data={data.devices.slice(0, 6).map((d: any) => ({ name: d.impression_device, value: d.metrics.goalResults > 0 ? d.metrics.goalResults : d.metrics.totalClicks, ...d }))}
                   cx="50%" cy="50%"
                   innerRadius={55} outerRadius={85}
                   paddingAngle={4} dataKey="value" nameKey="name"
@@ -416,7 +417,7 @@ export function UserReliabilityModule({
                       {i + 1}
                     </td>
                     <td style={{ padding: "10px 12px", fontWeight: 600, color: "var(--foreground)" }}>{r.region}</td>
-                    <td style={{ padding: "10px 12px", color: "var(--text-secondary)" }}>{fmtNum(r.metrics.linkClicks)}</td>
+                    <td style={{ padding: "10px 12px", color: "var(--text-secondary)" }}>{fmtNum(r.metrics.linkClicks > 0 ? r.metrics.linkClicks : r.metrics.totalClicks)}{r.metrics.linkClicks === 0 && <span title="Sin datos de link clicks; mostrando clics totales" style={{ color: "var(--text-muted)", fontSize: 9, marginLeft: 3 }}>*</span>}</td>
                     <td style={{ padding: "10px 12px", color: "#10b981", fontWeight: 600 }}>{fmtNum(r.metrics.goalResults)}</td>
                     <td style={{ padding: "10px 12px", color: r.metrics.cvr >= 15 ? "#10b981" : r.metrics.cvr >= 5 ? "var(--amber)" : "#ef4444", fontWeight: 700 }}>
                       {r.metrics.cvr}%

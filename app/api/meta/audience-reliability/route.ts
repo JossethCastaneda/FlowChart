@@ -244,7 +244,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    if (cache && Date.now() - new Date(cache.updatedAt).getTime() < 12 * 60 * 60 * 1000) {
+    if (cache && Date.now() - new Date(cache.updatedAt).getTime() < 2 * 60 * 60 * 1000) {
       return NextResponse.json(cache.data);
     }
 
@@ -310,23 +310,27 @@ export async function GET(req: NextRequest) {
             }, {}),
             spend: 0,
             impressions: 0,
+            reach: 0,
             totalClicks: 0,
-            linkClicks: 0,
+            rawLinkClicks: 0,
             goalResults: 0,
           };
         }
 
         grouped[key].spend += parseFloat(item.spend || "0");
         grouped[key].impressions += parseInt(item.impressions || "0", 10);
+        grouped[key].reach += parseInt(item.reach || "0", 10);
         grouped[key].totalClicks += parseInt(item.clicks || "0", 10);
-        grouped[key].linkClicks += findLinkClicks(item.actions, 0);
+        grouped[key].rawLinkClicks += findLinkClicks(item.actions, 0);
         grouped[key].goalResults += findGoalResults(item.actions, goal);
       });
 
       return Object.values(grouped)
         .map((g: any) => {
-          // If no link_clicks found in actions, fallback to total clicks
-          const effectiveLinkClicks = g.linkClicks > 0 ? g.linkClicks : g.totalClicks;
+          // effectiveLinkClicks is used ONLY for ICU scoring —
+          // when there are no link_click actions we fall back to totalClicks
+          // so the algorithm can still produce a score.
+          const effectiveLinkClicks = g.rawLinkClicks > 0 ? g.rawLinkClicks : g.totalClicks;
 
           const icu = calculateICU(
             g.spend,
@@ -341,8 +345,10 @@ export async function GET(req: NextRequest) {
             metrics: {
               spend: Math.round(g.spend * 100) / 100,
               impressions: g.impressions,
+              reach: g.reach,
               totalClicks: g.totalClicks,
-              linkClicks: effectiveLinkClicks,
+              // linkClicks = real link clicks from actions (0 if Meta didn't report them)
+              linkClicks: g.rawLinkClicks,
               goalResults: g.goalResults,
               cvr: icu.cvr,
               intentionRate: icu.intentionRate,
@@ -421,6 +427,7 @@ export async function GET(req: NextRequest) {
       goalResults: 0,
       spend: 0,
       impressions: 0,
+      reach: 0,
     };
     demographics.forEach((d: any) => {
       globalTotals.totalClicks += d.metrics.totalClicks;
@@ -428,12 +435,15 @@ export async function GET(req: NextRequest) {
       globalTotals.goalResults += d.metrics.goalResults;
       globalTotals.spend += d.metrics.spend;
       globalTotals.impressions += d.metrics.impressions;
+      globalTotals.reach += d.metrics.reach || 0;
     });
 
+    // For global ICU: if real link clicks exist, use them; otherwise fall back to totalClicks
+    const globalEffectiveLinks = globalTotals.linkClicks > 0 ? globalTotals.linkClicks : globalTotals.totalClicks;
     const globalICU = calculateICU(
       globalTotals.spend,
       globalTotals.totalClicks,
-      globalTotals.linkClicks,
+      globalEffectiveLinks,
       globalTotals.goalResults,
       cprTarget
     );
@@ -486,6 +496,7 @@ export async function GET(req: NextRequest) {
       },
       summary: {
         impressions: globalTotals.impressions,
+        reach: globalTotals.reach,
         totalClicks: globalTotals.totalClicks,
         linkClicks: globalTotals.linkClicks,
         goalResults: globalTotals.goalResults,
@@ -496,12 +507,14 @@ export async function GET(req: NextRequest) {
         globalScore: globalICU.score,
         globalLabel: globalICU.label,
         globalColor: globalICU.labelColor,
-        wastedClicks: globalTotals.linkClicks - globalTotals.goalResults,
+        // wastedClicks: link clicks that did NOT convert
+        // Use real linkClicks when available, otherwise totalClicks
+        wastedClicks: globalEffectiveLinks - globalTotals.goalResults,
         wastedClicksPct:
-          globalTotals.linkClicks > 0
+          globalEffectiveLinks > 0
             ? Math.round(
-                ((globalTotals.linkClicks - globalTotals.goalResults) /
-                  globalTotals.linkClicks) *
+                ((globalEffectiveLinks - globalTotals.goalResults) /
+                  globalEffectiveLinks) *
                   10000
               ) / 100
             : 0,
