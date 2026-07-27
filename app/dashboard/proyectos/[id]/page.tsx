@@ -921,14 +921,14 @@ background: "var(--surface)", border: "1px solid var(--border)",
         <ErrorBoundary name="Tab Resumen">
         <DashboardGrid
           layoutKey="project-resumen"
-          columns={4}
+          columns={12}
           templates={{
             DynamicComposedChart: {
               id: "template-composed",
               title: "Gráfico Dinámico",
               icon: <BarChart2 style={{ width: 13, height: 13 }} />,
-              defaultColSpan: 2,
-              minColSpan: 1,
+              defaultColSpan: 6,
+              minColSpan: 3,
               render: (w) => (
                 <DynamicComposedChartWidget
                   timeSeriesData={timeSeriesData}
@@ -942,8 +942,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
               id: "template-kpi",
               title: "KPI Dinámico",
               icon: <Target style={{ width: 13, height: 13 }} />,
-              defaultColSpan: 1,
-              minColSpan: 1,
+              defaultColSpan: 3,
+              minColSpan: 3,
               render: (w) => (
                 <DynamicKpiCardWidget
                   totalData={totalsData}
@@ -971,8 +971,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
               id: "proyeccion",
               title: "Proyección al Cierre",
               icon: <Target style={{ width: 13, height: 13 }} />,
-              defaultColSpan: 4,
-              minColSpan: 1,
+              defaultColSpan: 12,
+              minColSpan: 3,
               render: () => (
                 <ProyeccionWidget
                   budgetNum={budgetNum} cprTarget={cprTarget} bk={bk}
@@ -996,8 +996,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
               id: "inversion-chart",
               title: "Inversión vs Resultados",
               icon: <BarChart2 style={{ width: 13, height: 13 }} />,
-              defaultColSpan: 2,
-              minColSpan: 1,
+              defaultColSpan: 6,
+              minColSpan: 3,
               render: () => (
                 <InversionChartWidget
                   timeSeriesData={timeSeriesData}
@@ -1010,8 +1010,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
               id: "ctr-cpc-chart",
               title: "CTR vs CPC",
               icon: <Activity style={{ width: 13, height: 13 }} />,
-              defaultColSpan: 2,
-              minColSpan: 1,
+              defaultColSpan: 6,
+              minColSpan: 3,
               render: () => (
                 <CtrCpcChartWidget
                   timeSeriesData={timeSeriesData}
@@ -1024,8 +1024,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
               id: "cuentas",
               title: "Cuentas Vinculadas",
               icon: <Link style={{ width: 13, height: 13 }} />,
-              defaultColSpan: 2,
-              minColSpan: 1,
+              defaultColSpan: 6,
+              minColSpan: 3,
               render: () => (
                 <CuentasWidget
                   ch={ch}
@@ -1037,8 +1037,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
               id: "presupuesto",
               title: "Presupuesto",
               icon: <DollarSign style={{ width: 13, height: 13 }} />,
-              defaultColSpan: 2,
-              minColSpan: 1,
+              defaultColSpan: 6,
+              minColSpan: 3,
               render: () => (
                 <PresupuestoWidget
                   bk={bk} budgetNum={budgetNum}
@@ -1052,8 +1052,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
               id: "heatmap",
               title: "Distribución por Hora y Día",
               icon: <Calendar style={{ width: 13, height: 13 }} />,
-              defaultColSpan: 4,
-              minColSpan: 1,
+              defaultColSpan: 12,
+              minColSpan: 3,
               render: () => (
                 <HeatmapWidget
                   breakdownData={breakdownData}
@@ -1079,14 +1079,14 @@ background: "var(--surface)", border: "1px solid var(--border)",
         <ErrorBoundary name="Tab Gasto">
         <DashboardGrid
           layoutKey="project-gasto"
-          columns={4}
+          columns={12}
           widgets={[
             {
               id: "alertas-gasto",
               title: "Alertas de Gasto",
               icon: <AlertTriangle style={{ width: 13, height: 13 }} />,
-              defaultColSpan: 4,
-              minColSpan: 1,
+              defaultColSpan: 12,
+              minColSpan: 3,
               render: () => (
                 <AlertasGastoWidget
                   timeSeriesData={timeSeriesData} bk={bk}
@@ -1101,8 +1101,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
               id: "budget-cards",
               title: "Resumen de Presupuesto",
               icon: <CreditCard style={{ width: 13, height: 13 }} />,
-              defaultColSpan: 4,
-              minColSpan: 1,
+              defaultColSpan: 12,
+              minColSpan: 3,
               render: () => (
                 <BudgetCardsWidget
                   bk={bk} totalSpend={totalSpend}
@@ -1119,8 +1119,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
               id: "desglose-gasto",
               title: "Tabla de Gasto",
               icon: <BarChart2 style={{ width: 13, height: 13 }} />,
-              defaultColSpan: 4,
-              minColSpan: 1,
+              defaultColSpan: 12,
+              minColSpan: 3,
               render: () => (
                 <GastoSpendTableInline
                   panelStyle={panelStyle} headingStyle={headingStyle} subStyle={subStyle} labelStyle={labelStyle}
@@ -1144,14 +1144,14 @@ background: "var(--surface)", border: "1px solid var(--border)",
         <ErrorBoundary name="Tab Audiencia">
         <DashboardGrid
           layoutKey="project-audiencia"
-          columns={4}
+          columns={12}
           widgets={[
             {
               id: "audiencia-header",
               title: "An�lisis de Audiencia",
               icon: <Users style={{ width: 13, height: 13 }} />,
-              defaultColSpan: 4,
-              minColSpan: 1,
+              defaultColSpan: 12,
+              minColSpan: 3,
               render: () => (
                 <>
           {/* Loading state when no breakdowns loaded yet */}
@@ -1210,8 +1210,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
               id: "audiencia-demographics",
               title: "Demograf�a y Geograf�a",
               icon: <Globe style={{ width: 13, height: 13 }} />,
-              defaultColSpan: 4,
-              minColSpan: 1,
+              defaultColSpan: 12,
+              minColSpan: 3,
               render: () => (
                 <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -1512,14 +1512,14 @@ background: "var(--surface)", border: "1px solid var(--border)",
         <ErrorBoundary name="Tab Creativos">
         <DashboardGrid
           layoutKey="project-creativos"
-          columns={4}
+          columns={12}
           widgets={[
             {
               id: "creativos-analisis",
               title: "An�lisis de Creativos",
               icon: <Palette style={{ width: 13, height: 13 }} />,
-              defaultColSpan: 4,
-              minColSpan: 1,
+              defaultColSpan: 12,
+              minColSpan: 3,
               render: () => (
         <div className="space-y-3">
           {creativesLoading && <LoadingOverlay />}
@@ -1926,14 +1926,14 @@ background: "var(--surface)", border: "1px solid var(--border)",
         <ErrorBoundary name="Tab Salud">
         <DashboardGrid
           layoutKey="project-salud"
-          columns={4}
+          columns={12}
           widgets={[
             {
               id: "salud-resultados",
               title: "Salud del Resultado",
               icon: <HeartPulse style={{ width: 13, height: 13 }} />,
-              defaultColSpan: 4,
-              minColSpan: 1,
+              defaultColSpan: 12,
+              minColSpan: 3,
               render: () => (
                 <div>
           {(() => {
