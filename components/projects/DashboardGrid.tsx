@@ -136,9 +136,9 @@ export function DashboardGrid({
       y: wl.y,
       w: wl.w,
       h: wl.h,
-      minW: wl.minW || def?.minColSpan || 1,
-      maxW: wl.maxW || def?.maxColSpan || columns,
-      minH: wl.minH || def?.minRowSpan || 3,
+      minW: def?.minColSpan || 1,
+      maxW: def?.maxColSpan || columns,
+      minH: def?.minRowSpan || 3,
       maxH: wl.maxH || def?.maxRowSpan,
       static: false, // Make items draggable
     };

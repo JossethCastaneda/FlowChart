@@ -928,7 +928,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               title: "Gráfico Dinámico",
               icon: <BarChart2 style={{ width: 13, height: 13 }} />,
               defaultColSpan: 2,
-              minColSpan: 2,
+              minColSpan: 1,
               render: (w) => (
                 <DynamicComposedChartWidget
                   timeSeriesData={timeSeriesData}
@@ -972,7 +972,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               title: "Proyección al Cierre",
               icon: <Target style={{ width: 13, height: 13 }} />,
               defaultColSpan: 4,
-              minColSpan: 2,
+              minColSpan: 1,
               render: () => (
                 <ProyeccionWidget
                   budgetNum={budgetNum} cprTarget={cprTarget} bk={bk}
@@ -997,7 +997,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               title: "Inversión vs Resultados",
               icon: <BarChart2 style={{ width: 13, height: 13 }} />,
               defaultColSpan: 2,
-              minColSpan: 2,
+              minColSpan: 1,
               render: () => (
                 <InversionChartWidget
                   timeSeriesData={timeSeriesData}
@@ -1011,7 +1011,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               title: "CTR vs CPC",
               icon: <Activity style={{ width: 13, height: 13 }} />,
               defaultColSpan: 2,
-              minColSpan: 2,
+              minColSpan: 1,
               render: () => (
                 <CtrCpcChartWidget
                   timeSeriesData={timeSeriesData}
@@ -1053,7 +1053,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               title: "Distribución por Hora y Día",
               icon: <Calendar style={{ width: 13, height: 13 }} />,
               defaultColSpan: 4,
-              minColSpan: 3,
+              minColSpan: 1,
               render: () => (
                 <HeatmapWidget
                   breakdownData={breakdownData}
@@ -1086,7 +1086,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               title: "Alertas de Gasto",
               icon: <AlertTriangle style={{ width: 13, height: 13 }} />,
               defaultColSpan: 4,
-              minColSpan: 2,
+              minColSpan: 1,
               render: () => (
                 <AlertasGastoWidget
                   timeSeriesData={timeSeriesData} bk={bk}
@@ -1102,7 +1102,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               title: "Resumen de Presupuesto",
               icon: <CreditCard style={{ width: 13, height: 13 }} />,
               defaultColSpan: 4,
-              minColSpan: 2,
+              minColSpan: 1,
               render: () => (
                 <BudgetCardsWidget
                   bk={bk} totalSpend={totalSpend}
@@ -1120,7 +1120,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               title: "Tabla de Gasto",
               icon: <BarChart2 style={{ width: 13, height: 13 }} />,
               defaultColSpan: 4,
-              minColSpan: 3,
+              minColSpan: 1,
               render: () => (
                 <GastoSpendTableInline
                   panelStyle={panelStyle} headingStyle={headingStyle} subStyle={subStyle} labelStyle={labelStyle}
@@ -1151,7 +1151,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               title: "An�lisis de Audiencia",
               icon: <Users style={{ width: 13, height: 13 }} />,
               defaultColSpan: 4,
-              minColSpan: 2,
+              minColSpan: 1,
               render: () => (
                 <>
           {/* Loading state when no breakdowns loaded yet */}
@@ -1211,7 +1211,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               title: "Demograf�a y Geograf�a",
               icon: <Globe style={{ width: 13, height: 13 }} />,
               defaultColSpan: 4,
-              minColSpan: 2,
+              minColSpan: 1,
               render: () => (
                 <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -1519,7 +1519,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               title: "An�lisis de Creativos",
               icon: <Palette style={{ width: 13, height: 13 }} />,
               defaultColSpan: 4,
-              minColSpan: 2,
+              minColSpan: 1,
               render: () => (
         <div className="space-y-3">
           {creativesLoading && <LoadingOverlay />}
@@ -1933,7 +1933,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               title: "Salud del Resultado",
               icon: <HeartPulse style={{ width: 13, height: 13 }} />,
               defaultColSpan: 4,
-              minColSpan: 2,
+              minColSpan: 1,
               render: () => (
                 <div>
           {(() => {
