@@ -187,7 +187,7 @@ export function DashboardGrid({
             const title = wl.config?.title || def.title;
             
             return (
-              <div key={wl.id}>
+              <div key={wl.id} className="dashboard-grid-item">
                 <DashboardWidget
                   id={wl.id}
                   title={title}

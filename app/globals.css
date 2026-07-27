@@ -702,9 +702,22 @@ svg.lucide:hover { transform: scale(1.05); }
   width: 100%;
 }
 
+  /* ── Grid Item Wrapper ── */
+  .dashboard-grid-item {
+    display: flex;
+    flex-direction: column;
+  }
+  .dashboard-grid-item > .dashboard-widget {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+  }
+
 /* ── Widget ── */
 .dashboard-widget {
   position: relative;
+  display: flex;
+  flex-direction: column;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -823,6 +836,8 @@ svg.lucide:hover { transform: scale(1.05); }
 /* ── Widget Content ── */
 .dashboard-widget__content {
   padding: 14px 16px;
+  flex: 1;
+  overflow: auto;
 }
 
 /* ── Resize Handle ── */
