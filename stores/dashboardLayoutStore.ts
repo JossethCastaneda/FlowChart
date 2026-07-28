@@ -28,14 +28,6 @@ export interface WidgetLayout {
   maxH?: number;
   /** Whether the widget is collapsed */
   collapsed: boolean;
-  /**
-   * Whether height is auto-sized from content.
-   * When true, the grid engine overwrites `h` each render with
-   * the measured content height. Set to false when the user
-   * manually resizes — from that point on, `h` is pinned.
-   * Defaults to true when not present.
-   */
-  hAuto?: boolean;
 }
 
 interface DashboardLayoutState {
@@ -49,7 +41,7 @@ interface DashboardLayoutState {
   updateWidget: (
     tabKey: string,
     widgetId: string,
-    updates: Partial<Pick<WidgetLayout, "w" | "h" | "collapsed" | "config" | "hAuto">>
+    updates: Partial<Pick<WidgetLayout, "w" | "h" | "collapsed" | "config">>
   ) => void;
 
   /** Add a new widget to the layout */

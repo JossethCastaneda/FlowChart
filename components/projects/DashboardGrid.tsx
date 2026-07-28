@@ -56,15 +56,6 @@ interface DashboardGridProps {
   renderToolbarActions?: () => React.ReactNode;
 }
 
-/* ═══ Helper: content px → grid row units ═══
-   RGL computes item height as: h × ROW_HEIGHT + (h − 1) × marginY
-   So the inverse is: h = ceil((totalPx + marginY) / (ROW_HEIGHT + marginY))
-*/
-function contentHeightToRows(contentPx: number): number {
-  const totalPx = contentPx + CONTENT_PADDING + HEADER_HEIGHT;
-  const [, marginY] = MARGIN;
-  return Math.max(MIN_ROWS, Math.ceil((totalPx + marginY) / (ROW_HEIGHT + marginY)));
-}
 
 /* ═══ COMPONENT ═══ */
 export function DashboardGrid({
@@ -106,46 +97,6 @@ export function DashboardGrid({
   // Clean up on unmount
   useEffect(() => () => roWidthRef.current?.disconnect(), []);
 
-  /* ─────────────────────────────────────
-     2. AUTO-HEIGHT — content measurement
-     ───────────────────────────────────── */
-  const [contentHeights, setContentHeights] = useState<Record<string, number>>({});
-  const roMapRef = useRef<Map<string, ResizeObserver>>(new Map());
-  // Stable ref callbacks — one per widget id, stored in a ref map
-  const refCallbacksRef = useRef<Map<string, (el: HTMLDivElement | null) => void>>(new Map());
-
-  function getContentRefCallback(id: string) {
-    let cb = refCallbacksRef.current.get(id);
-    if (cb) return cb;
-
-    cb = (el: HTMLDivElement | null) => {
-      // Tear down old observer for this id
-      roMapRef.current.get(id)?.disconnect();
-      roMapRef.current.delete(id);
-      if (!el) return;
-
-      const ro = new ResizeObserver(([entry]) => {
-        const h = entry.contentRect.height;
-        setContentHeights((prev) => (prev[id] === h ? prev : { ...prev, [id]: h }));
-      });
-      ro.observe(el);
-      roMapRef.current.set(id, ro);
-
-      // Initial measurement
-      const h = el.getBoundingClientRect().height;
-      if (h > 0) {
-        setContentHeights((prev) => (prev[id] === h ? prev : { ...prev, [id]: h }));
-      }
-    };
-    refCallbacksRef.current.set(id, cb);
-    return cb;
-  }
-
-  // Disconnect all content observers on unmount
-  useEffect(() => {
-    const roMap = roMapRef.current;
-    return () => roMap.forEach((ro) => ro.disconnect());
-  }, []);
 
   /* ─────────────────────────────────────
      3. LAYOUT — reactive store subscription
@@ -163,8 +114,6 @@ export function DashboardGrid({
         minH: w.minRowSpan || MIN_ROWS,
         maxH: w.maxRowSpan,
         collapsed: false,
-        // Auto-height on by default unless the definition pins a fixed row span
-        hAuto: w.defaultRowSpan == null,
       })),
     [widgets, columns]
   );
@@ -176,16 +125,7 @@ export function DashboardGrid({
     [stored, defaults]
   );
 
-  // Apply auto-heights for widgets that have hAuto !== false
-  const widgetLayouts = useMemo(() => {
-    return mergedLayouts.map((wl) => {
-      // hAuto defaults to true when not explicitly set to false
-      if (wl.hAuto === false) return wl;
-      const measuredH = contentHeights[wl.id];
-      if (measuredH == null) return wl;
-      return { ...wl, h: contentHeightToRows(measuredH) };
-    });
-  }, [mergedLayouts, contentHeights]);
+  const widgetLayouts = mergedLayouts;
 
   /* ─────────────────────────────────────
      4. STORE HAS SAVED LAYOUT — for reset button visibility
@@ -239,19 +179,16 @@ export function DashboardGrid({
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
   }, []);
 
-  // ✅ FIX: When user manually resizes, disable hAuto for that widget
   const handleResizeStop = useCallback(
     (_layout: Layout, _oldItem: LayoutItem | null, newItem: LayoutItem | null) => {
       if (!newItem) return;
-      updateWidget(layoutKey, newItem.i, { h: newItem.h, hAuto: false });
+      updateWidget(layoutKey, newItem.i, { h: newItem.h });
     },
     [layoutKey, updateWidget]
   );
 
   const handleReset = useCallback(() => {
     resetLayout(layoutKey);
-    // Also clear content heights to force re-measurement
-    setContentHeights({});
   }, [layoutKey, resetLayout]);
 
   /* ─────────────────────────────────────
@@ -329,10 +266,7 @@ export function DashboardGrid({
                   icon={def.icon}
                   onRemove={() => removeWidget(layoutKey, wl.id)}
                 >
-                  <div
-                    ref={getContentRefCallback(wl.id)}
-                    style={{ width: "100%" }}
-                  >
+                  <div style={{ width: "100%", height: "100%" }}>
                     {def.render(wl.config)}
                   </div>
                 </DashboardWidget>
