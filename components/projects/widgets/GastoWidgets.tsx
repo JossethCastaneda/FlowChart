@@ -9,6 +9,7 @@ const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: 
 interface AlertasGastoProps {
   timeSeriesData: any[];
   bk: { daily: number; weekly: number; monthly: number; label: string };
+  effectiveBudget: number;
   totalSpend: number;
   idealSpendToday: number;
   cprTarget: number;
@@ -21,7 +22,7 @@ interface AlertasGastoProps {
 }
 
 export function AlertasGastoWidget({
-  timeSeriesData, bk, totalSpend, idealSpendToday,
+  timeSeriesData, bk, effectiveBudget, totalSpend, idealSpendToday,
   cprTarget, cpr, totalResults, daysElapsed,
   fmtMXN, fmtMXN0, pct,
 }: AlertasGastoProps) {
@@ -31,7 +32,7 @@ export function AlertasGastoWidget({
   if (todayS > bk.daily * 1.5) alerts.push({ type: "danger", msg: `Sobregasto hoy: ${fmtMXN0(todayS)} gastado (${pct((todayS / bk.daily) * 100)} del diario ideal de ${fmtMXN(bk.daily)})` });
   if (totalSpend > idealSpendToday * 1.2 && idealSpendToday > 0) alerts.push({ type: "warning", msg: `El acumulado (${fmtMXN0(totalSpend)}) va ${pct(((totalSpend / idealSpendToday) - 1) * 100)} por encima de la curva ideal (${fmtMXN0(idealSpendToday)})` });
   if (cprTarget > 0 && cpr > cprTarget * 1.5 && totalResults > 0) alerts.push({ type: "danger", msg: `CPR elevado: ${fmtMXN(cpr)} vs meta de ${fmtMXN(cprTarget)} (+${pct(((cpr / cprTarget) - 1) * 100)})` });
-  if (bk.monthly > 0 && totalSpend < idealSpendToday * 0.5 && daysElapsed > 5) alerts.push({ type: "info", msg: `Sub-gasto: solo ${pct((totalSpend / idealSpendToday) * 100)} del ideal acumulado. La campana esta activa?` });
+  if (effectiveBudget > 0 && totalSpend < idealSpendToday * 0.5 && daysElapsed > 5) alerts.push({ type: "info", msg: `Sub-gasto: solo ${pct((totalSpend / idealSpendToday) * 100)} del ideal acumulado. La campana esta activa?` });
   if (alerts.length === 0) return null;
   const colorMap = { danger: { bg: "rgba(226,68,92,0.08)", border: "rgba(226,68,92,0.3)", text: "var(--red)" }, warning: { bg: "rgba(251,191,36,0.08)", border: "rgba(251,191,36,0.3)", text: "var(--amber)" }, info: { bg: "rgba(59,130,246,0.08)", border: "rgba(59,130,246,0.3)", text: "var(--cyan)" } };
   return (
@@ -47,6 +48,7 @@ export function AlertasGastoWidget({
 /* ═══ BUDGET SUMMARY CARDS ═══ */
 interface BudgetCardsProps {
   bk: { daily: number; weekly: number; monthly: number; label: string };
+  effectiveBudget: number;
   totalSpend: number;
   idealSpendToday: number;
   daysRemaining: number;
@@ -59,11 +61,11 @@ interface BudgetCardsProps {
 }
 
 export function BudgetCardsWidget({
-  bk, totalSpend, idealSpendToday, daysRemaining,
+  bk, effectiveBudget, totalSpend, idealSpendToday, daysRemaining,
   timeSeriesData, goalBreakdown,
   fmtMXN, fmtMXN0, pct, panelStyle,
 }: BudgetCardsProps) {
-  const pctUsed = bk.monthly > 0 ? (totalSpend / bk.monthly) * 100 : 0;
+  const pctUsed = effectiveBudget > 0 ? (totalSpend / effectiveBudget) * 100 : 0;
   const isOverBudget = totalSpend > idealSpendToday * 1.1;
 
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -74,16 +76,16 @@ export function BudgetCardsWidget({
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      {/* Presupuesto mensual */}
+      {/* Presupuesto del periodo */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', height: '100%', borderTop: "2px solid rgba(251,191,36,0.5)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
           <div style={{ width: 24, height: 24, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <DollarSign style={{ width: 12, height: 12, color: "var(--amber)" }} />
           </div>
-          <p style={labelStyle}>Presupuesto Mensual</p>
+          <p style={labelStyle}>Presupuesto del Periodo</p>
         </div>
-        <p style={{ fontSize: 22, fontWeight: 700, color: "var(--amber)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(bk.monthly)}</p>
-        <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>Diario: {fmtMXN(bk.daily)} · Semanal: {fmtMXN(bk.weekly)}</p>
+        <p style={{ fontSize: 22, fontWeight: 700, color: "var(--amber)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(effectiveBudget)}</p>
+        <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>Diario: {fmtMXN(bk.daily)}</p>
       </div>
       {/* Gastado acumulado */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', height: '100%', borderTop: `2px solid ${isOverBudget ? "rgba(226,68,92,0.5)" : "rgba(59,130,246,0.5)"}` }}>
@@ -94,8 +96,8 @@ export function BudgetCardsWidget({
           <p style={labelStyle}>Gastado Acumulado</p>
         </div>
         <p style={{ fontSize: 22, fontWeight: 700, color: isOverBudget ? "var(--red)" : "var(--cyan)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(totalSpend)}</p>
-        <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>de {fmtMXN0(bk.monthly)} ({pct(pctUsed)})</p>
-        {bk.monthly > 0 && (
+        <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>de {fmtMXN0(effectiveBudget)} ({pct(pctUsed)})</p>
+        {effectiveBudget > 0 && (
           <div style={{ marginTop: 8, height: 3, background: "var(--surface-hover)", borderRadius: 2, overflow: "hidden" }}>
             <div style={{ height: "100%", width: `${Math.min(pctUsed, 100)}%`, background: isOverBudget ? "var(--red)" : "var(--cyan)", borderRadius: 2 }} />
           </div>
@@ -125,8 +127,8 @@ export function BudgetCardsWidget({
           </div>
           <p style={labelStyle}>Restante</p>
         </div>
-        <p style={{ fontSize: 22, fontWeight: 700, color: "var(--foreground)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(Math.max(bk.monthly - totalSpend, 0))}</p>
-        <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>{bk.monthly > 0 ? `${pct(Math.min((totalSpend / bk.monthly) * 100, 100))} utilizado · ${daysRemaining} días restantes` : "Sin presupuesto configurado"}</p>
+        <p style={{ fontSize: 22, fontWeight: 700, color: "var(--foreground)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(Math.max(effectiveBudget - totalSpend, 0))}</p>
+        <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>{effectiveBudget > 0 ? `${pct(Math.min((totalSpend / effectiveBudget) * 100, 100))} utilizado · ${daysRemaining} días restantes` : "Sin presupuesto configurado"}</p>
       </div>
     </div>
   );

@@ -101,12 +101,12 @@ export function GastoSpendTableInline({
   const budgetNum = bk.monthly;
 
   return (
-    <div style={panelStyle}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+    <div style={{ ...panelStyle, display: "flex", flexDirection: "column", height: "100%" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexShrink: 0 }}>
         <div><h3 style={headingStyle}>Tabla de Gasto</h3><p style={subStyle}>Desglose de inversión y rendimiento</p></div>
         <TimeToggle value={timeGranularity} onChange={setTimeGranularity} />
       </div>
-      <div style={{ overflowX: "auto" }}>
+      <div style={{ overflowX: "auto", overflowY: "auto", flex: 1, minHeight: 0 }}>
         {(() => {
           const tableData = getSpendTable();
           const DAYS_ES = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
@@ -186,7 +186,7 @@ export function GastoSpendTableInline({
 
           return (
             <>
-            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8, flexShrink: 0 }}>
               <button onClick={exportCSV} style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", borderRadius: 6, fontSize: 10, fontWeight: 600, color: "var(--text-secondary)", background: "var(--surface-hover)", border: "1px solid var(--border)", cursor: "pointer", transition: "all 0.15s" }}
                 onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.09)"; e.currentTarget.style.color = "var(--foreground)"; }}
                 onMouseLeave={e => { e.currentTarget.style.background = "var(--surface-hover)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
@@ -257,14 +257,16 @@ interface GastoCurvaProps {
 
 export function GastoCurvaWidget({ timeSeriesData, bk, fmtMXN }: GastoCurvaProps) {
   return (
-    <div style={{ width: "100%", height: 280 }}>
-      {timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData.map((d: any, i: number) => ({ ...d, idealAccum: bk.daily * (i + 1), spendAccum: timeSeriesData.slice(0, i + 1).reduce((a: number, b: any) => a + b.spend, 0) }))} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
+    <div style={{ display: "flex", flexDirection: "column", width: "100%", height: "100%" }}>
+      <div style={{ flex: 1, width: "100%", minHeight: 0 }}>
+      {timeSeriesData.length > 0 ? <ResponsiveContainer width="100%" height="100%"><ComposedChart data={timeSeriesData.map((d: any, i: number) => ({ ...d, idealAccum: bk.daily * (i + 1), spendAccum: timeSeriesData.slice(0, i + 1).reduce((a: number, b: any) => a + b.spend, 0) }))} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} /><XAxis dataKey="date" stroke="var(--text-secondary)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" />
         <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, n: any) => [fmtMXN(v as number), n]} /><Legend wrapperStyle={{ fontSize: 10 }} />
         <Line type="monotone" dataKey="spendAccum" name="Gasto acumulado" stroke="var(--amber)" strokeWidth={2} dot={false} />
         <Line type="monotone" dataKey="idealAccum" name="Presupuesto ideal" stroke="rgba(148,163,184,0.65)" strokeWidth={2} strokeDasharray="5 5" dot={false} />
       </ComposedChart></ResponsiveContainer> : <NoData />}
+      </div>
     </div>
   );
 }

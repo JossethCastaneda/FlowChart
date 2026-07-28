@@ -22,13 +22,13 @@ function NoData({ msg = "Sin datos disponibles" }: { msg?: string }) {
 
 export function InversionChartWidget({ timeSeriesData, fmtMXN }: ChartWidgetProps) {
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", width: "100%", height: "100%" }}>
       {/* Legend only — title is shown in the DashboardWidget header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8, flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--cyan)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>Inversión</span></div>
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--emerald)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>Resultados</span></div>
       </div>
-      <div style={{ width: "100%", height: 240 }}>
+      <div style={{ flex: 1, width: "100%", minHeight: 0 }}>
         {timeSeriesData.length > 0 ? (
           <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="0" stroke="rgba(255,255,255,0.04)" vertical={false} />
@@ -47,13 +47,13 @@ export function InversionChartWidget({ timeSeriesData, fmtMXN }: ChartWidgetProp
 
 export function CtrCpcChartWidget({ timeSeriesData, fmtMXN }: ChartWidgetProps) {
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", width: "100%", height: "100%" }}>
       {/* Legend only — title is shown in the DashboardWidget header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8, flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--cyan)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>CTR %</span></div>
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--amber)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>CPC $</span></div>
       </div>
-      <div style={{ width: "100%", height: 240 }}>
+      <div style={{ flex: 1, width: "100%", minHeight: 0 }}>
         {timeSeriesData.length > 0 ? (
           <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="0" stroke="rgba(255,255,255,0.04)" vertical={false} />

@@ -22,6 +22,7 @@ interface ReliabilityModuleProps {
   adAccountId: string;
   dateStart?: string;
   dateEnd?: string;
+  preset?: string;     // <-- Añadido
   goal?: string;       // e.g. "Conversaciones", "Leads", "Ventas (Purchase)"
   cprTarget?: number;  // CPR meta del proyecto
 }
@@ -49,6 +50,7 @@ export function UserReliabilityModule({
   adAccountId,
   dateStart,
   dateEnd,
+  preset, // <-- Añadido
   goal = "Conversaciones",
   cprTarget = 0,
 }: ReliabilityModuleProps) {
@@ -70,6 +72,7 @@ export function UserReliabilityModule({
         if (cprTarget > 0) params.append("cprTarget", String(cprTarget));
         if (dateStart) params.append("dateStart", dateStart);
         if (dateEnd) params.append("dateEnd", dateEnd);
+        if (preset && (!dateStart || !dateEnd)) params.append("preset", preset); // <-- Añadido
 
         const res = await fetch(`/api/meta/audience-reliability?${params.toString()}`);
         if (!res.ok) throw new Error("Failed to fetch reliability data");

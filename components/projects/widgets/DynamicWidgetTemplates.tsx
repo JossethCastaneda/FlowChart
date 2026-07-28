@@ -62,9 +62,9 @@ export function DynamicComposedChartWidget({ config, timeSeriesData, fmtMXN }: D
   };
 
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", width: "100%", height: "100%" }}>
       {/* Legend only — title is shown in the DashboardWidget header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8, flexWrap: "wrap", flexShrink: 0 }}>
         {series.map((s, idx) => (
           <div key={idx} style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: s.color, display: "inline-block" }} />
@@ -72,7 +72,7 @@ export function DynamicComposedChartWidget({ config, timeSeriesData, fmtMXN }: D
           </div>
         ))}
       </div>
-      <div style={{ width: "100%", height: 240 }}>
+      <div style={{ flex: 1, width: "100%", minHeight: 0 }}>
         {timeSeriesData.length > 0 ? (
           <ResponsiveContainer>
             <ComposedChart data={timeSeriesData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>

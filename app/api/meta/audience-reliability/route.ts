@@ -177,14 +177,13 @@ function findGoalResults(actions: any[] | undefined, goal: string): number {
 
   const targetTypes = GOAL_ACTION_MAP[goal];
   if (targetTypes) {
-    let total = 0;
     for (const t of targetTypes) {
       const found = actions.find((a: any) => a.action_type === t);
       if (found) {
-        total += parseInt(found.value || "0", 10);
+        return parseInt(found.value || "0", 10);
       }
     }
-    return total;
+    return 0;
   }
 
   // Fallback: try common action types

@@ -138,7 +138,7 @@ export async function GET(req: NextRequest) {
   // Demographics (age+gender) and Geo (region) are NO LONGER fetched here.
   // They are loaded on-demand by the dedicated /api/meta/breakdowns route
   // when the user opens the Audiencia tab, reducing initial sync time.
-  const [tsR, campR, adsetR, adR] = await Promise.allSettled([
+  const [tsR, campR, adsetR, adR, totalsR] = await Promise.allSettled([
     // 1. Time series — account level, daily, NO breakdown
     safeGet(
       buildUrl({ fields: FIELDS_FULL, level: "account", time_increment: "1" }),
@@ -170,6 +170,11 @@ export async function GET(req: NextRequest) {
       }),
       "ads"
     ),
+    // 5. Global Totals — account level, NO time_increment
+    safeGet(
+      buildUrl({ fields: FIELDS_FULL, level: "account" }),
+      "totals"
+    ),
   ]);
 
 
@@ -198,10 +203,11 @@ export async function GET(req: NextRequest) {
       campaigns: unwrap(campR),
       adsets: unwrap(adsetR),
       ads: unwrap(adR),
+      totals: unwrap(totalsR),
     },
     warnings: warnings,
     meta: {
-      total_rows: 4,
+      total_rows: 5,
       ...quality,
       api_version: version
     }

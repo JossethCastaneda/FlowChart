@@ -157,13 +157,77 @@ const fmtMXN0 = (n: number) => new Intl.NumberFormat('es-MX', { style: 'currency
 const fmtNum = (n: number) => new Intl.NumberFormat('es-MX').format(n);
 const pct = (n: number) => `${n.toFixed(1)}%`;
 
-/* �"��"��"� HELPERS �"��"��"� */
-function getDaysInCurrentMonth() { const n = new Date(); return new Date(n.getFullYear(), n.getMonth() + 1, 0).getDate(); }
-function getDaysElapsedInMonth() { return new Date().getDate(); }
-function getDaysRemainingInMonth() { return getDaysInCurrentMonth() - getDaysElapsedInMonth(); }
+/* ─── HELPERS ─── */
+function getTimeFilterMetrics(preset: string, start: string, end: string) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  let totalDays = 30.416;
+  let elapsedDays = 30.416;
+  let isPast = false;
+  let viewedMonthStr = "";
+
+  if (start && end) {
+    const s = new Date(start);
+    const e = new Date(end);
+    totalDays = Math.max(1, Math.ceil((e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+    if (e < today) {
+      isPast = true;
+      elapsedDays = totalDays;
+    } else {
+      elapsedDays = Math.max(1, Math.ceil((today.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)));
+      if (elapsedDays > totalDays) elapsedDays = totalDays;
+    }
+    if (s.getDate() === 1) {
+      viewedMonthStr = `${s.getFullYear()}-${String(s.getMonth() + 1).padStart(2, "0")}`;
+    }
+  } else {
+    if (preset === "this_month" || !preset) {
+      const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+      totalDays = daysInMonth;
+      elapsedDays = today.getDate();
+      viewedMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+    } else if (preset === "last_month") {
+      const lastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+      totalDays = lastMonth.getDate();
+      elapsedDays = totalDays;
+      isPast = true;
+      viewedMonthStr = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, "0")}`;
+    } else if (preset === "today") {
+      totalDays = 1;
+      elapsedDays = 1;
+    } else if (preset === "yesterday") {
+      totalDays = 1;
+      elapsedDays = 1;
+      isPast = true;
+    } else if (preset === "last_7d") {
+      totalDays = 7;
+      elapsedDays = 7;
+      isPast = true; 
+    } else if (preset === "last_14d") {
+      totalDays = 14;
+      elapsedDays = 14;
+      isPast = true;
+    } else if (preset === "last_30d") {
+      totalDays = 30;
+      elapsedDays = 30;
+      isPast = true;
+    } else if (preset === "this_year") {
+      const startOfYear = new Date(today.getFullYear(), 0, 1);
+      const endOfYear = new Date(today.getFullYear(), 11, 31);
+      totalDays = Math.ceil((endOfYear.getTime() - startOfYear.getTime()) / (1000*60*60*24)) + 1;
+      elapsedDays = Math.max(1, Math.ceil((today.getTime() - startOfYear.getTime()) / (1000*60*60*24)));
+    } else if (preset === "maximum") {
+      totalDays = 365;
+      elapsedDays = 365;
+      isPast = true;
+    }
+  }
+  return { totalDays, elapsedDays, isPast, viewedMonthStr };
+}
 
 function getBudgetBreakdown(budget: number, period: string) {
-  const daysInMonth = getDaysInCurrentMonth();
+  const daysInMonth = 30.416;
   switch (period.toLowerCase()) {
     case "mensual": case "mes": return { daily: budget / daysInMonth, weekly: (budget / daysInMonth) * 7, monthly: budget, label: "Mensual" };
     case "semanal": case "semana": return { daily: budget / 7, weekly: budget, monthly: budget * 4.33, label: "Semanal" };
@@ -542,20 +606,14 @@ export default function ProjectDashboardPage() {
   const ch = project.channels.find(c => c.platformId === activePlatform);
   
   // Resolve budget/cpr for current viewed month if possible
+  const timeMetrics = getTimeFilterMetrics(datePreset, dateStart, dateEnd);
+  
   let resolvedBudget = ch?.budget || "0";
   let resolvedCpr = ch?.cpr || "0";
   let resolvedGoal = ch?.goal || "";
   
   // Si estamos filtrando por un mes específico, buscar el override
-  let viewedMonth = "";
-  if (datePreset === "this_month") {
-    const now = new Date();
-    viewedMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  } else if (datePreset === "last_month") {
-    const now = new Date();
-    now.setMonth(now.getMonth() - 1);
-    viewedMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  }
+  let viewedMonth = timeMetrics.viewedMonthStr;
   
   if (ch?.monthlyOverrides && viewedMonth && ch.monthlyOverrides[viewedMonth]) {
     const override = ch.monthlyOverrides[viewedMonth];
@@ -567,39 +625,56 @@ export default function ProjectDashboardPage() {
   const budgetNum = ch ? parseBudget(resolvedBudget) : 0;
   const cprTarget = ch ? parseBudget(resolvedCpr) : 0;
   const bk = getBudgetBreakdown(budgetNum, ch?.period || "Mensual");
-  // Meta de resultados = presupuesto mensual / CPR meta
-  const goalMonthly = cprTarget > 0 ? Math.floor(bk.monthly / cprTarget) : 0;
-  const goalNum = goalMonthly; // siempre meta mensual para proyecciones
+  
+  // Prorrateo: El presupuesto efectivo para este filtro
+  const effectiveBudget = bk.daily * timeMetrics.totalDays;
+  const effectiveGoal = cprTarget > 0 ? Math.floor(effectiveBudget / cprTarget) : 0;
   const goalBreakdown = {
     daily: cprTarget > 0 ? bk.daily / cprTarget : 0,
     weekly: cprTarget > 0 ? bk.weekly / cprTarget : 0,
-    monthly: goalMonthly,
+    monthly: cprTarget > 0 ? bk.monthly / cprTarget : 0,
   };
 
-  // Aggregate metrics
+  // Aggregate metrics using global totals (deduplicated reach, exact Meta API values)
   let totalSpend = 0, totalResults = 0, totalImpressions = 0, totalClicks = 0, totalReach = 0, totalActionValue = 0;
-  (insights?.timeSeries || []).forEach((d: any) => {
-    totalSpend += parseFloat(d.spend || "0"); totalImpressions += parseInt(d.impressions || "0", 10); totalClicks += parseInt(d.clicks || "0", 10);
-    totalReach += parseInt(d.reach || "0", 10);
-    const ra = findResultAction(d.actions, ch?.goal); if (ra) totalResults += parseInt(ra.value, 10);
-    const va = findResultAction(d.action_values, ch?.goal); if (va) totalActionValue += parseFloat(va.value);
-  });
+  
+  if (insights?.totals && insights.totals.length > 0) {
+    const d = insights.totals[0];
+    totalSpend = parseFloat(d.spend || "0");
+    totalImpressions = parseInt(d.impressions || "0", 10);
+    totalClicks = parseInt(d.clicks || "0", 10);
+    totalReach = parseInt(d.reach || "0", 10);
+    const ra = findResultAction(d.actions, ch?.goal); if (ra) totalResults = parseInt(ra.value, 10);
+    const va = findResultAction(d.action_values, ch?.goal); if (va) totalActionValue = parseFloat(va.value);
+  } else {
+    // Fallback if totals array isn't available for some reason
+    (insights?.timeSeries || []).forEach((d: any) => {
+      totalSpend += parseFloat(d.spend || "0"); totalImpressions += parseInt(d.impressions || "0", 10); totalClicks += parseInt(d.clicks || "0", 10);
+      // Note: reach summed across days will be overcounted, but fallback is needed
+      totalReach += parseInt(d.reach || "0", 10);
+      const ra = findResultAction(d.actions, ch?.goal); if (ra) totalResults += parseInt(ra.value, 10);
+      const va = findResultAction(d.action_values, ch?.goal); if (va) totalActionValue += parseFloat(va.value);
+    });
+  }
   const cpr = totalResults > 0 ? totalSpend / totalResults : 0;
   const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
   const roas = totalSpend > 0 ? totalActionValue / totalSpend : 0;
-  const spendProgress = bk.monthly > 0 ? (totalSpend / bk.monthly) * 100 : 0;
+  const spendProgress = effectiveBudget > 0 ? (totalSpend / effectiveBudget) * 100 : 0;
 
-  // Projections
-  const daysElapsed = getDaysElapsedInMonth();
-  const daysInMonth = getDaysInCurrentMonth();
-  const daysRemaining = getDaysRemainingInMonth();
+  // Projections and pacing based on filtered time range
+  const daysElapsed = timeMetrics.elapsedDays;
+  const daysInWindow = timeMetrics.totalDays;
+  const daysRemaining = Math.max(0, daysInWindow - daysElapsed);
+  
   const idealSpendToday = bk.daily * daysElapsed;
   const spendPace = idealSpendToday > 0 ? ((totalSpend / idealSpendToday) - 1) * 100 : 0;
-  const projectedResults = daysElapsed > 0 ? Math.round((totalResults / daysElapsed) * daysInMonth) : 0;
-  const projectedSpend = daysElapsed > 0 ? (totalSpend / daysElapsed) * daysInMonth : 0;
-  const goalCompletion = goalNum > 0 ? (totalResults / goalNum) * 100 : 0;
-  const dailyNeeded = goalNum > 0 && daysRemaining > 0 ? Math.ceil((goalNum - totalResults) / daysRemaining) : 0;
-  const trackStatus = goalNum > 0 ? (goalCompletion >= (daysElapsed / daysInMonth) * 100 ? "on-track" : goalCompletion >= (daysElapsed / daysInMonth) * 70 ? "at-risk" : "off-track") : "unknown";
+  
+  const projectedResults = daysElapsed > 0 ? Math.round((totalResults / daysElapsed) * daysInWindow) : 0;
+  const projectedSpend = daysElapsed > 0 ? (totalSpend / daysElapsed) * daysInWindow : 0;
+  const goalCompletion = effectiveGoal > 0 ? (totalResults / effectiveGoal) * 100 : 0;
+  
+  const dailyNeeded = effectiveGoal > 0 && daysRemaining > 0 ? Math.ceil((effectiveGoal - totalResults) / daysRemaining) : 0;
+  const trackStatus = effectiveGoal > 0 ? (goalCompletion >= (daysElapsed / daysInWindow) * 100 ? "on-track" : goalCompletion >= (daysElapsed / daysInWindow) * 70 ? "at-risk" : "off-track") : "unknown";
 
   // Chart data
   const timeSeriesData = (() => {
@@ -729,11 +804,11 @@ export default function ProjectDashboardPage() {
           onCustomRange={(s: string, e: string) => { setDatePreset("custom"); setDateStart(s); setDateEnd(e); setBreakdownData({}); }} />
       </div>
 
-      {/* ���� KPIs ���� (hidden on Ads Manager tab) */}
+      {/* ── KPIs ── (hidden on Ads Manager tab) */}
       {activeTab !== "ads" && (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3" style={{ position: "relative" }}>
         {isLoading && <LoadingOverlay />}
-        <KpiBox title="Inversión" value={fmtMXN0(totalSpend)} sub={`de ${fmtMXN0(budgetNum)} (${bk.label})`} icon={<DollarSign style={{ width: 16, height: 16 }} />} color="amber" progress={spendProgress} />
+        <KpiBox title="Inversión" value={fmtMXN0(totalSpend)} sub={`de ${fmtMXN0(effectiveBudget)}`} icon={<DollarSign style={{ width: 16, height: 16 }} />} color="amber" progress={spendProgress} />
         <KpiBox title="Resultados" value={fmtNum(totalResults)} sub={ch?.goal || "Objetivo"} icon={<Target style={{ width: 16, height: 16 }} />} color="emerald" progress={goalCompletion} />
         <KpiBox title="CPR" value={fmtMXN(cpr)} sub={cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Costo por resultado"} icon={<Activity style={{ width: 16, height: 16 }} />} color="cyan" />
         <KpiBox title="CTR" value={pct(ctr)} sub="Click-through rate" icon={<Eye style={{ width: 16, height: 16 }} />} color="purple" />
@@ -741,7 +816,7 @@ export default function ProjectDashboardPage() {
       </div>
       )}
 
-      {/* ���� TABS + PLATFORM SELECTOR ���� */}
+      {/*    TABS + PLATFORM SELECTOR    */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
         {/* Tabs scrollable container */}
         <div style={{ overflowX: "auto", flexShrink: 1, minWidth: 0, paddingBottom: 2 }}>
@@ -904,13 +979,14 @@ background: "var(--surface)", border: "1px solid var(--border)",
         </ErrorBoundary>
       )}
 
-      {/* �" �" �"  TAB: CONFIABILIDAD �" �" �"  */}
+      {/* " " "  TAB: CONFIABILIDAD " " "  */}
       {activeTab === "confiabilidad" && activePlatform === "meta" && (
         <ErrorBoundary name="Tab Confiabilidad">
           <UserReliabilityModule 
              adAccountId={selectedAccountId === "all" ? (ch?.adAccounts?.[0] || "") : selectedAccountId}
              dateStart={dateStart} 
              dateEnd={dateEnd}
+             preset={datePreset}
              goal={ch?.goal || "Conversaciones"}
              cprTarget={ch?.cpr ? parseBudget(ch.cpr) : 0}
           />
@@ -979,13 +1055,13 @@ background: "var(--surface)", border: "1px solid var(--border)",
               minColSpan: 3,
               render: () => (
                 <ProyeccionWidget
-                  budgetNum={budgetNum} cprTarget={cprTarget} bk={bk}
-                  goalNum={goalNum} goalBreakdown={goalBreakdown}
+                  budgetNum={effectiveBudget} cprTarget={cprTarget} bk={bk}
+                  goalNum={effectiveGoal} goalBreakdown={goalBreakdown}
                   totalSpend={totalSpend} totalResults={totalResults}
                   totalImpressions={totalImpressions} totalClicks={totalClicks}
                   totalReach={totalReach} totalActionValue={totalActionValue}
                   cpr={cpr} ctr={ctr} roas={roas} spendProgress={spendProgress}
-                  daysElapsed={daysElapsed} daysInMonth={daysInMonth}
+                  daysElapsed={daysElapsed} daysInMonth={daysInWindow}
                   daysRemaining={daysRemaining} idealSpendToday={idealSpendToday}
                   spendPace={spendPace} projectedResults={projectedResults}
                   projectedSpend={projectedSpend} goalCompletion={goalCompletion}
@@ -1093,7 +1169,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               minColSpan: 3,
               render: () => (
                 <AlertasGastoWidget
-                  timeSeriesData={timeSeriesData} bk={bk}
+                  timeSeriesData={timeSeriesData} bk={bk} effectiveBudget={effectiveBudget}
                   totalSpend={totalSpend} idealSpendToday={idealSpendToday}
                   cprTarget={cprTarget} cpr={cpr} totalResults={totalResults}
                   daysElapsed={daysElapsed}
@@ -1109,7 +1185,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               minColSpan: 3,
               render: () => (
                 <BudgetCardsWidget
-                  bk={bk} totalSpend={totalSpend}
+                  bk={bk} totalSpend={totalSpend} effectiveBudget={effectiveBudget}
                   idealSpendToday={idealSpendToday}
                   daysRemaining={daysRemaining}
                   timeSeriesData={timeSeriesData}
@@ -1130,9 +1206,9 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   panelStyle={panelStyle} headingStyle={headingStyle} subStyle={subStyle} labelStyle={labelStyle}
                   timeSeriesData={timeSeriesData} timeGranularity={timeGranularity} setTimeGranularity={setTimeGranularity}
                   getSpendTable={getSpendTable} bk={bk} totalSpend={totalSpend} totalResults={totalResults}
-                  goalNum={goalNum} goalBreakdown={goalBreakdown} cprTarget={cprTarget}
+                  goalNum={effectiveGoal} goalBreakdown={goalBreakdown} cprTarget={cprTarget}
                   ch={ch} project={project} insights={insights}
-                  daysElapsed={daysElapsed} daysInMonth={daysInMonth}
+                  daysElapsed={daysElapsed} daysInMonth={daysInWindow}
                   fmtMXN={fmtMXN} fmtMXN0={fmtMXN0} fmtNum={fmtNum} pct={pct}
                   goalLabel={goalLabel} findResultAction={findResultAction}
                 />

@@ -11,14 +11,14 @@ export function ProyeccionWidget({
   daysElapsed, daysInMonth, goalNum, trackStatus,
   projectedResults, projectedSpend, goalBreakdown,
   dailyNeeded, goalCompletion, daysRemaining,
-  bk, cprTarget, fmtNum, fmtMXN, fmtMXN0, pct,
+  bk, cprTarget, budgetNum, fmtNum, fmtMXN, fmtMXN0, pct,
 }: ProjectWidgetProps) {
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <div>
           <h3 style={headingStyle}>Proyección al Cierre</h3>
-          <p style={subStyle}>Día {daysElapsed} de {daysInMonth} del mes{goalNum > 0 ? ` · Meta: ${fmtNum(goalNum)} resultados (${fmtMXN0(bk.monthly)} ÷ ${fmtMXN(cprTarget)})` : ""}</p>
+          <p style={subStyle}>Día {daysElapsed} de {daysInMonth} del periodo{goalNum > 0 ? ` · Meta: ${fmtNum(goalNum)} resultados (${fmtMXN0(budgetNum)} ÷ ${fmtMXN(cprTarget)})` : ""}</p>
         </div>
         <div style={{
           padding: "5px 14px", borderRadius: 20, fontSize: 10, fontWeight: 800, letterSpacing: "0.1em",
@@ -34,7 +34,7 @@ export function ProyeccionWidget({
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         {[
           { label: "Res. proyectados", value: fmtNum(projectedResults), sub: goalNum > 0 ? `de ${fmtNum(goalNum)} objetivo` : "sin meta", color: "var(--emerald)", accentColor: "rgba(0,200,117,0.35)" },
-          { label: "Gasto proyectado", value: fmtMXN0(projectedSpend), sub: `de ${fmtMXN0(bk.monthly)} mensual`, color: "var(--amber)", accentColor: "rgba(253,171,61,0.35)" },
+          { label: "Gasto proyectado", value: fmtMXN0(projectedSpend), sub: `de ${fmtMXN0(budgetNum)} del periodo`, color: "var(--amber)", accentColor: "rgba(253,171,61,0.35)" },
           { label: "Meta diaria ideal", value: goalBreakdown.daily > 0 ? goalBreakdown.daily.toFixed(1) : "—", sub: "resultados/día", color: "var(--cyan)", accentColor: "rgba(59,130,246,0.35)" },
           { label: "Ritmo necesario", value: dailyNeeded > 0 ? fmtNum(dailyNeeded) : "—", sub: "res/día restantes", color: dailyNeeded > 0 ? "var(--amber)" : "var(--text-muted)", accentColor: dailyNeeded > 0 ? "rgba(253,171,61,0.35)" : "rgba(255,255,255,0.1)" },
           { label: "Cumplimiento", value: goalNum > 0 ? pct(goalCompletion) : "—", sub: `${daysRemaining} días restantes`, color: goalCompletion >= 100 ? "var(--emerald)" : "white", accentColor: goalCompletion >= 100 ? "rgba(0,200,117,0.35)" : "rgba(255,255,255,0.1)" },
@@ -53,7 +53,7 @@ export function ProyeccionWidget({
       {goalNum > 0 && (
         <div style={{ marginTop: 16 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
-            <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600, letterSpacing: "0.1em" }}>PROGRESO DEL MES</span>
+            <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600, letterSpacing: "0.1em" }}>PROGRESO DEL PERIODO</span>
             <span style={{ fontSize: 9, fontWeight: 700, color: trackStatus === "on-track" ? "var(--emerald)" : trackStatus === "at-risk" ? "var(--amber)" : "var(--red)" }}>{pct(Math.min(goalCompletion, 100))}</span>
           </div>
           <div style={{ height: 6, background: "var(--surface-hover)", borderRadius: 3, overflow: "hidden" }}>

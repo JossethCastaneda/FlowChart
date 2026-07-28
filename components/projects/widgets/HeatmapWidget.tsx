@@ -110,8 +110,8 @@ export function HeatmapWidget({
   const todayStr = new Date().toISOString().slice(0, 10);
 
   return (
-    <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+    <div style={{ display: "flex", flexDirection: "column", width: "100%", height: "100%" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 12, flexShrink: 0 }}>
         <div>
           <h3 style={headingStyle}>Distribución por Hora y Día</h3>
           <p style={subStyle}>Hover para ver detalle · Horas en zona horaria de la {heatmapTimezone === "advertiser" ? "cuenta publicitaria" : "audiencia"}</p>
@@ -158,7 +158,7 @@ export function HeatmapWidget({
           </div>
         </div>
       </div>
-      <div style={{ overflowX: "auto", maxHeight: 520, overflowY: "auto" }}>
+      <div style={{ overflowX: "auto", overflowY: "auto", flex: 1, minHeight: 0 }}>
         <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 740 }}>
           <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
             <tr>
@@ -243,7 +243,7 @@ export function HeatmapWidget({
         </table>
       </div>
       {/* Legend */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, justifyContent: "flex-end" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, justifyContent: "flex-end", flexShrink: 0 }}>
         <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600 }}>Menor actividad</span>
         {["var(--row-hover)", "var(--border-neutral)", "rgba(59,130,246,0.12)", "rgba(59,130,246,0.25)", "rgba(0,200,117,0.35)", "rgba(0,200,117,0.6)"].map((c, i) => (
           <div key={i} style={{ width: 16, height: 12, borderRadius: 3, background: c }} />
