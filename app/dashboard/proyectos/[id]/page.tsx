@@ -36,7 +36,7 @@ import { InversionChartWidget, CtrCpcChartWidget } from "@/components/projects/w
 import { CuentasWidget, PresupuestoWidget } from "@/components/projects/widgets/SidebarWidgets";
 import { HeatmapWidget } from "@/components/projects/widgets/HeatmapWidget";
 import { AlertasGastoWidget, BudgetCardsWidget } from "@/components/projects/widgets/GastoWidgets";
-import { GastoSpendTableInline } from "@/components/projects/widgets/GastoSpendTableInline";
+import { GastoSpendTableInline, GastoCurvaWidget } from "@/components/projects/widgets/GastoSpendTableInline";
 
 import { DynamicComposedChartWidget, DynamicKpiCardWidget, type DynamicChartConfig, type DynamicKpiConfig } from "@/components/projects/widgets/DynamicWidgetTemplates";
 import { WidgetBuilderModal, type WidgetType } from "@/components/projects/WidgetBuilderModal";
@@ -1131,6 +1131,20 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   daysElapsed={daysElapsed} daysInMonth={daysInMonth}
                   fmtMXN={fmtMXN} fmtMXN0={fmtMXN0} fmtNum={fmtNum} pct={pct}
                   goalLabel={goalLabel} findResultAction={findResultAction}
+                />
+              ),
+            },
+            {
+              id: "curva-gasto",
+              title: "Curva de Gasto vs Presupuesto Ideal",
+              icon: <Activity style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 12,
+              minColSpan: 3,
+              render: () => (
+                <GastoCurvaWidget
+                  timeSeriesData={timeSeriesData}
+                  bk={bk}
+                  fmtMXN={fmtMXN}
                 />
               ),
             },
