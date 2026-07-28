@@ -109,11 +109,17 @@ export async function GET(req: NextRequest) {
         const clicks = parseInt(insightsData.clicks || "0", 10);
         const reach = parseInt(insightsData.reach || "0", 10);
 
-        const RESULT_TYPES = ["lead", "purchase", "complete_registration", "offsite_conversion", "onsite_conversion", "messaging_conversation_started_7d"];
+        const RESULT_TYPES = [
+          "onsite_conversion.messaging_conversation_started_7d", "messaging_conversation_started_7d", "onsite_conversion.messaging_first_reply",
+          "leadgen_grouped", "leadgen", "onsite_conversion.lead_grouped", "onsite_conversion.lead", "onsite_conversion.flow_complete", "offsite_conversion.fb_pixel_lead", "omni_lead", "lead",
+          "offsite_conversion.fb_pixel_purchase", "omni_purchase", "purchase",
+          "omni_complete_registration", "offsite_conversion.fb_pixel_complete_registration", "complete_registration",
+          "add_to_cart", "link_click", "landing_page_view"
+        ];
         const findResult = (actions: any[]) => {
           if (!actions?.length) return null;
           for (const t of RESULT_TYPES) {
-            const f = actions.find((a: any) => a.action_type?.includes(t));
+            const f = actions.find((a: any) => a.action_type === t);
             if (f) return f;
           }
           return null;

@@ -83,20 +83,20 @@ export function calcROAS(ins: any): number {
  *  and getResultsLabel in sync with the campaign's actual configuration. */
 const OBJECTIVE_RESULT_MAP: Record<string, { type: string; resultLabel: string; cpaLabel: string }[]> = {
   // Leads — look for form leads first, then Messenger leads
-  OUTCOME_LEADS:         [{ type: "lead", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "onsite_conversion.messaging_conversation_started_7d", resultLabel: "Leads (Messenger)", cpaLabel: "CPL" }],
-  LEAD_GENERATION:       [{ type: "lead", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "onsite_conversion.messaging_conversation_started_7d", resultLabel: "Leads (Messenger)", cpaLabel: "CPL" }],
+  OUTCOME_LEADS:         [{ type: "leadgen_grouped", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "leadgen", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "onsite_conversion.lead_grouped", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "onsite_conversion.lead", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "onsite_conversion.flow_complete", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "offsite_conversion.fb_pixel_lead", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "omni_lead", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "lead", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "onsite_conversion.messaging_conversation_started_7d", resultLabel: "Leads (Messenger)", cpaLabel: "CPL" }, { type: "messaging_conversation_started_7d", resultLabel: "Leads (Messenger)", cpaLabel: "CPL" }, { type: "onsite_conversion.messaging_first_reply", resultLabel: "Leads (Messenger)", cpaLabel: "CPL" }],
+  LEAD_GENERATION:       [{ type: "leadgen_grouped", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "leadgen", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "onsite_conversion.lead_grouped", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "onsite_conversion.lead", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "onsite_conversion.flow_complete", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "offsite_conversion.fb_pixel_lead", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "omni_lead", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "lead", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "onsite_conversion.messaging_conversation_started_7d", resultLabel: "Leads (Messenger)", cpaLabel: "CPL" }, { type: "messaging_conversation_started_7d", resultLabel: "Leads (Messenger)", cpaLabel: "CPL" }, { type: "onsite_conversion.messaging_first_reply", resultLabel: "Leads (Messenger)", cpaLabel: "CPL" }],
   // Sales / Conversions
-  OUTCOME_SALES:         [{ type: "omni_purchase", resultLabel: "Compras", cpaLabel: "CPA" }, { type: "purchase", resultLabel: "Compras", cpaLabel: "CPA" }, { type: "complete_registration", resultLabel: "Registros", cpaLabel: "CPR" }, { type: "add_to_cart", resultLabel: "Carritos", cpaLabel: "CPATC" }],
-  CONVERSIONS:           [{ type: "omni_purchase", resultLabel: "Compras", cpaLabel: "CPA" }, { type: "purchase", resultLabel: "Compras", cpaLabel: "CPA" }, { type: "complete_registration", resultLabel: "Registros", cpaLabel: "CPR" }, { type: "lead", resultLabel: "Leads", cpaLabel: "CPL" }],
+  OUTCOME_SALES:         [{ type: "offsite_conversion.fb_pixel_purchase", resultLabel: "Compras", cpaLabel: "CPA" }, { type: "omni_purchase", resultLabel: "Compras", cpaLabel: "CPA" }, { type: "purchase", resultLabel: "Compras", cpaLabel: "CPA" }, { type: "omni_complete_registration", resultLabel: "Registros", cpaLabel: "CPR" }, { type: "offsite_conversion.fb_pixel_complete_registration", resultLabel: "Registros", cpaLabel: "CPR" }, { type: "complete_registration", resultLabel: "Registros", cpaLabel: "CPR" }, { type: "add_to_cart", resultLabel: "Carritos", cpaLabel: "CPATC" }],
+  CONVERSIONS:           [{ type: "offsite_conversion.fb_pixel_purchase", resultLabel: "Compras", cpaLabel: "CPA" }, { type: "omni_purchase", resultLabel: "Compras", cpaLabel: "CPA" }, { type: "purchase", resultLabel: "Compras", cpaLabel: "CPA" }, { type: "omni_complete_registration", resultLabel: "Registros", cpaLabel: "CPR" }, { type: "offsite_conversion.fb_pixel_complete_registration", resultLabel: "Registros", cpaLabel: "CPR" }, { type: "complete_registration", resultLabel: "Registros", cpaLabel: "CPR" }, { type: "leadgen_grouped", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "leadgen", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "onsite_conversion.lead_grouped", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "onsite_conversion.lead", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "onsite_conversion.flow_complete", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "offsite_conversion.fb_pixel_lead", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "omni_lead", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "lead", resultLabel: "Leads", cpaLabel: "CPL" }],
   // Messages
-  MESSAGES:              [{ type: "onsite_conversion.messaging_conversation_started_7d", resultLabel: "Conversaciones", cpaLabel: "CPConv" }],
+  MESSAGES:              [{ type: "onsite_conversion.messaging_conversation_started_7d", resultLabel: "Conversaciones", cpaLabel: "CPConv" }, { type: "messaging_conversation_started_7d", resultLabel: "Conversaciones", cpaLabel: "CPConv" }, { type: "onsite_conversion.messaging_first_reply", resultLabel: "Conversaciones", cpaLabel: "CPConv" }],
   // Traffic
   OUTCOME_TRAFFIC:       [{ type: "link_click", resultLabel: "Clics al enlace", cpaLabel: "CPC" }],
   LINK_CLICKS:           [{ type: "link_click", resultLabel: "Clics al enlace", cpaLabel: "CPC" }],
   // Video Views
   VIDEO_VIEWS:           [{ type: "video_view", resultLabel: "ThruPlays", cpaLabel: "CPV" }],
   // Engagement
-  OUTCOME_ENGAGEMENT:    [{ type: "onsite_conversion.messaging_conversation_started_7d", resultLabel: "Conversaciones", cpaLabel: "CPConv" }, { type: "video_view", resultLabel: "ThruPlays", cpaLabel: "CPV" }, { type: "post_engagement", resultLabel: "Interacciones", cpaLabel: "CPE" }],
+  OUTCOME_ENGAGEMENT:    [{ type: "onsite_conversion.messaging_conversation_started_7d", resultLabel: "Conversaciones", cpaLabel: "CPConv" }, { type: "messaging_conversation_started_7d", resultLabel: "Conversaciones", cpaLabel: "CPConv" }, { type: "onsite_conversion.messaging_first_reply", resultLabel: "Conversaciones", cpaLabel: "CPConv" }, { type: "video_view", resultLabel: "ThruPlays", cpaLabel: "CPV" }, { type: "post_engagement", resultLabel: "Interacciones", cpaLabel: "CPE" }],
   POST_ENGAGEMENT:       [{ type: "post_engagement", resultLabel: "Interacciones", cpaLabel: "CPE" }],
   // Awareness / Reach — no action-based result, but we still check ThruPlays for video awareness
   OUTCOME_AWARENESS:     [{ type: "video_view", resultLabel: "ThruPlays", cpaLabel: "CPV" }],
@@ -121,12 +121,24 @@ export function calcCPA(ins: any, objective?: string): { value: number; label: s
 
   // 2. Generic fallback: try common action types in priority order
   const actionTypes = [
+    { type: "leadgen_grouped", label: "CPL" },
+    { type: "leadgen", label: "CPL" },
+    { type: "onsite_conversion.lead_grouped", label: "CPL" },
+    { type: "onsite_conversion.lead", label: "CPL" },
+    { type: "onsite_conversion.flow_complete", label: "CPL" },
+    { type: "offsite_conversion.fb_pixel_lead", label: "CPL" },
+    { type: "omni_lead", label: "CPL" },
     { type: "lead", label: "CPL" },
+    { type: "offsite_conversion.fb_pixel_purchase", label: "CPA" },
     { type: "omni_purchase", label: "CPA" },
     { type: "purchase", label: "CPA" },
+    { type: "omni_complete_registration", label: "CPR" },
+    { type: "offsite_conversion.fb_pixel_complete_registration", label: "CPR" },
     { type: "complete_registration", label: "CPR" },
     { type: "add_to_cart", label: "CPATC" },
     { type: "onsite_conversion.messaging_conversation_started_7d", label: "CPConv" },
+    { type: "messaging_conversation_started_7d", label: "CPConv" },
+    { type: "onsite_conversion.messaging_first_reply", label: "CPConv" },
     { type: "link_click", label: "CPC" },
     { type: "video_view", label: "CPV" },
   ];
@@ -140,8 +152,10 @@ export function calcCPA(ins: any, objective?: string): { value: number; label: s
   // not generic ones like page_engagement that would produce nonsensical CPA values.
   if (ins.cost_per_action_type && ins.cost_per_action_type.length > 0) {
     const relevantTypes = [
-      "lead", "omni_purchase", "purchase", "complete_registration",
-      "add_to_cart", "onsite_conversion.messaging_conversation_started_7d",
+      "leadgen_grouped", "leadgen", "onsite_conversion.lead_grouped", "onsite_conversion.lead", "onsite_conversion.flow_complete", "offsite_conversion.fb_pixel_lead", "omni_lead", "lead",
+      "offsite_conversion.fb_pixel_purchase", "omni_purchase", "purchase",
+      "omni_complete_registration", "offsite_conversion.fb_pixel_complete_registration", "complete_registration",
+      "add_to_cart", "onsite_conversion.messaging_conversation_started_7d", "messaging_conversation_started_7d", "onsite_conversion.messaging_first_reply",
       "link_click", "video_view",
     ];
     const match = ins.cost_per_action_type.find(
@@ -160,9 +174,21 @@ export function calcCPA(ins: any, objective?: string): { value: number; label: s
  *  match any action in the data. */
 const RESULTS_PRIORITY: { type: string; label: string }[] = [
   { type: "onsite_conversion.messaging_conversation_started_7d", label: "Conversaciones" },
+  { type: "messaging_conversation_started_7d", label: "Conversaciones" },
+  { type: "onsite_conversion.messaging_first_reply", label: "Conversaciones" },
+  { type: "leadgen_grouped", label: "Leads" },
+  { type: "leadgen", label: "Leads" },
+  { type: "onsite_conversion.lead_grouped", label: "Leads" },
+  { type: "onsite_conversion.lead", label: "Leads" },
+  { type: "onsite_conversion.flow_complete", label: "Leads" },
+  { type: "offsite_conversion.fb_pixel_lead", label: "Leads" },
+  { type: "omni_lead", label: "Leads" },
   { type: "lead", label: "Leads" },
+  { type: "offsite_conversion.fb_pixel_purchase", label: "Compras" },
   { type: "omni_purchase", label: "Compras" },
   { type: "purchase", label: "Compras" },
+  { type: "omni_complete_registration", label: "Registros" },
+  { type: "offsite_conversion.fb_pixel_complete_registration", label: "Registros" },
   { type: "complete_registration", label: "Registros" },
   { type: "add_to_cart", label: "Carritos" },
   { type: "link_click", label: "Clics al enlace" },
