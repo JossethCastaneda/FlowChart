@@ -1221,16 +1221,12 @@ background: "var(--surface)", border: "1px solid var(--border)",
               ),
             },
             {
-              id: "audiencia-demographics",
-              title: "Demograf�a y Geograf�a",
-              icon: <Globe style={{ width: 13, height: 13 }} />,
-              defaultColSpan: 12,
+              id: "audiencia-edad-genero",
+              title: "Edad y Género",
+              icon: <Users style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 6,
               minColSpan: 3,
               render: () => (
-                <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-
-            {/* ���� Edad y Género ���� */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Users style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Edad y Género</h3>
               <p style={subStyle}>¿Quiénes ven tus anuncios? Distribución por rango de edad y género</p>
@@ -1274,8 +1270,15 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 })()}
               </div>
             </div>
-
-            {/* ���� Top Regiones ���� */}
+              ),
+            },
+            {
+              id: "audiencia-regiones",
+              title: "Top Regiones",
+              icon: <Globe style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 6,
+              minColSpan: 3,
+              render: () => (
             <div style={panelStyle}>
               <h3 style={headingStyle}><Globe style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Top Regiones</h3>
               <p style={subStyle}>¿De dónde vienen? Estados y ciudades con mayor alcance</p>
@@ -1302,8 +1305,15 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 })()}
               </div>
             </div>
-
-            {/* ���� País ���� */}
+              ),
+            },
+            {
+              id: "audiencia-pais",
+              title: "País",
+              icon: <Globe style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 6,
+              minColSpan: 3,
+              render: () => (
             <div style={panelStyle}>
               <h3 style={headingStyle}><Globe style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />País</h3>
               <p style={subStyle}>¿Desde qué país te ven? �atil para campañas multi-país</p>
@@ -1340,8 +1350,15 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 })()}
               </div>
             </div>
-
-            {/* ���� Plataforma ���� */}
+              ),
+            },
+            {
+              id: "audiencia-plataforma",
+              title: "Plataforma",
+              icon: <Layers style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 6,
+              minColSpan: 3,
+              render: () => (
             <div style={panelStyle}>
               <h3 style={headingStyle}><Layers style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Plataforma</h3>
               <p style={subStyle}>¿Dónde ven tus anuncios? Facebook, Instagram o Audience Network</p>
@@ -1390,8 +1407,15 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 })()}
               </div>
             </div>
-
-            {/* ���� Dispositivo ���� */}
+              ),
+            },
+            {
+              id: "audiencia-dispositivo",
+              title: "Dispositivo",
+              icon: <Monitor style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 6,
+              minColSpan: 3,
+              render: () => (
             <div style={panelStyle}>
               <h3 style={headingStyle}><Monitor style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Dispositivo</h3>
               <p style={subStyle}>¿Desde qué dispositivo? Mobile suele dominar en campañas de Social</p>
@@ -1434,13 +1458,15 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 })()}
               </div>
             </div>
-
-          </div>
-
-          {/* ���� Row 3: Placement + Hora del Día ���� */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-
-            {/* ���� Placement ���� */}
+              ),
+            },
+            {
+              id: "audiencia-placement",
+              title: "Placement",
+              icon: <Layers style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 6,
+              minColSpan: 3,
+              render: () => (
             <div style={panelStyle}>
               <h3 style={headingStyle}><Layers style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Placement</h3>
               <p style={subStyle}>¿Dónde rinde mejor? Feed, Stories, Reels, Explore y más</p>
@@ -1472,8 +1498,15 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 })()}
               </div>
             </div>
-
-            {/* ���� Hora del Día ���� */}
+              ),
+            },
+            {
+              id: "audiencia-hora",
+              title: "Rendimiento por Hora",
+              icon: <Clock style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 6,
+              minColSpan: 3,
+              render: () => (
             <div style={panelStyle}>
               <h3 style={headingStyle}><Clock style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Rendimiento por Hora</h3>
               <p style={subStyle}>¿A qué hora publicar? Identifica los mejores horarios para tu audiencia</p>
@@ -1511,9 +1544,6 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 })()}
               </div>
             </div>
-
-          </div>
-                </>
               ),
             },
           ] as WidgetDefinition[]}
@@ -1529,16 +1559,14 @@ background: "var(--surface)", border: "1px solid var(--border)",
           columns={12}
           widgets={[
             {
-              id: "creativos-analisis",
-              title: "An�lisis de Creativos",
+              id: "creativos-header",
+              title: "Análisis de Creativos",
               icon: <Palette style={{ width: 13, height: 13 }} />,
               defaultColSpan: 12,
               minColSpan: 3,
               render: () => (
-        <div className="space-y-3">
-          {creativesLoading && <LoadingOverlay />}
-
-          {/* Section header */}
+                <>
+                  {creativesLoading && <LoadingOverlay />}
           <div style={{ ...panelStyle, padding: "14px 18px", background: "linear-gradient(135deg, rgba(162,93,220,0.06), rgba(253,171,61,0.04))" }}>
             <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", marginBottom: 4 }}>
               <Palette style={{ width: 15, height: 15, display: "inline", verticalAlign: "middle", marginRight: 8, color: "#9b7be8" }} />
@@ -1548,9 +1576,16 @@ background: "var(--surface)", border: "1px solid var(--border)",
               Identifica qué anuncios funcionan mejor y cuáles necesitan optimización. Ordenados por eficiencia (CPR).
             </p>
           </div>
-
-          {/* ���� TOP 3 Mejores + TOP 3 Peores ���� */}
-          {(() => {
+                </>
+              ),
+            },
+            {
+              id: "creativos-top-ranking",
+              title: "Top Mejores y Peores",
+              icon: <TrendingUp style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 12,
+              minColSpan: 6,
+              render: () => {
             const ranked = adCreatives
               .filter(a => a.spend > 0)
               .map((ad: any) => {
@@ -1594,9 +1629,15 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 </div>
               </div>
             );
-          })()}
-
-          {/* ���� All Ads table view ���� */}
+              },
+            },
+            {
+              id: "creativos-tabla",
+              title: "Todos los Anuncios",
+              icon: <BarChart2 style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 12,
+              minColSpan: 3,
+              render: () => (
           <div style={panelStyle}>
             <h3 style={headingStyle}>Todos los Anuncios</h3>
             <p style={subStyle}>Ranking completo por inversión. Haz scroll para ver más.</p>
@@ -1659,8 +1700,15 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </div>
             ) : !creativesLoading ? <NoData msg="Sin anuncios con datos en el periodo seleccionado" /> : null}
           </div>
-
-          {/* ���� Text Analysis Panels (powered by allTitles / allBodies from DCO feed) ���� */}
+              ),
+            },
+            {
+              id: "creativos-textos",
+              title: "Análisis de Textos",
+              icon: <Palette style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 12,
+              minColSpan: 3,
+              render: () => (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {([
               { arrayKey: "allTitles",  fallbackKey: "title",       label: "Mejores Títulos" },
@@ -1730,11 +1778,15 @@ background: "var(--surface)", border: "1px solid var(--border)",
               );
             })}
           </div>
-
-          {/* ���� Formato y CTR por Creativo ���� */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-
-            {/* ���� Formato de Creativos (Imagen vs Video) ���� */}
+              ),
+            },
+            {
+              id: "creativos-formato",
+              title: "Formato de Creativos",
+              icon: <PieIcon style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 6,
+              minColSpan: 3,
+              render: () => (
             <div style={panelStyle}>
               <h3 style={headingStyle}><PieIcon style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Formato de Creativos</h3>
               <p style={subStyle}>Imagen vs Video � ¿qué formato te da mejores resultados?</p>
@@ -1799,8 +1851,15 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 })()}
               </div>
             </div>
-
-            {/* ���� CTR por Creativo (Top 10) ���� */}
+              ),
+            },
+            {
+              id: "creativos-ctr",
+              title: "CTR por Creativo",
+              icon: <MousePointer style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 6,
+              minColSpan: 3,
+              render: () => (
             <div style={panelStyle}>
               <h3 style={headingStyle}><MousePointer style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />CTR por Creativo</h3>
               <p style={subStyle}>Top 10 anuncios con mejor tasa de clics</p>
@@ -1831,10 +1890,15 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 })()}
               </div>
             </div>
-
-          </div>
-
-          {/* Combinación Ganadora */}
+              ),
+            },
+            {
+              id: "creativos-ganador",
+              title: "Combinación Ganadora",
+              icon: <Zap style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 12,
+              minColSpan: 3,
+              render: () => (
           <div style={{
             ...panelStyle,
             background: "linear-gradient(135deg, rgba(253,171,61,0.06) 0%, rgba(0,0,0,0) 60%)",
@@ -1908,8 +1972,11 @@ background: "var(--surface)", border: "1px solid var(--border)",
               })()}
             </div>
           </div>
-
-          {/* ���� Lightbox modal ���� */}
+              ),
+            },
+          ] as WidgetDefinition[]}
+        />
+        {/* Lightbox modal */}
           {previewAd && (
             <CreativeLightbox
               ad={previewAd}
@@ -1926,14 +1993,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
               })()}
             />
           )}
-        </div>
-              ),
-            },
-          ] as WidgetDefinition[]}
-        />
         </ErrorBoundary>
       )}
-
 
       {/* �"��"��"� TAB: SALUD DEL RESULTADO �"��"��"� */}
       {activeTab === "salud" && (
@@ -1943,14 +2004,12 @@ background: "var(--surface)", border: "1px solid var(--border)",
           columns={12}
           widgets={[
             {
-              id: "salud-resultados",
-              title: "Salud del Resultado",
+              id: "salud-pulse",
+              title: "Pulse Check",
               icon: <HeartPulse style={{ width: 13, height: 13 }} />,
               defaultColSpan: 12,
               minColSpan: 3,
-              render: () => (
-                <div>
-          {(() => {
+              render: () => {
             // Health calculations
             const frequency = totalImpressions > 0 && totalReach > 0 ? totalImpressions / totalReach : 0;
             const conversionRate = totalClicks > 0 ? (totalResults / totalClicks) * 100 : 0;
@@ -2026,9 +2085,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               { ...indicators[4], step: "4. Gasto", desc: "¿Estamos gastando al ritmo ideal?" },
             ];
 
-            return (
-              <div className="space-y-4">
-                {/* Top row: Pulse Check (Resumen Ejecutivo) */}
+                return (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                   {/* Health Score Gauge (Pulse) */}
                   <div style={{ ...panelStyle, display: "flex", alignItems: "center", justifyContent: "space-between", padding: 20, minHeight: 140 }}>
@@ -2076,8 +2133,92 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     <div style={{ position: "absolute", top: -50, right: -50, width: 200, height: 200, background: `radial-gradient(circle, ${indicators[0].color}20 0%, transparent 70%)` }} />
                   </div>
                 </div>
+                );
+              },
+            },
+            {
+              id: "salud-embudo",
+              title: "Análisis del Embudo",
+              icon: <Target style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 12,
+              minColSpan: 3,
+              render: () => {
+            // Health calculations
+            const frequency = totalImpressions > 0 && totalReach > 0 ? totalImpressions / totalReach : 0;
+            const conversionRate = totalClicks > 0 ? (totalResults / totalClicks) * 100 : 0;
+            const idealSpend = bk.daily * daysElapsed;
+            const spendPaceRatio = idealSpend > 0 ? totalSpend / idealSpend : 1;
 
-                {/* Fila 2: Análisis del Embudo (Funnel Health) */}
+            // Score calculations (each 0-100)
+            const cprScore = cprTarget > 0 ? Math.max(0, Math.min(100, cpr <= cprTarget ? 100 : Math.round(100 - ((cpr / cprTarget - 1) * 333)))) : 50;
+            const freqScore = Math.max(0, Math.min(100, Math.round(frequency <= 2 ? 100 : frequency <= 4 ? 100 - ((frequency - 2) * 25) : Math.max(0, 50 - ((frequency - 4) * 25)))));
+            const ctrScore = Math.max(0, Math.min(100, Math.round(ctr >= 2 ? 100 : ctr >= 1 ? 60 + (ctr - 1) * 40 : ctr >= 0.5 ? 20 + (ctr - 0.5) * 80 : ctr * 40)));
+            const convScore = Math.max(0, Math.min(100, Math.round(conversionRate >= 8 ? 100 : conversionRate >= 4 ? 60 + (conversionRate - 4) * 10 : conversionRate >= 1 ? 20 + (conversionRate - 1) * 13.33 : conversionRate * 20)));
+            const paceScore = Math.max(0, Math.min(100, Math.round(Math.abs(spendPaceRatio - 1) <= 0.1 ? 100 : Math.abs(spendPaceRatio - 1) <= 0.25 ? 50 + (0.25 - Math.abs(spendPaceRatio - 1)) / 0.15 * 50 : Math.max(0, 100 - Math.abs(spendPaceRatio - 1) * 200))));
+
+            const tsd = timeSeriesData || [];
+            const half = Math.floor(tsd.length / 2);
+            const firstHalfCPR = half > 0 ? tsd.slice(0, half).reduce((a: number, d: any) => a + (d.cpr || 0), 0) / half : 0;
+            const secondHalfCPR = tsd.length - half > 0 ? tsd.slice(half).reduce((a: number, d: any) => a + (d.cpr || 0), 0) / (tsd.length - half) : 0;
+            const trendScore = firstHalfCPR > 0 ? Math.max(0, Math.min(100, Math.round(secondHalfCPR <= firstHalfCPR ? 100 : 100 - ((secondHalfCPR / firstHalfCPR - 1) * 200)))) : 50;
+
+            const healthScore = Math.round(cprScore * 0.25 + freqScore * 0.20 + ctrScore * 0.15 + convScore * 0.15 + paceScore * 0.15 + trendScore * 0.10);
+            const healthLabel = healthScore >= 80 ? "Excelente" : healthScore >= 60 ? "Buena" : healthScore >= 40 ? "En Riesgo" : "Crítica";
+            const healthColor = healthScore >= 80 ? "var(--emerald)" : healthScore >= 60 ? "var(--amber)" : "var(--red)";
+
+            // SVG gauge params
+            const radius = 80; const circumference = 2 * Math.PI * radius;
+            const dashOffset = circumference - (healthScore / 100) * circumference;
+
+            // Indicators
+            const indicators = [
+              { name: "Eficiencia CPR", icon: <DollarSign style={{ width: 14, height: 14 }} />, score: cprScore, value: fmtMXN(cpr), bench: cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Sin meta", color: cprScore >= 70 ? "var(--emerald)" : cprScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Frecuencia", icon: <RefreshCw style={{ width: 14, height: 14 }} />, score: freqScore, value: frequency.toFixed(2), bench: "Ideal: 1.0 - 2.5", color: freqScore >= 70 ? "var(--emerald)" : freqScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "CTR", icon: <MousePointer style={{ width: 14, height: 14 }} />, score: ctrScore, value: pct(ctr), bench: "Ideal: > 1.5%", color: ctrScore >= 70 ? "var(--emerald)" : ctrScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Tasa Conversión", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "var(--emerald)" : convScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Ritmo de Gasto", icon: <TrendingUp style={{ width: 14, height: 14 }} />, score: paceScore, value: pct(spendPaceRatio * 100), bench: "Ideal: 100%", color: paceScore >= 70 ? "var(--emerald)" : paceScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "� " : "� "} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "�", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--emerald)" : trendScore >= 40 ? "var(--amber)" : "var(--red)" },
+            ];
+
+            // Recommendations (Cross-diagnostic logic)
+            const recs: { severity: string; text: string }[] = [];
+            
+            if (cprScore >= 80) {
+              recs.push({ severity: "success", text: `Costo por Resultado excelente (${fmtMXN(cpr)}). El embudo está sano y convirtiendo eficientemente. Sugerencia: Escalar presupuesto un 15-20%.` });
+            } else if (cprScore < 50 && cprTarget > 0) {
+              recs.push({ severity: "critical", text: `Costo por Resultado en riesgo (${fmtMXN(cpr)} vs meta ${fmtMXN(cprTarget)}). Costos de adquisición elevados.` });
+            }
+
+            if (ctrScore >= 60 && convScore < 50) {
+              recs.push({ severity: "warning", text: `Fuga en Bottom-Funnel: Alto CTR (${pct(ctr)}) pero baja conversión (${pct(conversionRate)}). El anuncio atrae pero la landing page no convence o el lead es de baja intención.` });
+            } else if (ctrScore < 50 && convScore >= 60) {
+              recs.push({ severity: "warning", text: `Fuga en Mid-Funnel: Baja atracción (${pct(ctr)}) pero buena conversión (${pct(conversionRate)}). Mejora los creativos y hooks, tu landing page funciona bien.` });
+            } else if (ctrScore < 50 && convScore < 50) {
+              recs.push({ severity: "critical", text: `Fuga General: Los creativos no atraen (${pct(ctr)}) y la oferta no convierte (${pct(conversionRate)}). Revisión total de campaña requerida.` });
+            }
+
+            if (freqScore < 50 && ctrScore < 50) {
+              recs.push({ severity: "warning", text: `Fatiga Creativa: Frecuencia alta (${frequency.toFixed(1)}) y CTR cayendo. La audiencia ya se cansó de los anuncios actuales. Rota creativos inmediatamente.` });
+            }
+
+            if (paceScore < 40) {
+               if (spendPaceRatio < 1) {
+                  recs.push({ severity: "warning", text: `Sub-inversión: El gasto está por debajo del ritmo ideal. Revisa si las pujas son muy bajas o la audiencia muy pequeña.` });
+               } else {
+                  recs.push({ severity: "warning", text: `Sobre-inversión: El gasto está muy acelerado. Ajusta límites diarios para no quedarte sin presupuesto antes de fin de mes.` });
+               }
+            }
+
+            if (recs.length === 0) recs.push({ severity: "success", text: "Todas las métricas están dentro de rangos saludables. Mantén la estrategia actual y monitorea diariamente." });
+
+            const funnelSteps = [
+              { ...indicators[1], step: "1. Atracción", desc: "¿A cuántos llegamos sin saturar?" },
+              { ...indicators[2], step: "2. Interacción", desc: "¿El creativo llama la atención?" },
+              { ...indicators[3], step: "3. Conversión", desc: "¿La oferta o página convence?" },
+              { ...indicators[4], step: "4. Gasto", desc: "¿Estamos gastando al ritmo ideal?" },
+            ];
+
+                return (
                 <div style={panelStyle}>
                   <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
                     <h3 style={headingStyle}>Análisis del Embudo de Conversión</h3>
@@ -2108,8 +2249,92 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     ))}
                   </div>
                 </div>
+                );
+              },
+            },
+            {
+              id: "salud-tendencia",
+              title: "Tendencia y Diagnóstico",
+              icon: <Activity style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 12,
+              minColSpan: 3,
+              render: () => {
+            // Health calculations
+            const frequency = totalImpressions > 0 && totalReach > 0 ? totalImpressions / totalReach : 0;
+            const conversionRate = totalClicks > 0 ? (totalResults / totalClicks) * 100 : 0;
+            const idealSpend = bk.daily * daysElapsed;
+            const spendPaceRatio = idealSpend > 0 ? totalSpend / idealSpend : 1;
 
-                {/* Fila 3: Tendencia vs Diagnóstico Cruzado */}
+            // Score calculations (each 0-100)
+            const cprScore = cprTarget > 0 ? Math.max(0, Math.min(100, cpr <= cprTarget ? 100 : Math.round(100 - ((cpr / cprTarget - 1) * 333)))) : 50;
+            const freqScore = Math.max(0, Math.min(100, Math.round(frequency <= 2 ? 100 : frequency <= 4 ? 100 - ((frequency - 2) * 25) : Math.max(0, 50 - ((frequency - 4) * 25)))));
+            const ctrScore = Math.max(0, Math.min(100, Math.round(ctr >= 2 ? 100 : ctr >= 1 ? 60 + (ctr - 1) * 40 : ctr >= 0.5 ? 20 + (ctr - 0.5) * 80 : ctr * 40)));
+            const convScore = Math.max(0, Math.min(100, Math.round(conversionRate >= 8 ? 100 : conversionRate >= 4 ? 60 + (conversionRate - 4) * 10 : conversionRate >= 1 ? 20 + (conversionRate - 1) * 13.33 : conversionRate * 20)));
+            const paceScore = Math.max(0, Math.min(100, Math.round(Math.abs(spendPaceRatio - 1) <= 0.1 ? 100 : Math.abs(spendPaceRatio - 1) <= 0.25 ? 50 + (0.25 - Math.abs(spendPaceRatio - 1)) / 0.15 * 50 : Math.max(0, 100 - Math.abs(spendPaceRatio - 1) * 200))));
+
+            const tsd = timeSeriesData || [];
+            const half = Math.floor(tsd.length / 2);
+            const firstHalfCPR = half > 0 ? tsd.slice(0, half).reduce((a: number, d: any) => a + (d.cpr || 0), 0) / half : 0;
+            const secondHalfCPR = tsd.length - half > 0 ? tsd.slice(half).reduce((a: number, d: any) => a + (d.cpr || 0), 0) / (tsd.length - half) : 0;
+            const trendScore = firstHalfCPR > 0 ? Math.max(0, Math.min(100, Math.round(secondHalfCPR <= firstHalfCPR ? 100 : 100 - ((secondHalfCPR / firstHalfCPR - 1) * 200)))) : 50;
+
+            const healthScore = Math.round(cprScore * 0.25 + freqScore * 0.20 + ctrScore * 0.15 + convScore * 0.15 + paceScore * 0.15 + trendScore * 0.10);
+            const healthLabel = healthScore >= 80 ? "Excelente" : healthScore >= 60 ? "Buena" : healthScore >= 40 ? "En Riesgo" : "Crítica";
+            const healthColor = healthScore >= 80 ? "var(--emerald)" : healthScore >= 60 ? "var(--amber)" : "var(--red)";
+
+            // SVG gauge params
+            const radius = 80; const circumference = 2 * Math.PI * radius;
+            const dashOffset = circumference - (healthScore / 100) * circumference;
+
+            // Indicators
+            const indicators = [
+              { name: "Eficiencia CPR", icon: <DollarSign style={{ width: 14, height: 14 }} />, score: cprScore, value: fmtMXN(cpr), bench: cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Sin meta", color: cprScore >= 70 ? "var(--emerald)" : cprScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Frecuencia", icon: <RefreshCw style={{ width: 14, height: 14 }} />, score: freqScore, value: frequency.toFixed(2), bench: "Ideal: 1.0 - 2.5", color: freqScore >= 70 ? "var(--emerald)" : freqScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "CTR", icon: <MousePointer style={{ width: 14, height: 14 }} />, score: ctrScore, value: pct(ctr), bench: "Ideal: > 1.5%", color: ctrScore >= 70 ? "var(--emerald)" : ctrScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Tasa Conversión", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "var(--emerald)" : convScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Ritmo de Gasto", icon: <TrendingUp style={{ width: 14, height: 14 }} />, score: paceScore, value: pct(spendPaceRatio * 100), bench: "Ideal: 100%", color: paceScore >= 70 ? "var(--emerald)" : paceScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "� " : "� "} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "�", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--emerald)" : trendScore >= 40 ? "var(--amber)" : "var(--red)" },
+            ];
+
+            // Recommendations (Cross-diagnostic logic)
+            const recs: { severity: string; text: string }[] = [];
+            
+            if (cprScore >= 80) {
+              recs.push({ severity: "success", text: `Costo por Resultado excelente (${fmtMXN(cpr)}). El embudo está sano y convirtiendo eficientemente. Sugerencia: Escalar presupuesto un 15-20%.` });
+            } else if (cprScore < 50 && cprTarget > 0) {
+              recs.push({ severity: "critical", text: `Costo por Resultado en riesgo (${fmtMXN(cpr)} vs meta ${fmtMXN(cprTarget)}). Costos de adquisición elevados.` });
+            }
+
+            if (ctrScore >= 60 && convScore < 50) {
+              recs.push({ severity: "warning", text: `Fuga en Bottom-Funnel: Alto CTR (${pct(ctr)}) pero baja conversión (${pct(conversionRate)}). El anuncio atrae pero la landing page no convence o el lead es de baja intención.` });
+            } else if (ctrScore < 50 && convScore >= 60) {
+              recs.push({ severity: "warning", text: `Fuga en Mid-Funnel: Baja atracción (${pct(ctr)}) pero buena conversión (${pct(conversionRate)}). Mejora los creativos y hooks, tu landing page funciona bien.` });
+            } else if (ctrScore < 50 && convScore < 50) {
+              recs.push({ severity: "critical", text: `Fuga General: Los creativos no atraen (${pct(ctr)}) y la oferta no convierte (${pct(conversionRate)}). Revisión total de campaña requerida.` });
+            }
+
+            if (freqScore < 50 && ctrScore < 50) {
+              recs.push({ severity: "warning", text: `Fatiga Creativa: Frecuencia alta (${frequency.toFixed(1)}) y CTR cayendo. La audiencia ya se cansó de los anuncios actuales. Rota creativos inmediatamente.` });
+            }
+
+            if (paceScore < 40) {
+               if (spendPaceRatio < 1) {
+                  recs.push({ severity: "warning", text: `Sub-inversión: El gasto está por debajo del ritmo ideal. Revisa si las pujas son muy bajas o la audiencia muy pequeña.` });
+               } else {
+                  recs.push({ severity: "warning", text: `Sobre-inversión: El gasto está muy acelerado. Ajusta límites diarios para no quedarte sin presupuesto antes de fin de mes.` });
+               }
+            }
+
+            if (recs.length === 0) recs.push({ severity: "success", text: "Todas las métricas están dentro de rangos saludables. Mantén la estrategia actual y monitorea diariamente." });
+
+            const funnelSteps = [
+              { ...indicators[1], step: "1. Atracción", desc: "¿A cuántos llegamos sin saturar?" },
+              { ...indicators[2], step: "2. Interacción", desc: "¿El creativo llama la atención?" },
+              { ...indicators[3], step: "3. Conversión", desc: "¿La oferta o página convence?" },
+              { ...indicators[4], step: "4. Gasto", desc: "¿Estamos gastando al ritmo ideal?" },
+            ];
+
+                return (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                   {/* CPR Trend Chart */}
                   <div className="lg:col-span-2" style={panelStyle}>
@@ -2153,11 +2378,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })()}
-                </div>
-              ),
+                );
+              },
             },
           ] as WidgetDefinition[]}
         />
