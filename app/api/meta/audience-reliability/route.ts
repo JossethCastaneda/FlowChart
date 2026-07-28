@@ -242,13 +242,13 @@ export async function GET(req: NextRequest) {
   const version = META_API_VERSION;
 
   let timeRange = "&date_preset=this_month";
-  let cacheKey = `this_month_v3_${goal}`;
+  let cacheKey = `this_month_v4_${goal}`;
   if (dateStart && dateEnd) {
     timeRange = `&time_range=${encodeURIComponent(JSON.stringify({ since: dateStart, until: dateEnd }))}`;
-    cacheKey = `${dateStart}_${dateEnd}_v3_${goal}`;
+    cacheKey = `${dateStart}_${dateEnd}_v4_${goal}`;
   } else if (preset) {
     timeRange = `&date_preset=${preset}`;
-    cacheKey = `${preset}_v3_${goal}`;
+    cacheKey = `${preset}_v4_${goal}`;
   }
 
   try {
