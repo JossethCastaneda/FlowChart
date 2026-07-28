@@ -32,7 +32,7 @@ const GOAL_ACTION_MAP: Record<string, string[]> = {
     "messaging_conversation_started_7d",
     "onsite_conversion.messaging_first_reply",
   ],
-  "Leads": ["onsite_conversion.flow_complete", "lead", "leadgen_grouped", "onsite_conversion.lead_grouped", "offsite_conversion.fb_pixel_lead", "omni_lead"],
+  "Leads": ["onsite_conversion.flow_complete", "lead", "leadgen", "leadgen_grouped", "onsite_conversion.lead_grouped", "onsite_conversion.lead", "offsite_conversion.fb_pixel_lead", "omni_lead"],
   "Ventas (Purchase)": [
     "purchase",
     "omni_purchase",
@@ -55,11 +55,24 @@ const GOAL_ACTION_MAP: Record<string, string[]> = {
 const RESULT_TYPES_FALLBACK = [
   "onsite_conversion.messaging_conversation_started_7d",
   "messaging_conversation_started_7d",
+  "onsite_conversion.messaging_first_reply",
+  "leadgen_grouped",
+  "leadgen",
+  "onsite_conversion.lead_grouped",
+  "onsite_conversion.lead",
+  "onsite_conversion.flow_complete",
+  "offsite_conversion.fb_pixel_lead",
+  "omni_lead",
   "lead",
-  "purchase",
-  "complete_registration",
+  "offsite_conversion.fb_pixel_purchase",
   "omni_purchase",
+  "purchase",
+  "omni_complete_registration",
+  "offsite_conversion.fb_pixel_complete_registration",
+  "complete_registration",
+  "add_to_cart",
   "app_install",
+  "omni_app_install",
   "landing_page_view",
   "link_click",
 ];
@@ -164,13 +177,14 @@ function findGoalResults(actions: any[] | undefined, goal: string): number {
 
   const targetTypes = GOAL_ACTION_MAP[goal];
   if (targetTypes) {
+    let total = 0;
     for (const t of targetTypes) {
       const found = actions.find((a: any) => a.action_type === t);
-      if (found) return parseInt(found.value || "0", 10);
+      if (found) {
+        total += parseInt(found.value || "0", 10);
+      }
     }
-    // Goal has explicit map but no matching action found — return 0
-    // NEVER fall through to generic fallback, which would pick link_click
-    return 0;
+    return total;
   }
 
   // Fallback: try common action types
