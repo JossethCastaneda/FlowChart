@@ -85,7 +85,7 @@ export function UserReliabilityModule({
       }
     };
     fetchData();
-  }, [adAccountId, dateStart, dateEnd, goal, cprTarget]);
+  }, [adAccountId, dateStart, dateEnd, preset, goal, cprTarget]);
 
   if (loading) {
     return (

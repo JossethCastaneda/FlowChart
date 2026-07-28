@@ -275,6 +275,8 @@ export async function GET(req: NextRequest) {
     const buildUrl = (breakdowns: string) =>
       `https://graph.facebook.com/${version}/${adAccountId}/insights?level=ad&breakdowns=${breakdowns}&fields=${INSIGHTS_FIELDS}${timeRange}&limit=500`;
 
+    const globalUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?level=account&fields=${INSIGHTS_FIELDS}${timeRange}`;
+
     // Demographics (age, gender) — SUPPORTS actions
     const demoUrl = buildUrl("age,gender");
 
@@ -290,11 +292,9 @@ export async function GET(req: NextRequest) {
     // Platform & Placement — Meta does NOT support actions with publisher_platform
     // So we use BASE fields only for this one
     const placementFields = "spend,impressions,clicks,cpm,ctr";
-    const placementUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?level=ad&breakdowns=publisher_platform,platform_position&fields=${placementFields}${timeRange.replace(/^&/, "?")}&limit=500`;
+    const placementUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?level=ad&breakdowns=publisher_platform,platform_position&fields=${placementFields}${timeRange}&limit=500`;
 
-    // ── Fetch all in parallel ────────────────────────────────────────
-    const globalUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?level=account&fields=${INSIGHTS_FIELDS}${timeRange.replace(/^&/, "?")}`;
-
+    // ── Fetch all in parallel ───────────────────────────────────────
     const [demoRes, regionRes, countryRes, deviceRes, placementRes, globalRes] = await Promise.all([
       metaFetch(demoUrl, token),
       metaFetch(regionUrl, token),
