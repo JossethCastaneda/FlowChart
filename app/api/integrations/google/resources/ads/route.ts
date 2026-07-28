@@ -21,9 +21,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Google not connected or token expired" }, { status: 401 });
   }
 
-  const developerToken = process.env.GOOGLE_ADS_DEVELOPER_TOKEN;
+  const developerToken = process.env.GOOGLE_DEVELOPERTOKEN_ADS;
   if (!developerToken) {
-    return NextResponse.json({ error: "GOOGLE_ADS_DEVELOPER_TOKEN no configurado en el servidor" }, { status: 500 });
+    return NextResponse.json({ error: "GOOGLE_DEVELOPERTOKEN_ADS no configurado en el servidor" }, { status: 500 });
   }
 
   try {

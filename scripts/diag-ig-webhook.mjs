@@ -10,21 +10,21 @@ import { readFileSync } from "fs";
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
 const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
 const META_WEBHOOK_VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN;
-const INSTAGRAM_APP_ID = process.env.INSTAGRAM_APP_ID;
-const INSTAGRAM_APP_SECRET = process.env.INSTAGRAM_APP_SECRET;
+const INSTAGRAM_APIKEY_CONNECT = process.env.INSTAGRAM_APIKEY_CONNECT;
+const INSTAGRAM_SECRET_CONNECT = process.env.INSTAGRAM_SECRET_CONNECT;
 const META_APP_SECRET = process.env.META_APP_SECRET;
 
 console.log("=== Diagnóstico Instagram Webhook ===\n");
 
 // 1. Verificar variables de entorno
 console.log("1. Variables de entorno:");
-console.log("   INSTAGRAM_APP_ID:", INSTAGRAM_APP_ID ? `✅ ${INSTAGRAM_APP_ID}` : "❌ NO configurado");
-console.log("   INSTAGRAM_APP_SECRET:", INSTAGRAM_APP_SECRET ? "✅ configurado" : "❌ NO configurado");
+console.log("   INSTAGRAM_APIKEY_CONNECT:", INSTAGRAM_APIKEY_CONNECT ? `✅ ${INSTAGRAM_APIKEY_CONNECT}` : "❌ NO configurado");
+console.log("   INSTAGRAM_SECRET_CONNECT:", INSTAGRAM_SECRET_CONNECT ? "✅ configurado" : "❌ NO configurado");
 console.log("   META_APP_SECRET:", META_APP_SECRET ? "✅ configurado" : "❌ NO configurado");
 console.log("   META_WEBHOOK_VERIFY_TOKEN:", META_WEBHOOK_VERIFY_TOKEN ? `✅ "${META_WEBHOOK_VERIFY_TOKEN}"` : "❌ NO configurado — ESTE ES EL PROBLEMA");
 console.log("   ENCRYPTION_KEY:", ENCRYPTION_KEY ? "✅ configurado (64 chars: " + ENCRYPTION_KEY.length + ")" : "❌ NO configurado");
 
-if (!ENCRYPTION_KEY || !INSTAGRAM_APP_SECRET) {
+if (!ENCRYPTION_KEY || !INSTAGRAM_SECRET_CONNECT) {
   console.log("\n⚠️ Faltan variables críticas — abortando diagnóstico de token.");
   process.exit(1);
 }

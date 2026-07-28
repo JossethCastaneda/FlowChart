@@ -124,9 +124,9 @@ export async function GET(
   let authUrl: URL;
 
   if (module === "publisher_instagram") {
-    const instagramAppId = env.INSTAGRAM_APP_ID;
+    const instagramAppId = env.INSTAGRAM_APIKEY_CONNECT;
     if (!instagramAppId) {
-      return NextResponse.json({ error: "INSTAGRAM_APP_ID not configured" }, { status: 500 });
+      return NextResponse.json({ error: "INSTAGRAM_APIKEY_CONNECT not configured" }, { status: 500 });
     }
     
     authUrl = new URL("https://api.instagram.com/oauth/authorize");

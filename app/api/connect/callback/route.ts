@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
 
   // ── BRANCH: Instagram Platform Direct Login ─────────────────────────────────
   // Cuando module=instagram, el flujo usa instagram.com/oauth → graph.instagram.com
-  // con INSTAGRAM_APP_ID/SECRET (app separada, no la app de Meta Ads/Webhooks).
+  // con INSTAGRAM_APIKEY_CONNECT/SECRET (app separada, no la app de Meta Ads/Webhooks).
   if (module === "instagram" || module === "publisher_instagram") {
     return await handleInstagramDirectCallback({
       code,
@@ -500,7 +500,7 @@ export async function GET(request: NextRequest) {
 
 /**
  * Maneja el callback del flujo de Instagram Business Login (Direct, sin Facebook).
- * Usa INSTAGRAM_APP_ID/SECRET y graph.instagram.com (no graph.facebook.com).
+ * Usa INSTAGRAM_APIKEY_CONNECT/SECRET y graph.instagram.com (no graph.facebook.com).
  *
  * Ref: https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-instagram-login/business-login
  */
@@ -519,11 +519,11 @@ async function handleInstagramDirectCallback({
   workspaceId: string;
   providerName?: string;
 }): Promise<Response> {
-  const igAppId = env.INSTAGRAM_APP_ID;
-  const igAppSecret = env.INSTAGRAM_APP_SECRET;
+  const igAppId = env.INSTAGRAM_APIKEY_CONNECT;
+  const igAppSecret = env.INSTAGRAM_SECRET_CONNECT;
 
   if (!igAppId || !igAppSecret) {
-    logger.error("[IG DIRECT CALLBACK] INSTAGRAM_APP_ID or INSTAGRAM_APP_SECRET not configured");
+    logger.error("[IG DIRECT CALLBACK] INSTAGRAM_APIKEY_CONNECT or INSTAGRAM_SECRET_CONNECT not configured");
     return NextResponse.redirect(`${baseUrl}/connect/done?error=instagram_not_configured`);
   }
 

@@ -81,9 +81,9 @@ const envSchema = z.object({
   MESSENGER_CONFIG_ID: z.string().optional(),
 
   // Instagram directo
-  INSTAGRAM_APP_ID: z.string().min(1).optional(),
-  INSTAGRAM_APP_SECRET: z.string().min(1).optional(),
-  INSTAGRAM_REDIRECT_URI: z.string().url().optional(),
+  INSTAGRAM_APIKEY_CONNECT: z.string().min(1).optional(),
+  INSTAGRAM_SECRET_CONNECT: z.string().min(1).optional(),
+  INSTAGRAM_REDIRECT_CONNECT: z.string().url().optional(),
   INSTAGRAM_SCOPES: z.string().default([
     "instagram_business_basic",
     "instagram_business_manage_messages",
@@ -94,8 +94,8 @@ const envSchema = z.object({
   INSTAGRAM_TOKEN_URL: z.string().url().default("https://api.instagram.com/oauth/access_token"),
 
   // Google
-  GOOGLE_CLIENT_ID: z.string().min(1).optional(),
-  GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
+  GOOGLE_APIKEY_CONNECT: z.string().min(1).optional(),
+  GOOGLE_SECRET_CONNECT: z.string().min(1).optional(),
 
   // Seguridad — AES-256-GCM requiere 32 bytes = 64 hex chars (ver lib/encryption.ts,
   // que rechaza cualquier longitud != 64). Una clave de 32 hex (AES-128) es inválida
@@ -114,7 +114,7 @@ const envSchema = z.object({
   EMAIL_FROM: z.string().min(1).optional(),
 
   // Google Ads
-  GOOGLE_ADS_DEVELOPER_TOKEN: z.string().min(1).optional(),
+  GOOGLE_DEVELOPERTOKEN_ADS: z.string().min(1).optional(),
 
   // Análisis de Resultados — sal para hashear PII (teléfono/email)
   ANALYTICS_PII_SALT: z.string().min(1).optional(),

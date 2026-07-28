@@ -57,8 +57,8 @@ export async function refreshAccessToken(workspaceId: string): Promise<string | 
   }
 
   // Otherwise, refresh the token
-  const clientId = env.GOOGLE_CLIENT_ID;
-  const clientSecret = env.GOOGLE_CLIENT_SECRET;
+  const clientId = env.GOOGLE_APIKEY_CONNECT;
+  const clientSecret = env.GOOGLE_SECRET_CONNECT;
 
   if (!clientId || !clientSecret) {
     logger.error("[OAUTH GOOGLE] Missing client credentials to refresh token");

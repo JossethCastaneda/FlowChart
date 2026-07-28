@@ -6,6 +6,7 @@ import { resolveWorkspaceFromPhone } from "@/lib/whatsapp";
 import { resolveWorkspaceForMetaAsset, persistInboundMessage, type InboxPlatform } from "@/lib/inbox-store";
 import { env } from "@/lib/env";
 import { parseIntegrationCredentials, getPageTokenForFetch } from "@/lib/meta-tokens";
+import { metaFetch } from "@/lib/server-auth";
 import { ACTIVE_PROJECT_STATUSES } from "@/lib/project-constants";
 
 /**
@@ -88,11 +89,11 @@ async function persistMetaDm(
               if (creds.accessToken && typeof creds.accessToken === "string") {
                 const decrypted = decryptToken(creds.accessToken);
                 if (decrypted && !decrypted.startsWith("enc:")) {
-                  // Buscar perfil en graph.instagram.com con el token de usuario de IG
                   const igController = new AbortController();
                   const igTimeout = setTimeout(() => igController.abort(), 3000);
-                  const igRes = await fetch(
-                    `https://graph.instagram.com/${contactId}?fields=name,profile_pic&access_token=${decrypted}`,
+                  const igRes = await metaFetch(
+                    `https://graph.instagram.com/${contactId}?fields=name,profile_pic`,
+                    decrypted,
                     { signal: igController.signal }
                   );
                   clearTimeout(igTimeout);
@@ -116,7 +117,7 @@ async function persistMetaDm(
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout max
           
-          const res = await fetch(`https://graph.facebook.com/${env.META_API_VERSION}/${contactId}?fields=${fields}&access_token=${pageToken}`, {
+          const res = await metaFetch(`https://graph.facebook.com/${env.META_API_VERSION}/${contactId}?fields=${fields}`, pageToken, {
             signal: controller.signal
           });
           clearTimeout(timeoutId);
@@ -240,7 +241,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify HMAC with timing-safe comparison.
-    // Intentamos con META_APP_SECRET primero; si falla, intentamos con INSTAGRAM_APP_SECRET
+    // Intentamos con META_APP_SECRET primero; si falla, intentamos con INSTAGRAM_SECRET_CONNECT
     // porque los webhooks de la app de Instagram Direct Login usan su propio secret.
     const { createHmac, timingSafeEqual } = await import("crypto");
 
@@ -252,7 +253,7 @@ export async function POST(req: NextRequest) {
     };
 
     const metaValid = verifyWithSecret(appSecret);
-    const igSecret = env.INSTAGRAM_APP_SECRET;
+    const igSecret = env.INSTAGRAM_SECRET_CONNECT;
     const igValid = !metaValid && !!igSecret && verifyWithSecret(igSecret);
 
     if (!metaValid && !igValid) {

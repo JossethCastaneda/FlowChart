@@ -1,9 +1,10 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { decryptToken } from "@/lib/encryption";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+import { metaFetch } from "@/lib/server-auth";
 
 const META_V = process.env.META_API_VERSION || "v25.0";
 
@@ -66,8 +67,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const res = await fetch(
-      `https://graph.facebook.com/${META_V}/${encodeURIComponent(postId)}?fields=id,message,created_time,permalink_url,full_picture,shares,likes.summary(true),comments.summary(true).limit(25){id,message,from{id,name},created_time,like_count}&access_token=${pageToken}`,
+    const res = await metaFetch(
+      `https://graph.facebook.com/${META_V}/${encodeURIComponent(postId)}?fields=id,message,created_time,permalink_url,full_picture,shares,likes.summary(true),comments.summary(true).limit(25){id,message,from{id,name},created_time,like_count}`,
+      pageToken,
       { cache: "no-store" }
     );
 

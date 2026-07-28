@@ -37,7 +37,7 @@ Tokens se cifran con **AES-256-GCM** vía `lib/encryption.ts` y se almacenan **p
 | **Portal** | [Google Cloud Console](https://console.cloud.google.com) → APIs & Services → Credentials |
 | **Tipo de credencial** | OAuth client ID → **Web application** |
 | **APIs a habilitar** | Google Analytics Data API, Google Analytics Admin API, Search Console API, Tag Manager API, Google Ads API, BigQuery API |
-| **Variables Vercel** | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_ADS_DEVELOPER_TOKEN` |
+| **Variables Vercel** | `GOOGLE_APIKEY_CONNECT`, `GOOGLE_SECRET_CONNECT`, `GOOGLE_DEVELOPERTOKEN_ADS` |
 
 **Authorized redirect URIs** (regístralas EXACTAS, sin espacios ni slash final):
 

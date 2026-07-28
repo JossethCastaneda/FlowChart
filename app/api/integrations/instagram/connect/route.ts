@@ -13,16 +13,16 @@ const NEXTAUTH_SECRET = env.NEXTAUTH_SECRET || env.AUTH_SECRET;
  *
  * - redirect_uri usa /api/connect/callback (URI registrada en el panel de Meta para la app IG)
  * - State usa el mismo formato HMAC que el callback existente, con module="instagram"
- *   para que el callback detecte que debe usar INSTAGRAM_APP_ID/SECRET
+ *   para que el callback detecte que debe usar INSTAGRAM_APIKEY_CONNECT/SECRET
  *
  * Ref: https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-instagram-login/business-login
  */
 export const GET = withWorkspaceRole(["OWNER", "ADMIN"])(async (req: NextRequest, ctx) => {
-  const appId = env.INSTAGRAM_APP_ID;
+  const appId = env.INSTAGRAM_APIKEY_CONNECT;
 
   if (!appId) {
-    logger.error("Instagram Business Login not configured", { missing: "INSTAGRAM_APP_ID" });
-    return apiError("Instagram Business Login is not configured (missing INSTAGRAM_APP_ID)", "SERVER_CONFIG", 500);
+    logger.error("Instagram Business Login not configured", { missing: "INSTAGRAM_APIKEY_CONNECT" });
+    return apiError("Instagram Business Login is not configured (missing INSTAGRAM_APIKEY_CONNECT)", "SERVER_CONFIG", 500);
   }
 
   if (!NEXTAUTH_SECRET) {
@@ -36,7 +36,7 @@ export const GET = withWorkspaceRole(["OWNER", "ADMIN"])(async (req: NextRequest
   const redirectUri = `${baseUrl}/api/connect/callback`;
 
   // State en formato HMAC compatible con /api/connect/callback
-  // module="instagram" → el callback usará INSTAGRAM_APP_ID/SECRET en vez de META_APP_ID/SECRET
+  // module="instagram" → el callback usará INSTAGRAM_APIKEY_CONNECT/SECRET en vez de META_APP_ID/SECRET
   const payload = JSON.stringify({
     module: "instagram",
     userId: ctx.userId,

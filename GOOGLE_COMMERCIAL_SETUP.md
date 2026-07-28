@@ -45,8 +45,8 @@ Agrega los siguientes scopes en la pestaña "Scopes" (debes agregarlos manualmen
 ## 5. Configurar Variables de Entorno en Zefirus
 Agrega a tu `.env` (o `.env.local`) y en las variables de entorno de Vercel:
 ```env
-GOOGLE_CLIENT_ID="<tu-client-id>.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET="<tu-client-secret>"
+GOOGLE_APIKEY_CONNECT="<tu-client-id>.apps.googleusercontent.com"
+GOOGLE_SECRET_CONNECT="<tu-client-secret>"
 ```
 
 *(La integración leerá automáticamente de aquí para el flujo Incremental OAuth).*

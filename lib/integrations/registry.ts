@@ -5,7 +5,7 @@
  * Excluded (cada uno con su propio flujo establecido):
  *   - Meta      → app/api/connect/[module]
  *   - Google    → el Google Hub (app/api/oauth/google + lib/integrations/google).
- *                 Un único cliente OAuth (GOOGLE_CLIENT_ID) con consentimiento
+ *                 Un único cliente OAuth (GOOGLE_APIKEY_CONNECT) con consentimiento
  *                 incremental por módulo. Los antiguos providers google_ads/
  *                 google_analytics/google_bigquery se eliminaron de aquí en
  *                 junio 2026: estaban muertos (env.ts no exponía sus *_CLIENT_ID)

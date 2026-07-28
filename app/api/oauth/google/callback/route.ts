@@ -78,8 +78,8 @@ export async function GET(request: NextRequest) {
   }
 
   // 3. Exchange code for tokens
-  const clientId = env.GOOGLE_CLIENT_ID;
-  const clientSecret = env.GOOGLE_CLIENT_SECRET;
+  const clientId = env.GOOGLE_APIKEY_CONNECT;
+  const clientSecret = env.GOOGLE_SECRET_CONNECT;
   const baseUrl = getAppBaseUrl(request.nextUrl.origin);
   const redirectUri = `${baseUrl}/api/oauth/google/callback`;
 

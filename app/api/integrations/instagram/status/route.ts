@@ -4,6 +4,7 @@ import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import { decryptToken } from "@/lib/encryption";
+import { metaFetch } from "@/lib/server-auth";
 
 /**
  * GET /api/integrations/instagram/status
@@ -24,7 +25,7 @@ export const GET = withWorkspaceRole(["OWNER", "ADMIN"])(async (_req: NextReques
   });
 
   const verifyToken = env.META_WEBHOOK_VERIFY_TOKEN;
-  const appId = env.INSTAGRAM_APP_ID;
+  const appId = env.INSTAGRAM_APIKEY_CONNECT;
   const baseUrl = env.NEXT_PUBLIC_APP_URL || env.NEXTAUTH_URL || "https://zefirus.xyz";
 
   let subscriptionStatus: { active: boolean; fields?: string[]; error?: string } | null = null;
@@ -35,10 +36,7 @@ export const GET = withWorkspaceRole(["OWNER", "ADMIN"])(async (_req: NextReques
       try {
         const token = decryptToken(creds.accessToken);
         if (token && !token.startsWith("enc:")) {
-          const subRes = await fetch(
-            `https://graph.instagram.com/me/subscribed_apps?access_token=${token}`,
-            { method: "GET" }
-          );
+          const subRes = await metaFetch(`https://graph.instagram.com/me/subscribed_apps`, token);
           if (subRes.ok) {
             const subData = await subRes.json();
             const apps = Array.isArray(subData.data) ? subData.data : [];

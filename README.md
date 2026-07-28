@@ -91,7 +91,7 @@ npm run dev                  # http://localhost:3000
 | `FACEBOOK_LOGIN_CONFIG_ID` | – | config_id de login básico |
 | `META_API_VERSION` | – | Versión de Graph API (default `v25.0`) |
 | `META_WEBHOOK_VERIFY_TOKEN` | – | Verificación de webhooks de Meta |
-| `GOOGLE_CLIENT_ID` / `_SECRET` | – | Login con Google |
+| `GOOGLE_APIKEY_CONNECT` / `_SECRET` | – | Login con Google |
 | `RESEND_API_KEY` | – | Envío de emails |
 | `NEXT_PUBLIC_APP_URL` | – | URL pública usada en varios lugares |
 

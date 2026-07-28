@@ -82,11 +82,11 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
 }
 
 
-if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+if (process.env.GOOGLE_APIKEY_CONNECT && process.env.GOOGLE_SECRET_CONNECT) {
   providers.push(
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId: process.env.GOOGLE_APIKEY_CONNECT,
+      clientSecret: process.env.GOOGLE_SECRET_CONNECT,
       authorization: {
         params: {
           scope: "openid email profile",

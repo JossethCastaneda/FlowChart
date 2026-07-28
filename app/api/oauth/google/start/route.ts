@@ -30,9 +30,9 @@ export async function GET(request: NextRequest) {
   const allScopes = Array.from(new Set([...GOOGLE_BASE_SCOPES, ...requiredScopes]));
 
   // 4. Validate env vars
-  const clientId = env.GOOGLE_CLIENT_ID;
+  const clientId = env.GOOGLE_APIKEY_CONNECT;
   if (!clientId) {
-    return NextResponse.json({ error: "GOOGLE_CLIENT_ID not configured" }, { status: 500 });
+    return NextResponse.json({ error: "GOOGLE_APIKEY_CONNECT not configured" }, { status: 500 });
   }
   if (!AUTH_SECRET) {
     return NextResponse.json({ error: "AUTH_SECRET not configured" }, { status: 500 });

@@ -54,9 +54,9 @@ export const GET = withWorkspace(async (_req: NextRequest, ctx) => {
 
   // Instagram Login directo (api/integrations/instagram/*)
   result.instagramDirect = {
-    appId: flag(env.INSTAGRAM_APP_ID),
-    appSecret: flag(env.INSTAGRAM_APP_SECRET),
-    redirectUri: flag(env.INSTAGRAM_REDIRECT_URI),
+    appId: flag(env.INSTAGRAM_APIKEY_CONNECT),
+    appSecret: flag(env.INSTAGRAM_SECRET_CONNECT),
+    redirectUri: flag(env.INSTAGRAM_REDIRECT_CONNECT),
     scopes: flag(env.INSTAGRAM_SCOPES),
   };
 
