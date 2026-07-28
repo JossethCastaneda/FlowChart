@@ -68,7 +68,11 @@ const goalLabel = (goal?: string) => {
 };
 // Goal �  Meta action_type mapping
 const GOAL_ACTION_MAP: Record<string, string[]> = {
-  "Conversaciones (WhatsApp / Messenger)": ["onsite_conversion.messaging_conversation_started_7d"],
+  "Conversaciones (WhatsApp / Messenger)": [
+    "onsite_conversion.messaging_conversation_started_7d",
+    "messaging_conversation_started_7d",
+    "onsite_conversion.messaging_first_reply"
+  ],
   "Leads (Formulario Meta)": ["onsite_conversion.flow_complete", "lead", "leadgen", "leadgen_grouped", "onsite_conversion.lead_grouped", "onsite_conversion.lead", "omni_lead"],
   "Leads (Sitio Web / Pixel)": ["offsite_conversion.fb_pixel_lead", "lead", "omni_lead"],
   "Leads (Todas las fuentes)": ["onsite_conversion.flow_complete", "lead", "leadgen", "leadgen_grouped", "omni_lead", "offsite_conversion.fb_pixel_lead", "onsite_conversion.lead_grouped", "onsite_conversion.lead"],
@@ -102,7 +106,7 @@ const NATIVE_OBJECTIVE_MAP: Record<string, string[]> = {
   "OUTCOME_APP_PROMOTION": ["app_install", "omni_app_install"]
 };
 
-const RESULT_TYPES_FALLBACK = ['onsite_conversion.messaging_conversation_started_7d','onsite_conversion.flow_complete','lead','purchase','complete_registration','omni_purchase','offsite_conversion','onsite_conversion','app_install','landing_page_view','link_click'];
+const RESULT_TYPES_FALLBACK = ['onsite_conversion.messaging_conversation_started_7d','messaging_conversation_started_7d','onsite_conversion.messaging_first_reply','onsite_conversion.flow_complete','lead','purchase','complete_registration','omni_purchase','offsite_conversion','onsite_conversion','app_install','landing_page_view','link_click'];
 
 const getObjective = (entity: any, insights: any) => {
   if (!entity) return null;

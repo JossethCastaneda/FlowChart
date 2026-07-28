@@ -15,7 +15,11 @@ import { logger } from "@/lib/logger";
 // ── GOAL → Meta action_type mapping (idéntico al del proyecto) ──────────
 const GOAL_ACTION_MAP: Record<string, string[]> = {
   // Explícitas
-  "Conversaciones (WhatsApp / Messenger)": ["onsite_conversion.messaging_conversation_started_7d"],
+  "Conversaciones (WhatsApp / Messenger)": [
+    "onsite_conversion.messaging_conversation_started_7d",
+    "messaging_conversation_started_7d",
+    "onsite_conversion.messaging_first_reply",
+  ],
   "Leads (Formulario Meta)": ["leadgen_grouped", "leadgen", "onsite_conversion.flow_complete", "onsite_conversion.lead_grouped", "onsite_conversion.lead", "lead", "omni_lead"],
   "Leads (Sitio Web / Pixel)": ["offsite_conversion.fb_pixel_lead", "lead", "omni_lead"],
   "Leads (Todas las fuentes)": ["onsite_conversion.flow_complete", "lead", "leadgen", "leadgen_grouped", "omni_lead", "offsite_conversion.fb_pixel_lead", "onsite_conversion.lead_grouped", "onsite_conversion.lead"],

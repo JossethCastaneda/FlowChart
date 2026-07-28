@@ -1022,6 +1022,8 @@ function AdsManagerContent() {
       if (filter.field === "results") {
         const priority = [
           "onsite_conversion.messaging_conversation_started_7d",
+          "messaging_conversation_started_7d",
+          "onsite_conversion.messaging_first_reply",
           "lead", "omni_purchase", "purchase", "complete_registration",
           "add_to_cart", "link_click",
         ];
