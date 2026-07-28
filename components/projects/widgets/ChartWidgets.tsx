@@ -14,7 +14,7 @@ interface ChartWidgetProps {
 
 function NoData({ msg = "Sin datos disponibles" }: { msg?: string }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", gap: 12, padding: 20 }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%", minHeight: 120, gap: 12, padding: 20 }}>
       <p style={{ fontSize: 11, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "center" }}>{msg}</p>
     </div>
   );
@@ -23,14 +23,10 @@ function NoData({ msg = "Sin datos disponibles" }: { msg?: string }) {
 export function InversionChartWidget({ timeSeriesData, fmtMXN }: ChartWidgetProps) {
   return (
     <div>
-      <div className="chart-panel-header" style={{ padding: 0, border: "none", marginBottom: 8 }}>
-        <div>
-          <span className="chart-panel-title" style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)" }}>Inversión vs Resultados</span>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 6 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--cyan)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>Inversión</span></div>
-            <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--emerald)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>Resultados</span></div>
-          </div>
-        </div>
+      {/* Legend only — title is shown in the DashboardWidget header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--cyan)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>Inversión</span></div>
+        <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--emerald)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>Resultados</span></div>
       </div>
       <div style={{ width: "100%", height: 240 }}>
         {timeSeriesData.length > 0 ? (
@@ -52,14 +48,10 @@ export function InversionChartWidget({ timeSeriesData, fmtMXN }: ChartWidgetProp
 export function CtrCpcChartWidget({ timeSeriesData, fmtMXN }: ChartWidgetProps) {
   return (
     <div>
-      <div className="chart-panel-header" style={{ padding: 0, border: "none", marginBottom: 8 }}>
-        <div>
-          <span className="chart-panel-title" style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)" }}>CTR vs CPC</span>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 6 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--cyan)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>CTR %</span></div>
-            <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--amber)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>CPC $</span></div>
-          </div>
-        </div>
+      {/* Legend only — title is shown in the DashboardWidget header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--cyan)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>CTR %</span></div>
+        <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--amber)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>CPC $</span></div>
       </div>
       <div style={{ width: "100%", height: 240 }}>
         {timeSeriesData.length > 0 ? (

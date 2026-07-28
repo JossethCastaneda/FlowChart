@@ -38,7 +38,7 @@ import { HeatmapWidget } from "@/components/projects/widgets/HeatmapWidget";
 import { AlertasGastoWidget, BudgetCardsWidget } from "@/components/projects/widgets/GastoWidgets";
 import { GastoSpendTableInline } from "@/components/projects/widgets/GastoSpendTableInline";
 
-import { DynamicComposedChartWidget, DynamicKpiCardWidget } from "@/components/projects/widgets/DynamicWidgetTemplates";
+import { DynamicComposedChartWidget, DynamicKpiCardWidget, type DynamicChartConfig, type DynamicKpiConfig } from "@/components/projects/widgets/DynamicWidgetTemplates";
 import { WidgetBuilderModal, type WidgetType } from "@/components/projects/WidgetBuilderModal";
 
 /* �" �" �"  TYPES �" �" �"  */
@@ -932,7 +932,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               render: (w) => (
                 <DynamicComposedChartWidget
                   timeSeriesData={timeSeriesData}
-                  config={w.config}
+                  config={w as unknown as DynamicChartConfig | undefined}
                   isLoading={isLoading}
                   fmtMXN={fmtMXN}
                 />
@@ -947,7 +947,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               render: (w) => (
                 <DynamicKpiCardWidget
                   totalData={totalsData}
-                  config={w.config}
+                  config={w as unknown as DynamicKpiConfig | undefined}
                   fmtMXN={fmtMXN}
                 />
               ),

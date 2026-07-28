@@ -722,8 +722,9 @@ svg.lucide:hover { transform: scale(1.05); }
 
 /* ── Grid Item Wrapper ── */
 .dashboard-grid-item {
-  /* Let content drive height — DO NOT force stretch */
+  /* Fill the react-grid-item's inline height set by RGL */
   width: 100%;
+  height: 100%;
 }
 
 /* ── Widget ── */
@@ -731,13 +732,12 @@ svg.lucide:hover { transform: scale(1.05); }
   position: relative;
   display: flex;
   flex-direction: column;
+  height: 100%; /* fill the grid item that RGL sizes */
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
-  /* NO overflow:hidden — widget height driven by content via ResizeObserver */
+  overflow: hidden; /* clip to border-radius; RGL controls outer height */
   transition: box-shadow 0.2s, border-color 0.2s, opacity 0.15s;
-  /* Clip border-radius visually without hiding content */
-  overflow: visible;
 }
 .dashboard-widget:hover {
   border-color: var(--border-strong);
@@ -851,8 +851,9 @@ svg.lucide:hover { transform: scale(1.05); }
 /* ── Widget Content ── */
 .dashboard-widget__content {
   padding: 14px 16px;
-  /* NO overflow:auto — height determined by content, no internal scroll */
-  overflow: visible;
+  flex: 1;
+  min-height: 0; /* allow flex child to shrink */
+  overflow: auto; /* scroll when manual-resize makes cell shorter than content */
 }
 
 /* ── Resize Handle ── */

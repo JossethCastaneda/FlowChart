@@ -9,7 +9,7 @@ export interface WidgetLayout {
   /** Widget template type (for dynamic widgets) */
   type?: string;
   /** Custom configuration for the widget (metrics, title, etc) */
-  config?: any;
+  config?: Record<string, unknown>;
   /** X position in grid */
   x: number;
   /** Y position in grid */
@@ -28,14 +28,19 @@ export interface WidgetLayout {
   maxH?: number;
   /** Whether the widget is collapsed */
   collapsed: boolean;
+  /**
+   * Whether height is auto-sized from content.
+   * When true, the grid engine overwrites `h` each render with
+   * the measured content height. Set to false when the user
+   * manually resizes — from that point on, `h` is pinned.
+   * Defaults to true when not present.
+   */
+  hAuto?: boolean;
 }
 
 interface DashboardLayoutState {
   /** Layout map: tabKey → array of widget layouts */
   layouts: Record<string, WidgetLayout[]>;
-
-  /** Get the layout for a specific tab, falling back to defaults */
-  getLayout: (tabKey: string, defaults: WidgetLayout[]) => WidgetLayout[];
 
   /** Update the full layout for a tab */
   setLayout: (tabKey: string, layout: WidgetLayout[]) => void;
@@ -44,7 +49,7 @@ interface DashboardLayoutState {
   updateWidget: (
     tabKey: string,
     widgetId: string,
-    updates: Partial<Pick<WidgetLayout, "w" | "h" | "collapsed" | "config">>
+    updates: Partial<Pick<WidgetLayout, "w" | "h" | "collapsed" | "config" | "hAuto">>
   ) => void;
 
   /** Add a new widget to the layout */
@@ -58,8 +63,8 @@ interface DashboardLayoutState {
 }
 
 /* ═══ LOCALSTORAGE HELPERS ═══ */
-// v2 key invalidates v1 linear cache (order, colSpan)
-const STORAGE_KEY = "zef:dashboard-layouts-v2";
+// v3 key — invalidates v2 which had y: Infinity corruption + frozen‐memo bugs
+const STORAGE_KEY = "zef:dashboard-layouts-v3";
 
 function loadFromStorage(): Record<string, WidgetLayout[]> {
   if (typeof window === "undefined") return {};
@@ -71,46 +76,51 @@ function loadFromStorage(): Record<string, WidgetLayout[]> {
   }
 }
 
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
 function saveToStorage(layouts: Record<string, WidgetLayout[]>) {
   if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(layouts));
-  } catch {
-    // localStorage full or unavailable — silently ignore
+  // Debounce writes — onLayoutChange fires every frame during drag
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(layouts));
+    } catch {
+      // localStorage full or unavailable — silently ignore
+    }
+  }, 300);
+}
+
+/* ═══ PURE MERGE — exported for use in component ═══ */
+export function mergeWithDefaults(
+  stored: WidgetLayout[] | undefined,
+  defaults: WidgetLayout[]
+): WidgetLayout[] {
+  if (!stored || stored.length === 0) return defaults;
+
+  const storedMap = new Map(stored.map((w) => [w.id, w]));
+  const merged: WidgetLayout[] = [];
+  let maxY = 0;
+
+  for (const s of stored) {
+    if (s.y + s.h > maxY) maxY = s.y + s.h;
+    merged.push(s);
   }
+
+  // Append any NEW defaults that don't exist in stored
+  for (const d of defaults) {
+    if (!storedMap.has(d.id)) {
+      merged.push({ ...d, x: 0, y: maxY });
+      maxY += d.h;
+    }
+  }
+
+  return merged;
 }
 
 /* ═══ STORE ═══ */
 export const useDashboardLayoutStore = create<DashboardLayoutState>(
   (set, get) => ({
     layouts: loadFromStorage(),
-
-    getLayout(tabKey, defaults) {
-      const stored = get().layouts[tabKey];
-      if (!stored || stored.length === 0) return defaults;
-
-      // Merge: keep stored positions but ensure all default
-      // widgets exist (in case new widgets were added since last save)
-      const storedMap = new Map(stored.map((w) => [w.id, w]));
-      const merged: WidgetLayout[] = [];
-      let maxY = 0;
-
-      // First: add all stored widgets
-      for (const s of stored) {
-        if (s.y + s.h > maxY) maxY = s.y + s.h;
-        merged.push(s);
-      }
-
-      // Then: add any NEW defaults that don't exist in stored
-      for (const d of defaults) {
-        if (!storedMap.has(d.id)) {
-          merged.push({ ...d, x: 0, y: maxY });
-          maxY += d.h;
-        }
-      }
-
-      return merged;
-    },
 
     setLayout(tabKey, layout) {
       const layouts = { ...get().layouts, [tabKey]: layout };
@@ -131,13 +141,12 @@ export const useDashboardLayoutStore = create<DashboardLayoutState>(
 
     addWidget(tabKey, widget) {
       const current = get().layouts[tabKey] || [];
-      
-      // Find lowest free Y
+
       let maxY = 0;
       for (const s of current) {
         if (s.y + s.h > maxY) maxY = s.y + s.h;
       }
-      
+
       const newWidget: WidgetLayout = { ...widget, x: 0, y: maxY };
       const layouts = { ...get().layouts, [tabKey]: [...current, newWidget] };
       set({ layouts });

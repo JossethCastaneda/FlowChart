@@ -38,7 +38,7 @@ interface DynamicChartProps {
 
 function NoData({ msg = "Sin datos disponibles" }: { msg?: string }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", gap: 12, padding: 20 }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%", minHeight: 120, gap: 12, padding: 20 }}>
       <p style={{ fontSize: 11, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "center" }}>{msg}</p>
     </div>
   );
@@ -49,7 +49,7 @@ export function DynamicComposedChartWidget({ config, timeSeriesData, fmtMXN }: D
     return <NoData msg="Widget sin configurar" />;
   }
 
-  const { title, series } = config;
+  const { series } = config;
 
   const hasLeft = series.some((s) => s.yAxisId === "left");
   const hasRight = series.some((s) => s.yAxisId === "right");
@@ -63,20 +63,14 @@ export function DynamicComposedChartWidget({ config, timeSeriesData, fmtMXN }: D
 
   return (
     <div>
-      <div className="chart-panel-header" style={{ padding: 0, border: "none", marginBottom: 8 }}>
-        <div>
-          <span className="chart-panel-title" style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)" }}>
-            {title}
-          </span>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 6, flexWrap: "wrap" }}>
-            {series.map((s, idx) => (
-              <div key={idx} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: s.color, display: "inline-block" }} />
-                <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{s.label}</span>
-              </div>
-            ))}
+      {/* Legend only — title is shown in the DashboardWidget header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8, flexWrap: "wrap" }}>
+        {series.map((s, idx) => (
+          <div key={idx} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: s.color, display: "inline-block" }} />
+            <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{s.label}</span>
           </div>
-        </div>
+        ))}
       </div>
       <div style={{ width: "100%", height: 240 }}>
         {timeSeriesData.length > 0 ? (
@@ -175,7 +169,7 @@ export function DynamicKpiCardWidget({ config, totalData, fmtMXN }: DynamicKpiPr
   }
 
   return (
-    <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", justifyContent: "center", height: "100%", width: "100%" }}>
+    <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
       <div style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 500, marginBottom: 4 }}>
         {title}
       </div>
