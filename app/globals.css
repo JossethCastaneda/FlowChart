@@ -850,10 +850,10 @@ svg.lucide:hover { transform: scale(1.05); }
 
 /* ── Widget Content ── */
 .dashboard-widget__content {
-  padding: 14px 16px;
+  padding: 20px;
   flex: 1;
-  min-height: 0; /* allow flex child to shrink */
-  overflow: auto; /* scroll when manual-resize makes cell shorter than content */
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* ── Resize Handle ── */

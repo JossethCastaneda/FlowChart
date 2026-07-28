@@ -75,7 +75,7 @@ export function BudgetCardsWidget({
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       {/* Presupuesto mensual */}
-      <div style={{ ...panelStyle, borderTop: "2px solid rgba(251,191,36,0.5)" }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', height: '100%', borderTop: "2px solid rgba(251,191,36,0.5)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
           <div style={{ width: 24, height: 24, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <DollarSign style={{ width: 12, height: 12, color: "var(--amber)" }} />
@@ -86,7 +86,7 @@ export function BudgetCardsWidget({
         <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>Diario: {fmtMXN(bk.daily)} · Semanal: {fmtMXN(bk.weekly)}</p>
       </div>
       {/* Gastado acumulado */}
-      <div style={{ ...panelStyle, borderTop: `2px solid ${isOverBudget ? "rgba(226,68,92,0.5)" : "rgba(59,130,246,0.5)"}` }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', height: '100%', borderTop: `2px solid ${isOverBudget ? "rgba(226,68,92,0.5)" : "rgba(59,130,246,0.5)"}` }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
           <div style={{ width: 24, height: 24, borderRadius: 6, background: isOverBudget ? "rgba(226,68,92,0.1)" : "rgba(59,130,246,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Activity style={{ width: 12, height: 12, color: isOverBudget ? "var(--red)" : "var(--cyan)" }} />
@@ -102,7 +102,7 @@ export function BudgetCardsWidget({
         )}
       </div>
       {/* Gastado hoy */}
-      <div style={{ ...panelStyle, borderTop: `2px solid ${todayOverBudget ? "rgba(226,68,92,0.5)" : "rgba(0,200,117,0.5)"}` }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', height: '100%', borderTop: `2px solid ${todayOverBudget ? "rgba(226,68,92,0.5)" : "rgba(0,200,117,0.5)"}` }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
           <div style={{ width: 24, height: 24, borderRadius: 6, background: todayOverBudget ? "rgba(226,68,92,0.1)" : "rgba(0,200,117,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Target style={{ width: 12, height: 12, color: todayOverBudget ? "var(--red)" : "var(--emerald)" }} />
@@ -118,7 +118,7 @@ export function BudgetCardsWidget({
         )}
       </div>
       {/* Restante */}
-      <div style={{ ...panelStyle, borderTop: "2px solid rgba(139,141,242,0.5)" }}>
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', height: '100%', borderTop: "2px solid rgba(139,141,242,0.5)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
           <div style={{ width: 24, height: 24, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <TrendingDown style={{ width: 12, height: 12, color: "var(--purple)" }} />

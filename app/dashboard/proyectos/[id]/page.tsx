@@ -169,12 +169,12 @@ function getBudgetBreakdown(budget: number, period: string) {
   }
 }
 
-/* �"��"��"� SHARED UI �"��"��"� */
+/* """ SHARED UI """ */
 const panelStyle: React.CSSProperties = {
-  background: "var(--surface)",
-  border: "1px solid var(--border)",
-  borderRadius: 12,
-  padding: 18,
+  display: "flex",
+  flexDirection: "column",
+  height: "100%",
+  width: "100%",
 };
 const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 5 };
 const headingStyle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.03em", marginBottom: 4 };

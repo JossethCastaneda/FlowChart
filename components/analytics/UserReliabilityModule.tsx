@@ -57,7 +57,11 @@ export function UserReliabilityModule({
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!adAccountId) return;
+    if (!adAccountId) {
+      setLoading(false);
+      setError("No hay cuenta de anuncios de Meta conectada a este proyecto. Configura una cuenta en la pestaña de Integraciones para ver la confiabilidad de la audiencia.");
+      return;
+    }
     const fetchData = async () => {
       setLoading(true);
       setError("");
