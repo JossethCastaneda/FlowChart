@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import {
   X, ChevronLeft, ChevronRight, Play, Pause, Volume2, VolumeX,
   Eye, ExternalLink, Heart, MessageCircle, Share2, ThumbsUp,
 } from "lucide-react";
+
 
 /* ═══ TYPES ═══ */
 interface CarouselItem {
@@ -279,10 +281,20 @@ export const CreativeLightbox = ({
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
+  // Lock body scroll while open
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return null;
+
   const statusColor = ad.status === "ACTIVE" ? "var(--emerald)" : ad.status === "PAUSED" ? "var(--amber)" : "rgba(148,163,184,0.65)";
   const statusLabel = ad.status === "ACTIVE" ? "Activo" : ad.status === "PAUSED" ? "Pausado" : ad.status;
 
-  return (
+  const content = (
     <div
       onClick={onClose}
       style={{
@@ -422,6 +434,8 @@ export const CreativeLightbox = ({
       </div>
     </div>
   );
+
+  return createPortal(content, document.body);
 };
 
 export default CreativeCard;
