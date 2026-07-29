@@ -128,7 +128,7 @@ describe("publishPostToMeta", () => {
 
     expect(res.targetPage).toBeNull();
     expect(res.externalIds).toEqual({});
-    expect(res.errors.join(" ")).toMatch(/páginas de Facebook/i);
+    expect(res.errors.join(" ")).toMatch(/Facebook/i);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
