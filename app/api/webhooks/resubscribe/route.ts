@@ -27,7 +27,7 @@ export const POST = withWorkspace(async (_req, ctx) => {
     },
   });
 
-  const version = env.META_API_VERSION || "v19.0";
+  const version = env.META_API_VERSION;
   let totalSubscribed = 0;
   let totalFailed = 0;
   const details: any[] = [];

@@ -26,7 +26,7 @@ export const GET = withWorkspace(async (_req, ctx) => {
   });
 
   const results = [];
-  const version = env.META_API_VERSION || "v19.0";
+  const version = env.META_API_VERSION;
 
   for (const integ of metaIntegrations) {
     const creds = integ.credentials as any;

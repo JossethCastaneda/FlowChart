@@ -13,7 +13,7 @@ import { decryptToken } from "@/lib/encryption";
  * Intenta múltiples endpoints según la documentación de Instagram Business Login:
  * - graph.instagram.com/me/subscribed_apps (nuevo)
  * - graph.instagram.com/{ig-user-id}/subscribed_apps (explícito)
- * - graph.facebook.com/v25.0/me/subscribed_apps (fallback)
+ * - graph.facebook.com/{version}/me/subscribed_apps (fallback)
  */
 export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (_req: NextRequest, ctx) => {
   const { workspaceId } = ctx;

@@ -26,6 +26,7 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 import { validateBody } from "@/lib/validate";
 import { encryptToken } from "@/lib/encryption";
 import { logger } from "@/lib/logger";
+import { env } from "@/lib/env";
 import prisma from "@/lib/prisma";
 
 // Modo 1: Embedded Signup — el frontend envía el `code` del popup de Meta
@@ -259,7 +260,7 @@ export const DELETE = withWorkspaceRole(["OWNER", "ADMIN"])(async (_req: NextReq
 async function validateWaToken(accessToken: string, phoneNumberId: string): Promise<boolean> {
   try {
     const res = await fetch(
-      `https://graph.facebook.com/v20.0/${phoneNumberId}?fields=id,display_phone_number,verified_name`,
+      `https://graph.facebook.com/${env.META_API_VERSION}/${phoneNumberId}?fields=id,display_phone_number,verified_name`,
       {
         headers: { Authorization: `Bearer ${accessToken}` },
         signal: AbortSignal.timeout(8000),
@@ -300,7 +301,7 @@ async function exchangeCodeForToken(
     // Para el flujo FB.login() + response_type:"code" (Embedded Signup v4),
     // Meta requiere GET con query params — NO POST JSON, NO grant_type.
     // Ref: https://developers.facebook.com/docs/facebook-login/guides/access-tokens
-    const url = new URL("https://graph.facebook.com/v25.0/oauth/access_token");
+    const url = new URL(`https://graph.facebook.com/${env.META_API_VERSION}/oauth/access_token`);
     url.searchParams.set("client_id",     appId);
     url.searchParams.set("client_secret", appSecret);
     url.searchParams.set("redirect_uri",  "");
@@ -349,7 +350,7 @@ async function subscribeAppToWaba(
 ): Promise<boolean> {
   try {
     const res = await fetch(
-      `https://graph.facebook.com/v25.0/${wabaId}/subscribed_apps`,
+      `https://graph.facebook.com/${env.META_API_VERSION}/${wabaId}/subscribed_apps`,
       {
         method: "POST",
         headers: {
@@ -396,7 +397,7 @@ async function discoverWabaAndPhone(
   // Helper: dado un wabaId, devuelve el primer phoneNumberId activo
   async function firstPhoneFromWaba(wabaId: string): Promise<string | null> {
     const res = await fetch(
-      `https://graph.facebook.com/v25.0/${wabaId}/phone_numbers?fields=id,display_phone_number,status`,
+      `https://graph.facebook.com/${env.META_API_VERSION}/${wabaId}/phone_numbers?fields=id,display_phone_number,status`,
       { headers, ...timeout },
     );
     if (!res.ok) return null;
@@ -409,7 +410,7 @@ async function discoverWabaAndPhone(
   try {
     // ── Ruta 1: acceso directo post-Embedded Signup ────────────────────────────
     const directRes = await fetch(
-      "https://graph.facebook.com/v25.0/me/whatsapp_business_accounts?fields=id,name",
+      `https://graph.facebook.com/${env.META_API_VERSION}/me/whatsapp_business_accounts?fields=id,name`,
       { headers, ...timeout },
     );
     if (directRes.ok) {
@@ -422,7 +423,7 @@ async function discoverWabaAndPhone(
 
     // ── Ruta 2: vía business portfolio (tokens de admin) ──────────────────────
     const bizRes = await fetch(
-      "https://graph.facebook.com/v25.0/me/businesses?fields=id,whatsapp_business_accounts{id,name}",
+      `https://graph.facebook.com/${env.META_API_VERSION}/me/businesses?fields=id,whatsapp_business_accounts{id,name}`,
       { headers, ...timeout },
     );
     if (!bizRes.ok) return null;

@@ -1,7 +1,7 @@
 /**
  * lib/whatsapp.ts
  *
- * Cliente para la WhatsApp Business Cloud API (Meta Graph API v20.0).
+ * Cliente para la WhatsApp Business Cloud API (Meta Graph API).
  * Patrón consistente con lib/botmaker.ts: token resuelto desde Integration
  * cifrada por workspace (AES-256-GCM vía decryptToken), sin fallback a env global
  * para evitar la fuga cross-tenant documentada en AUDITORIA-BOTMAKER.md H1.
@@ -20,8 +20,9 @@ import crypto from "crypto";
 import prisma from "@/lib/prisma";
 import { decryptToken } from "@/lib/encryption";
 import { logger } from "@/lib/logger";
+import { env } from "@/lib/env";
 
-const WA_API_BASE = "https://graph.facebook.com/v20.0";
+const WA_API_BASE = `https://graph.facebook.com/${env.META_API_VERSION}`;
 
 // ─── Tipos ──────────────────────────────────────────────────────────────────
 

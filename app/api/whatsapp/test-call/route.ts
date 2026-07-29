@@ -17,8 +17,9 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 import { validateBody } from "@/lib/validate";
 import { getWaCredentials, sendWaText, sendWaTemplate } from "@/lib/whatsapp";
 import { logger } from "@/lib/logger";
+import { env } from "@/lib/env";
 
-const GRAPH_BASE = "https://graph.facebook.com/v20.0";
+const GRAPH_BASE = `https://graph.facebook.com/${env.META_API_VERSION}`;
 
 const testCallSchema = z.object({
   phoneNumberId: z.string().min(5),

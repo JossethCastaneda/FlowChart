@@ -18,8 +18,9 @@ import { validateBody } from "@/lib/validate";
 import { getWaCredentials } from "@/lib/whatsapp";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
+import { env } from "@/lib/env";
 
-const GRAPH_BASE = "https://graph.facebook.com/v20.0";
+const GRAPH_BASE = `https://graph.facebook.com/${env.META_API_VERSION}`;
 
 export const GET = withWorkspace(async (_req, ctx) => {
   const { workspaceId } = ctx;

@@ -28,6 +28,7 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 import { decryptToken } from "@/lib/encryption";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
+import { env } from "@/lib/env";
 import {
   isoWeek,
   weekLabel,
@@ -203,7 +204,7 @@ export const GET = withWorkspace(async (req, ctx) => {
   const results = await Promise.allSettled(
     accountIds.map(async (accountId) => {
       const url =
-        `https://graph.facebook.com/v21.0/act_${accountId}/insights?` +
+        `https://graph.facebook.com/${env.META_API_VERSION}/act_${accountId}/insights?` +
         `fields=spend&time_increment=7&time_range=${timeRange}&limit=500`;
       const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
       if (!res.ok) {
