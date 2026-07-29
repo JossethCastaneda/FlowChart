@@ -418,7 +418,7 @@ export function UserReliabilityModule({
               </tr>
             </thead>
             <tbody>
-              {data.regions.slice(0, 15).map((r: any, i: number) => {
+              {data.regions.map((r: any, i: number) => {
                 const c = LABEL_COLORS[r.metrics.reliabilityColor] || "#6b7280";
                 return (
                   <tr key={i} style={{ borderBottom: "1px solid var(--hairline)", transition: "background 0.15s" }}
@@ -477,7 +477,7 @@ export function UserReliabilityModule({
               </tr>
             </thead>
             <tbody>
-              {data.placements.slice(0, 15).map((p: any, i: number) => (
+              {data.placements.map((p: any, i: number) => (
                 <tr key={i} style={{ borderBottom: "1px solid var(--hairline)" }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
