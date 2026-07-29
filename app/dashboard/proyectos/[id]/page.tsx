@@ -28,7 +28,7 @@ import { TrafficAnalytics } from "@/components/proyectos/TrafficAnalytics";
 import { ChartTheme } from "@/components/ui/charts/ChartTheme";
 import { CustomTooltip } from "@/components/ui/charts/CustomTooltip";
 
-/* �" �" �"  DASHBOARD GRID SYSTEM �" �" �"  */
+/* ─── DASHBOARD GRID SYSTEM ─── */
 import { DashboardGrid, type WidgetDefinition } from "@/components/projects/DashboardGrid";
 import { useDashboardLayoutStore } from "@/stores/dashboardLayoutStore";
 import { ProyeccionWidget } from "@/components/projects/widgets/ProyeccionWidget";
@@ -41,9 +41,9 @@ import { GastoSpendTableInline, GastoCurvaWidget } from "@/components/projects/w
 import { DynamicComposedChartWidget, DynamicKpiCardWidget, type DynamicChartConfig, type DynamicKpiConfig } from "@/components/projects/widgets/DynamicWidgetTemplates";
 import { WidgetBuilderModal, type WidgetType } from "@/components/projects/WidgetBuilderModal";
 
-/* �" �" �"  TYPES �" �" �"  */
+/* ─── TYPES ─── */
 interface ChannelConfig { platformId: string; platformName: string; adAccounts: string[]; budget: string; period: string; goal: string; cpr: string; monthlyOverrides?: Record<string, { budget?: string; cpr?: string; goal?: string }>; }
-interface Project { id: string; alias: string; client: string; vertical: string; fanpage: string[]; instagram: string[]; whatsapp: string[]; website: string; channels: ChannelConfig[]; dateStart: string; dateEnd: string; persona: string; geo: string; status: "Activo"|"Pausado"|"Draft"|"Completado"|"EN VUELO"|"EN �RBITA"; createdAt: string; crmIntegrationId?: string | null; crmType?: string | null; crmIntegrationIds?: string[]; googleSources?: { adsCustomerId?: string; ga4PropertyId?: string; gtmAccountId?: string; gtmContainerId?: string; } | null; }
+interface Project { id: string; alias: string; client: string; vertical: string; fanpage: string[]; instagram: string[]; whatsapp: string[]; website: string; channels: ChannelConfig[]; dateStart: string; dateEnd: string; persona: string; geo: string; status: "Activo"|"Pausado"|"Draft"|"Completado"|"EN VUELO"|"EN ÓRBITA"; createdAt: string; crmIntegrationId?: string | null; crmType?: string | null; crmIntegrationIds?: string[]; googleSources?: { adsCustomerId?: string; ga4PropertyId?: string; gtmAccountId?: string; gtmContainerId?: string; } | null; }
 
 
 const PLATFORMS = [
@@ -66,7 +66,7 @@ const goalLabel = (goal?: string) => {
   if (goal.includes("Registro")) return "Registros";
   return "Resultados";
 };
-// Goal �  Meta action_type mapping
+// Goal → Meta action_type mapping
 const GOAL_ACTION_MAP: Record<string, string[]> = {
   "Conversaciones (WhatsApp / Messenger)": [
     "onsite_conversion.messaging_conversation_started_7d",
@@ -134,7 +134,7 @@ const findResultAction = (actions: any[] | undefined, goal?: string, objective?:
       const exact = actions.find((a: any) => a.action_type === t);
       if (exact) return exact;
     }
-    // Goal has explicit map but no matching action found � return null (0 results)
+    // Goal has explicit map but no matching action found → return null (0 results)
     // NEVER fall through to generic fallback, which would pick page_engagement/link_click
     return null;
   }
@@ -321,7 +321,7 @@ function TimeToggle({ value, onChange }: { value: string; onChange: (v: string) 
   );
 }
 
-/* �"��"��"� DB �  Frontend Channel Mapper �"��"��"� */
+/* ─── DB → Frontend Channel Mapper ─── */
 function mapDbChannelsToConfig(dbChannels: any[]): ChannelConfig[] {
   if (!dbChannels?.length) return [];
   return dbChannels.map((ch: any) => {
@@ -417,7 +417,7 @@ export default function ProjectDashboardPage() {
   // Load account names + pages + integrations
   useEffect(() => {
     fetch("/api/meta/adaccounts").then(r => r.json()).then(d => {
-      if (d.data) { const n: Record<string, string> = {}; d.data.forEach((a: any) => { n[a.id] = a.name?.split(" � ")[0] || a.id; }); setAccountNames(n); }
+      if (d.data) { const n: Record<string, string> = {}; d.data.forEach((a: any) => { n[a.id] = a.name?.split(" — ")[0] || a.id; }); setAccountNames(n); }
     }).catch(() => {});
     Promise.all([
       fetch("/api/meta/pages?module=social").catch(() => null),
@@ -442,7 +442,7 @@ export default function ProjectDashboardPage() {
     fetch("/api/workspace/integrations").then(r => r.json()).then(d => { if (Array.isArray(d.data?.data)) setActiveIntegrations(d.data.data.filter((i: any) => i.connected)); }).catch(() => {});
   }, []);
 
-  // Load insights � cache-first with background revalidation
+  // Load insights → cache-first with background revalidation
   const insightsStore = useInsightsStore();
   useEffect(() => {
     if (!project || !activePlatform) return;
@@ -462,7 +462,7 @@ export default function ProjectDashboardPage() {
     const cached = insightsStore.getCached(project.id, effectivePreset, dateStart, dateEnd);
     if (cached) {
       setInsights(cached);
-      // Don't show loading for revalidation � data is already visible
+      // Don't show loading for revalidation → data is already visible
     } else {
       setIsLoading(true);
     }
@@ -511,7 +511,7 @@ export default function ProjectDashboardPage() {
     breakdownFetchedRef.current = {};
   }, [project, activePlatform, dateStart, dateEnd, datePreset, selectedAccountId, heatmapTimezone]);
 
-  // Load breakdowns for audience/creative tabs � uses same date range
+  // Load breakdowns for audience/creative tabs → uses same date range
   // KEY FIX: Aggregate across ALL ad accounts when "all" selected (not just first)
   const loadBreakdown = useCallback(async (key: string) => {
     // Skip if already fetched for this key
@@ -791,7 +791,7 @@ export default function ProjectDashboardPage() {
   return (
     <div className="space-y-4 page-enter">
       <svg style={{ width: 0, height: 0, position: "absolute" }}><ChartTheme /></svg>
-      {/* ���� HEADER ���� */}
+      {/* ─── HEADER ─── */}
       <div style={{
         position: "relative", zIndex: 999,
         display: "flex", alignItems: "flex-start", justifyContent: "space-between",
@@ -1146,7 +1146,7 @@ export default function ProjectDashboardPage() {
                 border: "none", borderRadius: 4, cursor: "pointer",
               }}
             >
-              <Plus size={14} /> A�adir Gr�fico
+              <Plus size={14} /> Añadir Gráfico
             </button>
           )}
           widgets={[
@@ -1336,7 +1336,7 @@ export default function ProjectDashboardPage() {
         </ErrorBoundary>
       )}
 
-      {/* �"��"��"� TAB: AUDIENCIA �"��"��"� */}
+      {/* ─── TAB: AUDIENCIA ─── */}
       {activeTab === "audiencia" && (
         <ErrorBoundary name="Tab Audiencia">
         <DashboardGrid
@@ -1345,7 +1345,7 @@ export default function ProjectDashboardPage() {
           widgets={[
             {
               id: "audiencia-header",
-              title: "An�lisis de Audiencia",
+              title: "Análisis de Audiencia",
               icon: <Users style={{ width: 13, height: 13 }} />,
               defaultColSpan: 12,
               minColSpan: 3,
@@ -1354,7 +1354,7 @@ export default function ProjectDashboardPage() {
           {/* Loading state when no breakdowns loaded yet */}
           {Object.keys(breakdownData).length === 0 && <LoadingOverlay />}
 
-          {/* Section header � enriched banner */}
+          {/* Section header → enriched banner */}
           <div style={{
             ...panelStyle,
             padding: "18px 22px",
@@ -1370,7 +1370,7 @@ export default function ProjectDashboardPage() {
                   ¿A quién estás llegando?
                 </h3>
                 <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                  Demografía, ubicación geográfica, plataformas y dispositivos � basado en inversión del periodo.
+                  Demografía, ubicación geográfica, plataformas y dispositivos — basado en inversión del periodo.
                 </p>
               </div>
               <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
@@ -1499,7 +1499,7 @@ export default function ProjectDashboardPage() {
               render: () => (
             <div style={panelStyle}>
               <h3 style={headingStyle}><Globe style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />País</h3>
-              <p style={subStyle}>¿Desde qué país te ven? �atil para campañas multi-país</p>
+              <p style={subStyle}>¿Desde qué país te ven? Útil para campañas multi-país</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   const raw = breakdownData["country"];
@@ -1661,7 +1661,7 @@ export default function ProjectDashboardPage() {
                     .map((r: any) => {
                       const plat = r.publisher_platform || "";
                       const pos = r.platform_position || "";
-                      const label = pos ? `${plat.charAt(0).toUpperCase() + plat.slice(1)} � ${pos.replace(/_/g, " ")}` : plat;
+                      const label = pos ? `${plat.charAt(0).toUpperCase() + plat.slice(1)} → ${pos.replace(/_/g, " ")}` : plat;
                       return { placement: label, spend: Number(r.spend) || 0, impressions: Number(r.impressions) || 0, clicks: Number(r.clicks) || 0 };
                     })
                     .sort((a: any, b: any) => b.spend - a.spend)
@@ -1734,7 +1734,7 @@ export default function ProjectDashboardPage() {
         </ErrorBoundary>
       )}
 
-      {/* �"��"��"� TAB: CREATIVOS �"��"��"� */}
+      {/* ─── TAB: CREATIVOS ─── */}
       {activeTab === "creativos" && (
         <ErrorBoundary name="Tab Creativos">
         <DashboardGrid
@@ -1793,7 +1793,7 @@ export default function ProjectDashboardPage() {
                 {/* Best */}
                 <div style={panelStyle}>
                   <h3 style={headingStyle}><TrendingUp style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "var(--emerald)" }} />Top 3 Mejores Anuncios</h3>
-                  <p style={subStyle}>Menor costo por resultado � clic para ver preview</p>
+                  <p style={subStyle}>Menor costo por resultado — clic para ver preview</p>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginTop: 10, alignItems: "flex-start" }}>
                     {best.length > 0 ? best.map((ad) => (
                       <CreativeCard key={ad.adId} ad={ad} fmtMXN={fmtMXN} cprTarget={cprTarget} onPreview={() => setPreviewAd(ad)} />
@@ -1858,8 +1858,8 @@ export default function ProjectDashboardPage() {
                                   ? <img src={ad.thumbnailUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                   : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><Eye style={{ width: 14, height: 14, color: "var(--text-secondary)" }} /></div>
                                 }
-                                {ad.format === "video" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--surface)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}></span>}
-                                {ad.format === "carousel" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--surface)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>�x�</span>}
+                                {ad.format === "video" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--surface)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>▶</span>}
+                                {ad.format === "carousel" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--surface)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>📑</span>}
                               </div>
                               <span style={{ color: "var(--foreground)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.adName}</span>
                             </div>
@@ -1872,7 +1872,7 @@ export default function ProjectDashboardPage() {
                           </td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--amber)", fontWeight: 600 }}>{fmtMXN(ad.spend)}</td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--emerald)", fontWeight: 700 }}>{results}</td>
-                          <td style={{ padding: "8px 6px", textAlign: "right", color: results === 0 ? "var(--red)" : cprTarget > 0 && cprVal > cprTarget ? "var(--red)" : "var(--cyan)", fontWeight: 600 }}>{results > 0 ? fmtMXN(cprVal) : "�"}</td>
+                          <td style={{ padding: "8px 6px", textAlign: "right", color: results === 0 ? "var(--red)" : cprTarget > 0 && cprVal > cprTarget ? "var(--red)" : "var(--cyan)", fontWeight: 600 }}>{results > 0 ? fmtMXN(cprVal) : "—"}</td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)" }}>{ctrVal.toFixed(2)}%</td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)" }}>{fmtNum(ad.impressions || 0)}</td>
                         </tr>
@@ -1915,7 +1915,7 @@ export default function ProjectDashboardPage() {
                   if (!text) continue;
                   const key = normalize(text);
                   if (!grouped[key]) grouped[key] = { text: text.trim(), spend: 0, results: 0, clicks: 0, count: 0, isDCO: false };
-                  // Don't split spend across DCO variants � assign 100% to each
+                  // Don't split spend across DCO variants → assign 100% to each
                   // (Meta doesn't report per-variant performance)
                   grouped[key].spend += ad.spend;
                   grouped[key].results += adResults;
@@ -1949,7 +1949,7 @@ export default function ProjectDashboardPage() {
                               <div style={{ display: "flex", gap: 12, marginTop: 4, flexWrap: "wrap" }}>
                                 <span style={{ fontSize: 10, color: "var(--amber)" }}>{fmtMXN(d.spend)}</span>
                                 <span style={{ fontSize: 10, color: "var(--emerald)" }}>{Math.round(d.results)} result.</span>
-                                <span style={{ fontSize: 10, color: "var(--cyan)" }}>{d.results > 0 ? fmtMXN(d.spend / d.results) : "�"} CPR</span>
+                                <span style={{ fontSize: 10, color: "var(--cyan)" }}>{d.results > 0 ? fmtMXN(d.spend / d.results) : "—"} CPR</span>
                                 <span style={{ fontSize: 10, color: "var(--text-secondary)" }}>{d.count} anuncios</span>
                               </div>
                             </div>
@@ -1972,7 +1972,7 @@ export default function ProjectDashboardPage() {
               render: () => (
             <div style={panelStyle}>
               <h3 style={headingStyle}><PieIcon style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Formato de Creativos</h3>
-              <p style={subStyle}>Imagen vs Video � ¿qué formato te da mejores resultados?</p>
+              <p style={subStyle}>Imagen vs Video — ¿qué formato te da mejores resultados?</p>
               <div style={{ width: "100%", height: 250 }}>
                 {(() => {
                   if (!adCreatives.length && creativesLoading) return <NoData msg="Cargando..." />;
@@ -2026,7 +2026,7 @@ export default function ProjectDashboardPage() {
                       <div style={{ display: "flex", gap: 12, fontSize: 11 }}>
                         <span style={{ color: "var(--amber)" }}>{fmtMXN(s.spend)}</span>
                         <span style={{ color: "var(--emerald)" }}>{Math.round(s.results)} res.</span>
-                        <span style={{ color: "var(--cyan)" }}>{s.results > 0 ? fmtMXN(s.spend / s.results) : "�"} CPR</span>
+                        <span style={{ color: "var(--cyan)" }}>{s.results > 0 ? fmtMXN(s.spend / s.results) : "—"} CPR</span>
                       </div>
                       <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>{s.count} anuncios</p>
                     </div>
@@ -2108,7 +2108,7 @@ export default function ProjectDashboardPage() {
                     <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "var(--surface)" }} />
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                       <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}></div>
-                      <p style={{ fontSize: 9, color: "var(--amber)", fontWeight: 800, letterSpacing: "0.12em" }}>CAMPA�A GANADORA</p>
+                      <p style={{ fontSize: 9, color: "var(--amber)", fontWeight: 800, letterSpacing: "0.12em" }}>CAMPAÑA GANADORA</p>
                     </div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -2179,7 +2179,7 @@ export default function ProjectDashboardPage() {
         </ErrorBoundary>
       )}
 
-      {/* �"��"��"� TAB: SALUD DEL RESULTADO �"��"��"� */}
+      {/* ─── TAB: SALUD DEL RESULTADO ─── */}
       {activeTab === "salud" && (
         <ErrorBoundary name="Tab Salud">
         <DashboardGrid
@@ -2227,7 +2227,7 @@ export default function ProjectDashboardPage() {
               { name: "CTR", icon: <MousePointer style={{ width: 14, height: 14 }} />, score: ctrScore, value: pct(ctr), bench: "Ideal: > 1.5%", color: ctrScore >= 70 ? "var(--emerald)" : ctrScore >= 40 ? "var(--amber)" : "var(--red)" },
               { name: "Tasa Conversión", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "var(--emerald)" : convScore >= 40 ? "var(--amber)" : "var(--red)" },
               { name: "Ritmo de Gasto", icon: <TrendingUp style={{ width: 14, height: 14 }} />, score: paceScore, value: pct(spendPaceRatio * 100), bench: "Ideal: 100%", color: paceScore >= 70 ? "var(--emerald)" : paceScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "� " : "� "} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "�", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--emerald)" : trendScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "↓" : "↑"} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "—", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--emerald)" : trendScore >= 40 ? "var(--amber)" : "var(--red)" },
             ];
 
             // Recommendations (Cross-diagnostic logic)
@@ -2360,7 +2360,7 @@ export default function ProjectDashboardPage() {
               { name: "CTR", icon: <MousePointer style={{ width: 14, height: 14 }} />, score: ctrScore, value: pct(ctr), bench: "Ideal: > 1.5%", color: ctrScore >= 70 ? "var(--emerald)" : ctrScore >= 40 ? "var(--amber)" : "var(--red)" },
               { name: "Tasa Conversión", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "var(--emerald)" : convScore >= 40 ? "var(--amber)" : "var(--red)" },
               { name: "Ritmo de Gasto", icon: <TrendingUp style={{ width: 14, height: 14 }} />, score: paceScore, value: pct(spendPaceRatio * 100), bench: "Ideal: 100%", color: paceScore >= 70 ? "var(--emerald)" : paceScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "� " : "� "} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "�", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--emerald)" : trendScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "↓" : "↑"} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "—", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--emerald)" : trendScore >= 40 ? "var(--amber)" : "var(--red)" },
             ];
 
             // Recommendations (Cross-diagnostic logic)
@@ -2476,7 +2476,7 @@ export default function ProjectDashboardPage() {
               { name: "CTR", icon: <MousePointer style={{ width: 14, height: 14 }} />, score: ctrScore, value: pct(ctr), bench: "Ideal: > 1.5%", color: ctrScore >= 70 ? "var(--emerald)" : ctrScore >= 40 ? "var(--amber)" : "var(--red)" },
               { name: "Tasa Conversión", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "var(--emerald)" : convScore >= 40 ? "var(--amber)" : "var(--red)" },
               { name: "Ritmo de Gasto", icon: <TrendingUp style={{ width: 14, height: 14 }} />, score: paceScore, value: pct(spendPaceRatio * 100), bench: "Ideal: 100%", color: paceScore >= 70 ? "var(--emerald)" : paceScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "� " : "� "} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "�", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--emerald)" : trendScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "↓" : "↑"} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "—", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--emerald)" : trendScore >= 40 ? "var(--amber)" : "var(--red)" },
             ];
 
             // Recommendations (Cross-diagnostic logic)
@@ -2569,7 +2569,7 @@ export default function ProjectDashboardPage() {
         </ErrorBoundary>
       )}
 
-      {/* �"��"��"� TAB: ADS MANAGER �"��"��"� */}
+      {/* ─── TAB: ADS MANAGER ─── */}
       {activeTab === "ads" && (
         <ErrorBoundary name="Tab Ads Manager">
           {(() => {
@@ -2603,19 +2603,19 @@ export default function ProjectDashboardPage() {
 
 
 
-      {/* �"��"��"� TAB: ANÁLISIS DE TRÁFICO (GA4) �"��"��"� */}
+      {/* ─── TAB: ANÁLISIS DE TRÁFICO (GA4) ─── */}
       {activeTab === "trafico" && (
         <ErrorBoundary name="Tab Trafico">
           <TrafficAnalytics project={project as any} />
         </ErrorBoundary>
       )}
 
-      {/* �"��"��"� TAB: CONFIGURACI�N �"��"��"� */}
+      {/* ─── TAB: CONFIGURACIÓN ─── */}
       {activeTab === "config" && (
         <ErrorBoundary name="Tab Configuracion">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
-          {/* ���� Google Sources Panel ���� */}
+          {/* ─── Google Sources Panel ─── */}
           <div style={{ ...panelStyle, gridColumn: "1 / -1" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
               <div style={{ width: 30, height: 30, borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(66,133,244,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -2836,10 +2836,10 @@ export default function ProjectDashboardPage() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-y-3 gap-x-6" style={{ fontSize: 12 }}>
-                      <div><span style={{ color: "var(--text-secondary)" }}>Presupuesto:</span> <span style={{ color: "var(--foreground)", fontWeight: 600 }}>{currentBudget || "�"}</span></div>
-                      <div><span style={{ color: "var(--text-secondary)" }}>Período:</span> <span style={{ color: "var(--foreground)" }}>{c.period || "�"}</span></div>
-                      <div><span style={{ color: "var(--text-secondary)" }}>Objetivo:</span> <span style={{ color: "var(--emerald)", fontWeight: 600 }}>{currentGoal || "�"}</span></div>
-                      <div><span style={{ color: "var(--text-secondary)" }}>CPR Meta:</span> <span style={{ color: "var(--cyan)", fontWeight: 600 }}>{currentCpr || "�"}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>Presupuesto:</span> <span style={{ color: "var(--foreground)", fontWeight: 600 }}>{currentBudget || "—"}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>Período:</span> <span style={{ color: "var(--foreground)" }}>{c.period || "—"}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>Objetivo:</span> <span style={{ color: "var(--emerald)", fontWeight: 600 }}>{currentGoal || "—"}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>CPR Meta:</span> <span style={{ color: "var(--cyan)", fontWeight: 600 }}>{currentCpr || "—"}</span></div>
                       <div><span style={{ color: "var(--text-secondary)" }}>Diario ideal:</span> <span style={{ color: "var(--foreground)" }}>{fmtMXN(bk2.daily)}</span></div>
                       <div><span style={{ color: "var(--text-secondary)" }}>Cuentas:</span> <span style={{ color: "var(--foreground)" }}>{c.adAccounts?.length || 0}</span></div>
                     </div>
@@ -2867,7 +2867,7 @@ export default function ProjectDashboardPage() {
             setIsWidgetBuilderOpen(false);
           }}
           availableMetrics={[
-            { key: "spend", label: "Inversi�n", type: "currency" },
+            { key: "spend", label: "Inversión", type: "currency" },
             { key: "results", label: "Resultados", type: "number" },
             { key: "cpr", label: "CPA", type: "currency" },
             { key: "impressions", label: "Impresiones", type: "number" },

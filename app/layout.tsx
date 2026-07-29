@@ -25,11 +25,11 @@ const rawGa4Id = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
 const GTM_ID = rawGtmId?.startsWith("GTM-") ? rawGtmId : undefined;
 const GA4_ID = rawGa4Id?.startsWith("G-") ? rawGa4Id : undefined;
 
-const inter = Inter_Tight({ subsets: ["latin"], variable: "--font-inter" });
-const jbMono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-jbmono" });
+const inter = Inter_Tight({ subsets: ["latin", "latin-ext"], variable: "--font-inter" });
+const jbMono = JetBrains_Mono({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600"], variable: "--font-jbmono" });
 const orbitron = Orbitron({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-orbitron" });
-const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-space" });
-const sora = Sora({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sora" });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600", "700"], variable: "--font-space" });
+const sora = Sora({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600", "700"], variable: "--font-sora" });
 
 export const viewport: Viewport = {
   themeColor: "var(--background)",
