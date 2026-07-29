@@ -3,25 +3,25 @@ import { metaGetAll } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
 
 /**
- * LÃ³gica COMPARTIDA de publicaciÃ³n a Meta (Facebook Page / Instagram).
+ * Lógica COMPARTIDA de publicación a Meta (Facebook Page / Instagram).
  *
- * Antes existÃ­an dos implementaciones divergentes: el worker de QStash
- * (`/api/jobs/publish`, posts programados) y la publicaciÃ³n inmediata
- * (`/api/publisher/publish`). El worker estaba mÃ¡s limitado (ignoraba
- * `contentByPlatform`, data: URLs, paginaciÃ³n de pÃ¡ginas y usaba un polling de
- * video mÃ¡s corto), asÃ­ que un post programado se publicaba distinto que uno
- * manual. Este mÃ³dulo unifica ambas en una sola funciÃ³n probada.
+ * Antes existían dos implementaciones divergentes: el worker de QStash
+ * (`/api/jobs/publish`, posts programados) y la publicación inmediata
+ * (`/api/publisher/publish`). El worker estaba más limitado (ignoraba
+ * `contentByPlatform`, data: URLs, paginación de páginas y usaba un polling de
+ * video más corto), así que un post programado se publicaba distinto que uno
+ * manual. Este módulo unifica ambas en una sola función probada.
  *
  * Cada ruta resuelve el access token a su manera (el worker usa el token de
- * workspace; la ruta interactiva usa el de la sesiÃ³n) y lo pasa aquÃ­.
+ * workspace; la ruta interactiva usa el de la sesión) y lo pasa aquí.
  */
 
 const META_VERSION = process.env.META_API_VERSION || "v25.0";
 
 /**
- * - `now`: publica YA en Facebook e Instagram (worker de QStash, y publicaciÃ³n
+ * - `now`: publica YA en Facebook e Instagram (worker de QStash, y publicación
  *   manual inmediata).
- * - `fb_scheduled`: usa la programaciÃ³n nativa de Meta en Facebook
+ * - `fb_scheduled`: usa la programación nativa de Meta en Facebook
  *   (`scheduled_publish_time`) y OMITE Instagram (la Graph API no permite
  *   programar IG). Requiere `post.scheduledAt`.
  */
@@ -55,7 +55,7 @@ export function resolveMediaToBuffer(
   return null;
 }
 
-/** Detecta si una URL apunta a un video por extensiÃ³n, con fallback a HEAD. */
+/** Detecta si una URL apunta a un video por extensión, con fallback a HEAD. */
 export async function checkIfVideo(url: string): Promise<boolean> {
   if (/\.(mp4|mov|avi|wmv|webm)(?:[?#].*)?$/i.test(url)) return true;
   if (/\.(jpe?g|png|gif|webp|heic)(?:[?#].*)?$/i.test(url)) return false;
@@ -70,8 +70,8 @@ export async function checkIfVideo(url: string): Promise<boolean> {
 
 /**
  * Publica un `ScheduledPost` en Meta. No toca la base de datos: devuelve los
- * `externalIds` obtenidos, los `errors` acumulados y la pÃ¡gina destino para que
- * el caller persista el resultado segÃºn su flujo (worker vs interactivo).
+ * `externalIds` obtenidos, los `errors` acumulados y la página destino para que
+ * el caller persista el resultado según su flujo (worker vs interactivo).
  */
 export async function publishPostToMeta(params: {
   post: ScheduledPost;
@@ -83,24 +83,24 @@ export async function publishPostToMeta(params: {
   const { post, accessToken, mode, isDirectInstagram, directIgUserId } = params;
 
   // Partimos de los externalIds ya existentes para que un reintento NO vuelva a
-  // publicar un canal que ya saliÃ³ bien (idempotencia por canal).
+  // publicar un canal que ya salió bien (idempotencia por canal).
   const externalIds: Record<string, string> = {
     ...((post.externalIds as Record<string, string>) || {}),
   };
   const errors: string[] = [];
 
-  // SEGURIDAD DE DATOS: esta funciÃ³n publica al feed/media estÃ¡ndar. NO implementa
+  // SEGURIDAD DE DATOS: esta función publica al feed/media estándar. NO implementa
   // los flujos de Reels ni Stories (video_reels / *_stories / media_type=STORIES).
   // Sin este guard, un reel/story PROGRAMADO se publicaba como post permanente de
-  // feed (un story deberÃ­a durar 24h). Preferimos fallar claro a corromper el post.
+  // feed (un story debería durar 24h). Preferimos fallar claro a corromper el post.
   if (post.type === "reel" || post.type === "story") {
     errors.push(
-      `La publicaciÃ³n programada de ${post.type === "reel" ? "reels" : "historias"} aÃºn no estÃ¡ soportada. PublÃ­calo de forma inmediata desde el editor.`
+      `La publicación programada de ${post.type === "reel" ? "reels" : "historias"} aún no está soportada. Publícalo de forma inmediata desde el editor.`
     );
     return { externalIds, errors, targetPage: null };
   }
 
-  // â”€â”€ PÃ¡ginas (todas, paginadas) â”€â”€
+  // â”€â”€ Páginas (todas, paginadas) â”€â”€
   let targetPage = null;
   let pageToken = "";
   let pageId = "";
@@ -118,11 +118,11 @@ export async function publishPostToMeta(params: {
       return { externalIds, errors, targetPage: null };
     }
     if (pages.length === 0) {
-      errors.push("No se encontraron pÃ¡ginas de Facebook. Verifica permisos.");
+      errors.push("No se encontraron páginas de Facebook. Verifica permisos.");
       return { externalIds, errors, targetPage: null };
     }
 
-    // â”€â”€ PÃ¡gina destino: por id, luego por nombre â”€â”€
+    // â”€â”€ Página destino: por id, luego por nombre â”€â”€
     if (post.pageId) {
       targetPage = pages.find((p: any) => p.id === post.pageId) || null;
     } else if (post.pageName) {
@@ -135,7 +135,7 @@ export async function publishPostToMeta(params: {
     }
 
     if (!targetPage) {
-      errors.push("La pÃ¡gina seleccionada no estÃ¡ disponible en la cuenta de Facebook conectada.");
+      errors.push("La página seleccionada no está disponible en la cuenta de Facebook conectada.");
       return { externalIds, errors, targetPage: null };
     }
 
@@ -302,7 +302,7 @@ export async function publishPostToMeta(params: {
     }
   }
 
-  // â”€â”€ Publicar en Instagram (solo modo inmediato; IG no soporta programaciÃ³n) â”€â”€
+  // â”€â”€ Publicar en Instagram (solo modo inmediato; IG no soporta programación) â”€â”€
   if (
     mode === "now" &&
     post.channels.includes("instagram") &&
@@ -319,7 +319,7 @@ export async function publishPostToMeta(params: {
       if (allMedia.length === 0) {
         errors.push("Instagram: Se requiere al menos una imagen o video para publicar");
       } else {
-        // IG REQUIERE URL pÃºblica: para data: URLs subimos antes a Facebook como
+        // IG REQUIERE URL pública: para data: URLs subimos antes a Facebook como
         // foto/video no publicado y usamos esa URL.
         let igMediaUrl = allMedia[0];
         const resolved = resolveMediaToBuffer(igMediaUrl);
@@ -364,7 +364,7 @@ export async function publishPostToMeta(params: {
                 }
               }
               if (bestMedia) igMediaUrl = bestMedia;
-              else errors.push("Instagram: No se pudo obtener URL pÃºblica del contenido subido");
+              else errors.push("Instagram: No se pudo obtener URL pública del contenido subido");
             } else {
               errors.push(`Instagram pre-upload: ${uploadData?.error?.message || "Error"}`);
             }
@@ -375,7 +375,7 @@ export async function publishPostToMeta(params: {
 
         if (!errors.some((e) => e.startsWith("Instagram"))) {
           if (allMedia.length === 1) {
-            // â”€â”€ Media Ãºnica â”€â”€
+            // â”€â”€ Media única â”€â”€
             const isVideo = await checkIfVideo(igMediaUrl);
             const containerBody: any = { caption: igContent };
             if (isVideo) {
@@ -398,7 +398,7 @@ export async function publishPostToMeta(params: {
             if (!containerRes.ok || !containerData.id) {
               errors.push(`Instagram: ${containerData?.error?.message || "Error creando container"}`);
             } else if (isVideo) {
-              // Polling hasta que el video estÃ© listo (10 Ã— 5s = 50s)
+              // Polling hasta que el video esté listo (10 Ã— 5s = 50s)
               let isReady = false;
               for (let i = 0; i < 10; i++) {
                 const statusRes = await fetch(
@@ -432,7 +432,7 @@ export async function publishPostToMeta(params: {
                 else errors.push(`Instagram video publish error: ${publishData?.error?.message || "Error"}`);
               } else if (!errors.some((e) => e.includes("Instagram video"))) {
                 errors.push(
-                  "Instagram: El video tardÃ³ demasiado en procesarse. Es posible que se publique en unos minutos."
+                  "Instagram: El video tardó demasiado en procesarse. Es posible que se publique en unos minutos."
                 );
               }
             } else {
@@ -507,7 +507,7 @@ export async function publishPostToMeta(params: {
                 errors.push(`Instagram carousel: ${carouselData?.error?.message || "Error creando carousel"}`);
               }
             } else if (childIds.length === 1) {
-              errors.push("Instagram: Se necesitan al menos 2 imÃ¡genes para un carousel");
+              errors.push("Instagram: Se necesitan al menos 2 imágenes para un carousel");
             } else {
               errors.push("Instagram: No se pudieron crear los items del carousel");
             }

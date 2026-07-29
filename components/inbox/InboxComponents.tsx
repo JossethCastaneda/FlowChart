@@ -859,7 +859,7 @@ export function ChatView({
                       </div>
                     )}
                   </div>
-                  {/* Message Status â€” ticks and read receipts for outgoing messages */}
+                  {/* Message Status — ticks and read receipts for outgoing messages */}
                   {!msg.incoming && (
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4, marginTop: 3 }}>
                       {msg.status === "error" ? (

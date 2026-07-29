@@ -1,0 +1,7 @@
+# Auto-detect text files and normalise line endings
+* text=auto
+
+# Ensure consistent LF for documentation and source
+*.md text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
