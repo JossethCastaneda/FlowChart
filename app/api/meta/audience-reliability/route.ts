@@ -223,7 +223,7 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url);
-  let adAccountId = searchParams.get("adAccountId");
+  const adAccountIdsParam = searchParams.get("adAccountId");
   const dateStart = searchParams.get("dateStart");
   const dateEnd = searchParams.get("dateEnd");
   const preset = searchParams.get("preset");
@@ -231,24 +231,22 @@ export async function GET(req: NextRequest) {
   const cprTargetRaw = searchParams.get("cprTarget");
   const cprTarget = cprTargetRaw ? parseFloat(cprTargetRaw) : 0;
 
-  if (!adAccountId) {
+  if (!adAccountIdsParam) {
     return NextResponse.json({ error: "Missing adAccountId" }, { status: 400 });
   }
-  if (!adAccountId.startsWith("act_")) {
-    adAccountId = `act_${adAccountId}`;
-  }
+  const adAccountIds = adAccountIdsParam.split(",").map(id => id.startsWith("act_") ? id : `act_${id}`);
 
   const token = accessToken;
   const version = META_API_VERSION;
 
   let timeRange = "&date_preset=this_month";
-  let cacheKey = `this_month_v4_${goal}`;
+  let cacheKey = `this_month_v4_${goal}_${adAccountIds.join(",")}`;
   if (dateStart && dateEnd) {
     timeRange = `&time_range=${encodeURIComponent(JSON.stringify({ since: dateStart, until: dateEnd }))}`;
-    cacheKey = `${dateStart}_${dateEnd}_v4_${goal}`;
+    cacheKey = `${dateStart}_${dateEnd}_v4_${goal}_${adAccountIds.join(",")}`;
   } else if (preset) {
     timeRange = `&date_preset=${preset}`;
-    cacheKey = `${preset}_v4_${goal}`;
+    cacheKey = `${preset}_v4_${goal}_${adAccountIds.join(",")}`;
   }
 
   try {
@@ -257,7 +255,7 @@ export async function GET(req: NextRequest) {
       where: {
         workspaceId_adAccountId_level_dateRange: {
           workspaceId,
-          adAccountId,
+          adAccountId: adAccountIdsParam, // use the raw param for cache grouping
           level: "audience_reliability",
           dateRange: cacheKey,
         },
@@ -268,59 +266,64 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(cache.data);
     }
 
-    // ── Build URLs ───────────────────────────────────────────────────
-    // timeRange ya empieza con "&" y el query string ya está abierto ("?level=ad...").
-    // NO reemplazar el "&" por "?" (metería un segundo "?" DENTRO del valor de fields,
-    // rompiendo TODAS las llamadas con error #100 y cacheando el fallo 12h).
-    const buildUrl = (breakdowns: string) =>
-      `https://graph.facebook.com/${version}/${adAccountId}/insights?level=ad&breakdowns=${breakdowns}&fields=${INSIGHTS_FIELDS}${timeRange}&limit=500`;
+    // ── Build URLs & Fetch for all accounts in parallel ───────────────
+    const fetchPromises = adAccountIds.map(async (accId) => {
+      const buildUrl = (breakdowns: string) =>
+        `https://graph.facebook.com/${version}/${accId}/insights?level=ad&breakdowns=${breakdowns}&fields=${INSIGHTS_FIELDS}${timeRange}&limit=500`;
 
-    const globalUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?level=account&fields=${INSIGHTS_FIELDS}${timeRange}`;
+      const globalUrl = `https://graph.facebook.com/${version}/${accId}/insights?level=account&fields=${INSIGHTS_FIELDS}${timeRange}`;
+      const placementFields = "spend,impressions,clicks,cpm,ctr";
+      const placementUrl = `https://graph.facebook.com/${version}/${accId}/insights?level=ad&breakdowns=publisher_platform,platform_position&fields=${placementFields}${timeRange}&limit=500`;
 
-    // Demographics (age, gender) — SUPPORTS actions
-    const demoUrl = buildUrl("age,gender");
+      const [demoRes, regionRes, countryRes, deviceRes, placementRes, globalRes] = await Promise.all([
+        metaFetch(buildUrl("age,gender"), token),
+        metaFetch(buildUrl("region"), token),
+        metaFetch(buildUrl("country"), token),
+        metaFetch(buildUrl("impression_device"), token),
+        metaFetch(placementUrl, token),
+        metaFetch(globalUrl, token),
+      ]);
 
-    // Region — SUPPORTS actions
-    const regionUrl = buildUrl("region");
+      const parseInsights = async (res: Response) => {
+        if (!res.ok) return [];
+        const json = await res.json();
+        return json.data || [];
+      };
 
-    // Country — SUPPORTS actions
-    const countryUrl = buildUrl("country");
+      return {
+        demo: await parseInsights(demoRes),
+        region: await parseInsights(regionRes),
+        country: await parseInsights(countryRes),
+        device: await parseInsights(deviceRes),
+        placement: await parseInsights(placementRes),
+        global: await parseInsights(globalRes),
+      };
+    });
 
-    // Device (impression_device) — SUPPORTS actions with demographic breakdowns
-    const deviceUrl = buildUrl("impression_device");
+    const accountResults = await Promise.all(fetchPromises);
 
-    // Platform & Placement — Meta does NOT support actions with publisher_platform
-    // So we use BASE fields only for this one
-    const placementFields = "spend,impressions,clicks,cpm,ctr";
-    const placementUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?level=ad&breakdowns=publisher_platform,platform_position&fields=${placementFields}${timeRange}&limit=500`;
+    const rawDemo: any[] = [];
+    const rawRegion: any[] = [];
+    const rawCountry: any[] = [];
+    const rawDevice: any[] = [];
+    const rawPlacement: any[] = [];
+    const rawGlobal: any[] = [];
 
-    // ── Fetch all in parallel ───────────────────────────────────────
-    const [demoRes, regionRes, countryRes, deviceRes, placementRes, globalRes] = await Promise.all([
-      metaFetch(demoUrl, token),
-      metaFetch(regionUrl, token),
-      metaFetch(countryUrl, token),
-      metaFetch(deviceUrl, token),
-      metaFetch(placementUrl, token),
-      metaFetch(globalUrl, token),
-    ]);
+    for (const res of accountResults) {
+      rawDemo.push(...res.demo);
+      rawRegion.push(...res.region);
+      rawCountry.push(...res.country);
+      rawDevice.push(...res.device);
+      rawPlacement.push(...res.placement);
+      rawGlobal.push(...res.global);
+    }
 
-    const parseInsights = async (res: Response) => {
-      if (!res.ok) return [];
-      const json = await res.json();
-      return json.data || [];
-    };
-
-    const rawDemo = await parseInsights(demoRes);
-    const rawRegion = await parseInsights(regionRes);
-    const rawCountry = await parseInsights(countryRes);
-    const rawDevice = await parseInsights(deviceRes);
-    const rawPlacement = await parseInsights(placementRes);
-    const rawGlobal = await parseInsights(globalRes);
-
-    // Extract total true results from the account-level query
+    // Extract total true results from the account-level query across all accounts
     let globalResults = 0;
     if (rawGlobal.length > 0) {
-      globalResults = findGoalResults(rawGlobal[0].actions, goal);
+      for (const item of rawGlobal) {
+        globalResults += findGoalResults(item.actions, goal);
+      }
     }
 
     // ── Process data with ICU scoring ────────────────────────────────
@@ -598,7 +601,7 @@ export async function GET(req: NextRequest) {
         where: {
           workspaceId_adAccountId_level_dateRange: {
             workspaceId,
-            adAccountId,
+            adAccountId: adAccountIdsParam,
             level: "audience_reliability",
             dateRange: cacheKey,
           },
@@ -606,7 +609,7 @@ export async function GET(req: NextRequest) {
         update: { data: responsePayload as any },
         create: {
           workspaceId,
-          adAccountId,
+          adAccountId: adAccountIdsParam,
           level: "audience_reliability",
           dateRange: cacheKey,
           data: responsePayload as any,

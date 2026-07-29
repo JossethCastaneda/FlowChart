@@ -983,7 +983,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
       {activeTab === "confiabilidad" && activePlatform === "meta" && (
         <ErrorBoundary name="Tab Confiabilidad">
           <UserReliabilityModule 
-             adAccountId={selectedAccountId === "all" ? (ch?.adAccounts?.[0] || "") : selectedAccountId}
+             adAccountId={selectedAccountId === "all" ? (ch?.adAccounts?.join(",") || "") : selectedAccountId}
              dateStart={dateStart} 
              dateEnd={dateEnd}
              preset={datePreset}
