@@ -185,7 +185,7 @@ export default function TikTokIntegrationPage() {
         </div>
       </div>
 
-      {/* Stats preview (mock — will show real data once API is implemented) */}
+      {/* Stats preview placeholders */}
       {status?.connected && (
         <>
           <h3 style={{ fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "8px 0 0" }}>

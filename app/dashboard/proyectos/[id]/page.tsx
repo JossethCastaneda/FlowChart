@@ -339,7 +339,14 @@ function mapDbChannelsToConfig(dbChannels: any[]): ChannelConfig[] {
   });
 }
 
-/* �"��"��"� MAIN PAGE �"��"��"� */
+function getGroupForTab(tab: string) {
+  if (["resumen", "gasto", "trafico", "historial"].includes(tab)) return "Analítica";
+  if (["audiencia", "creativos", "salud", "confiabilidad"].includes(tab)) return "Optimización";
+  if (["ads", "config"].includes(tab)) return "Configuración";
+  return "Analítica";
+}
+
+/* ─── MAIN PAGE ─── */
 export default function ProjectDashboardPage() {
   const params = useParams();
   const router = useRouter();
@@ -439,10 +446,16 @@ export default function ProjectDashboardPage() {
   const insightsStore = useInsightsStore();
   useEffect(() => {
     if (!project || !activePlatform) return;
-    const ch = project.channels.find(c => c.platformId === activePlatform);
-    if (activePlatform !== "meta" || !ch?.adAccounts?.length) { setInsights(null); return; }
+    
+    const isMulti = activePlatform === "multichannel";
+    const chToUse = isMulti ? project.channels.find(c => c.platformId === "meta") : project.channels.find(c => c.platformId === activePlatform);
+    
+    if ((activePlatform !== "meta" && !isMulti) || !chToUse?.adAccounts?.length) { 
+      if (!isMulti) setInsights(null); 
+      return; 
+    }
 
-    const accs = selectedAccountId === "all" ? ch.adAccounts : [selectedAccountId];
+    const accs = selectedAccountId === "all" ? chToUse.adAccounts : [selectedAccountId];
     const effectivePreset = (dateStart && dateEnd) ? undefined : (datePreset || "this_month");
 
     // 1. Show cached data immediately (no loading spinner)
@@ -468,6 +481,24 @@ export default function ProjectDashboardPage() {
       });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project, activePlatform, dateStart, dateEnd, datePreset, selectedAccountId]);
+
+  const [multichannelData, setMultichannelData] = useState<any>(null);
+
+  useEffect(() => {
+    if (activePlatform !== "multichannel" || !project) return;
+    const fetchGoogle = async () => {
+      const effectivePreset = (dateStart && dateEnd) ? undefined : (datePreset || "this_month");
+      let dp = ""; if (dateStart && dateEnd) dp = `&start=${dateStart}&end=${dateEnd}`; else if (effectivePreset) dp = `&preset=${effectivePreset}`;
+      try {
+        const [adsRes, ga4Res] = await Promise.all([
+          fetch(`/api/projects/${project.id}/google/ads?${dp.replace('&', '')}`).then(r => r.json()).catch(() => ({ data: null })),
+          fetch(`/api/projects/${project.id}/google/analytics?${dp.replace('&', '')}`).then(r => r.json()).catch(() => ({ data: null }))
+        ]);
+        setMultichannelData({ ads: adsRes?.data || { spend: 0, impressions: 0, clicks: 0, cpc: 0 }, ga4: ga4Res?.data || { sessions: 0, bounceRate: 0, conversions: 0 } });
+      } catch(e) { }
+    };
+    fetchGoogle();
+  }, [project, activePlatform, dateStart, dateEnd, datePreset]);
 
   // Track which breakdowns have been attempted (prevents re-fetch loops)
   const breakdownFetchedRef = useRef<Record<string, boolean>>({});
@@ -604,35 +635,45 @@ export default function ProjectDashboardPage() {
   if (!project) return <div style={{ padding: 40, textAlign: "center", color: "var(--text-secondary)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, minHeight: 200 }}><div style={{ width: 40, height: 40, border: "3px solid rgba(255,255,255,0.04)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 1s linear infinite" }} /><span style={{ fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase" }}>Cargando proyecto...</span></div>;
 
   const ch = project.channels.find(c => c.platformId === activePlatform);
-  
-  // Resolve budget/cpr for current viewed month if possible
   const timeMetrics = getTimeFilterMetrics(datePreset, dateStart, dateEnd);
-  
-  let resolvedBudget = ch?.budget || "0";
-  let resolvedCpr = ch?.cpr || "0";
-  let resolvedGoal = ch?.goal || "";
-  
-  // Si estamos filtrando por un mes específico, buscar el override
   let viewedMonth = timeMetrics.viewedMonthStr;
-  
-  if (ch?.monthlyOverrides && viewedMonth && ch.monthlyOverrides[viewedMonth]) {
-    const override = ch.monthlyOverrides[viewedMonth];
-    if (override.budget) resolvedBudget = override.budget;
-    if (override.cpr) resolvedCpr = override.cpr;
-    if (override.goal) resolvedGoal = override.goal;
-  }
 
-  const budgetNum = ch ? parseBudget(resolvedBudget) : 0;
-  const cprTarget = ch ? parseBudget(resolvedCpr) : 0;
-  const bk = getBudgetBreakdown(budgetNum, ch?.period || "Mensual");
+  let effectiveBudget = 0;
+  let effectiveGoal = 0;
+  const activeChannels = activePlatform === "multichannel" ? project.channels : project.channels.filter(c => c.platformId === activePlatform);
   
-  // Prorrateo: El presupuesto efectivo para este filtro
-  const effectiveBudget = bk.daily * timeMetrics.totalDays;
-  const effectiveGoal = cprTarget > 0 ? Math.floor(effectiveBudget / cprTarget) : 0;
+  activeChannels.forEach(channel => {
+    let rb = channel.budget || "0";
+    let rc = channel.cpr || "0";
+    if (channel.monthlyOverrides && viewedMonth && channel.monthlyOverrides[viewedMonth]) {
+      const override = channel.monthlyOverrides[viewedMonth];
+      if (override.budget) rb = override.budget;
+      if (override.cpr) rc = override.cpr;
+    }
+    const bn = parseBudget(rb);
+    const ct = parseBudget(rc);
+    const bk = getBudgetBreakdown(bn, channel.period || "Mensual");
+    const eb = bk.daily * timeMetrics.totalDays;
+    effectiveBudget += eb;
+    if (ct > 0) {
+      effectiveGoal += Math.floor(eb / ct);
+    }
+  });
+
+  const cprTarget = effectiveGoal > 0 ? (effectiveBudget / effectiveGoal) : 0;
+
+  const budgetNum = activeChannels.reduce((sum, c) => sum + parseBudget(c.budget || "0"), 0);
+  const bk = {
+    daily: effectiveBudget / Math.max(1, timeMetrics.totalDays),
+    weekly: (effectiveBudget / Math.max(1, timeMetrics.totalDays)) * 7,
+    monthly: effectiveBudget, 
+    label: "Aproximado"
+  };
   const goalBreakdown = {
     daily: cprTarget > 0 ? bk.daily / cprTarget : 0,
     weekly: cprTarget > 0 ? bk.weekly / cprTarget : 0,
     monthly: cprTarget > 0 ? bk.monthly / cprTarget : 0,
+    label: "Aproximado"
   };
 
   // Aggregate metrics using global totals (deduplicated reach, exact Meta API values)
@@ -650,12 +691,19 @@ export default function ProjectDashboardPage() {
     // Fallback if totals array isn't available for some reason
     (insights?.timeSeries || []).forEach((d: any) => {
       totalSpend += parseFloat(d.spend || "0"); totalImpressions += parseInt(d.impressions || "0", 10); totalClicks += parseInt(d.clicks || "0", 10);
-      // Note: reach summed across days will be overcounted, but fallback is needed
       totalReach += parseInt(d.reach || "0", 10);
       const ra = findResultAction(d.actions, ch?.goal); if (ra) totalResults += parseInt(ra.value, 10);
       const va = findResultAction(d.action_values, ch?.goal); if (va) totalActionValue += parseFloat(va.value);
     });
   }
+
+  if (activePlatform === "multichannel" && multichannelData) {
+    totalSpend += (multichannelData.ads?.spend || 0);
+    totalImpressions += (multichannelData.ads?.impressions || 0);
+    totalClicks += (multichannelData.ads?.clicks || 0);
+    totalResults += (multichannelData.ga4?.conversions || 0);
+  }
+
   const cpr = totalResults > 0 ? totalSpend / totalResults : 0;
   const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
   const roas = totalSpend > 0 ? totalActionValue / totalSpend : 0;
@@ -817,57 +865,112 @@ export default function ProjectDashboardPage() {
       )}
 
       {/*    TABS + PLATFORM SELECTOR    */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-        {/* Tabs scrollable container */}
-        <div style={{ overflowX: "auto", flexShrink: 1, minWidth: 0, paddingBottom: 2 }}>
-          <div className="tab-pill-nav">
-            <TabButton active={activeTab === "resumen"} label="Resumen" icon={<BarChart2 style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resumen")} />
-            <TabButton active={activeTab === "gasto"} label="Gasto" icon={<DollarSign style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("gasto")} />
-            <TabButton active={activeTab === "audiencia"} label="Audiencia" icon={<Users style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("audiencia")} />
-            <TabButton active={activeTab === "creativos"} label="Creativos" icon={<Palette style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("creativos")} />
-            <TabButton active={activeTab === "salud"} label="Salud" icon={<HeartPulse style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("salud")} />
-            <TabButton active={activeTab === "confiabilidad"} label="Confiabilidad" icon={<ShieldCheck style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("confiabilidad")} />
-            <TabButton active={activeTab === "ads"} label="Ads Manager" icon={<Layers style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("ads")} />
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        
+        {/* Primary group navigation */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16, borderBottom: "1px solid var(--border)", paddingBottom: 12 }}>
+          <div style={{ display: "flex", gap: 24 }}>
+            {["Analítica", "Optimización", "Configuración"].map(group => {
+              const isActiveGroup = getGroupForTab(activeTab) === group;
+              return (
+                <button
+                  key={group}
+                  onClick={() => {
+                    if (group === "Analítica") setActiveTab("resumen");
+                    if (group === "Optimización") setActiveTab("audiencia");
+                    if (group === "Configuración") setActiveTab("config");
+                  }}
+                  style={{
+                    background: "none", border: "none", padding: "0 0 10px 0",
+                    color: isActiveGroup ? "var(--cyan)" : "var(--text-muted)",
+                    fontWeight: isActiveGroup ? 700 : 500, fontSize: 14, cursor: "pointer",
+                    position: "relative",
+                    marginBottom: -13, // align with borderBottom
+                  }}
+                >
+                  {group}
+                  {isActiveGroup && (
+                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 2, background: "var(--cyan)", borderRadius: "2px 2px 0 0", boxShadow: "0 -2px 10px rgba(59,130,246,0.5)" }} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
 
-            {!!project.website && (
-              <TabButton active={activeTab === "trafico"} label="Tráfico" icon={<Globe style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("trafico")} />
+          {/* Platform + Account selectors moved up to align with groups */}
+          <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
+            {project.channels.map(c => {
+              const pl = PLATFORMS.find(p => p.id === c.platformId) || PLATFORMS[0];
+              const isActive = activePlatform === c.platformId;
+              return (
+                <button key={c.platformId} onClick={() => { setActivePlatform(c.platformId); setBreakdownData({}); }} style={{
+                  padding: "6px 14px", fontSize: 11, fontWeight: 700,
+                  background: isActive ? `${pl.color}20` : "rgba(255,255,255,0.04)",
+                  border: `1px solid ${isActive ? pl.color + "60" : "rgba(255,255,255,0.08)"}`,
+                  color: isActive ? pl.color : "var(--text-muted)",
+                  borderRadius: 20, cursor: "pointer", transition: "all 0.2s",
+                  boxShadow: isActive ? `0 0 16px ${pl.color}25` : "none",
+                }}>
+                  {pl.name}
+                </button>
+              );
+            })}
+            
+            <button onClick={() => { setActivePlatform("multichannel"); setBreakdownData({}); }} style={{
+                  padding: "6px 14px", fontSize: 11, fontWeight: 700,
+                  background: activePlatform === "multichannel" ? `rgba(255,255,255,0.15)` : "rgba(255,255,255,0.04)",
+                  border: `1px solid ${activePlatform === "multichannel" ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.08)"}`,
+                  color: activePlatform === "multichannel" ? "var(--foreground)" : "var(--text-muted)",
+                  borderRadius: 20, cursor: "pointer", transition: "all 0.2s",
+                }}>
+                  Multicanal (Vista Global)
+            </button>
+
+            {ch?.adAccounts && ch.adAccounts.length > 1 && activePlatform !== "multichannel" && (
+              <select value={selectedAccountId} onChange={e => { setSelectedAccountId(e.target.value); setBreakdownData({}); }} style={{
+                background: "var(--surface)", border: "1px solid var(--border)",
+                color: "var(--foreground)", fontSize: 11, padding: "6px 24px 6px 12px",
+                borderRadius: 20, cursor: "pointer", appearance: "none", fontWeight: 600,
+              }}>
+                <option value="all">Todas ({ch.adAccounts.length})</option>
+                {ch.adAccounts.map(a => <option key={a} value={a}>{accountNames[a] || a}</option>)}
+              </select>
             )}
-            <TabButton active={activeTab === "historial"} label="Historial" icon={<TrendingUp style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("historial")} />
-            <TabButton active={activeTab === "config"} label="Configuración" icon={<Settings style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("config")} />
           </div>
         </div>
-        {/* Platform + Account selectors */}
-        <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
-          {project.channels.map(c => {
-            const pl = PLATFORMS.find(p => p.id === c.platformId) || PLATFORMS[0];
-            const isActive = activePlatform === c.platformId;
-            return (
-              <button key={c.platformId} onClick={() => { setActivePlatform(c.platformId); setBreakdownData({}); }} style={{
-                padding: "6px 14px", fontSize: 11, fontWeight: 700,
-                background: isActive ? `${pl.color}20` : "rgba(255,255,255,0.04)",
-                border: `1px solid ${isActive ? pl.color + "60" : "rgba(255,255,255,0.08)"}`,
-                color: isActive ? pl.color : "var(--text-muted)",
-                borderRadius: 20, cursor: "pointer", transition: "all 0.2s",
-                boxShadow: isActive ? `0 0 16px ${pl.color}25` : "none",
-              }}>
-                {pl.name}
-              </button>
-            );
-          })}
-          {ch?.adAccounts && ch.adAccounts.length > 1 && (
-            <select value={selectedAccountId} onChange={e => { setSelectedAccountId(e.target.value); setBreakdownData({}); }} style={{
-background: "var(--surface)", border: "1px solid var(--border)",
-              color: "var(--foreground)", fontSize: 11, padding: "6px 24px 6px 12px",
-              borderRadius: 20, cursor: "pointer", appearance: "none", fontWeight: 600,
-            }}>
-              <option value="all">Todas ({ch.adAccounts.length})</option>
-              {ch.adAccounts.map(a => <option key={a} value={a}>{accountNames[a] || a}</option>)}
-            </select>
-          )}
+
+        {/* Secondary tab navigation (scrollable pills) */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+          <div style={{ overflowX: "auto", flexShrink: 1, minWidth: 0, paddingBottom: 2 }}>
+            <div className="tab-pill-nav">
+              {getGroupForTab(activeTab) === "Analítica" && (
+                <>
+                  <TabButton active={activeTab === "resumen"} label="Resumen" icon={<BarChart2 style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resumen")} />
+                  <TabButton active={activeTab === "gasto"} label="Gasto" icon={<DollarSign style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("gasto")} />
+                  {!!project.website && <TabButton active={activeTab === "trafico"} label="Tráfico" icon={<Globe style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("trafico")} />}
+                  <TabButton active={activeTab === "historial"} label="Historial" icon={<TrendingUp style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("historial")} />
+                </>
+              )}
+              {getGroupForTab(activeTab) === "Optimización" && (
+                <>
+                  <TabButton active={activeTab === "audiencia"} label="Audiencia" icon={<Users style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("audiencia")} />
+                  <TabButton active={activeTab === "creativos"} label="Creativos" icon={<Palette style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("creativos")} />
+                  <TabButton active={activeTab === "salud"} label="Salud" icon={<HeartPulse style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("salud")} />
+                  <TabButton active={activeTab === "confiabilidad"} label="Confiabilidad" icon={<ShieldCheck style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("confiabilidad")} />
+                </>
+              )}
+              {getGroupForTab(activeTab) === "Configuración" && (
+                <>
+                  <TabButton active={activeTab === "ads"} label="Ads Manager" icon={<Layers style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("ads")} />
+                  <TabButton active={activeTab === "config"} label="Configuración" icon={<Settings style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("config")} />
+                </>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* �"��"��"� TAB: HISTORIAL �"��"��"� */}
+      {/* """ TAB: HISTORIAL """ */}
       {activeTab === "historial" && (
         <ErrorBoundary name="Tab Historial">
           <div style={panelStyle}>
