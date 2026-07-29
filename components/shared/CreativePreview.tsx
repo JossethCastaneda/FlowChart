@@ -77,8 +77,8 @@ const VideoPlayer = ({
   if (!src) {
     // No playable video source from Meta — show poster (contain) with a clear notice.
     return (
-      <div style={{ position: "relative", width: "100%" }}>
-        <img src={poster} alt="" style={{ width: "100%", height: "auto", display: "block", background: "var(--background)" }} />
+      <div style={{ position: "relative", width: "100%", height: "100%" }}>
+        <img src={poster} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", background: "var(--background)" }} />
         <div style={{
           position: "absolute", inset: 0, display: "flex", flexDirection: "column", gap: 6,
           alignItems: "center", justifyContent: "center", background: "var(--surface-hover)",
@@ -91,10 +91,10 @@ const VideoPlayer = ({
   }
 
   return (
-    <div style={{ position: "relative", width: "100%" }} onClick={toggle}>
+    <div style={{ position: "relative", width: "100%", height: "100%" }} onClick={toggle}>
       <video
         ref={ref} src={src} poster={poster} muted={muted} loop playsInline
-        style={{ width: "100%", height: "auto", display: "block", cursor: "pointer", background: "var(--background)" }}
+        style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", cursor: "pointer", background: "var(--background)" }}
       />
       {/* Play/Pause overlay */}
       {!playing && (
@@ -134,10 +134,10 @@ const CarouselViewer = ({
   if (!items.length) return null;
 
   return (
-    <div style={{ position: "relative", width: "100%" }}>
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
       <img
         src={items[idx].imageUrl} alt={items[idx].title}
-        style={{ width: "100%", height: "auto", display: "block", transition: "opacity 0.2s" }}
+        style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", transition: "opacity 0.2s" }}
       />
       {/* Nav arrows */}
       {items.length > 1 && (
