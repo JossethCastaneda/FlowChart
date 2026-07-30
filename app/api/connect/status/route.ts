@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { withWorkspace } from "@/lib/api-handler";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
@@ -11,13 +10,9 @@ const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
  * Returns the connection status for all modules.
  * Response: { modules: { publisher_facebook, publisher_instagram, social, ads, analytics, community, whatsapp_business }, pages: [...], tokenExpiresSoon }
  */
-export async function GET(request: NextRequest) {
+export const GET = withWorkspace(async (request, ctx) => {
+  const workspaceId = ctx.workspaceId;
   try {
-    const jwt = await getToken({ req: request, secret: AUTH_SECRET });
-    if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
-
-    const workspaceId = await getActiveWorkspaceId(jwt.sub);
-    if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
 
     // Fetch all meta integrations for this workspace
     const integrations = await prisma.integration.findMany({
@@ -145,5 +140,5 @@ export async function GET(request: NextRequest) {
       : "Error interno del servidor";
     return NextResponse.json({ error: message }, { status: 500 });
   }
-}
+});
 

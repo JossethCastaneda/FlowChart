@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { withWorkspaceRole } from "@/lib/api-handler";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
@@ -20,23 +19,8 @@ const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
  *
  * Requires the caller to be OWNER or ADMIN of the active workspace.
  */
-export async function POST(request: NextRequest) {
-  const jwt = await getToken({ req: request, secret: AUTH_SECRET });
-  if (!jwt?.sub) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
-  if (!workspaceId) return NextResponse.json({ error: "Sin workspace activo" }, { status: 400 });
-
-  // Only OWNER/ADMIN may unlink shared workspace integrations.
-  const membership = await prisma.workspaceMember.findFirst({
-    where: { userId: jwt.sub, workspaceId, role: { in: ["OWNER", "ADMIN"] } },
-  });
-  if (!membership) {
-    return NextResponse.json(
-      { error: "Solo OWNER/ADMIN pueden desvincular la cuenta de Meta." },
-      { status: 403 }
-    );
-  }
+export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (request, ctx) => {
+  const workspaceId = ctx.workspaceId;
 
   let provider = "all";
   try {
@@ -113,4 +97,4 @@ export async function POST(request: NextRequest) {
     logger.error("[DISCONNECT] Error:", err);
     return NextResponse.json({ error: err?.message || "Error al desvincular" }, { status: 500 });
   }
-}
+});

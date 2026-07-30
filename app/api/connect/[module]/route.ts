@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { createHmac } from "crypto";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
-import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { withWorkspaceRole } from "@/lib/api-handler";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import { resolveModuleConfig, META_MODULES } from "@/lib/meta-config";
@@ -12,21 +10,17 @@ const META_API_VERSION = env.META_API_VERSION;
 const NEXTAUTH_SECRET = env.NEXTAUTH_SECRET || env.AUTH_SECRET;
 
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ module: string }> }
-) {
-  const { module } = await params;
+export const GET = withWorkspaceRole(["OWNER", "ADMIN"])(async (
+  request,
+  ctx
+) => {
+  const { module } = await ctx.params;
+  const workspaceId = ctx.workspaceId;
+  const userId = ctx.userId;
 
   if (!NEXTAUTH_SECRET) {
     return NextResponse.json({ error: "NEXTAUTH_SECRET/AUTH_SECRET not configured" }, { status: 500 });
   }
-
-  const jwt = await getToken({ req: request, secret: NEXTAUTH_SECRET });
-  if (!jwt?.sub) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
-  const userId = String(jwt.sub);
 
   const config = resolveModuleConfig(module);
   if (!config) {
@@ -47,16 +41,6 @@ export async function GET(
       { error: `${config.expectedEnv} not configured for ${config.label}` },
       { status: 500 }
     );
-  }
-
-  const workspaceId = await getActiveWorkspaceId(userId);
-  if (!workspaceId) {
-    return NextResponse.json({ error: "No active workspace" }, { status: 400 });
-  }
-
-  const canConnect = await verifyWorkspaceAccess(workspaceId, userId, ["OWNER", "ADMIN"]);
-  if (!canConnect) {
-    return NextResponse.json({ error: "Not authorized for this workspace" }, { status: 403 });
   }
 
   let baseUrl = env.NEXT_PUBLIC_APP_URL || env.NEXTAUTH_URL || request.nextUrl.origin;
@@ -153,4 +137,4 @@ export async function GET(
   });
 
   return NextResponse.redirect(authUrl.toString());
-}
+});
