@@ -15,7 +15,7 @@ interface ModalConfig {
 }
 
 let showModalFn: ((config: ModalConfig) => void) | null = null;
-let modalQueue: ModalConfig[] = [];
+const modalQueue: ModalConfig[] = [];
 
 /** Show a confirmation modal. Returns a promise that resolves when confirmed. */
 export function showConfirm(config: Omit<ModalConfig, "onConfirm"> & { onConfirm?: () => void }): Promise<boolean> {

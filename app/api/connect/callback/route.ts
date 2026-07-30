@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${baseUrl}/connect/done?error=server_error_auth_secret`);
   }
 
-  let module = "unknown";
+  let integrationModule = "unknown";
   let userId = "";
   let workspaceId = "";
   try {
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
     }
 
     const decoded = JSON.parse(payload);
-    module = decoded.module;
+    integrationModule = decoded.integrationModule;
     userId = decoded.userId;
     workspaceId = decoded.workspaceId || "";
 
@@ -102,16 +102,16 @@ export async function GET(request: NextRequest) {
   const redirectUri = `${baseUrl}/api/connect/callback`;
 
   // ── BRANCH: Instagram Platform Direct Login ─────────────────────────────────
-  // Cuando module=instagram, el flujo usa instagram.com/oauth → graph.instagram.com
+  // Cuando integrationModule=instagram, el flujo usa instagram.com/oauth → graph.instagram.com
   // con INSTAGRAM_APIKEY_CONNECT/SECRET (app separada, no la app de Meta Ads/Webhooks).
-  if (module === "instagram" || module === "publisher_instagram") {
+  if (integrationModule === "instagram" || integrationModule === "publisher_instagram") {
     return await handleInstagramDirectCallback({
       code,
       baseUrl,
       redirectUri,
       userId,
       workspaceId,
-      providerName: module === "publisher_instagram" ? "meta_publisher_instagram" : "instagram",
+      providerName: integrationModule === "publisher_instagram" ? "meta_publisher_instagram" : "instagram",
     });
   }
   // ────────────────────────────────────────────────────────────────────────────
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
   try {
     let userAccessToken = "";
 
-    if (module === "publisher_instagram") {
+    if (integrationModule === "publisher_instagram") {
       // Logic moved to handleInstagramDirectCallback
     } else {
       // 1. Exchange code for short-lived token via Facebook Graph API
@@ -150,7 +150,7 @@ export async function GET(request: NextRequest) {
         const llData = await llRes.json();
         if (llRes.ok && llData.access_token) {
           userAccessToken = llData.access_token;
-          logger.info(`[CONNECT CALLBACK] Long-lived user token obtained for module: ${module}`);
+          logger.info(`[CONNECT CALLBACK] Long-lived user token obtained for module: ${integrationModule}`);
         }
       } catch (e) {
         logger.warn("[CONNECT CALLBACK] Long-lived exchange failed for FB, using short-lived:", e);
@@ -191,10 +191,10 @@ export async function GET(request: NextRequest) {
           .filter((p: any) => p.status === "granted")
           .map((p: any) => p.permission);
         
-        // FIX: Validate permissions match module requirements
-        const validation = validateModulePermissions(module, userScopes);
+        // FIX: Validate permissions match integrationModule requirements
+        const validation = validateModulePermissions(integrationModule, userScopes);
         if (!validation.valid) {
-          logger.warn(`[CONNECT CALLBACK] Missing scopes for ${module}:`, validation.missing);
+          logger.warn(`[CONNECT CALLBACK] Missing scopes for ${integrationModule}:`, validation.missing);
           // Don't fail yet — proceed but log warning
         }
       }
@@ -276,14 +276,14 @@ export async function GET(request: NextRequest) {
       resolvedWorkspaceId = membership.workspaceId;
     }
 
-    // 5. Store the token in the Integration table keyed by module
+    // 5. Store the token in the Integration table keyed by integrationModule
     // FIX: Store USER access token (for Graph API), NOT page tokens
-    const provider = `meta_${module}`; // e.g. "meta_social", "meta_analytics"
+    const provider = `meta_${integrationModule}`; // e.g. "meta_social", "meta_analytics"
     const expiresAt = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
     
     const encryptedUserToken = encryptToken(userAccessToken);
 
-    // Store module-specific integration
+    // Store integrationModule-specific integration
     await prisma.integration.upsert({
       where: {
         workspaceId_provider_userId: {
@@ -298,7 +298,7 @@ export async function GET(request: NextRequest) {
           pages, // Page data (with encrypted page tokens)
           expiresAt,
           refreshedAt: new Date().toISOString(),
-          module,
+          integrationModule,
           grantedScopes: userScopes, // Track what was actually granted
           profile: connectedProfile, // Perfil FB conectado (nickname + avatar)
         },
@@ -314,7 +314,7 @@ export async function GET(request: NextRequest) {
           pages,
           expiresAt,
           refreshedAt: new Date().toISOString(),
-          module,
+          integrationModule,
           grantedScopes: userScopes,
           profile: connectedProfile,
         },
@@ -327,7 +327,7 @@ export async function GET(request: NextRequest) {
     // Also update the generic "meta" integration so all modules can use it as fallback.
     // G5 FIX: cada módulo se conecta con su propio config_id (scopes distintos).
     // Si sobrescribimos ciegamente el token genérico con el del último módulo,
-    // un caller que use el genérico (sin pasar `module`) puede perder scopes
+    // un caller que use el genérico (sin pasar `integrationModule`) puede perder scopes
     // (ej. conectar Analytics pisaría el token con ads_management de Ads).
     // Por eso: si el token genérico actual tiene scopes que el nuevo NO incluye,
     // conservamos el token existente (más amplio) y solo unificamos el registro
@@ -374,7 +374,7 @@ export async function GET(request: NextRequest) {
 
     if (wouldLoseScopes) {
       logger.warn(
-        `[CONNECT CALLBACK] Token genérico "meta" conservado (el módulo "${module}" no cubre scopes existentes: ${existingScopes.filter((s) => !newScopeSet.has(s)).join(", ")})`
+        `[CONNECT CALLBACK] Token genérico "meta" conservado (el módulo "${integrationModule}" no cubre scopes existentes: ${existingScopes.filter((s) => !newScopeSet.has(s)).join(", ")})`
       );
     }
 
@@ -409,7 +409,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    logger.info(`[CONNECT CALLBACK] Module "${module}" connected with ${pages.length} pages`);
+    logger.info(`[CONNECT CALLBACK] integrationModule "${integrationModule}" connected with ${pages.length} pages`);
 
     // Invalida el cache de connection-status (F6) para que el estado refleje la
     // nueva conexión de inmediato en vez de esperar el TTL.
@@ -437,7 +437,7 @@ export async function GET(request: NextRequest) {
           });
         }
       }
-      logger.info(`[CONNECT CALLBACK] Seeded asset cache: ${pages.length} pages for module ${module}`);
+      logger.info(`[CONNECT CALLBACK] Seeded asset cache: ${pages.length} pages for integrationModule ${integrationModule}`);
     } catch (cacheErr) {
       logger.warn("[CONNECT CALLBACK] Asset cache seed failed (non-fatal — workflow will retry):", cacheErr);
     }
@@ -470,7 +470,7 @@ export async function GET(request: NextRequest) {
       const subResults = await subscribePages(rawPages, META_API_VERSION, unionScopes);
       const { subscribed, failed } = logSubscriptionResults(subResults, {
         route: "api/connect/callback",
-        module,
+        integrationModule,
         workspaceId: resolvedWorkspaceId,
       });
       await prisma.auditLog.create({
@@ -480,7 +480,7 @@ export async function GET(request: NextRequest) {
           action: "subscribe_webhooks",
           resourceType: "Integration",
           resourceId: metaIntegration.id,
-          details: { module, pages: rawPages.length, subscribed, failed, unionScopes: unionScopes.length },
+          details: { integrationModule, pages: rawPages.length, subscribed, failed, unionScopes: unionScopes.length },
         },
       }).catch((auditErr) => {
         logger.error("[CONNECT CALLBACK] Failed to write AuditLog:", auditErr);
@@ -490,11 +490,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Always redirect to /connect/done — it handles popup close OR fallback navigation
-    return NextResponse.redirect(`${baseUrl}/connect/done?module=${module}`);
+    return NextResponse.redirect(`${baseUrl}/connect/done?integrationModule=${integrationModule}`);
 
   } catch (err: any) {
     logger.error("[CONNECT CALLBACK] Error:", err);
-    return NextResponse.redirect(`${baseUrl}/connect/done?module=&error=server_error`);
+    return NextResponse.redirect(`${baseUrl}/connect/done?integrationModule=&error=server_error`);
   }
 }
 
@@ -811,10 +811,10 @@ async function handleInstagramDirectCallback({
       },
     }).catch((err) => logger.warn("[IG DIRECT CALLBACK] AuditLog failed:", err));
 
-    return NextResponse.redirect(`${baseUrl}/connect/done?module=instagram`);
+    return NextResponse.redirect(`${baseUrl}/connect/done?integrationModule=instagram`);
 
   } catch (err) {
     logger.error("[IG DIRECT CALLBACK] Unhandled error:", err);
-    return NextResponse.redirect(`${baseUrl}/connect/done?module=instagram&error=server_error`);
+    return NextResponse.redirect(`${baseUrl}/connect/done?integrationModule=instagram&error=server_error`);
   }
 }

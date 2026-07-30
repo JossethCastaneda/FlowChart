@@ -38,7 +38,8 @@ export const PATCH = withAuth(async (req, ctx) => {
 
   const result = await validateBody(req, PatchTaskSchema);
   if (!result.ok) return result.response;
-  let { title, description, assignee, assigneeId, priority, status, dueDate, tags, order, parentId, attachments, startDate, estimate, blockedByIds } = result.data;
+  const { title, description, priority, status, dueDate, tags, order, parentId, attachments, startDate, estimate, blockedByIds } = result.data;
+  let { assignee, assigneeId } = result.data;
 
   // ── Permission check ──
   const [settings, member] = await Promise.all([

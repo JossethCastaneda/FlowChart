@@ -159,7 +159,7 @@ export default function LoginPage() {
       }
     }
     return () => { isActive = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const providerStatusLoaded = providers !== null;

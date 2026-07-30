@@ -321,11 +321,20 @@ export async function GET(req: NextRequest) {
     if (videoId && videoSourceMap[String(videoId)]) {
       videoUrl = videoSourceMap[String(videoId)];
     }
+    
+    // Direct video_url fallback if batch fetch failed
+    if (!videoUrl && spec.video_data?.video_url) {
+      videoUrl = spec.video_data.video_url;
+    }
+
     // Fallback: DCO feed videos
     if (!videoUrl && Array.isArray(feed.videos) && feed.videos.length > 0) {
       const dcoVideoId = feed.videos[0].video_id;
       if (dcoVideoId && videoSourceMap[String(dcoVideoId)]) {
         videoUrl = videoSourceMap[String(dcoVideoId)];
+      }
+      if (!videoUrl && feed.videos[0].video_url) {
+        videoUrl = feed.videos[0].video_url;
       }
     }
 

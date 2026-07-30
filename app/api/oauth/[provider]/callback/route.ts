@@ -29,7 +29,7 @@ export async function GET(
   const baseUrl = getAppBaseUrl(request.nextUrl.origin);
   const integrationsUrl = `${baseUrl}/dashboard/integrations`;
   // Helper: pick redirect URL based on popup mode (set after state decode)
-  // eslint-disable-next-line prefer-const
+   
   let getSuccessUrl: (p: string) => string;
   let getErrorUrl: (e: string) => string;
 

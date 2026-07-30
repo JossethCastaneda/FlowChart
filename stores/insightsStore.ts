@@ -160,7 +160,7 @@ export const useInsightsStore = create<InsightsState>((set, get) => ({
 
       const valid = results.filter(Boolean).filter((r: any) => !r.error);
 
-      let merged: any = { timeSeries: [], campaigns: [], adsets: [], ads: [] };
+      const merged: any = { timeSeries: [], campaigns: [], adsets: [], ads: [] };
       if (valid.length === 0) {
         const errResult = results.find((r: any) => r && r.error);
         merged._error = errResult ? errResult.error : "No data";

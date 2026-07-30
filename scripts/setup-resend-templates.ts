@@ -347,7 +347,7 @@ const templates = [
 async function main() {
   console.log("🚀 Creando templates en Resend...\n");
 
-  let ids: Record<string, string> = {};
+  const ids: Record<string, string> = {};
 
   for (const tpl of templates) {
     try {

@@ -463,7 +463,7 @@ export function Composer() {
 
       // ── Step 2: Publish via correct endpoint based on format ──
       let pubEndpoint = "/api/publisher/publish";
-      let pubBody: any = { postId: post.id };
+      const pubBody: any = { postId: post.id };
 
       if (format === "reel" || format === "story") {
         // For reels/stories, we publish directly per-platform

@@ -44,8 +44,12 @@ jobs:
           FACEBOOK_CLIENT_ID: ci-only-dummy-fb-id
           FACEBOOK_CLIENT_SECRET: ci-only-dummy-fb-secret
 
-      # Lint — hard gate. Any new @typescript-eslint/no-explicit-any in critical
-      # paths (auth, api-handler, encryption) will fail the build.
-      # Pre-existing backlog in UI components is tracked via TODO comments.
-      - name: Lint
-        run: npm run lint
+      # Lint estricto: 0 warnings en core backend (lib, app/api, workflows).
+      # Cualquier warning nuevo aquí fallará el build.
+      - name: Lint (Core Backend)
+        run: npx eslint lib app/api workflows --max-warnings=0
+
+      # Lint informativo: techo de errores para el resto del repositorio.
+      # El límite de 130 warnings solo puede bajar con el tiempo.
+      - name: Lint (Global)
+        run: npx eslint . --max-warnings=130

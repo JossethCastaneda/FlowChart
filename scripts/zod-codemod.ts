@@ -18,7 +18,7 @@ for (const file of project.getSourceFiles()) {
       if (!awaitExpr) continue;
 
       const varDecl = awaitExpr.getParentIfKind(SyntaxKind.VariableDeclaration);
-      let schemaKeys: string[] = [];
+      const schemaKeys: string[] = [];
 
       if (varDecl) {
         // e.g. const body = await req.json();

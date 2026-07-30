@@ -636,7 +636,7 @@ export default function ProjectDashboardPage() {
 
   const ch = project.channels.find(c => c.platformId === activePlatform);
   const timeMetrics = getTimeFilterMetrics(datePreset, dateStart, dateEnd);
-  let viewedMonth = timeMetrics.viewedMonthStr;
+  const viewedMonth = timeMetrics.viewedMonthStr;
 
   let effectiveBudget = 0;
   let effectiveGoal = 0;

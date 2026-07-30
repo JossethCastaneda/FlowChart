@@ -40,7 +40,7 @@ async function persistMetaDm(
     }
     let contactName: string | undefined = undefined;
     let contactAvatar: string | undefined = undefined;
-    let fetchedCustomFields: any = undefined;
+    const fetchedCustomFields: any = undefined;
 
     // Obtener detalles del usuario desde Graph API si es un mensaje entrante
     if (!isEcho && contactId) {

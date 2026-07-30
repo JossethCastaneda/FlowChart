@@ -147,7 +147,7 @@ export default function SettingsPage() {
     } catch (err) {
       console.error("[SETTINGS] Fetch error:", err);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [session?.user?.id]);
 
   useEffect(() => {

@@ -199,7 +199,7 @@ export function AdsManagerTable({
   }, [data, sortCol, sortDir]);
 
   // ── Column resizing (metrics only) ─────────────────────────────────────────
-  const defaultWidths: Record<string, number> = {
+  const defaultWidths: Record<string, number> = useMemo(() => ({
     name: NAME_W_DEFAULT,
     reach: 110, impressions: 120, cpm: 110, frequency: 110,
     clicks: 100, ctr: 90, cpc: 90, results: 110,
@@ -216,7 +216,7 @@ export function AdsManagerTable({
     add_to_cart: 120, cost_per_atc: 140, initiate_checkout: 140, cost_per_ic: 140,
     bid_strategy: 150, optimization_goal: 160, last_edited: 130,
     engagement_ranking: 140, conversion_ranking: 140,
-  };
+  }), []);
   const [colWidths, setColWidths] = useState<Record<string, number>>(defaultWidths);
   const dragRef = useRef<{ col: string; startX: number; startW: number } | null>(null);
 
@@ -332,7 +332,7 @@ export function AdsManagerTable({
     }
     cols.push({ key: "_spacer", width: SPACER_W });
     return cols;
-  }, [showName, showDel, showBudg, showBid, nameW, visibleColumns, level, colWidths, defaultWidths]);
+  }, [visibleColumns, level, colWidths, defaultWidths]);
 
   const totalTableWidth = useMemo(() => columnDefs.reduce((sum, c) => sum + c.width, 0), [columnDefs]);
 
@@ -416,14 +416,14 @@ export function AdsManagerTable({
   });
 
   // ── Sort indicator ────────────────────────────────────────────────────────
-  const SortIcon = ({ col }: { col: string }) => {
+  const renderSortIcon = (col: string) => {
     if (sortCol !== col) return <ChevronsUpDown className="w-3 h-3 inline-block ml-1" style={{ opacity: 0.3 }} />;
     if (sortDir === "asc") return <ArrowUp className="w-3 h-3 inline-block ml-1" style={{ color: "var(--cyan)" }} />;
     return <ArrowDown className="w-3 h-3 inline-block ml-1" style={{ color: "var(--cyan)" }} />;
   };
 
   // ── Resize handle ─────────────────────────────────────────────────────────
-  const ResizeHandle = ({ col }: { col: string }) => (
+  const renderResizeHandle = (col: string) => (
     <div
       onMouseDown={e => startResize(col, e)}
       style={{
@@ -501,13 +501,13 @@ export function AdsManagerTable({
   const avgCPIc       = totalIC > 0 ? totalSpend / totalIC : 0;
 
   // ── Helper: Sortable header cell for metrics ──────────────────────────────
-  const MetricTh = ({ col, label }: { col: string; label: string }) => (
+  const renderMetricTh = (col: string, label: string) => (
     visibleColumns.includes(col) ? (
       <th
         style={{ ...thMetric(col), position: "sticky", top: 0 }}
         onClick={() => handleSort(col)}
       >
-        {label} <SortIcon col={col} /> <ResizeHandle col={col} />
+        {label} {renderSortIcon(col)} {renderResizeHandle(col)}
       </th>
     ) : null
   );
@@ -560,7 +560,7 @@ export function AdsManagerTable({
 
               {/* ── FROZEN: Status ── */}
               <th style={thFrozen(L_STATUS, STATUS_W, statusIsLast)} onClick={() => handleSort("status")}>
-                <SortIcon col="status" />
+                {renderSortIcon("")}
               </th>
 
               {/* ── FROZEN: Name ── */}
@@ -571,7 +571,7 @@ export function AdsManagerTable({
                 >
                   <span style={{ overflow: "hidden", textOverflow: "ellipsis", display: "block" }}>
                     {level === "campaigns" ? "CAMPAÑA" : level === "adsets" ? "CONJUNTO" : "ANUNCIO"}
-                    <SortIcon col="name" />
+                    {renderSortIcon("")}
                   </span>
                   <div
                     onMouseDown={e => startResize("name", e)}
@@ -593,7 +593,7 @@ export function AdsManagerTable({
               {/* ── FROZEN: Budget ── */}
               {showBudg && (
                 <th style={thFrozen(L_BUDG, BUDGET_W, isLastFrozen("budget"))} onClick={() => handleSort("budget")}>
-                  PRESUPUESTO <SortIcon col="budget" />
+                  PRESUPUESTO {renderSortIcon("")}
                 </th>
               )}
 
@@ -608,89 +608,89 @@ export function AdsManagerTable({
               {/* Objective (campaigns only) */}
               {visibleColumns.includes("objective") && level === "campaigns" && (
                 <th style={{ ...thMetric("objective"), position: "sticky", top: 0 }} onClick={() => handleSort("objective")}>
-                  OBJETIVO <SortIcon col="objective" /> <ResizeHandle col="objective" />
+                  OBJETIVO {renderSortIcon("")} {renderResizeHandle("")}
                 </th>
               )}
 
               {/* ROAS */}
-              <MetricTh col="roas" label="ROAS" />
+              {renderMetricTh("", "")}
 
               {/* Learning Phase (adsets only) */}
               {visibleColumns.includes("learning_phase") && level === "adsets" && (
                 <th style={{ ...thMetric("learning_phase"), position: "sticky", top: 0 }}>
-                  FASE <ResizeHandle col="learning_phase" />
+                  FASE {renderResizeHandle("")}
                 </th>
               )}
 
               {/* Advantage+ (campaigns only) */}
               {visibleColumns.includes("advantage_plus") && level === "campaigns" && (
                 <th style={{ ...thMetric("advantage_plus"), position: "sticky", top: 0 }}>
-                  ADV+ <ResizeHandle col="advantage_plus" />
+                  ADV+ {renderResizeHandle("")}
                 </th>
               )}
 
-              <MetricTh col="reach" label="ALCANCE" />
-              <MetricTh col="impressions" label="IMPRESIONES" />
-              <MetricTh col="cpm" label="CPM" />
-              <MetricTh col="frequency" label="FRECUENCIA" />
-              <MetricTh col="clicks" label="CLICS" />
-              <MetricTh col="ctr" label="CTR" />
-              <MetricTh col="cpc" label="CPC" />
-              <MetricTh col="results" label="RESULTADOS" />
-              <MetricTh col="conversations" label="CONV." />
-              <MetricTh col="cost_per_message" label="COSTO / MSG" />
-              <MetricTh col="cost_per_conversation" label="COSTO / CONV" />
-              <MetricTh col="cpa" label="CPA" />
-              <MetricTh col="landing_page_views" label="LANDING VIEWS" />
-              <MetricTh col="hook_rate" label="HOOK RATE" />
-              <MetricTh col="spend" label="IMPORTE GASTADO" />
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
 
               {visibleColumns.includes("quality_ranking") && level === "ads" && (
                 <th style={{ ...thMetric("quality_ranking"), position: "sticky", top: 0 }}>
-                  CALIDAD <ResizeHandle col="quality_ranking" />
+                  CALIDAD {renderResizeHandle("")}
                 </th>
               )}
 
               {/* ── Ghost columns headers ── */}
-              <MetricTh col="purchases" label="COMPRAS" />
-              <MetricTh col="cost_per_purchase" label="COSTO / COMPRA" />
-              <MetricTh col="leads" label="LEADS" />
-              <MetricTh col="cost_per_lead" label="COSTO / LEAD" />
-              <MetricTh col="outbound_clicks" label="CLICS SALIENTES" />
-              <MetricTh col="outbound_ctr" label="CTR SALIENTE" />
-              <MetricTh col="unique_ctr" label="CTR ÚNICO" />
-              <MetricTh col="thruplay" label="THRUPLAYS" />
-              <MetricTh col="thruplay_rate" label="THRUPLAY %" />
-              <MetricTh col="cost_per_thruplay" label="COSTO / THRUPLAY" />
-              <MetricTh col="video_p25" label="VIDEO 25%" />
-              <MetricTh col="video_p50" label="VIDEO 50%" />
-              <MetricTh col="video_p75" label="VIDEO 75%" />
-              <MetricTh col="video_p100" label="VIDEO 100%" />
-              <MetricTh col="video_plays" label="REPR. 3s" />
-              <MetricTh col="video_plays_100" label="REPR. 100%" />
-              <MetricTh col="add_to_cart" label="ADD TO CART" />
-              <MetricTh col="cost_per_atc" label="COSTO / ATC" />
-              <MetricTh col="initiate_checkout" label="CHECKOUT" />
-              <MetricTh col="cost_per_ic" label="COSTO / CHECKOUT" />
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
+              {renderMetricTh("", "")}
               {visibleColumns.includes("bid_strategy") && level !== "ads" && (
                 <th style={{ ...thMetric("bid_strategy"), position: "sticky", top: 0 }}>
-                  ESTRATEGIA PUJA <ResizeHandle col="bid_strategy" />
+                  ESTRATEGIA PUJA {renderResizeHandle("")}
                 </th>
               )}
               {visibleColumns.includes("optimization_goal") && level === "adsets" && (
                 <th style={{ ...thMetric("optimization_goal"), position: "sticky", top: 0 }}>
-                  OPTIMIZACIÓN <ResizeHandle col="optimization_goal" />
+                  OPTIMIZACIÓN {renderResizeHandle("")}
                 </th>
               )}
-              <MetricTh col="last_edited" label="ÚLT. EDICIÓN" />
+              {renderMetricTh("", "")}
               {visibleColumns.includes("engagement_ranking") && level === "ads" && (
                 <th style={{ ...thMetric("engagement_ranking"), position: "sticky", top: 0 }}>
-                  INTERACCIÓN <ResizeHandle col="engagement_ranking" />
+                  INTERACCIÓN {renderResizeHandle("")}
                 </th>
               )}
               {visibleColumns.includes("conversion_ranking") && level === "ads" && (
                 <th style={{ ...thMetric("conversion_ranking"), position: "sticky", top: 0 }}>
-                  CONVERSIÓN <ResizeHandle col="conversion_ranking" />
+                  CONVERSIÓN {renderResizeHandle("")}
                 </th>
               )}
 

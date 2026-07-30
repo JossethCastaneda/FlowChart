@@ -439,7 +439,7 @@ function AdsManagerContent() {
       );
 
       let merged: any[] = [];
-      let errors: string[] = [];
+      const errors: string[] = [];
       for (const r of results) {
         if (r.status === "fulfilled") merged = merged.concat(r.value);
         else errors.push(r.reason?.message || "Error desconocido");

@@ -89,7 +89,7 @@ export async function resolveOrCreateContact(input: ResolveContactInput): Promis
  */
 async function enrich(contactId: string, input: ResolveContactInput): Promise<void> {
   try {
-    let updateData: any = { lastContactedAt: new Date() };
+    const updateData: any = { lastContactedAt: new Date() };
 
     // Si nos envían customFields desde el webhook (ej. timezone, locale, gender)
     if (input.customFields && Object.keys(input.customFields).length > 0) {
