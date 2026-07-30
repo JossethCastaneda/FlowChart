@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { validateBody } from "@/lib/validate";
 import { apiSuccess, apiError } from "@/lib/api-response";
 import { getMetaAccessToken, metaFetch, metaUrl, resolvePageToken } from "@/lib/server-auth";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { withWorkspace } from "@/lib/api-handler";
 import { logger } from "@/lib/logger";
-import { getToken } from "next-auth/jwt";
 import { z } from "zod";
 
 const CommentSchema = z.object({
@@ -18,12 +17,8 @@ const CommentSchema = z.object({
  * Publishes a comment to a Facebook or Instagram post.
  * Uses the workspace's stored Meta page access token, not the user's JWT token.
  */
-export async function POST(request: NextRequest) {
-  const jwt = await getToken({ req: request });
-  if (!jwt?.sub) return apiError("No autorizado", "UNAUTHORIZED", 401);
-
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
-  if (!workspaceId) return apiError("Sin workspace activo", "NO_WORKSPACE", 400);
+export const POST = withWorkspace(async (request, ctx) => {
+  const workspaceId = ctx.workspaceId;
 
   const token = await getMetaAccessToken(request, "streams");
   if (!token) return apiError("Integración de Meta no conectada", "NO_META_TOKEN", 401);
@@ -81,4 +76,4 @@ export async function POST(request: NextRequest) {
   }
 
   return apiSuccess({ comment: data });
-}
+});
