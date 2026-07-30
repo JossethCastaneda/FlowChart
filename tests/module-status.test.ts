@@ -30,19 +30,42 @@ interface ModuleInfo {
 
 function parseModules(): ModuleInfo[] {
   const modules: ModuleInfo[] = [];
-  // Match each module block in the GOOGLE_MODULES array
-  const moduleBlocks = registryContent.match(/\{[^{}]*id:\s*"([^"]+)"[^{}]*\}/gs) || [];
+  const lines = registryContent.split("\n");
 
-  for (const block of moduleBlocks) {
-    const idMatch = block.match(/id:\s*"([^"]+)"/);
-    const statusMatch = block.match(/status:\s*"([^"]+)"/);
-    const apisMatch = block.match(/apis:\s*\[([^\]]*)\]/);
+  let inModule = false;
+  let braceDepth = 0;
+  let currentBlock = "";
 
-    if (idMatch && statusMatch && apisMatch) {
-      const apis = (apisMatch[1].match(/"([^"]+)"/g) || []).map((s) =>
-        s.replace(/"/g, "")
-      );
-      modules.push({ id: idMatch[1], apis, status: statusMatch[1] });
+  for (const line of lines) {
+    if (!inModule && line.includes("id:")) {
+      // Check if this looks like a module entry
+      const trimmed = line.trim();
+      if (trimmed.match(/id:\s*"/)) {
+        inModule = true;
+        currentBlock = "";
+        braceDepth = 0;
+      }
+    }
+
+    if (inModule) {
+      currentBlock += line + "\n";
+      braceDepth += (line.match(/\{/g) || []).length;
+      braceDepth -= (line.match(/\}/g) || []).length;
+
+      if (braceDepth <= 0 && currentBlock.includes("status:")) {
+        const idMatch = currentBlock.match(/id:\s*"([^"]+)"/);
+        const statusMatch = currentBlock.match(/status:\s*"([^"]+)"/);
+        const apisMatch = currentBlock.match(/apis:\s*\[([^\]]*)\]/);
+
+        if (idMatch && statusMatch && apisMatch) {
+          const apis = (apisMatch[1].match(/"([^"]+)"/g) || []).map((s) =>
+            s.replace(/"/g, "")
+          );
+          modules.push({ id: idMatch[1], apis, status: statusMatch[1] });
+        }
+        inModule = false;
+        currentBlock = "";
+      }
     }
   }
   return modules;
