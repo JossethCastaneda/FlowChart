@@ -115,6 +115,9 @@ export const metadata: Metadata = {
     },
   },
   category: "technology",
+  verification: {
+    google: "wiCvJG4XM_WWY4D-QooBOZYMtW2zwfT-lcn9KA16dwc",
+  },
 };
 
 
