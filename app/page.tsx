@@ -935,18 +935,22 @@ export default function Home() {
              </div>
           </div>
           <h2 className="col-section-h2 col-title" style={{
-            fontWeight: 700, fontSize: "clamp(36px, 5vw, 64px)",
-            textAlign: "center", marginBottom: 80,
+            fontWeight: 700, fontSize: "clamp(34px, 4.6vw, 58px)",
+            textAlign: "center", marginBottom: 20, maxWidth: 880, marginLeft: "auto", marginRight: "auto",
           }}>
-            Tres pasos.<br/>Cero complicaciones.
+            De 40 pestañas a una sola pantalla en 3 pasos
           </h2>
+          <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--text-secondary)", textAlign: "center", maxWidth: 680, margin: "0 auto 72px", lineHeight: 1.6 }}>
+            Sin migraciones eternas, sin consultor, sin manual de 80 páginas. Conectas tus cuentas y el
+            lunes ya operas distinto.
+          </p>
         </Reveal>
 
         <div className="col-steps-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 40 }}>
           {[
-            { step: "01", title: "Conecta tus canales", desc: "Vincula Meta, TikTok, Google y WhatsApp desde Integraciones. OAuth seguro, sin tokens manuales.", icon: <Globe style={{ width: 28, height: 28 }} /> },
-            { step: "02", title: "Centraliza en Resumen", desc: "Campañas, métricas y conversaciones fluyen a tu dashboard en tiempo real. Un solo login.", icon: <LineChart style={{ width: 28, height: 28 }} /> },
-            { step: "03", title: "Optimiza y Escala", desc: "Briefs IA genera contenido. Los Chatbots ejecutan. Tú solo decides y escalas los resultados.", icon: <TrendingUp style={{ width: 28, height: 28 }} /> },
+            { step: "01", title: "Conecta tus cuentas", desc: "Enlazas los Meta, TikTok, Google Ads y WhatsApp de todos tus clientes con el login oficial de cada plataforma. Zefirus se conecta por la puerta de enfrente, con los permisos que tú controlas y sin contraseñas prestadas ni pantallazos. Toma minutos.", icon: <Globe style={{ width: 28, height: 28 }} /> },
+            { step: "02", title: "Míralas todas juntas", desc: "Toda la pauta, todos los mensajes y todo el contenido de tus 20 cuentas caen en un solo tablero. Ves qué campaña jala y cuál quema presupuesto, cliente por cliente, sin brincar entre logins ni vaciar números a mano en el Excel del lunes.", icon: <LineChart style={{ width: 28, height: 28 }} /> },
+            { step: "03", title: "Opera y responde desde ahí", desc: "Contestas WhatsApp, programas contenido y armas el reporte del cliente sin salir de Zefirus. Lo que antes te comía el viernes en la noche ahora sale en una pantalla. Se acabó perseguir pestañas.", icon: <TrendingUp style={{ width: 28, height: 28 }} /> },
           ].map((s, i) => (
             <Reveal key={i} delay={i * 0.15}>
               <div style={{ position: "relative", padding: "32px 0" }}>
@@ -977,6 +981,14 @@ export default function Home() {
             </Reveal>
           ))}
         </div>
+
+        {/* Microcopy honesto (deck §5) */}
+        <Reveal delay={0.1}>
+          <p style={{ fontSize: 13.5, color: "var(--text-muted)", textAlign: "center", maxWidth: 620, margin: "48px auto 0", lineHeight: 1.6 }}>
+            Los números que ves en la demo son una vista de ejemplo. Tus datos reales aparecen en cuanto
+            conectas tu primera cuenta.
+          </p>
+        </Reveal>
       </section>
 
       {/* ═══════════════════════════════════════════════════════
