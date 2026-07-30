@@ -35,41 +35,6 @@ import {
    metallic typography, and smooth scrolling.
    ═══════════════════════════════════════════════════════ */
 
-// ── Animated counter ───────────────────────────────────
-function useCounter(end: number, duration = 2000, start = 0, suffix = "") {
-  const [value, setValue] = useState(start);
-  const [started, setStarted] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setStarted(true); },
-      { threshold: 0.3 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!started) return;
-    const steps = 60;
-    const inc = (end - start) / steps;
-    let current = start;
-    let frame = 0;
-    const interval = setInterval(() => {
-      frame++;
-      current += inc;
-      if (frame >= steps) { current = end; clearInterval(interval); }
-      setValue(Math.round(current));
-    }, duration / steps);
-    return () => clearInterval(interval);
-  }, [started, end, start, duration]);
-
-  return { value: `${value.toLocaleString()}${suffix}`, ref };
-}
-
 // ── Motion Wrapper ──────────────────────────────────────
 function Reveal({ children, delay = 0, className = "", style = {} }: { children: React.ReactNode, delay?: number, className?: string, style?: React.CSSProperties }) {
   return (
@@ -155,11 +120,6 @@ export default function Home() {
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, []);
-
-  const c1 = useCounter(4.8, 1800, 0, "x");
-  const c2 = useCounter(12500, 1800, 0, "+");
-  const c3 = useCounter(320, 1800, 0, "+");
-  const c4 = useCounter(85, 1800, 0, "%");
 
   // JSON-LD
   const jsonLd = {
@@ -301,6 +261,7 @@ export default function Home() {
           .col-pilar-grid { grid-template-columns: 1fr !important; }
           .col-porque-row { grid-template-columns: 1fr !important; }
           .col-porque-head { display: none !important; }
+          .col-cohorte-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .col-hero-h1 { font-size: 40px !important; }
           .col-section-h2 { font-size: 32px !important; }
           .col-compare-grid { grid-template-columns: 1fr 60px 80px !important; font-size: 13px !important; }
@@ -1078,31 +1039,109 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════
-         STATS
+         COHORTE FUNDADORA — prueba social honesta (deck §7)
+         Reemplaza los contadores inventados. Cero métricas de negocio falsas.
          ═══════════════════════════════════════════════════════ */}
-      <section style={{ position: "relative", zIndex: 1, padding: "120px 24px", border: "1px solid var(--hairline)", background: "var(--surface)" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <div className="col-stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 32, textAlign: "center" }}>
-            {[
-              { refP: c1, label: "ROAS Promedio" },
-              { refP: c2, label: "Conversaciones" },
-              { refP: c3, label: "Campañas Activas" },
-              { refP: c4, label: "Clientes Satisfechos" },
-            ].map((s, i) => (
-              <div key={i} ref={s.refP.ref} style={{ padding: "32px 16px" }}>
-                <div className="col-title" style={{
-                  fontSize: "clamp(48px, 5vw, 72px)", fontWeight: 700,
-                  lineHeight: 1, marginBottom: 16,
-                  letterSpacing: "-0.04em",
-                }}>
-                  {s.refP.value}
-                </div>
-                <div style={{ fontSize: 15, fontWeight: 500, color: "var(--text-muted)", letterSpacing: "0.05em", textTransform: "uppercase" }}>
-                  {s.label}
-                </div>
+      <section style={{ position: "relative", zIndex: 1, padding: "120px 24px", borderTop: "1px solid var(--hairline)", borderBottom: "1px solid var(--hairline)", background: "var(--surface)" }}>
+        <div style={{ maxWidth: 1120, margin: "0 auto" }}>
+          <Reveal>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 16px", borderRadius: 980, background: "var(--cyan-dim)", border: `1px solid rgba(59,130,246, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: ACCENT_COLOR, boxShadow: "0 0 0 3px rgba(59,130,246,0.25)" }} />
+                Beta privada · Cohorte fundadora
               </div>
+            </div>
+            <h2 className="col-section-h2 col-title" style={{ fontWeight: 700, fontSize: "clamp(34px, 4.6vw, 58px)", textAlign: "center", marginBottom: 20 }}>
+              Cupo abierto en la cohorte fundadora.
+            </h2>
+            <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--text-secondary)", textAlign: "center", maxWidth: 780, margin: "0 auto 12px", lineHeight: 1.6 }}>
+              Zefirus está en beta privada. Te lo decimos claro: estamos abriendo cupos para las primeras
+              agencias que quieran dejar de operar cuenta por cuenta. Entras antes que nadie y opinas
+              sobre lo que construimos.
+            </p>
+            <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)", textAlign: "center", margin: "40px 0 20px" }}>
+              Lo que tienes desde el primer día
+            </p>
+          </Reveal>
+
+          <div className="col-cohorte-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }}>
+            {[
+              { big: "3 frentes en 1", desc: "Publicidad (Meta, TikTok, Google), conversaciones (WhatsApp, Instagram, Messenger) y contenido con IA en un solo login. Ni una pestaña más." },
+              { big: "10+ hrs/semana", desc: "Las que hoy se te van vaciando números al Excel del lunes y armando el reporte del viernes cliente por cliente. Ese tiempo regresa a vender." },
+              { big: "1 pantalla", desc: "Para tus 10, 20 o 50 cuentas. Pauta, conversaciones y contenido de todos tus clientes, juntos, sin brincar entre logins." },
+              { big: "$0 y sin tarjeta", desc: "Para empezar. Conectas tus cuentas y las ves todas juntas hoy mismo, sin pagar un peso." },
+            ].map((c, i) => (
+              <Reveal key={i} delay={i * 0.08}>
+                <div style={{ padding: "28px 24px", height: "100%", borderRadius: 16, background: "var(--background)", border: "1px solid var(--border)" }}>
+                  <div style={{ fontSize: "clamp(26px, 3vw, 34px)", fontWeight: 700, color: ACCENT_COLOR, letterSpacing: "-0.02em", lineHeight: 1.05, marginBottom: 12 }}>
+                    {c.big}
+                  </div>
+                  <p style={{ fontSize: 14.5, color: "var(--text-secondary)", lineHeight: 1.55, margin: 0 }}>{c.desc}</p>
+                </div>
+              </Reveal>
             ))}
           </div>
+
+          <Reveal delay={0.1}>
+            <p style={{ fontSize: 12.5, color: "var(--text-muted)", textAlign: "center", maxWidth: 760, margin: "20px auto 0", lineHeight: 1.5, fontStyle: "italic" }}>
+              Las horas son un estimado del trabajo manual que Zefirus reemplaza (reportes, vaciado a
+              Excel, brincar entre logins), no una promesa de resultados de negocio.
+            </p>
+          </Reveal>
+
+          {/* Por qué conviene entrar ahora */}
+          <Reveal delay={0.1}>
+            <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)", textAlign: "center", margin: "56px 0 24px" }}>
+              Por qué conviene entrar ahora
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 20, maxWidth: 820, margin: "0 auto" }} className="col-cohorte-grid">
+              {[
+                { t: "Cupos contados.", d: "La beta privada abre por tandas para poder acompañar a cada agencia de a de veras, no para llenar un dashboard de altas." },
+                { t: "Voz y voto en el roadmap.", d: "Nos dices qué te duele operando 20 clientes y lo construimos contigo, con línea directa a personas reales." },
+              ].map((p, i) => (
+                <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                  <CheckCircle2 style={{ width: 20, height: 20, color: ACCENT_COLOR, flexShrink: 0, marginTop: 2 }} />
+                  <p style={{ fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.55, margin: 0 }}>
+                    <strong style={{ color: "var(--foreground)", fontWeight: 600 }}>{p.t}</strong> {p.d}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+
+          <Reveal delay={0.1}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, flexWrap: "wrap", marginTop: 48 }}>
+              <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Aparta tu lugar en la cohorte fundadora" style={{ height: 56, padding: "0 32px", borderRadius: 14 }}>
+                Aparta tu lugar en la cohorte fundadora
+              </Link>
+              <a href="#precios" style={{ fontSize: 15, color: "var(--text-secondary)", textDecoration: "none" }}>
+                ¿Equipo grande? <span style={{ color: ACCENT_COLOR, textDecoration: "underline", textUnderlineOffset: 3 }}>Hablemos directo</span>
+              </a>
+            </div>
+          </Reveal>
+
+          {/* Microcopy honesto mientras no haya testimonios reales */}
+          <Reveal delay={0.1}>
+            <p style={{ fontSize: 13.5, color: "var(--text-muted)", textAlign: "center", maxWidth: 620, margin: "40px auto 0", lineHeight: 1.6 }}>
+              Cuando tengamos testimonios, van a ser de agencias reales: con nombre, cara y número de cuentas.
+            </p>
+          </Reveal>
+
+          {/*
+            TODO(fundador): TESTIMONIO REAL — no publicar hasta tenerlo y con consentimiento por escrito.
+            Regla para llenarlo: una frase de dolor específico + una de resultado medible. Nada genérico.
+            Foto real de la persona (no stock). Incluir SIEMPRE ciudad (MX) y número de cuentas.
+            Descomentar y llenar cuando exista:
+
+            <div style={{ maxWidth: 760, margin: "48px auto 0", padding: "32px 36px", borderRadius: 20, background: "var(--background)", border: "1px solid var(--border)" }}>
+              <p style={{ fontSize: 20, color: "var(--foreground)", lineHeight: 1.5, fontWeight: 500 }}>
+                "[Frase de dolor específico + cambio, en voz del operador]"
+              </p>
+              <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 16 }}>
+                — [Nombre y Apellido], [rol], [Agencia], [Ciudad, MX] · [# de cuentas]
+              </p>
+            </div>
+          */}
         </div>
       </section>
 
