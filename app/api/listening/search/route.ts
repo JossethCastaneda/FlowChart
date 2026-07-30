@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { withWorkspace } from "@/lib/api-handler";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import { logger } from "@/lib/logger";
 
@@ -26,12 +25,8 @@ const GEMINI_MODEL = "gemini-2.0-flash";
  *   posts    — raw posts/mentions containing the keyword
  *   heatmap  — { day, hour, count }[]
  */
-export async function GET(request: NextRequest) {
-  const jwt = await getToken({ req: request });
-  if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
-  if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
-
+export const GET = withWorkspace(async (request, ctx) => {
+  const workspaceId = ctx.workspaceId;
   const q = request.nextUrl.searchParams.get("q")?.trim();
   if (!q) return NextResponse.json({ error: "q param required" }, { status: 400 });
 
@@ -509,5 +504,4 @@ IMPORTANTE: Responde SOLO con JSON válido, sin markdown.`;
       instagram: posts.filter(p => p.platform === "instagram").length,
     },
   });
-}
-
+});

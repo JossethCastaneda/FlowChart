@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { withWorkspace } from "@/lib/api-handler";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import { logger } from "@/lib/logger";
 
@@ -8,11 +7,8 @@ import { logger } from "@/lib/logger";
  * GET /api/listening/mentions
  * Fetches tagged posts + page mentions from Meta Graph API
  */
-export async function GET(request: NextRequest) {
-  const jwt = await getToken({ req: request });
-  if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
-  if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
+export const GET = withWorkspace(async (request, ctx) => {
+  const workspaceId = ctx.workspaceId;
   const token = await getMetaAccessToken(request, "listening");
   if (!token) return NextResponse.json({ error: "No Meta token" }, { status: 401 });
 
@@ -113,4 +109,4 @@ export async function GET(request: NextRequest) {
     logger.error("[LISTENING] Error:", err);
     return NextResponse.json({ error: err.message || "Error fetching mentions" }, { status: 500 });
   }
-}
+});
