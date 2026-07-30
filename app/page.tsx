@@ -133,9 +133,8 @@ export default function Home() {
         "url": "https://zefirus.xyz",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web",
-        "description": "Plataforma de marketing multicanal que unifica campañas de Meta Ads, TikTok Ads, Google Ads, inbox de WhatsApp y reportes de ROI para agencias en LATAM.",
-        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "MXN", "description": "Plan gratuito disponible." },
-        "aggregateRating": { "@type": "AggregateRating", "ratingValue": "5", "ratingCount": "3", "bestRating": "5" }
+        "description": "El centro de mando para agencias de marketing en LATAM: pauta de Meta, TikTok y Google Ads, inbox unificado de WhatsApp, Instagram y Messenger, y contenido con IA, para manejar todas tus cuentas desde un solo login. Hecho en México, en pesos.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "MXN", "description": "Plan gratuito disponible, sin tarjeta." }
       },
       {
         "@type": "Organization",
@@ -144,6 +143,15 @@ export default function Home() {
         "logo": "https://zefirus.xyz/zefirus-logo-1024.jpg",
         "contactPoint": { "@type": "ContactPoint", "email": "soporte@zefirus.xyz", "contactType": "customer service", "availableLanguage": ["Spanish"] },
         "sameAs": []
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          { "@type": "Question", "name": "¿Cuánto cuesta cuando se acaba el plan gratis?", "acceptedAnswer": { "@type": "Answer", "text": "Empiezas gratis y sin tarjeta, para siempre, con tus primeras cuentas. Cuando creces, los planes de paga arrancan en pesos, sin facturas en dólares que se disparan con el tipo de cambio. Precios claros, sin letra chiquita. Si entras ahora a la cohorte fundadora, entras con precio preferente de fundador." } },
+          { "@type": "Question", "name": "¿Mis datos y los de mis clientes están seguros?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. Nos conectamos a Meta, TikTok y Google con su login oficial (OAuth): nunca guardamos ni pedimos las contraseñas de tus clientes, y tú decides qué cuentas entran y cuáles salen cuando quieras. Tratamos la información conforme a la Ley Federal de Protección de Datos Personales (LFPDPPP). Sin reventa de datos." } },
+          { "@type": "Question", "name": "¿Sirve si solo manejo 2 o 3 cuentas?", "acceptedAnswer": { "@type": "Answer", "text": "Sirve. Zefirus brilla cuando cargas con 20, pero si hoy llevas 2 o 3 es justo el momento de dejar de crecer sobre pestañas y Excel. Montas la operación ordenada desde chico y cuando lleguen más clientes ya está armado." } },
+          { "@type": "Question", "name": "¿Reemplaza las herramientas que ya uso?", "acceptedAnswer": { "@type": "Answer", "text": "Esa es la idea: cambiar el Frankenstein de 6 apps peleadas entre sí por un solo login. Pauta, WhatsApp y contenido de todas tus cuentas viven en Zefirus, así que dejas de pagar tres suscripciones y de saltar de una a otra todo el día." } }
+        ]
       }
     ]
   };

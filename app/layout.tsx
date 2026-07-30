@@ -55,11 +55,11 @@ const safeUrl = (url: string | undefined): URL => {
 export const metadata: Metadata = {
   metadataBase: safeUrl(process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL),
   title: {
-    default: "Zefirus — Plataforma de Marketing Multicanal para Agencias | LATAM",
+    default: "Zefirus — El centro de mando para agencias de marketing en LATAM",
     template: "%s | Zefirus",
   },
   description:
-    "Gestiona campañas de Meta Ads, TikTok Ads y Google Ads, inbox de WhatsApp y reportes de ROI en una sola plataforma. Diseñada para agencias y anunciantes en México y LATAM. Empieza gratis.",
+    "Maneja la pauta, el WhatsApp y el contenido de todas tus cuentas desde una sola pantalla. Meta, TikTok y Google Ads, inbox unificado y contenido con IA para agencias en LATAM. Hecho en México, en pesos. Empieza gratis, sin tarjeta.",
   keywords: [
     "plataforma marketing digital",
     "gestión campañas publicitarias",
@@ -84,9 +84,9 @@ export const metadata: Metadata = {
     locale: "es_MX",
     url: "https://zefirus.xyz",
     siteName: "Zefirus",
-    title: "Zefirus — Tu Centro de Mando de Marketing Multicanal",
+    title: "Zefirus — El centro de mando para agencias de marketing en LATAM",
     description:
-      "Unifica campañas de Meta, TikTok y Google Ads, inbox de WhatsApp y reportes de ROI. Diseñada para agencias en LATAM. Empieza gratis, sin tarjeta.",
+      "Maneja tus 20 clientes desde una sola pantalla: pauta, WhatsApp y contenido de todas tus cuentas en un solo login. Hecho en México, en pesos. Empieza gratis, sin tarjeta.",
     images: [
       {
         url: "/zefirus-logo-1024.jpg",
@@ -98,9 +98,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zefirus — Marketing Multicanal para Agencias | LATAM",
+    title: "Zefirus — El centro de mando para agencias de marketing en LATAM",
     description:
-      "Gestiona Meta Ads, TikTok Ads, Google Ads, WhatsApp y reportes de ROI en una sola plataforma. Empieza gratis.",
+      "Pauta, WhatsApp y contenido de todas tus cuentas en una sola pantalla. Para agencias en LATAM. Hecho en México, en pesos. Empieza gratis, sin tarjeta.",
     images: ["/zefirus-logo-1024.jpg"],
   },
   robots: {
