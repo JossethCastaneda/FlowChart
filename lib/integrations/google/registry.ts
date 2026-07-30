@@ -54,7 +54,7 @@ export const GOOGLE_MODULES: GoogleModule[] = [
     id: "page_analytics",
     label: "Análisis de páginas",
     description:
-      "Rendimiento por página/landing: sesiones, engagement y conversiones (GA4) + clics, impresiones, CTR y posición (Search Console).",
+      "Métricas de GA4 (sesiones, páginas vistas, conversiones) por propiedad. La integración con Search Console (clics, impresiones, CTR) está en desarrollo.",
     apis: [
       "analyticsdata.googleapis.com",
       "analyticsadmin.googleapis.com",
@@ -66,19 +66,19 @@ export const GOOGLE_MODULES: GoogleModule[] = [
     ],
     capabilities: ["read"],
     resourceTypes: ["ga4_property", "gsc_site"],
-    status: "ready",
+    status: "beta",
     docsUrl: "https://developers.google.com/analytics/devguides/reporting/data/v1",
   },
   {
     id: "tag_tracking",
     label: "Seguimiento de etiquetas",
     description:
-      "Contenedores, tags, triggers y variables de Google Tag Manager: versión publicada, estado y salud de etiquetas (tags sin disparador o sin GA4).",
+      "Lista contenedores de Google Tag Manager. La lectura de tags, triggers y versiones publicadas está en desarrollo.",
     apis: ["tagmanager.googleapis.com"],
     scopes: ["https://www.googleapis.com/auth/tagmanager.readonly"],
     capabilities: ["read"],
     resourceTypes: ["gtm_container"],
-    status: "ready",
+    status: "stub",
     docsUrl: "https://developers.google.com/tag-platform/tag-manager/api/v2",
   },
   {
