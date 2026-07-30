@@ -27,19 +27,6 @@ function cleanEnv(raw: Record<string, string | undefined>): Record<string, strin
     }
   }
 
-  // ── Google credential aliases ──
-  // Vercel may have GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET (standard names),
-  // while our code uses GOOGLE_APIKEY_CONNECT / GOOGLE_SECRET_CONNECT (legacy).
-  // Resolve before Zod validation so both naming conventions work transparently.
-  if (!cleaned.GOOGLE_APIKEY_CONNECT && cleaned.GOOGLE_CLIENT_ID) {
-    cleaned.GOOGLE_APIKEY_CONNECT = cleaned.GOOGLE_CLIENT_ID;
-    process.env.GOOGLE_APIKEY_CONNECT = cleaned.GOOGLE_CLIENT_ID;
-  }
-  if (!cleaned.GOOGLE_SECRET_CONNECT && cleaned.GOOGLE_CLIENT_SECRET) {
-    cleaned.GOOGLE_SECRET_CONNECT = cleaned.GOOGLE_CLIENT_SECRET;
-    process.env.GOOGLE_SECRET_CONNECT = cleaned.GOOGLE_CLIENT_SECRET;
-  }
-
   return cleaned;
 }
 
@@ -107,9 +94,13 @@ const envSchema = z.object({
   ].join(",")),
   INSTAGRAM_TOKEN_URL: z.string().url().default("https://api.instagram.com/oauth/access_token"),
 
-  // Google
+  // Google (Connect)
   GOOGLE_APIKEY_CONNECT: z.string().min(1).optional(),
   GOOGLE_SECRET_CONNECT: z.string().min(1).optional(),
+
+  // Google (Login)
+  GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+  GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
 
   // Seguridad — AES-256-GCM requiere 32 bytes = 64 hex chars (ver lib/encryption.ts,
   // que rechaza cualquier longitud != 64). Una clave de 32 hex (AES-128) es inválida

@@ -82,9 +82,9 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
 }
 
 
-// Google — supports both legacy (GOOGLE_APIKEY_CONNECT) and standard (GOOGLE_CLIENT_ID) names
-const googleClientId = process.env.GOOGLE_APIKEY_CONNECT || process.env.GOOGLE_CLIENT_ID;
-const googleClientSecret = process.env.GOOGLE_SECRET_CONNECT || process.env.GOOGLE_CLIENT_SECRET;
+// Google — requires standard GOOGLE_CLIENT_ID
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
 if (googleClientId && googleClientSecret) {
   providers.push(
