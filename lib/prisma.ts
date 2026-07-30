@@ -68,11 +68,7 @@ function createPrismaClient(): PrismaClient {
 
   const pool = new Pool({
     connectionString,
-    // Neon's sslmode=verify-full in the connection string handles SSL verification.
-    // Using rejectUnauthorized: true at the Node.js TLS layer is redundant and can
-    // fail on serverless runtimes (Vercel) where the CA store may not include Neon's
-    // certificate chain, causing silent connection failures.
-    ssl: { rejectUnauthorized: false },
+    ssl: true,
     // Optimización Vercel Serverless: Reducir max y idleTimeout para evitar
     // Connection Exhaustion en PgBouncer ante picos de lambdas concurrentes.
     max: env.NODE_ENV === "production" ? 2 : 5,

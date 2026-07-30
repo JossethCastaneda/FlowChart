@@ -7,15 +7,7 @@ import { logger } from "@/lib/logger";
  * Falls back to an in-memory store in unit testing (Vitest) to avoid requiring a live database.
  */
 
-const memoryStore = new Map<string, { count: number; resetAt: number }>();
-
-// Periodically clean expired entries to prevent memory leaks in testing/development
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of memoryStore) {
-    if (now > entry.resetAt) memoryStore.delete(key);
-  }
-}, 60_000).unref?.();
+// Local state (Map/setInterval) is removed to prevent memory leaks in serverless/edge runtimes.
 
 /**
  * Check rate limit for a given key.
@@ -29,21 +21,9 @@ export async function rateLimit(
   maxAttempts: number,
   windowMs: number
 ): Promise<{ ok: boolean; remaining: number }> {
-  // If in test environment (Vitest), use in-memory store to avoid DB connection issues
+  // If in test environment (Vitest), bypass to avoid DB connection issues
   if (process.env.NODE_ENV === "test" || process.env.VITEST) {
-    const now = Date.now();
-    const entry = memoryStore.get(key);
-
-    if (!entry || now > entry.resetAt) {
-      memoryStore.set(key, { count: 1, resetAt: now + windowMs });
-      return { ok: true, remaining: maxAttempts - 1 };
-    }
-
-    entry.count++;
-    if (entry.count > maxAttempts) {
-      return { ok: false, remaining: 0 };
-    }
-    return { ok: true, remaining: maxAttempts - entry.count };
+    return { ok: true, remaining: maxAttempts };
   }
 
   // Database-backed rate limiting for production/dev

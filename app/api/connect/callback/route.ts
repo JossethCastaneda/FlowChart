@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { encryptToken } from "@/lib/encryption";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { env } from "@/lib/env";
+import { metaFetch } from "@/lib/server-auth";
 import { start } from "workflow/api";
 import { syncIntegrationAssetsWorkflow } from "@/workflows/sync-integration-assets";
 import { validateModulePermissions } from "@/lib/meta-scopes";
@@ -180,9 +181,9 @@ export async function GET(request: NextRequest) {
     
     try {
       // 3a. Validate user permissions first
-      const permissionsRes = await fetch(
+      const permissionsRes = await metaFetch(
         `https://graph.facebook.com/${META_API_VERSION}/me/permissions`,
-        { headers: { Authorization: `Bearer ${userAccessToken}` } }
+        userAccessToken
       );
       const permissionsData = await permissionsRes.json();
       
@@ -200,9 +201,9 @@ export async function GET(request: NextRequest) {
       }
 
       // 3b. Fetch connected pages using USER token
-      const pagesRes = await fetch(
+      const pagesRes = await metaFetch(
         `https://graph.facebook.com/${META_API_VERSION}/me/accounts?fields=id,name,access_token,picture,instagram_business_account&limit=100`,
-        { headers: { Authorization: `Bearer ${userAccessToken}` } }
+        userAccessToken
       );
       const pagesData = await pagesRes.json();
       
@@ -232,9 +233,9 @@ export async function GET(request: NextRequest) {
     // independiente con la que fue conectada — no el usuario de Zefirus.
     let connectedProfile: { id: string; name: string | null; picture: string | null } | null = null;
     try {
-      const meRes = await fetch(
+      const meRes = await metaFetch(
         `https://graph.facebook.com/${META_API_VERSION}/me?fields=id,name,picture.width(96).height(96)`,
-        { headers: { Authorization: `Bearer ${userAccessToken}` } }
+        userAccessToken
       );
       const meData = await meRes.json();
       if (meRes.ok && meData.id) {
@@ -585,11 +586,10 @@ async function handleInstagramDirectCallback({
     // GET https://graph.instagram.com/me?fields=id,username,name,profile_picture_url
     let profile: { username?: string; name?: string; picture?: string } = {};
     try {
-      const meUrl = new URL("https://graph.instagram.com/me");
-      meUrl.searchParams.set("fields", "id,username,name,profile_picture_url");
-      meUrl.searchParams.set("access_token", longLivedToken);
-
-      const meRes = await fetch(meUrl.toString());
+      const meRes = await metaFetch(
+        "https://graph.instagram.com/me?fields=id,username,name,profile_picture_url",
+        longLivedToken
+      );
       const meData = await meRes.json();
       if (meRes.ok && meData.id) {
         profile = {
@@ -723,10 +723,9 @@ async function handleInstagramDirectCallback({
       for (const endpoint of endpointsToTry) {
         try {
           const subBody = new URLSearchParams({
-            access_token: longLivedToken,
             subscribed_fields: subscribedFields,
           });
-          const subRes = await fetch(endpoint, {
+          const subRes = await metaFetch(endpoint, longLivedToken, {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: subBody.toString(),

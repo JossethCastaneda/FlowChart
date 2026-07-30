@@ -7,7 +7,7 @@ import { getToken } from "next-auth/jwt";
 // la función middleware cuando authorized() retorna false,
 // lo que impedía que las rutas públicas funcionaran.
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
 
   // ── Rutas públicas: NUNCA bloquear ──

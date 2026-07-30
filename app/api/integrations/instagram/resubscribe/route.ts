@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withWorkspaceRole } from "@/lib/api-handler";
+import { metaFetch } from "@/lib/server-auth";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
@@ -57,8 +58,8 @@ export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (_req: NextReque
   // Helper to attempt subscription
   const trySubscribe = async (url: string, label: string): Promise<boolean> => {
     try {
-      const body = new URLSearchParams({ access_token: token, subscribed_fields: subscribedFields });
-      const res = await fetch(url, {
+      const body = new URLSearchParams({ subscribed_fields: subscribedFields });
+      const res = await metaFetch(url, token, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: body.toString(),
