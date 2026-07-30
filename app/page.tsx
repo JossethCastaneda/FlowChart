@@ -145,16 +145,22 @@ const FEATURES = [
 ];
 
 export default function Home() {
-  const [scrollY, setScrollY] = useState(0);
+  const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [productOpen, setProductOpen] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
+  // Nav sólido al hacer scroll. Lenis (smooth scroll) no propaga el evento 'scroll'
+  // nativo a window, pero sí actualiza window.scrollY — lo leemos por rAF.
   useEffect(() => {
-    const onScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    let raf = 0;
+    const tick = () => {
+      setScrolled(window.scrollY > 40);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
   }, []);
 
   const c1 = useCounter(4.8, 1800, 0, "x");
@@ -316,14 +322,15 @@ export default function Home() {
 
       {/* ═══ NAVBAR (Floating Pill) ═══ */}
       <header className="main-nav" style={{
-        position: "fixed", top: 24, left: "50%", transform: "translateX(-50%)", zIndex: 100,
-        width: "90%", maxWidth: 1000,
-        background: "var(--surface)",
-        
-        
-        border: "1px solid var(--border)",
+        position: "fixed", top: scrolled ? 16 : 22, left: "50%", transform: "translateX(-50%)", zIndex: 100,
+        width: scrolled ? "90%" : "96%", maxWidth: scrolled ? 1000 : 1280,
+        background: scrolled ? "var(--surface)" : "transparent",
+        border: scrolled ? "1px solid var(--border)" : "1px solid transparent",
+        boxShadow: scrolled ? "0 10px 40px rgba(0,0,0,0.35)" : "none",
+        backdropFilter: scrolled ? "blur(14px)" : "none",
+        WebkitBackdropFilter: scrolled ? "blur(14px)" : "none",
         borderRadius: 999,
-        transition: "all 0.4s",
+        transition: "all 0.4s ease",
       }}>
         <div style={{ padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 12 }}>
