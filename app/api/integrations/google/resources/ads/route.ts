@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { refreshAccessToken, GoogleCredentials } from "@/lib/integrations/google/oauth";
 import { logger } from "@/lib/logger";
 import { GOOGLE_ADS_API_VERSION } from "@/lib/integrations/google/google-ads";
+import { googleFetch } from "@/lib/google-fetch";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
@@ -22,9 +23,8 @@ export const GET = withWorkspace(async (request, ctx) => {
 
   try {
     // 1. Fetch accessible customer accounts
-    const res = await fetch(`https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}/customers:listAccessibleCustomers`, {
+    const res = await googleFetch(`https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}/customers:listAccessibleCustomers`, accessToken, {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         "developer-token": developerToken,
       },
     });
@@ -38,15 +38,20 @@ export const GET = withWorkspace(async (request, ctx) => {
     const resourceNames: string[] = data.resourceNames || [];
     const customers: { id: string; name: string; displayName: string }[] = [];
 
+    // We need the integration ID for the cache
+    const integration = await prisma.integration.findUnique({
+      where: { workspaceId_provider_userId: { workspaceId, provider: "google", userId: "workspace" } },
+      select: { id: true },
+    });
+
     // 2. Fetch descriptive names in parallel (best-effort)
     await Promise.all(
       resourceNames.map(async (resourceName) => {
         const customerId = resourceName.replace("customers/", "");
         try {
-          const searchRes = await fetch(`https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}/customers/${customerId}/googleAds:searchStream`, {
+          const searchRes = await googleFetch(`https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}/customers/${customerId}/googleAds:searchStream`, accessToken, {
             method: "POST",
             headers: {
-              Authorization: `Bearer ${accessToken}`,
               "developer-token": developerToken,
               "Content-Type": "application/json",
             },
@@ -59,11 +64,39 @@ export const GET = withWorkspace(async (request, ctx) => {
             const searchData = await searchRes.json();
             if (Array.isArray(searchData) && searchData[0]?.results?.[0]?.customer) {
               const cust = searchData[0].results[0].customer;
-              customers.push({
+              const custObj = {
                 id: customerId,
                 name: cust.descriptiveName || `Cuenta ${customerId}`,
                 displayName: `${cust.descriptiveName || "Cuenta"} (${customerId})`,
-              });
+              };
+              customers.push(custObj);
+              
+              if (integration) {
+                await prisma.integrationAssetCache.upsert({
+                  where: {
+                    integrationId_assetType_externalId: {
+                      integrationId: integration.id,
+                      assetType: "google_ads",
+                      externalId: customerId,
+                    },
+                  },
+                  update: {
+                    name: custObj.name,
+                    metadata: { displayName: custObj.displayName },
+                    syncedAt: new Date(),
+                  },
+                  create: {
+                    integrationId: integration.id,
+                    workspaceId,
+                    provider: "google",
+                    assetType: "google_ads",
+                    externalId: customerId,
+                    name: custObj.name,
+                    metadata: { displayName: custObj.displayName },
+                  },
+                });
+              }
+
               return;
             }
           }
@@ -72,11 +105,38 @@ export const GET = withWorkspace(async (request, ctx) => {
         }
         
         // Fallback if detail fetch fails
-        customers.push({
+        const fallbackCust = {
           id: customerId,
           name: `Cuenta Ads ${customerId}`,
           displayName: `Cuenta Ads (${customerId})`,
-        });
+        };
+        customers.push(fallbackCust);
+
+        if (integration) {
+          await prisma.integrationAssetCache.upsert({
+            where: {
+              integrationId_assetType_externalId: {
+                integrationId: integration.id,
+                assetType: "google_ads",
+                externalId: customerId,
+              },
+            },
+            update: {
+              name: fallbackCust.name,
+              metadata: { displayName: fallbackCust.displayName },
+              syncedAt: new Date(),
+            },
+            create: {
+              integrationId: integration.id,
+              workspaceId,
+              provider: "google",
+              assetType: "google_ads",
+              externalId: customerId,
+              name: fallbackCust.name,
+              metadata: { displayName: fallbackCust.displayName },
+            },
+          });
+        }
       })
     );
 

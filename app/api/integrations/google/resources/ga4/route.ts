@@ -3,6 +3,7 @@ import { withWorkspace, withWorkspaceRole } from "@/lib/api-handler";
 import prisma from "@/lib/prisma";
 import { refreshAccessToken, GoogleCredentials } from "@/lib/integrations/google/oauth";
 import { logger } from "@/lib/logger";
+import { googleFetch } from "@/lib/google-fetch";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
@@ -15,9 +16,7 @@ export const GET = withWorkspace(async (request, ctx) => {
   }
 
   try {
-    const res = await fetch("https://analyticsadmin.googleapis.com/v1beta/accountSummaries", {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
+    const res = await googleFetch("https://analyticsadmin.googleapis.com/v1beta/accountSummaries", accessToken);
 
     const data = await res.json();
     if (!res.ok) {
@@ -26,6 +25,13 @@ export const GET = withWorkspace(async (request, ctx) => {
     }
 
     const properties: { id: string; name: string; displayName: string }[] = [];
+    
+    // We need the integration ID for the cache
+    const integration = await prisma.integration.findUnique({
+      where: { workspaceId_provider_userId: { workspaceId, provider: "google", userId: "workspace" } },
+      select: { id: true },
+    });
+
     if (data.accountSummaries) {
       for (const account of data.accountSummaries) {
         if (account.propertySummaries) {
@@ -35,6 +41,32 @@ export const GET = withWorkspace(async (request, ctx) => {
               name: prop.property, // "properties/123456"
               displayName: `${account.displayName} > ${prop.displayName}`,
             });
+
+            if (integration) {
+              await prisma.integrationAssetCache.upsert({
+                where: {
+                  integrationId_assetType_externalId: {
+                    integrationId: integration.id,
+                    assetType: "ga4_property",
+                    externalId: prop.property,
+                  },
+                },
+                update: {
+                  name: `${account.displayName} > ${prop.displayName}`,
+                  metadata: { propertyName: prop.property, displayName: prop.displayName },
+                  syncedAt: new Date(),
+                },
+                create: {
+                  integrationId: integration.id,
+                  workspaceId,
+                  provider: "google",
+                  assetType: "ga4_property",
+                  externalId: prop.property,
+                  name: `${account.displayName} > ${prop.displayName}`,
+                  metadata: { propertyName: prop.property, displayName: prop.displayName },
+                },
+              });
+            }
           }
         }
       }

@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { refreshAccessToken, GoogleCredentials } from "./oauth";
+import { googleFetch } from "@/lib/google-fetch";
 
 export const GOOGLE_ADS_API_VERSION = "v25";
 
@@ -58,10 +59,9 @@ export async function getAdsCampaigns(workspaceId: string, since?: string, until
 
   const url = `https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}/customers/${cleanCustomerId}/googleAds:searchStream`;
 
-  const res = await fetch(url, {
+  const res = await googleFetch(url, accessToken, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${accessToken}`,
       "developer-token": developerToken,
       "Content-Type": "application/json",
     },
@@ -148,10 +148,9 @@ export async function updateCampaignStatus(workspaceId: string, campaignId: stri
     ]
   };
 
-  const res = await fetch(url, {
+  const res = await googleFetch(url, accessToken, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${accessToken}`,
       "developer-token": developerToken,
       "Content-Type": "application/json",
     },

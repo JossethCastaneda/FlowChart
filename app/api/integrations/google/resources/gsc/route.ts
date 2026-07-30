@@ -3,6 +3,7 @@ import { withWorkspace, withWorkspaceRole } from "@/lib/api-handler";
 import prisma from "@/lib/prisma";
 import { refreshAccessToken, GoogleCredentials } from "@/lib/integrations/google/oauth";
 import { logger } from "@/lib/logger";
+import { googleFetch } from "@/lib/google-fetch";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
@@ -15,9 +16,7 @@ export const GET = withWorkspace(async (request, ctx) => {
   }
 
   try {
-    const res = await fetch("https://searchconsole.googleapis.com/webmasters/v3/sites", {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
+    const res = await googleFetch("https://searchconsole.googleapis.com/webmasters/v3/sites", accessToken);
 
     const data = await res.json();
     if (!res.ok) {
@@ -25,11 +24,49 @@ export const GET = withWorkspace(async (request, ctx) => {
       return NextResponse.json({ error: "Failed to fetch GSC sites from Google" }, { status: 502 });
     }
 
-    const sites = (data.siteEntry || []).map((site: any) => ({
-      id: site.siteUrl,
-      name: site.siteUrl,
-      permissionLevel: site.permissionLevel,
-    }));
+    // We need the integration ID for the cache
+    const integration = await prisma.integration.findUnique({
+      where: { workspaceId_provider_userId: { workspaceId, provider: "google", userId: "workspace" } },
+      select: { id: true },
+    });
+
+    const sites = [];
+    if (data.siteEntry) {
+      for (const site of data.siteEntry) {
+        const siteObj = {
+          id: site.siteUrl,
+          name: site.siteUrl,
+          permissionLevel: site.permissionLevel,
+        };
+        sites.push(siteObj);
+
+        if (integration) {
+          await prisma.integrationAssetCache.upsert({
+            where: {
+              integrationId_assetType_externalId: {
+                integrationId: integration.id,
+                assetType: "gsc_site",
+                externalId: site.siteUrl,
+              },
+            },
+            update: {
+              name: site.siteUrl,
+              metadata: { permissionLevel: site.permissionLevel },
+              syncedAt: new Date(),
+            },
+            create: {
+              integrationId: integration.id,
+              workspaceId,
+              provider: "google",
+              assetType: "gsc_site",
+              externalId: site.siteUrl,
+              name: site.siteUrl,
+              metadata: { permissionLevel: site.permissionLevel },
+            },
+          });
+        }
+      }
+    }
 
     return NextResponse.json({ sites });
   } catch (err: any) {

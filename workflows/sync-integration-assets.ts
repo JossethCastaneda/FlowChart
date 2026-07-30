@@ -4,6 +4,7 @@ import { decryptToken } from "@/lib/encryption";
 import { env } from "@/lib/env";
 import { metaFetch } from "@/lib/server-auth";
 import { logger } from "@/lib/logger";
+import { getAdsCampaigns } from "@/lib/integrations/google/google-ads";
 
 /** Versión centralizada de la Graph API (default v25.0 en lib/env.ts). */
 const META_GRAPH_VERSION = env.META_API_VERSION;
@@ -292,6 +293,41 @@ async function syncDeepMetaAdsData(adAccountId: string, token: string, workspace
   }
 }
 
-async function syncGoogleAssets(_integration: any, _token: string) {
-  // TODO: Implementar lógica de caché de métricas de Google Ads una vez que se defina la estructura de la API.
+async function syncGoogleAssets(integration: any, _token: string) {
+  try {
+    const creds = integration.credentials as any;
+    const customerId = creds?.resources?.google_ads?.customerId;
+
+    if (!customerId) {
+      return; // No Ads account connected
+    }
+
+    const { campaigns } = await getAdsCampaigns(integration.workspaceId);
+    
+    // Guardar en GoogleAdsCache
+    const cacheKey = "last_30d"; // O el default de getAdsCampaigns
+    
+    await prisma.googleAdsCache.upsert({
+      where: { 
+        workspaceId_customerId_level_dateRange: { 
+          workspaceId: integration.workspaceId, 
+          customerId, 
+          level: "campaigns", 
+          dateRange: cacheKey 
+        } 
+      },
+      update: { data: campaigns, updatedAt: new Date() },
+      create: { 
+        workspaceId: integration.workspaceId, 
+        customerId, 
+        level: "campaigns", 
+        dateRange: cacheKey, 
+        data: campaigns 
+      }
+    });
+
+    logger.info("[SYNC-ASSETS] Google Ads cache updated", { workspaceId: integration.workspaceId, customerId });
+  } catch (error) {
+    logger.error("[SYNC-ASSETS] Error syncGoogleAssets", { workspaceId: integration.workspaceId, error });
+  }
 }

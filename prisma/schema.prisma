@@ -43,18 +43,18 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  password      String? // null para usuarios OAuth (Facebook/Google)
+  id                String    @id @default(cuid())
+  name              String?
+  email             String?   @unique
+  emailVerified     DateTime?
+  image             String?
+  password          String? // null para usuarios OAuth (Facebook/Google)
   // Marca de cambio de contraseña: invalida sesiones JWT emitidas antes de esta
   // fecha (se compara contra token.loginAt en withAuth). Cambia en reset/change.
   passwordChangedAt DateTime?
-  whatsappPhone String? // número personal para notificaciones WA (ej. "5215512345678")
-  accounts      Account[]
-  sessions      Session[]
+  whatsappPhone     String? // número personal para notificaciones WA (ej. "5215512345678")
+  accounts          Account[]
+  sessions          Session[]
 
   // Relations
   workspaces    WorkspaceMember[]
@@ -224,6 +224,7 @@ model Project {
   /// Estructura: { adsCustomerId, ga4PropertyId, gtmAccountId, gtmContainerId }
   /// Permite que cada proyecto del cliente use sus propias cuentas de Google.
   googleSources     Json?           @default("{}")
+  googleSourceLinks GoogleSource[]  @relation("ProjectGoogleSources")
   ariaDatasets      AriaDataset[]
   reports           Report[]
 }
@@ -262,6 +263,21 @@ model WaPhoneSource {
   project   Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   @@index([phoneNumberId])
+}
+
+// Mapas de fuentes de Google hacia los proyectos
+model GoogleSource {
+  id         String   @id @default(cuid())
+  externalId String // ID of the google asset (e.g. ads ID, ga4 property ID)
+  kind       String // "google_ads", "ga4_property", "gtm_container"
+  projectId  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  project Project @relation("ProjectGoogleSources", fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([externalId, projectId])
+  @@index([externalId])
 }
 
 model ProjectMember {
@@ -761,22 +777,22 @@ model InboxMessage {
   conversationId String
   externalId     String?
   content        String    @db.Text
-  sender         String    // "user" | "page"
+  sender         String // "user" | "page"
   senderName     String?
   senderAvatar   String?
   attachments    Json?
   reaction       String?
   deliveredAt    DateTime? // cuando Meta confirma entrega (msg.delivery watermark)
   readAt         DateTime? // cuando el usuario lee (msg.read watermark)
-  replyToId      String?   // mid del mensaje al que se responde (Messenger reply-to)
+  replyToId      String? // mid del mensaje al que se responde (Messenger reply-to)
   editedAt       DateTime? // timestamp de última edición (message_edits webhook)
   isEdited       Boolean   @default(false)
   createdAt      DateTime  @default(now())
 
   conversation InboxConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
-  @@index([conversationId])
   @@unique([conversationId, externalId])
+  @@index([conversationId])
 }
 
 model SavedReply {
@@ -934,6 +950,23 @@ model MetaAdsCache {
 
   @@unique([workspaceId, adAccountId, level, dateRange])
   @@index([workspaceId, adAccountId])
+}
+
+// ------------------------------------------------------
+// GOOGLE ADS CACHE
+// ------------------------------------------------------
+model GoogleAdsCache {
+  id          String   @id @default(cuid())
+  workspaceId String   @default("")
+  customerId  String // ID de la cuenta de cliente de Google Ads
+  level       String // "campaigns", "adGroups", "ads"
+  dateRange   String // Clave del rango de fechas (ej. "last_30d")
+  data        Json // El payload JSON completo y ya procesado
+  updatedAt   DateTime @updatedAt
+
+  @@unique([workspaceId, customerId, level, dateRange])
+  @@index([workspaceId])
+  @@index([customerId])
 }
 
 // ------------------------------------------------------
@@ -1681,11 +1714,11 @@ model AiUsage {
   workspaceId      String
   route            String // e.g. "/api/agents/orchestrate", "GridIA"
   model            String // e.g. "gemini-2.5-flash"
-  provider         String?  // e.g. "gemini", "anthropic", "openai"
+  provider         String? // e.g. "gemini", "anthropic", "openai"
   tokensIn         Int      @default(0)
   tokensOut        Int      @default(0)
-  estimatedCostUsd Float?   // estimated cost in USD for billing dashboards
-  feature          String?  // high-level feature area: "copilot", "crecimiento", "agents"
+  estimatedCostUsd Float? // estimated cost in USD for billing dashboards
+  feature          String? // high-level feature area: "copilot", "crecimiento", "agents"
   createdAt        DateTime @default(now())
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
@@ -1698,7 +1731,7 @@ model AiUsage {
 // RATE LIMITING
 // ------------------------------------------------------
 model RateLimit {
-  key       String   @id
-  count     Int
-  resetAt   DateTime
+  key     String   @id
+  count   Int
+  resetAt DateTime
 }

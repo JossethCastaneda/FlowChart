@@ -3,6 +3,7 @@ import { withWorkspace, withWorkspaceRole } from "@/lib/api-handler";
 import prisma from "@/lib/prisma";
 import { refreshAccessToken, GoogleCredentials } from "@/lib/integrations/google/oauth";
 import { logger } from "@/lib/logger";
+import { googleFetch } from "@/lib/google-fetch";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
@@ -15,9 +16,7 @@ export const GET = withWorkspace(async (request, ctx) => {
   }
 
   try {
-    const res = await fetch("https://tagmanager.googleapis.com/tagmanager/v2/accounts", {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
+    const res = await googleFetch("https://tagmanager.googleapis.com/tagmanager/v2/accounts", accessToken);
 
     const data = await res.json();
     if (!res.ok) {
@@ -33,15 +32,78 @@ export const GET = withWorkspace(async (request, ctx) => {
     const { searchParams } = new URL(request.url);
     const accountId = searchParams.get("accountId");
 
+    // We need the integration ID for the cache
+    const integration = await prisma.integration.findUnique({
+      where: { workspaceId_provider_userId: { workspaceId, provider: "google", userId: "workspace" } },
+      select: { id: true },
+    });
+
     if (accountId) {
-      const cRes = await fetch(`https://tagmanager.googleapis.com/tagmanager/v2/accounts/${accountId}/containers`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
+      const cRes = await googleFetch(`https://tagmanager.googleapis.com/tagmanager/v2/accounts/${accountId}/containers`, accessToken);
       const cData = await cRes.json();
-      return NextResponse.json({ containers: cData.container || [] });
+      const containers = cData.container || [];
+
+      if (integration) {
+        for (const container of containers) {
+          await prisma.integrationAssetCache.upsert({
+            where: {
+              integrationId_assetType_externalId: {
+                integrationId: integration.id,
+                assetType: "gtm_container",
+                externalId: container.containerId,
+              },
+            },
+            update: {
+              name: container.name,
+              metadata: { accountId: container.accountId, publicId: container.publicId },
+              syncedAt: new Date(),
+            },
+            create: {
+              integrationId: integration.id,
+              workspaceId,
+              provider: "google",
+              assetType: "gtm_container",
+              externalId: container.containerId,
+              name: container.name,
+              metadata: { accountId: container.accountId, publicId: container.publicId },
+            },
+          });
+        }
+      }
+
+      return NextResponse.json({ containers });
     }
 
-    return NextResponse.json({ accounts: data.account || [] });
+    const accounts = data.account || [];
+    if (integration) {
+      for (const account of accounts) {
+        await prisma.integrationAssetCache.upsert({
+          where: {
+            integrationId_assetType_externalId: {
+              integrationId: integration.id,
+              assetType: "gtm_account",
+              externalId: account.accountId,
+            },
+          },
+          update: {
+            name: account.name,
+            metadata: {},
+            syncedAt: new Date(),
+          },
+          create: {
+            integrationId: integration.id,
+            workspaceId,
+            provider: "google",
+            assetType: "gtm_account",
+            externalId: account.accountId,
+            name: account.name,
+            metadata: {},
+          },
+        });
+      }
+    }
+
+    return NextResponse.json({ accounts });
   } catch (err: any) {
     logger.error("[GTM API] Exception", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
