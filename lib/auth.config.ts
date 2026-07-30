@@ -82,11 +82,15 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
 }
 
 
-if (process.env.GOOGLE_APIKEY_CONNECT && process.env.GOOGLE_SECRET_CONNECT) {
+// Google — supports both legacy (GOOGLE_APIKEY_CONNECT) and standard (GOOGLE_CLIENT_ID) names
+const googleClientId = process.env.GOOGLE_APIKEY_CONNECT || process.env.GOOGLE_CLIENT_ID;
+const googleClientSecret = process.env.GOOGLE_SECRET_CONNECT || process.env.GOOGLE_CLIENT_SECRET;
+
+if (googleClientId && googleClientSecret) {
   providers.push(
     GoogleProvider({
-      clientId: process.env.GOOGLE_APIKEY_CONNECT,
-      clientSecret: process.env.GOOGLE_SECRET_CONNECT,
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
       authorization: {
         params: {
           scope: "openid email profile",

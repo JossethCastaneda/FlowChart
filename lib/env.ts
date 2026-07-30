@@ -26,6 +26,20 @@ function cleanEnv(raw: Record<string, string | undefined>): Record<string, strin
       }
     }
   }
+
+  // ── Google credential aliases ──
+  // Vercel may have GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET (standard names),
+  // while our code uses GOOGLE_APIKEY_CONNECT / GOOGLE_SECRET_CONNECT (legacy).
+  // Resolve before Zod validation so both naming conventions work transparently.
+  if (!cleaned.GOOGLE_APIKEY_CONNECT && cleaned.GOOGLE_CLIENT_ID) {
+    cleaned.GOOGLE_APIKEY_CONNECT = cleaned.GOOGLE_CLIENT_ID;
+    process.env.GOOGLE_APIKEY_CONNECT = cleaned.GOOGLE_CLIENT_ID;
+  }
+  if (!cleaned.GOOGLE_SECRET_CONNECT && cleaned.GOOGLE_CLIENT_SECRET) {
+    cleaned.GOOGLE_SECRET_CONNECT = cleaned.GOOGLE_CLIENT_SECRET;
+    process.env.GOOGLE_SECRET_CONNECT = cleaned.GOOGLE_CLIENT_SECRET;
+  }
+
   return cleaned;
 }
 

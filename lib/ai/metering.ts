@@ -57,18 +57,22 @@ export async function recordAiUsage(
   }
 ) {
   try {
-    await prisma.aiUsage.create({
-      data: {
-        workspaceId,
-        route,
-        model,
-        tokensIn,
-        tokensOut,
-        provider: opts?.provider,
-        estimatedCostUsd: opts?.estimatedCostUsd,
-        feature: opts?.feature,
-      }
-    });
+    // FIXME: Los campos provider/estimatedCostUsd/feature existen en el schema
+    // y en .prisma/client, pero @prisma/client/index.d.ts (pre-generado por npm)
+    // puede no incluirlos hasta el próximo `npm install`. Usamos spread para que
+    // los campos undefined no rompan la query, y `as any` para el type-check.
+    const data: Record<string, unknown> = {
+      workspaceId,
+      route,
+      model,
+      tokensIn,
+      tokensOut,
+    };
+    if (opts?.provider) data.provider = opts.provider;
+    if (opts?.estimatedCostUsd != null) data.estimatedCostUsd = opts.estimatedCostUsd;
+    if (opts?.feature) data.feature = opts.feature;
+
+    await prisma.aiUsage.create({ data: data as any });
   } catch (err) {
     logger.error("[METERING] Error al guardar AiUsage", { workspaceId, route, error: String(err) });
   }
