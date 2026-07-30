@@ -5,6 +5,7 @@ import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { refreshAccessToken, GoogleCredentials } from "@/lib/integrations/google/oauth";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { logger } from "@/lib/logger";
+import { GOOGLE_ADS_API_VERSION } from "@/lib/integrations/google/google-ads";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
 
   try {
     // 1. Fetch accessible customer accounts
-    const res = await fetch("https://googleads.googleapis.com/v19/customers:listAccessibleCustomers", {
+    const res = await fetch(`https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}/customers:listAccessibleCustomers`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "developer-token": developerToken,
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
       resourceNames.map(async (resourceName) => {
         const customerId = resourceName.replace("customers/", "");
         try {
-          const searchRes = await fetch(`https://googleads.googleapis.com/v19/customers/${customerId}/googleAds:searchStream`, {
+          const searchRes = await fetch(`https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}/customers/${customerId}/googleAds:searchStream`, {
             method: "POST",
             headers: {
               Authorization: `Bearer ${accessToken}`,

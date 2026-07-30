@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { refreshAccessToken, GoogleCredentials } from "./oauth";
 
-const GOOGLE_ADS_API_VERSION = "v19";
+export const GOOGLE_ADS_API_VERSION = "v25";
 
 export async function getAdsCampaigns(workspaceId: string, since?: string, until?: string) {
   const integration = await prisma.integration.findUnique({
