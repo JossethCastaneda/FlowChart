@@ -25,7 +25,8 @@ import {
   LineChart,
   Star,
   ChevronRight,
-  MapPin
+  MapPin,
+  X
 } from "lucide-react";
 
 /* ═══════════════════════════════════════════════════════
@@ -303,6 +304,8 @@ export default function Home() {
           .col-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .col-pain-grid { grid-template-columns: 1fr !important; max-width: 400px; margin-left: auto; margin-right: auto; }
           .col-steps-grid { grid-template-columns: 1fr !important; max-width: 400px; margin-left: auto; margin-right: auto; }
+          .col-outcome-row { grid-template-columns: 1fr !important; }
+          .col-outcome-head { display: none !important; }
           .col-hero-h1 { font-size: 40px !important; }
           .col-section-h2 { font-size: 32px !important; }
           .col-compare-grid { grid-template-columns: 1fr 60px 80px !important; font-size: 13px !important; }
@@ -760,6 +763,64 @@ export default function Home() {
               plugin y cuando algo truena te contesta un bot en inglés. El desgaste viene de operar
               cuenta por cuenta, pestaña por pestaña.
             </p>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════
+         OUTCOME — Antes → Con Zefirus (deck §3)
+         ═══════════════════════════════════════════════════════ */}
+      <section id="outcome" style={{ position: "relative", zIndex: 1, padding: "120px 24px", maxWidth: 1200, margin: "0 auto", width: "100%" }}>
+        <Reveal>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
+            <div style={{ padding: "6px 16px", borderRadius: 980, background: "var(--cyan-dim)", border: `1px solid rgba(59,130,246, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
+              Así se ve tu agencia con Zefirus
+            </div>
+          </div>
+          <h2 className="col-section-h2 col-title" style={{ fontWeight: 700, fontSize: "clamp(34px, 4.6vw, 58px)", textAlign: "center", marginBottom: 20, maxWidth: 940, marginLeft: "auto", marginRight: "auto" }}>
+            De 40 pestañas y el Excel del lunes, a{" "}
+            <span style={{ WebkitTextFillColor: ACCENT_COLOR, color: ACCENT_COLOR }}>una sola pantalla</span>{" "}
+            que hasta tu cliente entiende.
+          </h2>
+          <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--text-secondary)", textAlign: "center", maxWidth: 760, margin: "0 auto 56px", lineHeight: 1.6 }}>
+            Imagínate el lunes: abres un login, ves las 20 cuentas juntas, sabes qué campaña jala y cuál
+            quema, contestas los WhatsApp del fin y mandas el reporte antes del café. Sin brincar entre
+            logins, sin vaciar números a mano, sin sostener a tus clientes con alambritos.
+          </p>
+        </Reveal>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 980, margin: "0 auto" }}>
+          {/* Encabezados (solo desktop) */}
+          <div className="col-outcome-head" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, padding: "0 20px" }}>
+            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--text-muted)" }}>Antes</span>
+            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: ACCENT_COLOR }}>Con Zefirus</span>
+          </div>
+          {[
+            { antes: "6 apps peleadas entre sí y 40 pestañas abiertas para no perder ninguna cuenta.", con: "Un solo login para ver las 20 cuentas juntas. Se acabaron las 40 pestañas." },
+            { antes: "El Excel del lunes: números de Meta, TikTok y Google copiados a mano, cliente por cliente.", con: "La pauta de todos tus clientes junta y actualizada sola. Adiós al Excel del lunes." },
+            { antes: "WhatsApp del cliente contestado tarde, desde tres celulares distintos.", con: "Todos los WhatsApp, Instagram y Messenger en una bandeja, con bots que atienden 24/7." },
+            { antes: "Domingo en la noche armando la parrilla de contenido de cero.", con: "Parrillas, copies y briefs con IA que habla como se habla aquí. Recuperas tu domingo." },
+          ].map((row, i) => (
+            <Reveal key={i} delay={i * 0.08}>
+              <div className="col-outcome-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "18px 20px", borderRadius: 14, background: "var(--surface)", border: "1px solid var(--border)" }}>
+                  <X style={{ width: 18, height: 18, color: "var(--text-muted)", flexShrink: 0, marginTop: 2 }} />
+                  <p style={{ fontSize: 15, color: "var(--text-muted)", lineHeight: 1.5, margin: 0 }}>{row.antes}</p>
+                </div>
+                <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "18px 20px", borderRadius: 14, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.25)" }}>
+                  <CheckCircle2 style={{ width: 18, height: 18, color: ACCENT_COLOR, flexShrink: 0, marginTop: 2 }} />
+                  <p style={{ fontSize: 15, color: "var(--foreground)", fontWeight: 500, lineHeight: 1.5, margin: 0 }}>{row.con}</p>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        <Reveal delay={0.1}>
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 48 }}>
+            <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en Zefirus" style={{ height: 56, padding: "0 36px", borderRadius: 14 }}>
+              Empieza gratis, sin tarjeta
+            </Link>
           </div>
         </Reveal>
       </section>
