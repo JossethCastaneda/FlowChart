@@ -119,6 +119,22 @@ function AnimatedText({ text, delayOffset = 0 }: { text: string, delayOffset?: n
 const ACCENT_COLOR = "#5b9bff"; // Zefirus Cyan
 const GRADIENT_START = "#0284c7"; // Darker blue for gradient
 
+// ── CTA único self-serve (deck §0). Todos los CTA primarios apuntan aquí. ──
+const SIGNUP_URL = "/login?register=1"; // "Empieza gratis": deep-link a "Crear cuenta"
+const LOGIN_URL = "/login";             // "Entrar": clientes existentes (secundario)
+
+// Ítems de nav (anclas a secciones que se crean en pasos posteriores del deck)
+const NAV_LINKS: [string, string][] = [
+  ["#por-que", "Por qué Zefirus"],
+  ["#precios", "Precios"],
+  ["#faq", "Preguntas"],
+];
+const PRODUCT_PILLARS: [string, string][] = [
+  ["#pilar-publicidad", "Publicidad"],
+  ["#pilar-conversaciones", "Conversaciones"],
+  ["#pilar-contenido", "Contenido"],
+];
+
 const FEATURES = [
   { icon: <Target style={{ width: 24, height: 24 }} />, title: "Anuncios", codename: "Impulso", desc: "Meta, TikTok y Google Ads en una sola pantalla. Pausa, optimiza y escala campañas sin salir de Zefirus." },
   { icon: <BarChart3 style={{ width: 24, height: 24 }} />, title: "Resumen", codename: "Pulso", desc: "El pulso de tu operación en tiempo real. Dashboards que tu cliente entiende, con datos de todas tus cuentas." },
@@ -132,6 +148,7 @@ export default function Home() {
   const [scrollY, setScrollY] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [productOpen, setProductOpen] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => {
@@ -313,37 +330,77 @@ export default function Home() {
             <ZefirusLogo size="sm" animated={false} showText={false} />
             <span style={{ fontSize: 20, fontWeight: 700, color: "var(--foreground)", letterSpacing: "-0.04em" }}>Zefirus</span>
           </Link>
-          <nav className="col-nav-links" style={{ display: "flex", alignItems: "center", gap: 40 }}>
-            {[["#problema", "Problema"], ["#solucion", "Solución"], ["#comparar", "Comparar"]].map(([href, label]) => (
+          <nav className="col-nav-links" style={{ display: "flex", alignItems: "center", gap: 36 }}>
+            {/* Producto — dropdown con los 3 pilares (deck §0) */}
+            <div
+              style={{ position: "relative" }}
+              onMouseEnter={() => setProductOpen(true)}
+              onMouseLeave={() => setProductOpen(false)}
+            >
+              <button
+                className="col-nav-link"
+                aria-haspopup="true"
+                aria-expanded={productOpen}
+                style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", font: "inherit", padding: 0 }}
+              >
+                Producto
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ transform: productOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              {productOpen && (
+                <div style={{ position: "absolute", top: "100%", left: 0, paddingTop: 16 }}>
+                  <div style={{
+                    minWidth: 220, background: "var(--surface)", border: "1px solid var(--border)",
+                    borderRadius: 14, padding: 8, display: "flex", flexDirection: "column", gap: 2,
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
+                  }}>
+                    {PRODUCT_PILLARS.map(([href, label]) => (
+                      <a key={href} href={href} className="col-nav-link" onClick={() => setProductOpen(false)}
+                        style={{ padding: "9px 12px", borderRadius: 8, whiteSpace: "nowrap" }}>
+                        {label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            {NAV_LINKS.map(([href, label]) => (
               <a key={href} href={href} className="col-nav-link">{label}</a>
             ))}
           </nav>
-          <div className="col-nav-links" style={{ display: "flex", alignItems: "center", gap: 16 }}>
-             <Link href="/login" aria-label="Acceder a Zefirus" style={{
-                padding: "8px 24px", borderRadius: 980,
-                background: "linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02))",
-                color: "var(--foreground)",
-                border: "1px solid var(--border)",
-                fontSize: 14, fontWeight: 500,
-                textDecoration: "none", transition: "all 0.25s",
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.1)" }}
-              onMouseLeave={e => { e.currentTarget.style.background = "linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02))" }}>
-                Acceder
-              </Link>
+          <div className="col-nav-links" style={{ display: "flex", alignItems: "center", gap: 20 }}>
+            <Link href={LOGIN_URL} className="col-nav-link" style={{ textDecoration: "none" }}>Entrar</Link>
+            <Link href={SIGNUP_URL} aria-label="Empieza gratis en Zefirus" style={{
+              padding: "9px 20px", borderRadius: 980,
+              background: `linear-gradient(180deg, ${GRADIENT_START} 0%, ${ACCENT_COLOR} 100%)`,
+              color: "#fff",
+              border: "none",
+              fontSize: 14, fontWeight: 600,
+              textDecoration: "none", transition: "filter 0.25s", whiteSpace: "nowrap",
+            }}
+              onMouseEnter={e => { e.currentTarget.style.filter = "brightness(1.08)"; }}
+              onMouseLeave={e => { e.currentTarget.style.filter = "none"; }}>
+              Empieza gratis
+            </Link>
           </div>
           <button className="apple-burger" onClick={() => setMobileMenu(!mobileMenu)} aria-label="Menú">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d={mobileMenu ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
           </button>
         </div>
         <div className={`apple-mobile-menu ${mobileMenu ? "open" : ""}`} style={{ background: "var(--background)", border: "1px solid var(--hairline)", borderRadius: "0 0 24px 24px" }}>
-          {[["#problema", "Problema"], ["#solucion", "Solución"], ["#comparar", "Comparar"]].map(([href, label]) => (
+          {[...PRODUCT_PILLARS, ...NAV_LINKS].map(([href, label]) => (
             <a key={href} href={href} onClick={() => setMobileMenu(false)}>{label}</a>
           ))}
-          <Link href="/login" onClick={() => setMobileMenu(false)} style={{
+          <Link href={LOGIN_URL} onClick={() => setMobileMenu(false)} style={{
+            padding: "10px 0", color: "var(--text-secondary)", fontWeight: 500, fontSize: 15, textDecoration: "none",
+          }}>
+            Entrar
+          </Link>
+          <Link href={SIGNUP_URL} onClick={() => setMobileMenu(false)} style={{
             padding: "10px 0", color: ACCENT_COLOR, fontWeight: 600, fontSize: 15, textDecoration: "none",
           }}>
-            Acceder →
+            Empieza gratis →
           </Link>
         </div>
       </header>

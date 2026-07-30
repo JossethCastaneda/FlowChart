@@ -100,6 +100,11 @@ export default function LoginPage() {
 
   const t = STRINGS[lang];
 
+  // Deep-link self-serve: /login?register=1 abre directo en "Crear cuenta" (CTA "Empieza gratis")
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("register") === "1") setIsRegister(true);
+  }, []);
+
   useEffect(() => {
     let isActive = true;
 
