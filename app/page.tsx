@@ -470,21 +470,17 @@ export default function Home() {
           </svg>
         </div>
 
-        {/* Badge */}
-        <motion.div 
+        {/* Eyebrow — etiqueta de categoría (deck §1) */}
+        <motion.div
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-          style={{
-            display: "flex", alignItems: "center", gap: 12,
-            padding: "8px 24px", borderRadius: 980, 
-            border: "1px solid rgba(255,255,255,0.18)",
-            background: "rgba(9,11,16,0.55)",
-            backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
-            fontSize: 13, fontWeight: 500, color: "var(--foreground)", marginBottom: 32, letterSpacing: "0.02em"
-          }}
+          style={{ marginBottom: 24, maxWidth: 640 }}
         >
-          <span style={{ opacity: 0.4 }}>{"{"}</span>
-          Revoluciona tu Agencia
-          <span style={{ opacity: 0.4 }}>{"}"}</span>
+          <span style={{
+            fontSize: 13, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase",
+            color: ACCENT_COLOR,
+          }}>
+            El centro de mando para agencias de marketing en LATAM
+          </span>
         </motion.div>
 
         {/* Headline (Animated Text with Shimmer) */}
@@ -498,9 +494,9 @@ export default function Home() {
             maxWidth: 900,
           }}
         >
-          <AnimatedText text="Deja de adivinar." delayOffset={0.4} />
+          <AnimatedText text="Maneja tus 20 clientes desde" delayOffset={0.4} />
           <br/>
-          <AnimatedText text="Empieza a escalar." delayOffset={0.9} />
+          <span style={{ fontStyle: "italic", WebkitTextFillColor: ACCENT_COLOR, color: ACCENT_COLOR }}>una sola pantalla.</span>
         </h1>
 
         {/* Subtitle */}
@@ -515,25 +511,56 @@ export default function Home() {
             marginBottom: 48,
           }}
         >
-          Zefirus unifica tus campañas de Meta, TikTok y Google Ads,
-          tu inbox de WhatsApp y tus reportes de ROI en una plataforma diseñada para equipos de alto rendimiento.
+          Zefirus junta la pauta, el WhatsApp y el contenido de todas tus cuentas en un solo login.
+          Dejas de brincar entre Metas, TikToks y el Excel del lunes, y ves qué jala y qué quema
+          presupuesto por cliente, en el mismo lugar. Hecho en México, en pesos y con soporte que sí contesta.
         </motion.p>
 
-        {/* CTAs */}
-        <motion.div 
+        {/* CTAs — un solo motion self-serve (deck §1) */}
+        <motion.div
           initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 1.7, ease: "easeOut" }}
-          style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", justifyContent: "center", position: "relative", zIndex: 10, marginBottom: 80 }}
+          style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, position: "relative", zIndex: 10, marginBottom: 40 }}
         >
-          <Link href="/login" className="col-pill col-pill-primary" aria-label="Contacto / Registro" style={{ height: 56, padding: "0 32px", borderRadius: 14 }}>
-            Contactar Ventas
-          </Link>
-          <div style={{ display: "flex", alignItems: "center", background: "var(--surface-hover)", border: "1px solid var(--border)", borderRadius: 14, padding: "4px 4px 4px 20px", height: 56, boxSizing: "border-box" }}>
-            <input type="email" placeholder="Ingresa tu email" style={{ background: "transparent", border: "none", color: "var(--foreground)", outline: "none", width: 220, fontSize: 16 }} />
-            <Link href="/login" className="col-pill col-pill-secondary" style={{ padding: "0 24px", fontSize: 15, height: "100%", borderRadius: 10 }}>
-              Solicitar Demo
+          <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", justifyContent: "center" }}>
+            <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en Zefirus" style={{ height: 56, padding: "0 36px", borderRadius: 14 }}>
+              Empieza gratis
             </Link>
+            <a href="#como-funciona" className="col-pill col-pill-secondary" style={{ height: 56, padding: "0 28px", borderRadius: 14, display: "inline-flex", alignItems: "center" }}>
+              Ver cómo funciona
+            </a>
+          </div>
+          {/* Microcopy — reduce fricción */}
+          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.75)", margin: 0, maxWidth: 560, lineHeight: 1.5 }}>
+            Gratis para empezar. Sin tarjeta. Conectas tus cuentas y las ves todas juntas en minutos.
+          </p>
+          {/* Venta asistida — puerta secundaria, jerarquía baja */}
+          {/* TODO: destino de venta asistida (correo/WhatsApp) por definir — hoy ancla a Precios/Enterprise */}
+          <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>
+            ¿Equipo grande o necesidades a la medida?{" "}
+            <a href="#precios" style={{ color: ACCENT_COLOR, textDecoration: "underline", textUnderlineOffset: 3 }}>
+              Escríbenos y te armamos el arranque en un demo.
+            </a>
+          </p>
+          {/* Chip de urgencia honesta (sin promesa de precio de por vida) */}
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            padding: "6px 14px", borderRadius: 980,
+            background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.25)",
+            fontSize: 12.5, color: ACCENT_COLOR, fontWeight: 500, marginTop: 8,
+          }}>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: ACCENT_COLOR }} />
+            Cohorte fundadora abierta · cupos limitados
           </div>
         </motion.div>
+
+        {/* Caption honesta del mockup (deck §1) */}
+        <motion.p
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 2.0 }}
+          style={{ fontSize: 13, color: "var(--text-secondary)", margin: "0 0 8px", maxWidth: 620, lineHeight: 1.5, position: "relative", zIndex: 3, textAlign: "center" }}
+        >
+          Así se ve tu agencia completa en Zefirus: las campañas, los chats y el calendario de todas
+          tus cuentas, en un tablero. Los datos mostrados son de ejemplo.
+        </motion.p>
 
         {/* Dashboard Wrapper for Horizon Glow */}
         <div style={{ position: "relative", width: "100%", maxWidth: 1100, display: "flex", justifyContent: "center", marginTop: 40, zIndex: 2 }}>
@@ -561,6 +588,18 @@ export default function Home() {
             display: "flex",
           }}
         >
+          {/* Badge honesto: datos ilustrativos (regla dura de honestidad) */}
+          <div style={{
+            position: "absolute", top: 16, right: 16, zIndex: 20,
+            display: "inline-flex", alignItems: "center", gap: 7,
+            padding: "5px 12px", borderRadius: 980,
+            background: "rgba(9,11,16,0.72)", border: "1px solid rgba(255,255,255,0.16)",
+            backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)",
+            fontSize: 11.5, fontWeight: 600, color: "var(--foreground)", letterSpacing: "0.02em",
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--amber)" }} />
+            Vista de ejemplo
+          </div>
           {/* Sidebar */}
           <div style={{ width: 240, border: "1px solid var(--hairline)", padding: 24, display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 48 }}>
@@ -769,7 +808,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════
          HOW IT WORKS
          ═══════════════════════════════════════════════════════ */}
-      <section style={{ position: "relative", zIndex: 1, padding: "120px 24px", maxWidth: 1200, margin: "0 auto", width: "100%" }}>
+      <section id="como-funciona" style={{ position: "relative", zIndex: 1, padding: "120px 24px", maxWidth: 1200, margin: "0 auto", width: "100%" }}>
         <Reveal>
           <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
              <div style={{ padding: "6px 16px", borderRadius: 980, background: "var(--cyan-dim)", border: `1px solid rgba(59,130,246, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
