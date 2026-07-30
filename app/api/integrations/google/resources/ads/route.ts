@@ -1,21 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { withWorkspace, withWorkspaceRole } from "@/lib/api-handler";
 import prisma from "@/lib/prisma";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { refreshAccessToken, GoogleCredentials } from "@/lib/integrations/google/oauth";
-import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { logger } from "@/lib/logger";
 import { GOOGLE_ADS_API_VERSION } from "@/lib/integrations/google/google-ads";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
-/** GET: Lists accessible Google Ads Customer Accounts */
-export async function GET(request: NextRequest) {
-  const jwt = await getToken({ req: request, secret: AUTH_SECRET });
-  if (!jwt?.sub) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
-  if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
+export const GET = withWorkspace(async (request, ctx) => {
+  const workspaceId = ctx.workspaceId;
 
   const accessToken = await refreshAccessToken(workspaceId);
   if (!accessToken) {
@@ -92,18 +85,11 @@ export async function GET(request: NextRequest) {
     logger.error("[Google Ads API] Exception", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
-}
+});
 
 /** POST: Saves the selected Google Ads Customer ID */
-export async function POST(request: NextRequest) {
-  const jwt = await getToken({ req: request, secret: AUTH_SECRET });
-  if (!jwt?.sub) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
-  if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
-
-  const hasAccess = await verifyWorkspaceAccess(workspaceId, jwt.sub, ["OWNER", "ADMIN"]);
-  if (!hasAccess) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (request, ctx) => {
+  const workspaceId = ctx.workspaceId;
 
   const { customerId } = await request.json();
   if (!customerId) return NextResponse.json({ error: "Missing customerId" }, { status: 400 });
@@ -134,4 +120,4 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json({ success: true });
-}
+});
