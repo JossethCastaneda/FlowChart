@@ -25,6 +25,7 @@ import {
   LineChart,
   Star,
   ChevronRight,
+  ChevronDown,
   MapPin,
   X
 } from "lucide-react";
@@ -107,6 +108,7 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [productOpen, setProductOpen] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   useEffect(() => { setMounted(true); }, []);
   // Nav sólido al hacer scroll. Lenis (smooth scroll) no propaga el evento 'scroll'
@@ -1305,6 +1307,65 @@ export default function Home() {
             Cupos de cohorte fundadora limitados. Entra antes de que se cierre.
           </p>
         </Reveal>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════
+         FAQ — acordeón (deck §9)
+         ═══════════════════════════════════════════════════════ */}
+      <section id="faq" style={{ position: "relative", zIndex: 1, padding: "120px 24px", maxWidth: 820, margin: "0 auto", width: "100%", scrollMarginTop: 90 }}>
+        <Reveal>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
+            <div style={{ padding: "6px 16px", borderRadius: 980, background: "var(--cyan-dim)", border: `1px solid rgba(59,130,246, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
+              Preguntas que seguro te estás haciendo
+            </div>
+          </div>
+          <h2 className="col-section-h2 col-title" style={{ fontWeight: 700, fontSize: "clamp(30px, 4vw, 50px)", textAlign: "center", marginBottom: 56, maxWidth: 760, marginLeft: "auto", marginRight: "auto" }}>
+            Lo que quieres saber antes de conectar tu primera cuenta
+          </h2>
+        </Reveal>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {[
+            {
+              q: "¿Cuánto cuesta cuando se acaba el plan gratis?",
+              /* TODO(fundador): $[XXX] MXN = precio provisional real del plan de paga */
+              a: "Empiezas gratis y sin tarjeta, para siempre, con tus primeras cuentas. Cuando creces, los planes de paga arrancan en $[XXX] MXN al mes; nada de facturas en dólares que se te disparan cada vez que sube el tipo de cambio. Precios en pesos, claros, sin letra chiquita. Si entras ahora a la cohorte fundadora, entras con precio preferente de fundador.",
+            },
+            {
+              q: "¿Mis datos y los de mis clientes están seguros?",
+              a: "Sí, y va en serio. Nos conectamos a Meta, TikTok y Google con su login oficial (OAuth): nunca guardamos ni pedimos las contraseñas de tus clientes, y tú decides qué cuentas entran y cuáles salen cuando quieras. Tratamos la información conforme a la Ley Federal de Protección de Datos Personales (LFPDPPP). Sin reventa de datos, sin sorpresas.",
+            },
+            {
+              q: "¿Sirve si solo manejo 2 o 3 cuentas?",
+              a: "Sirve. Zefirus brilla cuando cargas con 20, pero si hoy llevas 2 o 3 es justo el momento de dejar de crecer sobre pestañas y Excel. Montas la operación ordenada desde chico y cuando lleguen los clientes 10, 15, 20, no tienes que reinventar nada: ya está armado.",
+            },
+            {
+              q: "¿Reemplaza las herramientas que ya uso?",
+              a: "Esa es la idea: cambiar el Frankenstein de 6 apps peleadas entre sí por un solo login. Pauta, WhatsApp y contenido de todas tus cuentas viven en Zefirus, así que dejas de pagar tres suscripciones gringas y de saltar de una a otra todo el día. Ahí vive tu operación completa.",
+            },
+          ].map((faq, i) => {
+            const open = openFaq === i;
+            return (
+              <Reveal key={i} delay={i * 0.05}>
+                <div style={{ borderRadius: 16, background: "var(--surface)", border: `1px solid ${open ? "rgba(59,130,246,0.3)" : "var(--border)"}`, overflow: "hidden", transition: "border-color 0.2s" }}>
+                  <button
+                    onClick={() => setOpenFaq(open ? null : i)}
+                    aria-expanded={open}
+                    style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "22px 24px", background: "none", border: "none", cursor: "pointer", textAlign: "left", font: "inherit", color: "var(--foreground)" }}
+                  >
+                    <span style={{ fontSize: "clamp(16px, 2vw, 18px)", fontWeight: 600 }}>{faq.q}</span>
+                    <ChevronDown style={{ width: 20, height: 20, color: ACCENT_COLOR, flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform 0.25s" }} />
+                  </button>
+                  {open && (
+                    <div style={{ padding: "0 24px 24px" }}>
+                      <p style={{ fontSize: 15.5, color: "var(--text-secondary)", lineHeight: 1.65, margin: 0, maxWidth: 680 }}>{faq.a}</p>
+                    </div>
+                  )}
+                </div>
+              </Reveal>
+            );
+          })}
+        </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════
