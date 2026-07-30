@@ -49,7 +49,12 @@ export async function recordAiUsage(
   route: string,
   model: string,
   tokensIn: number,
-  tokensOut: number
+  tokensOut: number,
+  opts?: {
+    provider?: string;
+    estimatedCostUsd?: number;
+    feature?: string;
+  }
 ) {
   try {
     await prisma.aiUsage.create({
@@ -58,7 +63,10 @@ export async function recordAiUsage(
         route,
         model,
         tokensIn,
-        tokensOut
+        tokensOut,
+        provider: opts?.provider,
+        estimatedCostUsd: opts?.estimatedCostUsd,
+        feature: opts?.feature,
       }
     });
   } catch (err) {

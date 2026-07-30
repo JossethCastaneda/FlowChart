@@ -1677,13 +1677,16 @@ model Report {
 // AI METERING
 // ------------------------------------------------------
 model AiUsage {
-  id          String   @id @default(cuid())
-  workspaceId String
-  route       String // e.g. "/api/agents/orchestrate", "GridIA"
-  model       String // e.g. "gemini-2.5-flash"
-  tokensIn    Int      @default(0)
-  tokensOut   Int      @default(0)
-  createdAt   DateTime @default(now())
+  id               String   @id @default(cuid())
+  workspaceId      String
+  route            String // e.g. "/api/agents/orchestrate", "GridIA"
+  model            String // e.g. "gemini-2.5-flash"
+  provider         String?  // e.g. "gemini", "anthropic", "openai"
+  tokensIn         Int      @default(0)
+  tokensOut        Int      @default(0)
+  estimatedCostUsd Float?   // estimated cost in USD for billing dashboards
+  feature          String?  // high-level feature area: "copilot", "crecimiento", "agents"
+  createdAt        DateTime @default(now())
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
