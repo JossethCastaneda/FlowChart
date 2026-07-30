@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter_Tight, JetBrains_Mono, Orbitron, Space_Grotesk, Sora } from "next/font/google";
+import { Inter_Tight, JetBrains_Mono, Orbitron, Space_Grotesk, Sora, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import "@/styles/animations.css";
 import { ClientMainWrapper } from "@/components/layout/ClientMainWrapper";
@@ -29,6 +29,7 @@ const jbMono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500", "600"
 const orbitron = Orbitron({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-orbitron" });
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-space" });
 const sora = Sora({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sora" });
+const instrumentSerif = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--font-instrument" });
 
 export const viewport: Viewport = {
   themeColor: "var(--background)",
@@ -123,7 +124,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${inter.variable} ${jbMono.variable} ${orbitron.variable} ${spaceGrotesk.variable} ${sora.variable}`} suppressHydrationWarning>
+    <html lang="es" className={`${inter.variable} ${jbMono.variable} ${orbitron.variable} ${spaceGrotesk.variable} ${sora.variable} ${instrumentSerif.variable}`} suppressHydrationWarning>
       <head>
       </head>
       <body

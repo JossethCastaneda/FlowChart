@@ -192,17 +192,16 @@ export default function Home() {
         .text-shimmer {
           background: linear-gradient(
             to right,
-            #ffffff 20%,
-            #5b9bff 40%,
-            #5b9bff 60%,
-            #ffffff 80%
+            #ffffff 30%,
+            #cfe0ff 50%,
+            #ffffff 70%
           );
           background-size: 200% auto;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
           color: transparent; /* Fallback */
-          animation: shine 4s linear infinite;
+          animation: shine 9s linear infinite;
         }
         @keyframes shine {
           to {
@@ -362,6 +361,34 @@ export default function Home() {
         textAlign: "center",
         overflow: "hidden",
       }}>
+        {/* Hero background video (added behind all content — layout/padding untouched) */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          aria-hidden="true"
+          style={{
+            position: "absolute", top: 0, left: 0,
+            width: "100%", height: "100%",
+            objectFit: "cover",
+            zIndex: -2,
+            pointerEvents: "none",
+          }}
+        >
+          <source src="/hero/zefirus-hero.mp4" type="video/mp4" />
+        </video>
+        {/* Readability overlay over the video (keeps white text legible) */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute", inset: 0,
+            zIndex: -1,
+            pointerEvents: "none",
+            background: "radial-gradient(ellipse 95% 70% at 50% 47%, rgba(9,11,16,0.82) 0%, rgba(9,11,16,0.46) 55%, rgba(9,11,16,0.10) 86%), linear-gradient(180deg, rgba(9,11,16,0.55) 0%, rgba(9,11,16,0.28) 24%, rgba(9,11,16,0.52) 74%, rgba(9,11,16,0.95) 100%)",
+          }}
+        />
         {/* Funnel Background Effect (Curved SVG with moving gradient) */}
         <div className="col-funnel-container">
           <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: "absolute", top: 0, left: 0 }}>
@@ -386,21 +413,15 @@ export default function Home() {
           </svg>
         </div>
 
-        {/* Orbi Perfectly Centered */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, ease: "easeOut", type: "spring", bounce: 0.5 }}
-          style={{ display: "flex", justifyContent: "center", alignItems: "center", marginBottom: 24, zIndex: 10 }}
-        >
-          <Orbi scale={0.9} style={{ filter: "drop-shadow(0px 0px 20px rgba(59,130,246, 0.6))" }} />
-        </motion.div>
-
         {/* Badge */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
           style={{
             display: "flex", alignItems: "center", gap: 12,
             padding: "8px 24px", borderRadius: 980, 
-            border: "1px solid var(--border)",
+            border: "1px solid rgba(255,255,255,0.18)",
+            background: "rgba(9,11,16,0.55)",
+            backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
             fontSize: 13, fontWeight: 500, color: "var(--foreground)", marginBottom: 32, letterSpacing: "0.02em"
           }}
         >
@@ -412,7 +433,8 @@ export default function Home() {
         {/* Headline (Animated Text with Shimmer) */}
         <h1 
           className="col-hero-h1 text-shimmer" style={{
-            fontWeight: 700,
+            fontFamily: "var(--font-instrument), Georgia, 'Times New Roman', serif",
+            fontWeight: 400,
             fontSize: "clamp(48px, 7vw, 84px)",
             lineHeight: 1.05,
             marginBottom: 24,
@@ -430,7 +452,7 @@ export default function Home() {
           style={{
             fontSize: "clamp(16px, 2vw, 20px)",
             fontWeight: 400,
-            color: "var(--text-muted)",
+            color: "rgba(255,255,255,0.90)",
             lineHeight: 1.6,
             maxWidth: 680,
             marginBottom: 48,
