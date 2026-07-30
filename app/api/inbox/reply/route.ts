@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { withWorkspace } from "@/lib/api-handler";
 import { metaFetch } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
 import { decryptToken } from "@/lib/encryption";
@@ -31,18 +30,10 @@ const ReplySchema = z.object({
  * - pageId is verified against the resolved conversation (prevents using arbitrary pages)
  * - pageToken is always resolved server-side from the workspace Integration — never trusted from client
  */
-export async function POST(req: NextRequest) {
+export const POST = withWorkspace(async (req, ctx) => {
   try {
     // ── Auth checks ──
-    const jwt = await getToken({ req });
-    if (!jwt?.sub) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
-
-    const workspaceId = await getActiveWorkspaceId(jwt.sub);
-    if (!workspaceId) {
-      return NextResponse.json({ error: "No workspace activo" }, { status: 400 });
-    }
+    const workspaceId = ctx.workspaceId;
 
     // ── Validate input ──
     const result = await validateBody(req, ReplySchema);
@@ -193,8 +184,8 @@ export async function POST(req: NextRequest) {
         conversationId: conversation.id,
         externalId: replyMessageId,
         content: text,
-        sender: "page",
-        senderName: pageId || null,
+        sender: ctx.userId,
+        senderName: "Agente de la Plataforma",
         createdAt: now,
       },
     });
@@ -206,4 +197,4 @@ export async function POST(req: NextRequest) {
     logger.error("[INBOX-REPLY] Error:", message);
     return NextResponse.json({ error: message }, { status: 500 });
   }
-}
+});

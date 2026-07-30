@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { withWorkspace } from "@/lib/api-handler";
 import { decryptToken } from "@/lib/encryption";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
@@ -15,12 +14,8 @@ const META_V = process.env.META_API_VERSION || "v25.0";
  * Usado cuando un hilo de comentario llega por webhook (sin _postData).
  * Resuelve el page token desde la DB (mismo patron que /api/inbox/reply).
  */
-export async function GET(request: NextRequest) {
-  const jwt = await getToken({ req: request });
-  if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
-
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
-  if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
+export const GET = withWorkspace(async (request, ctx) => {
+  const workspaceId = ctx.workspaceId;
 
   const { searchParams } = new URL(request.url);
   const postId = searchParams.get("postId");
@@ -115,4 +110,4 @@ export async function GET(request: NextRequest) {
     logger.error("[INBOX-POST] Error", { err: err instanceof Error ? err.message : String(err) });
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
-}
+});

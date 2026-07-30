@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { withWorkspace } from "@/lib/api-handler";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
@@ -84,11 +83,8 @@ async function backfillThread(
  * Lee los mensajes de un hilo desde la DB. Si es un DM FB/IG sin historial aún
  * persistido, hace backfill una vez desde Graph y luego responde.
  */
-export async function GET(request: NextRequest) {
-  const jwt = await getToken({ req: request });
-  if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
-  if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
+export const GET = withWorkspace(async (request, ctx) => {
+  const workspaceId = ctx.workspaceId;
 
   const conversationId = request.nextUrl.searchParams.get("conversationId");
   if (!conversationId) return NextResponse.json({ error: "conversationId required" }, { status: 400 });
@@ -151,18 +147,15 @@ export async function GET(request: NextRequest) {
       readAt: m.readAt || undefined,
     })),
   });
-}
+});
 
 /**
  * POST /api/inbox/messages — enviar una respuesta.
  * WhatsApp vía Cloud API; Messenger/IG vía Send API. En todos los casos se persiste
  * el mensaje saliente en la DB para que aparezca de inmediato (y en el histórico).
  */
-export async function POST(request: NextRequest) {
-  const jwt = await getToken({ req: request });
-  if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
-  if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
+export const POST = withWorkspace(async (request, ctx) => {
+  const workspaceId = ctx.workspaceId;
 
   const body = await request.json();
   // pageId/recipientId are intentionally NOT read from the client — they are
@@ -243,4 +236,4 @@ export async function POST(request: NextRequest) {
     logger.error("[INBOX] Send error:", err);
     return NextResponse.json({ error: err instanceof Error ? err.message : "Error" }, { status: 500 });
   }
-}
+});

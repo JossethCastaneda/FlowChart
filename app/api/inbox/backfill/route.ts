@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { withWorkspace } from "@/lib/api-handler";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
@@ -21,11 +20,8 @@ import { logger } from "@/lib/logger";
 const BACKFILL_TTL_MS = 120 * 1000;
 const CACHE_ENDPOINT = "inbox-backfill";
 
-export async function POST(request: NextRequest) {
-  const jwt = await getToken({ req: request });
-  if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
-  if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
+export const POST = withWorkspace(async (request, ctx) => {
+  const workspaceId = ctx.workspaceId;
 
   // ── Throttle por workspace ──
   const state = await prisma.metaAnalyticsCache.findUnique({
@@ -175,4 +171,4 @@ export async function POST(request: NextRequest) {
 
   logger.info("[INBOX] Backfill done", { workspaceId, upserted, skipped: skipped.length });
   return NextResponse.json({ ok: true, upserted, skipped });
-}
+});

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { withWorkspace } from "@/lib/api-handler";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
@@ -20,13 +19,10 @@ export const dynamic = "force-dynamic";
  * (ver /api/inbox/messages). Los comentarios FB/IG viven en /api/inbox/comments
  * (carga perezosa) para no frenar los DMs.
  */
-export async function GET(request: NextRequest) {
-  const jwt = await getToken({ req: request });
-  if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
-  if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
+export const GET = withWorkspace(async (request, ctx) => {
+  const workspaceId = ctx.workspaceId;
 
-  logger.info("[INBOX-DIAG] conversations fetch", { userId: jwt.sub, workspaceId });
+  logger.info("[INBOX-DIAG] conversations fetch", { userId: ctx.userId, workspaceId });
 
   try {
     const rows = await prisma.inboxConversation.findMany({
@@ -90,4 +86,4 @@ export async function GET(request: NextRequest) {
     logger.error("[INBOX] DB conversations fetch failed", { err });
     return NextResponse.json({ conversations: [], source: "db", error: "db_error" }, { status: 500 });
   }
-}
+});

@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { withWorkspace } from "@/lib/api-handler";
 import { getMetaAccessToken, metaFetch, metaUrl, META_API_VERSION } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
-export async function GET(request: NextRequest) {
-  const jwt = await getToken({ req: request });
-  if (!jwt?.sub) return new NextResponse(null, { status: 401 });
-
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
-  if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
+export const GET = withWorkspace(async (request, ctx) => {
+  const workspaceId = ctx.workspaceId;
 
   const userId = request.nextUrl.searchParams.get("userId");
   const pageId = request.nextUrl.searchParams.get("pageId");
@@ -107,4 +102,4 @@ export async function GET(request: NextRequest) {
     logger.error("[INBOX-PROFILE] Error fetching profile", { userId: request.nextUrl.searchParams.get("userId"), error: message });
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
-}
+});

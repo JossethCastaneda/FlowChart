@@ -1,15 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { withWorkspace } from "@/lib/api-handler";
 import prisma from "@/lib/prisma";
 
 // GET /api/inbox/notes?conversationId=xxx
-export async function GET(request: NextRequest) {
-  const jwt = await getToken({ req: request });
-  if (!jwt?.sub) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
-  if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
+export const GET = withWorkspace(async (request, ctx) => {
+  const workspaceId = ctx.workspaceId;
 
   const conversationId = request.nextUrl.searchParams.get("conversationId");
   if (!conversationId) return NextResponse.json({ error: "Missing conversationId" }, { status: 400 });
@@ -49,15 +44,11 @@ export async function GET(request: NextRequest) {
   });
 
   return NextResponse.json({ notes: enriched });
-}
+});
 
 // POST /api/inbox/notes
-export async function POST(request: NextRequest) {
-  const jwt = await getToken({ req: request });
-  if (!jwt?.sub) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
-  if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
+export const POST = withWorkspace(async (request, ctx) => {
+  const workspaceId = ctx.workspaceId;
 
   const body = await request.json();
   const { conversationId, content } = body;
@@ -76,14 +67,14 @@ export async function POST(request: NextRequest) {
   const note = await prisma.inboxNote.create({
     data: {
       conversationId,
-      userId: jwt.sub,
+      userId: ctx.userId,
       content: content.trim(),
     },
   });
 
   // Get author info
   const author = await prisma.user.findUnique({
-    where: { id: jwt.sub },
+    where: { id: ctx.userId },
     select: { name: true, email: true, image: true },
   });
 
@@ -93,27 +84,24 @@ export async function POST(request: NextRequest) {
       content: note.content,
       createdAt: note.createdAt.toISOString(),
       author: {
-        id: jwt.sub,
+        id: ctx.userId,
         name: author?.name || author?.email?.split("@")[0] || "Agente",
         image: author?.image || null,
       },
     },
   });
-}
+});
 
 // DELETE /api/inbox/notes?noteId=xxx
-export async function DELETE(request: NextRequest) {
-  const jwt = await getToken({ req: request });
-  if (!jwt?.sub) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
+export const DELETE = withWorkspace(async (request, ctx) => {
   const noteId = request.nextUrl.searchParams.get("noteId");
   if (!noteId) return NextResponse.json({ error: "Missing noteId" }, { status: 400 });
 
   // Only the author can delete
   const note = await prisma.inboxNote.findUnique({ where: { id: noteId } });
   if (!note) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if (note.userId !== jwt.sub) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (note.userId !== ctx.userId) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   await prisma.inboxNote.delete({ where: { id: noteId } });
   return NextResponse.json({ success: true });
-}
+});

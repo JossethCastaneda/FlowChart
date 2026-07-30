@@ -1,6 +1,5 @@
-import { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { NextRequest, NextResponse } from "next/server";
+import { withWorkspace } from "@/lib/api-handler";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { ensureWebhookSubscriptions } from "@/lib/ensure-webhook-subscriptions";
@@ -29,11 +28,8 @@ const STREAM_LIFETIME_MS = 270_000;
 
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-export async function GET(request: NextRequest) {
-  const jwt = await getToken({ req: request });
-  if (!jwt?.sub) return new Response("No auth", { status: 401 });
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
-  if (!workspaceId) return new Response("No workspace", { status: 400 });
+export const GET = withWorkspace(async (request, ctx) => {
+  const workspaceId = ctx.workspaceId;
 
   // Auto-reparación: al abrir el inbox, asegura que las páginas estén suscritas
   // a los webhooks (idempotente y auto-guardada por 6h). Repara conexiones cuya
@@ -113,4 +109,4 @@ export async function GET(request: NextRequest) {
       "X-Accel-Buffering": "no",
     },
   });
-}
+});
