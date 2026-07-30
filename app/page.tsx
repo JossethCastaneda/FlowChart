@@ -1046,7 +1046,7 @@ export default function Home() {
          COHORTE FUNDADORA — prueba social honesta (deck §7)
          Reemplaza los contadores inventados. Cero métricas de negocio falsas.
          ═══════════════════════════════════════════════════════ */}
-      <section style={{ position: "relative", zIndex: 1, padding: "120px 24px", borderTop: "1px solid var(--hairline)", borderBottom: "1px solid var(--hairline)", background: "var(--surface)" }}>
+      <section id="cohorte" style={{ position: "relative", zIndex: 1, padding: "120px 24px", borderTop: "1px solid var(--hairline)", borderBottom: "1px solid var(--hairline)", background: "var(--surface)", scrollMarginTop: 90 }}>
         <div style={{ maxWidth: 1120, margin: "0 auto" }}>
           <Reveal>
             <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
@@ -1378,20 +1378,28 @@ export default function Home() {
       }}>
         <div className="col-glow-bg" style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: 800, height: 400, opacity: 0.15 }} />
         <Reveal style={{ position: "relative", zIndex: 2 }}>
-          <h2 className="col-section-h2 col-title" style={{
-            fontWeight: 700, fontSize: "clamp(40px, 6vw, 80px)",
-            lineHeight: 1.05, marginBottom: 24,
-          }}>
-            Tu marketing merece<br/>un centro de mando.
-          </h2>
-          <p style={{ fontSize: 18, color: "var(--text-muted)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 48px" }}>
-            Únete a los equipos que ya dejaron de saltar entre pestañas y empezaron a ver resultados reales.
+          <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: ACCENT_COLOR, marginBottom: 20 }}>
+            Cohorte fundadora · cupos limitados
           </p>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-            <Link href="/login" className="col-pill col-pill-primary" aria-label="Crear cuenta gratis en Zefirus" style={{ padding: "18px 40px", fontSize: 18 }}>
-              Crear cuenta gratis
+          <h2 className="col-section-h2 col-title" style={{
+            fontWeight: 700, fontSize: "clamp(36px, 5.4vw, 68px)",
+            lineHeight: 1.08, marginBottom: 24, maxWidth: 900, marginLeft: "auto", marginRight: "auto",
+          }}>
+            Estamos abriendo cupos para las agencias fundadoras
+          </h2>
+          <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--text-secondary)", lineHeight: 1.6, maxWidth: 680, margin: "0 auto 40px" }}>
+            Zefirus está en beta privada y entramos por cohortes. Las agencias que entran ahora ayudan a
+            moldear el producto, tienen línea directa con nosotros y entran con precio fundador. Cuando
+            cerramos la cohorte, esa puerta se cierra. Conecta tus cuentas y míralas todas juntas. Ya.
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+            <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en Zefirus" style={{ padding: "18px 40px", fontSize: 18 }}>
+              Empieza gratis — sin tarjeta
             </Link>
-            <p style={{ fontSize: 14, color: "var(--text-muted)" }}>Sin tarjeta · Cancela cuando quieras</p>
+            <p style={{ fontSize: 14, color: "var(--text-muted)" }}>Sin tarjeta. Sin contrato. Sales cuando quieras.</p>
+            <a href="#precios" style={{ fontSize: 14.5, color: "var(--text-secondary)", textDecoration: "none", marginTop: 6 }}>
+              ¿Equipo grande o necesidades a la medida? <span style={{ color: ACCENT_COLOR, textDecoration: "underline", textUnderlineOffset: 3 }}>Agenda una demo</span>
+            </a>
           </div>
         </Reveal>
       </section>
@@ -1400,30 +1408,50 @@ export default function Home() {
       <footer style={{ position: "relative", zIndex: 1, border: "1px solid var(--hairline)", background: "var(--surface)" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "64px 24px 40px" }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 48, flexWrap: "wrap" }}>
-            <div style={{ maxWidth: 300 }}>
+            <div style={{ maxWidth: 320 }}>
               <ZefirusLogo size="sm" animated={false} />
               <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 16, lineHeight: 1.6 }}>
-                Plataforma de inteligencia multicanal para agencias y anunciantes en México y LATAM.
+                El centro de mando para agencias de marketing en LATAM. Hecho en México, en pesos y con
+                soporte que sí contesta.
               </p>
+              <Link href={SIGNUP_URL} className="col-pill col-pill-primary" style={{ marginTop: 20, height: 46, padding: "0 22px", borderRadius: 12, display: "inline-flex", alignItems: "center", fontSize: 14 }}>
+                Empieza gratis, sin tarjeta
+              </Link>
             </div>
-            <div className="col-footer-cols" style={{ display: "flex", gap: 64, flexWrap: "wrap" }}>
-              <FooterCol title="Legal" links={[
-                { label: "Términos de Servicio", href: "/condiciones-del-servicio" },
-                { label: "Política de Privacidad", href: "/aviso-de-privacidad" },
-                { label: "Eliminación de Datos", href: "/data-deletion" },
-              ]} />
+            <div className="col-footer-cols" style={{ display: "flex", gap: 56, flexWrap: "wrap" }}>
               <FooterCol title="Producto" links={[
-                { label: "Iniciar Sesión", href: "/login" },
-                { label: "Contacto", href: "mailto:soporte@zefirus.xyz" },
+                { label: "Publicidad", href: "#pilar-publicidad" },
+                { label: "Conversaciones", href: "#pilar-conversaciones" },
+                { label: "Contenido", href: "#pilar-contenido" },
+                { label: "Precios", href: "#precios" },
+                { label: "Por qué Zefirus", href: "#por-que" },
+              ]} />
+              <FooterCol title="Empresa" links={[
+                { label: "Preguntas", href: "#faq" },
+                { label: "Cohorte fundadora", href: "#cohorte" },
+                { label: "Entrar", href: "/login" },
+              ]} />
+              <FooterCol title="Legal" links={[
+                { label: "Aviso de privacidad (LFPDPPP)", href: "/aviso-de-privacidad" },
+                { label: "Términos", href: "/condiciones-del-servicio" },
+                { label: "Seguridad de datos", href: "#precios" },
               ]} />
             </div>
           </div>
+
+          {/* Venta asistida — contacto */}
+          {/* TODO(fundador): correo/WhatsApp de contacto por definir */}
+          <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 48, lineHeight: 1.6 }}>
+            ¿Equipo grande o necesidades a la medida? Escríbenos:{" "}
+            <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>[correo/WhatsApp por definir]</span>
+          </p>
+
           <div className="col-footer-bottom" style={{
-            marginTop: 64, paddingTop: 24,
-            border: "1px solid var(--hairline)",
+            marginTop: 40, paddingTop: 24,
+            borderTop: "1px solid var(--hairline)",
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap",
           }}>
-            <span style={{ fontSize: 13, color: "var(--text-muted)" }}>© {new Date().getFullYear()} Zefirus. Todos los derechos reservados.</span>
+            <span style={{ fontSize: 13, color: "var(--text-muted)" }}>© {new Date().getFullYear()} Zefirus. Hecho en México.</span>
             <span style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 6 }}>
               Hecho en México <MapPin size={14} />
             </span>
