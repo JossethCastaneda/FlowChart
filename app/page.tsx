@@ -262,6 +262,8 @@ export default function Home() {
           .col-porque-row { grid-template-columns: 1fr !important; }
           .col-porque-head { display: none !important; }
           .col-cohorte-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .col-precios-grid { grid-template-columns: 1fr !important; max-width: 420px; margin-left: auto; margin-right: auto; }
+          .col-trust-grid { grid-template-columns: 1fr !important; }
           .col-hero-h1 { font-size: 40px !important; }
           .col-section-h2 { font-size: 32px !important; }
           .col-compare-grid { grid-template-columns: 1fr 60px 80px !important; font-size: 13px !important; }
@@ -1146,7 +1148,167 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════
-         FINAL CTA 
+         PRECIOS + GARANTÍAS + SEGURIDAD (deck §8)
+         ⚠️ TODO(fundador): precios reales. Placeholders $[X] visibles abajo.
+         ═══════════════════════════════════════════════════════ */}
+      <section id="precios" style={{ position: "relative", zIndex: 1, padding: "120px 24px", maxWidth: 1200, margin: "0 auto", width: "100%", scrollMarginTop: 90 }}>
+        <Reveal>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
+            <div style={{ padding: "6px 16px", borderRadius: 980, background: "var(--cyan-dim)", border: `1px solid rgba(59,130,246, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
+              Precios en pesos. Sin letras chiquitas.
+            </div>
+          </div>
+          <h2 className="col-section-h2 col-title" style={{ fontWeight: 700, fontSize: "clamp(32px, 4.4vw, 54px)", textAlign: "center", marginBottom: 20, maxWidth: 900, marginLeft: "auto", marginRight: "auto" }}>
+            Un precio que sí entiendes, en la moneda con la que cobras.
+          </h2>
+          <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--text-secondary)", textAlign: "center", maxWidth: 720, margin: "0 auto 24px", lineHeight: 1.6 }}>
+            Precios en pesos, sin cotizaciones en dólares que se disparan con el tipo de cambio.
+            Empiezas gratis, sin tarjeta, y creces cuando tu operación lo pida.
+          </p>
+          {/* Badge provisional — QUITAR antes de publicar cuando existan los montos */}
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 44 }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 980, background: "rgba(224,168,60,0.12)", border: "1px solid rgba(224,168,60,0.3)", color: "var(--amber)", fontSize: 12.5, fontWeight: 600 }}>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--amber)" }} />
+              Provisional — montos por confirmar
+            </span>
+          </div>
+        </Reveal>
+
+        <div className="col-precios-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, alignItems: "stretch" }}>
+          {/* ── Gratis ── */}
+          <Reveal delay={0}>
+            <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: "32px 28px", borderRadius: 20, background: "var(--surface)", border: "1px solid var(--border)" }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)" }}>Gratis <span style={{ color: "var(--text-muted)", fontWeight: 500 }}>· Para probar sin compromiso</span></p>
+              <div style={{ margin: "16px 0 10px" }}>
+                <span style={{ fontSize: 40, fontWeight: 700, color: "var(--foreground)", letterSpacing: "-0.03em" }}>$0</span>
+                <span style={{ fontSize: 15, color: "var(--text-muted)", marginLeft: 8 }}>para siempre. Sin tarjeta.</span>
+              </div>
+              <p style={{ fontSize: 14.5, color: "var(--text-secondary)", lineHeight: 1.55, marginBottom: 20 }}>
+                {/* TODO(fundador): [X] = cuentas del plan Gratis */}
+                Conecta hasta <strong style={{ color: "var(--foreground)" }}>[X]</strong> cuentas y mira toda tu pauta, tu WhatsApp y tu contenido en una sola pantalla. Todo lo básico para dejar de brincar entre logins, sin pagar un peso.
+              </p>
+              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px", display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
+                {["Hasta [X] cuentas de cliente conectadas", "Pauta de Meta, TikTok y Google en una vista", "Bandeja única de WhatsApp, Instagram y Messenger", "Contenido con IA que sí habla como se habla aquí"].map((f, i) => (
+                  <li key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, color: "var(--text-secondary)" }}>
+                    <CheckCircle2 style={{ width: 17, height: 17, color: ACCENT_COLOR, flexShrink: 0, marginTop: 1 }} /> {f}
+                  </li>
+                ))}
+              </ul>
+              <Link href={SIGNUP_URL} className="col-pill col-pill-secondary" style={{ height: 50, borderRadius: 12, width: "100%" }}>Empieza gratis</Link>
+              <p style={{ fontSize: 12.5, color: "var(--text-muted)", textAlign: "center", marginTop: 12 }}>Sin tarjeta. Listo en minutos.</p>
+            </div>
+          </Reveal>
+
+          {/* ── Agencia (Recomendado) ── */}
+          <Reveal delay={0.08}>
+            <div style={{ position: "relative", display: "flex", flexDirection: "column", height: "100%", padding: "32px 28px", borderRadius: 20, background: "var(--cyan-dim)", border: "1.5px solid rgba(59,130,246,0.45)", boxShadow: "0 20px 60px rgba(59,130,246,0.12)" }}>
+              <div style={{ position: "absolute", top: -13, left: "50%", transform: "translateX(-50%)", display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 14px", borderRadius: 980, background: `linear-gradient(180deg, ${GRADIENT_START}, ${ACCENT_COLOR})`, color: "#fff", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}>
+                <Star style={{ width: 13, height: 13, fill: "#fff" }} /> Recomendado
+              </div>
+              <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", marginTop: 4 }}>Agencia</p>
+              <div style={{ margin: "16px 0 10px" }}>
+                {/* TODO(fundador): $[X] MXN = precio real del plan Agencia (mostrar "desde") */}
+                <span style={{ fontSize: 15, color: "var(--text-secondary)" }}>Desde </span>
+                <span style={{ fontSize: 40, fontWeight: 700, color: "var(--foreground)", letterSpacing: "-0.03em" }}>$[X]</span>
+                <span style={{ fontSize: 15, color: "var(--text-muted)", marginLeft: 6 }}>MXN / mes</span>
+              </div>
+              <p style={{ fontSize: 14.5, color: "var(--text-secondary)", lineHeight: 1.55, marginBottom: 20 }}>
+                Para la agencia que carga 10, 20 o 50 cuentas y ya se cansó de sostenerlas con pestañas y el Excel del lunes. Toda tu operación de cuentas en un solo login, sin límites que te frenen.
+              </p>
+              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px", display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
+                {["Cuentas de cliente ilimitadas", "Chatbots que atienden, califican y asignan leads 24/7", "Calendario para programar y publicar en las redes de todos tus clientes", "Reportes por cliente sin vaciar números a mano", "Soporte humano en español, de gente que entiende tu operación"].map((f, i) => (
+                  <li key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, color: "var(--foreground)" }}>
+                    <CheckCircle2 style={{ width: 17, height: 17, color: ACCENT_COLOR, flexShrink: 0, marginTop: 1 }} /> {f}
+                  </li>
+                ))}
+              </ul>
+              <Link href={SIGNUP_URL} className="col-pill col-pill-primary" style={{ height: 50, borderRadius: 12, width: "100%" }}>Empieza gratis y sube cuando quieras</Link>
+              <p style={{ fontSize: 12.5, color: "var(--text-muted)", textAlign: "center", marginTop: 12 }}>Precio preferente de cohorte fundadora. Subes cuando quieras.</p>
+            </div>
+          </Reveal>
+
+          {/* ── Enterprise ── */}
+          <Reveal delay={0.16}>
+            <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: "32px 28px", borderRadius: 20, background: "var(--surface)", border: "1px solid var(--border)" }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)" }}>Enterprise <span style={{ color: "var(--text-muted)", fontWeight: 500 }}>· Equipos grandes y a la medida</span></p>
+              <div style={{ margin: "16px 0 10px" }}>
+                <span style={{ fontSize: 40, fontWeight: 700, color: "var(--foreground)", letterSpacing: "-0.03em" }}>Hablemos.</span>
+              </div>
+              <p style={{ fontSize: 14.5, color: "var(--text-secondary)", lineHeight: 1.55, marginBottom: 20 }}>
+                ¿Varios equipos operando en paralelo, con control de permisos, roles, migración asistida y facturación a la medida? Te armamos el plan contigo, en pesos y con una persona real de este lado.
+              </p>
+              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px", display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
+                {["Onboarding y migración acompañados", "Permisos y roles por equipo", "Facturación a la medida"].map((f, i) => (
+                  <li key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, color: "var(--text-secondary)" }}>
+                    <CheckCircle2 style={{ width: 17, height: 17, color: ACCENT_COLOR, flexShrink: 0, marginTop: 1 }} /> {f}
+                  </li>
+                ))}
+              </ul>
+              {/* TODO(fundador): destino real de venta asistida (correo/WhatsApp) */}
+              <a href="#precios" className="col-pill col-pill-secondary" style={{ height: 50, borderRadius: 12, width: "100%", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>Agendar una llamada</a>
+            </div>
+          </Reveal>
+        </div>
+
+        {/* Garantías */}
+        <Reveal delay={0.1}>
+          <div style={{ marginTop: 72 }}>
+            <h3 style={{ fontSize: "clamp(22px, 2.6vw, 30px)", fontWeight: 700, color: "var(--foreground)", textAlign: "center", marginBottom: 32 }}>Pruébalo sin riesgo. En serio.</h3>
+            <div className="col-trust-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, maxWidth: 980, margin: "0 auto" }}>
+              {[
+                { t: "Sin tarjeta para empezar.", d: "Conectas tus cuentas y ves todo junto antes de pagar un solo peso." },
+                { t: "Te ayudamos a migrar.", d: "Traes tus cuentas y tus clientes; nosotros te echamos la mano para dejarlo todo conectado, sin que pierdas un fin de semana en ello." },
+                { t: "Cancela cuando quieras.", d: "Sin contratos amarrados ni penalizaciones escondidas en la letra chiquita." },
+              ].map((g, i) => (
+                <div key={i} style={{ padding: "24px", borderRadius: 16, background: "var(--surface)", border: "1px solid var(--border)" }}>
+                  <p style={{ fontSize: 15.5, fontWeight: 700, color: "var(--foreground)", marginBottom: 8 }}>{g.t}</p>
+                  <p style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.55, margin: 0 }}>{g.d}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Reveal>
+
+        {/* Seguridad de datos */}
+        <Reveal delay={0.1}>
+          <div style={{ marginTop: 56, padding: "40px 40px", borderRadius: 24, background: "var(--surface)", border: "1px solid var(--border)", maxWidth: 980, marginLeft: "auto", marginRight: "auto" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 8 }}>
+              <Shield style={{ width: 24, height: 24, color: ACCENT_COLOR }} />
+              <h3 style={{ fontSize: "clamp(20px, 2.4vw, 26px)", fontWeight: 700, color: "var(--foreground)", margin: 0, textAlign: "center" }}>Tus datos y los de tus clientes: bajo llave.</h3>
+            </div>
+            <p style={{ fontSize: 15, color: "var(--text-secondary)", textAlign: "center", maxWidth: 600, margin: "0 auto 28px", lineHeight: 1.5 }}>
+              Manejas la información de decenas de clientes. Lo tratamos con el respeto que eso merece.
+            </p>
+            <div className="col-trust-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+              {[
+                { t: "Conexión oficial vía OAuth de Meta y Google.", d: "Nunca vemos ni guardamos tus contraseñas." },
+                { t: "Cumplimos con la LFPDPPP.", d: "Tratamos tus datos conforme a la ley mexicana." },
+                { t: "Tus datos son tuyos.", d: "Los exportas o los borras cuando quieras, sin pedir permiso ni abrir un ticket que nadie contesta." },
+              ].map((s, i) => (
+                <div key={i} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <p style={{ fontSize: 14.5, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>{s.t}</p>
+                  <p style={{ fontSize: 13.5, color: "var(--text-muted)", lineHeight: 1.5, margin: 0 }}>{s.d}</p>
+                </div>
+              ))}
+            </div>
+            <p style={{ fontSize: 13, color: "var(--text-muted)", textAlign: "center", marginTop: 24 }}>
+              <a href="/aviso-de-privacidad" style={{ color: ACCENT_COLOR, textDecoration: "underline", textUnderlineOffset: 3 }}>Aviso de privacidad</a> y detalle de seguridad disponibles antes de que conectes tu primera cuenta.
+            </p>
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.1}>
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 48 }}>
+            <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en Zefirus" style={{ height: 56, padding: "0 36px", borderRadius: 14 }}>Empieza gratis, sin tarjeta</Link>
+          </div>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", textAlign: "center", marginTop: 16 }}>
+            Cupos de cohorte fundadora limitados. Entra antes de que se cierre.
+          </p>
+        </Reveal>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════
+         FINAL CTA
          ═══════════════════════════════════════════════════════ */}
       <section style={{
         position: "relative", zIndex: 1,
