@@ -324,18 +324,18 @@ export default function Home() {
       <header className="main-nav" style={{
         position: "fixed", top: scrolled ? 16 : 22, left: "50%", transform: "translateX(-50%)", zIndex: 100,
         width: scrolled ? "90%" : "96%", maxWidth: scrolled ? 1000 : 1280,
-        background: scrolled ? "var(--surface)" : "transparent",
-        border: scrolled ? "1px solid var(--border)" : "1px solid transparent",
-        boxShadow: scrolled ? "0 10px 40px rgba(0,0,0,0.35)" : "none",
-        backdropFilter: scrolled ? "blur(14px)" : "none",
-        WebkitBackdropFilter: scrolled ? "blur(14px)" : "none",
+        background: scrolled ? "rgba(9,11,16,0.72)" : "transparent",
+        border: scrolled ? "1px solid rgba(255,255,255,0.10)" : "1px solid transparent",
+        boxShadow: scrolled ? "0 10px 40px rgba(0,0,0,0.45)" : "none",
+        backdropFilter: scrolled ? "blur(16px) saturate(140%)" : "none",
+        WebkitBackdropFilter: scrolled ? "blur(16px) saturate(140%)" : "none",
         borderRadius: 999,
         transition: "all 0.4s ease",
       }}>
         <div style={{ padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 12 }}>
             <ZefirusLogo size="sm" animated={false} showText={false} />
-            <span style={{ fontSize: 20, fontWeight: 700, color: "var(--foreground)", letterSpacing: "-0.04em" }}>Zefirus</span>
+            <span style={{ fontSize: 20, fontWeight: 700, color: "#fff", letterSpacing: "-0.04em" }}>Zefirus</span>
           </Link>
           <nav className="col-nav-links" style={{ display: "flex", alignItems: "center", gap: 36 }}>
             {/* Producto — dropdown con los 3 pilares (deck §0) */}
