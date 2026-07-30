@@ -1,0 +1,17 @@
+{
+  "$schema": "https://antigravity.dev/schemas/hooks.json",
+  "hooks": [
+    {
+      "event": "before_tool_call",
+      "match": {
+        "tool": ["run_command", "unsandboxed"]
+      },
+      "action": {
+        "type": "script",
+        "command": "node scripts/agy-guardrail.mjs",
+        "timeout_ms": 5000,
+        "on_error": "allow"
+      }
+    }
+  ]
+}
