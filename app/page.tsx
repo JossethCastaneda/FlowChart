@@ -299,6 +299,8 @@ export default function Home() {
           .col-outcome-row { grid-template-columns: 1fr !important; }
           .col-outcome-head { display: none !important; }
           .col-pilar-grid { grid-template-columns: 1fr !important; }
+          .col-porque-row { grid-template-columns: 1fr !important; }
+          .col-porque-head { display: none !important; }
           .col-hero-h1 { font-size: 40px !important; }
           .col-section-h2 { font-size: 32px !important; }
           .col-compare-grid { grid-template-columns: 1fr 60px 80px !important; font-size: 13px !important; }
@@ -987,6 +989,90 @@ export default function Home() {
           <p style={{ fontSize: 13.5, color: "var(--text-muted)", textAlign: "center", maxWidth: 620, margin: "48px auto 0", lineHeight: 1.6 }}>
             Los números que ves en la demo son una vista de ejemplo. Tus datos reales aparecen en cuanto
             conectas tu primera cuenta.
+          </p>
+        </Reveal>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════
+         POR QUÉ ZEFIRUS — comparativa vs. las gringas (deck §6)
+         ═══════════════════════════════════════════════════════ */}
+      <section id="por-que" style={{ position: "relative", zIndex: 1, padding: "120px 24px", maxWidth: 1200, margin: "0 auto", width: "100%", scrollMarginTop: 90 }}>
+        <Reveal>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
+            <div style={{ padding: "6px 16px", borderRadius: 980, background: "var(--cyan-dim)", border: `1px solid rgba(59,130,246, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
+              Zefirus vs. las gringas
+            </div>
+          </div>
+          <h2 className="col-section-h2 col-title" style={{ fontWeight: 700, fontSize: "clamp(32px, 4.4vw, 54px)", textAlign: "center", marginBottom: 18, maxWidth: 940, marginLeft: "auto", marginRight: "auto" }}>
+            Las plataformas gringas no entienden cómo se vende en México.
+          </h2>
+          <p style={{ fontSize: "clamp(16px, 2vw, 20px)", color: "var(--text-secondary)", textAlign: "center", maxWidth: 800, margin: "0 auto 24px", lineHeight: 1.5, fontWeight: 500 }}>
+            Cobran en dólares, tratan WhatsApp como plugin y cuando algo truena te dejan con un bot en
+            inglés. Nosotros operamos como tú operas.
+          </p>
+          <p style={{ fontSize: "clamp(15px, 1.8vw, 17px)", color: "var(--text-muted)", textAlign: "center", maxWidth: 760, margin: "0 auto 56px", lineHeight: 1.6 }}>
+            Zefirus reemplaza el Frankenstein de 6 apps más el Excel del lunes con el que hoy sostienes
+            a tus clientes. Compara lo que usas ahora contra una sola pantalla para todas tus cuentas.
+          </p>
+        </Reveal>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 1040, margin: "0 auto" }}>
+          {/* Encabezados de columna (solo desktop) */}
+          <div className="col-porque-head" style={{ display: "grid", gridTemplateColumns: "170px 1fr 1fr", gap: 14, padding: "0 20px" }}>
+            <span />
+            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)" }}>Tu stack de hoy</span>
+            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: ACCENT_COLOR }}>Con Zefirus</span>
+          </div>
+          {[
+            { label: "Costo", left: "Suscripciones en dólares que suben cada vez que el tipo de cambio se mueve, más 6 herramientas que pagas por separado.", right: "Un solo precio en pesos, sin sustos de tipo de cambio. Toda tu operación en un plan." },
+            { label: "Plataformas", left: "40 pestañas abiertas: Meta por aquí, TikTok por allá, Google Ads en otra, y un login distinto por cada cliente.", right: "Meta, TikTok y Google Ads de las 20 cuentas juntas en una pantalla. Un login, todas tus cuentas." },
+            { label: "Inbox", left: "Mensajes regados: WhatsApp en un celular, Instagram en otro, y los leads que se enfrían mientras alguien los ve.", right: "WhatsApp, Instagram y Messenger de todos tus clientes en una sola bandeja, con bots que atienden, califican y asignan 24/7." },
+            { label: "Reportes y ROI", left: "El Excel del lunes: vaciar números a mano, cliente por cliente, para armar el reporte del viernes en vez de venderle.", right: "Ves qué campaña jala y cuál quema presupuesto por cliente, en vivo y en el mismo lugar. El reporte ya está hecho." },
+            { label: "WhatsApp", star: true, left: "Un plugin de segunda, pegado con alambritos, cuando aquí es el canal por el que de verdad se vende.", right: "WhatsApp como canal de primera, integrado desde el día uno. Porque aquí se cierra por WhatsApp, y eso lo sabemos." },
+            { label: "Soporte", left: "Cuando algo truena a las 8 de la noche, un chatbot en inglés y un ticket que contestan en tres días.", right: "Personas reales que contestan en español y entienden tu operación. Soporte que sí contesta." },
+            { label: "Hecho para", left: "Un mercado que no es el tuyo, traducido del inglés a medias.", right: "Agencias de LATAM que cargan con 10, 20 o 50 cuentas. Hecho en México, por gente que sabe cómo se vende aquí." },
+          ].map((row, i) => (
+            <Reveal key={i} delay={Math.min(i, 3) * 0.06}>
+              <div className="col-porque-row" style={{
+                display: "grid", gridTemplateColumns: "170px 1fr 1fr", gap: 14, alignItems: "stretch",
+                padding: row.star ? 4 : 0, borderRadius: 16,
+                background: row.star ? "rgba(59,130,246,0.06)" : "transparent",
+                border: row.star ? "1px solid rgba(59,130,246,0.3)" : "1px solid transparent",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "14px 20px", fontSize: 15, fontWeight: 700, color: "var(--foreground)" }}>
+                  {row.star && <Star style={{ width: 16, height: 16, color: ACCENT_COLOR, fill: ACCENT_COLOR }} />}
+                  {row.label}
+                </div>
+                <div style={{ display: "flex", gap: 11, alignItems: "flex-start", padding: "16px 20px", borderRadius: 14, background: "var(--surface)", border: "1px solid var(--border)" }}>
+                  <X style={{ width: 17, height: 17, color: "var(--text-muted)", flexShrink: 0, marginTop: 2 }} />
+                  <p style={{ fontSize: 14.5, color: "var(--text-muted)", lineHeight: 1.5, margin: 0 }}>{row.left}</p>
+                </div>
+                <div style={{ display: "flex", gap: 11, alignItems: "flex-start", padding: "16px 20px", borderRadius: 14, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.25)" }}>
+                  <CheckCircle2 style={{ width: 17, height: 17, color: ACCENT_COLOR, flexShrink: 0, marginTop: 2 }} />
+                  <p style={{ fontSize: 14.5, color: "var(--foreground)", fontWeight: 500, lineHeight: 1.5, margin: 0 }}>{row.right}</p>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        <Reveal delay={0.1}>
+          <p style={{ fontSize: "clamp(17px, 2.1vw, 21px)", color: "var(--foreground)", textAlign: "center", maxWidth: 820, margin: "48px auto 0", lineHeight: 1.55, fontWeight: 500 }}>
+            Dejas de perseguir pestañas y empiezas a manejar tu agencia completa desde un solo lugar.
+          </p>
+        </Reveal>
+
+        <Reveal delay={0.1}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, flexWrap: "wrap", marginTop: 32 }}>
+            <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en Zefirus" style={{ height: 56, padding: "0 36px", borderRadius: 14 }}>
+              Empieza gratis, sin tarjeta
+            </Link>
+            <a href="#precios" style={{ fontSize: 15, color: "var(--text-secondary)", textDecoration: "none" }}>
+              ¿Equipo grande o a la medida? <span style={{ color: ACCENT_COLOR, textDecoration: "underline", textUnderlineOffset: 3 }}>Cuéntanos</span>
+            </a>
+          </div>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", textAlign: "center", marginTop: 16 }}>
+            Cupos de cohorte fundadora limitados. Entra antes de que se cierre.
           </p>
         </Reveal>
       </section>
