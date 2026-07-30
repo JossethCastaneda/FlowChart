@@ -136,14 +136,6 @@ const PRODUCT_PILLARS: [string, string][] = [
   ["#pilar-contenido", "Contenido"],
 ];
 
-const FEATURES = [
-  { icon: <Target style={{ width: 24, height: 24 }} />, title: "Anuncios", codename: "Impulso", desc: "Meta, TikTok y Google Ads en una sola pantalla. Pausa, optimiza y escala campañas sin salir de Zefirus." },
-  { icon: <BarChart3 style={{ width: 24, height: 24 }} />, title: "Resumen", codename: "Pulso", desc: "El pulso de tu operación en tiempo real. Dashboards que tu cliente entiende, con datos de todas tus cuentas." },
-  { icon: <MessageSquare style={{ width: 24, height: 24 }} />, title: "Inbox", codename: "Señal", desc: "WhatsApp, Instagram DM y Messenger en un solo lugar. Nunca pierdas un lead por no responder a tiempo." },
-  { icon: <Sparkles style={{ width: 24, height: 24 }} />, title: "Briefs IA", codename: "Nova", desc: "Genera parrillas de contenido, copies y briefings en segundos. Personaliza tono, formato y canal." },
-  { icon: <Bot style={{ width: 24, height: 24 }} />, title: "Chatbots", codename: "Piloto", desc: "Tu copiloto automático. Construye flujos conversacionales que atienden, califican y asignan leads 24/7." },
-  { icon: <Globe style={{ width: 24, height: 24 }} />, title: "Publicación", codename: "Lanzadera", desc: "Programa y despega. Calendario visual para publicar en todas tus redes desde un solo lugar." },
-];
 
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
@@ -306,6 +298,7 @@ export default function Home() {
           .col-steps-grid { grid-template-columns: 1fr !important; max-width: 400px; margin-left: auto; margin-right: auto; }
           .col-outcome-row { grid-template-columns: 1fr !important; }
           .col-outcome-head { display: none !important; }
+          .col-pilar-grid { grid-template-columns: 1fr !important; }
           .col-hero-h1 { font-size: 40px !important; }
           .col-section-h2 { font-size: 32px !important; }
           .col-compare-grid { grid-template-columns: 1fr 60px 80px !important; font-size: 13px !important; }
@@ -826,7 +819,7 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════
-         FEATURES — Glassmorphism Cards
+         SOLUCIÓN — 3 pilares (deck §4)
          ═══════════════════════════════════════════════════════ */}
       <section id="solucion" style={{
         position: "relative", zIndex: 1,
@@ -835,58 +828,99 @@ export default function Home() {
         {/* Massive Background Glow */}
         <div className="col-glow-bg" style={{ top: "30%", left: "50%", transform: "translate(-50%, -50%)", width: "80vw", height: 800, opacity: 0.08 }} />
 
-        <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 2 }}>
+        <div style={{ maxWidth: 1120, margin: "0 auto", position: "relative", zIndex: 2 }}>
           <Reveal>
             <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
                <div style={{ padding: "6px 16px", borderRadius: 980, background: "var(--cyan-dim)", border: `1px solid rgba(59,130,246, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
-                La Solución
+                Toda tu operación, en tres frentes
                </div>
             </div>
             <h2 className="col-section-h2 col-title" style={{
-              fontWeight: 700, fontSize: "clamp(36px, 5vw, 64px)",
-              textAlign: "center", marginBottom: 24,
+              fontWeight: 700, fontSize: "clamp(34px, 4.6vw, 58px)",
+              textAlign: "center", marginBottom: 24, maxWidth: 920, marginLeft: "auto", marginRight: "auto",
             }}>
-              Una plataforma.<br/>Todos tus canales.
+              Pauta, conversaciones y contenido de todas tus cuentas, en un solo lugar.
             </h2>
-            <p style={{ fontSize: 18, color: "var(--text-muted)", textAlign: "center", maxWidth: 600, margin: "0 auto 80px", lineHeight: 1.6 }}>
-              Zefirus reemplaza 5 herramientas separadas con una sola experiencia diseñada para agencias de alto rendimiento.
-            </p>
           </Reveal>
 
-          {/* Bento Box Layout for Features to match Collabora's dynamic grids */}
-          <div className="col-features-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
-            {FEATURES.map((f, i) => (
-              <Reveal key={i} delay={i * 0.1} className={i === 0 || i === 3 ? "col-span-2" : "col-span-1"} style={{ gridColumn: (i === 0 || i === 3) ? "span 2" : "span 1" }}>
-                <SpotlightCard style={{ padding: "40px 32px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                  <div>
-                    <div style={{
-                      width: 56, height: 56, borderRadius: 16,
-                      background: "linear-gradient(135deg, rgba(59,130,246, 0.2), rgba(59,130,246, 0.05))",
-                      border: "1px solid rgba(59,130,246, 0.2)",
-                      boxShadow: "0 10px 20px rgba(59,130,246, 0.1)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      marginBottom: 24, color: "var(--foreground)",
-                    }}>
-                      {f.icon}
-                    </div>
-                    <p style={{ fontSize: 12, fontWeight: 600, color: ACCENT_COLOR, marginBottom: 8, letterSpacing: "0.05em", textTransform: "uppercase" }}>
-                      {f.codename}
-                    </p>
-                    <h3 style={{ fontSize: 28, fontWeight: 600, marginBottom: 12, letterSpacing: "-0.02em", color: "var(--foreground)" }}>
-                      {f.title}
-                    </h3>
-                    <p style={{ fontSize: 16, color: "var(--text-muted)", lineHeight: 1.6, maxWidth: 400 }}>
-                      {f.desc}
-                    </p>
-                  </div>
-                  {/* Decorative faint pattern */}
-                  <div style={{ position: "absolute", bottom: -20, right: -20, opacity: 0.05, transform: "scale(2)", color: ACCENT_COLOR }}>
-                     {f.icon}
-                  </div>
-                </SpotlightCard>
+          {[
+            { n: "01", anchor: "pilar-publicidad", title: "Publicidad", blocks: [
+              { icon: Target, name: "Impulso", benefit: "Toda la pauta de todos tus clientes, en una pantalla", desc: "Meta, TikTok y Google Ads de las 20 cuentas juntas, sin brincar entre logins ni vaciar números a mano. Adiós al Excel del lunes: aquí ves todo actualizado solo." },
+              { icon: Activity, name: "Pulso", benefit: "Sabes qué campaña jala y cuál quema presupuesto, por cliente", desc: "El rendimiento de cada cuenta a la vista, cliente por cliente, en el mismo lugar. Detectas el presupuesto que se está quemando antes de que el cliente te lo reclame en la junta." },
+            ] },
+            { n: "02", anchor: "pilar-conversaciones", title: "Conversaciones", blocks: [
+              { icon: MessageSquare, name: "Señal", benefit: "Todos los WhatsApp de tus clientes en una sola bandeja", desc: "El inbox de WhatsApp, Instagram y Messenger de todas tus cuentas junto, sin repartirte entre tres celulares. WhatsApp es el canal principal, tratado como se merece: por aquí es por donde de verdad se cierra." },
+              { icon: Bot, name: "Piloto", benefit: "Bots que atienden, califican y asignan leads mientras duermes", desc: "Chatbots en español que contestan al instante 24/7, filtran al que sí va en serio y le pasan el lead caliente a tu equipo. Ningún mensaje del fin de semana se queda sin respuesta hasta el lunes." },
+            ] },
+            { n: "03", anchor: "pilar-contenido", title: "Contenido / IA", blocks: [
+              { icon: Sparkles, name: "Nova", benefit: "Parrillas, copies y briefs con IA, sin empezar de cero cada semana", desc: "Una IA que habla como se habla aquí y te arma la parrilla, el copy y el brief de cada cliente en minutos. Recuperas la noche del domingo que hoy pierdes armando contenido." },
+              { icon: Globe, name: "Lanzadera", benefit: "Programa y publica en las redes de todos tus clientes desde un calendario", desc: "Un solo calendario para agendar y publicar en las cuentas de las 20 marcas, sin andar entrando a cada perfil a la hora exacta. Programas la semana completa de una sentada y te olvidas." },
+            ] },
+          ].map((pilar, pi) => (
+            <div key={pilar.anchor} id={pilar.anchor} style={{ scrollMarginTop: 100, marginTop: pi === 0 ? 64 : 80 }}>
+              <Reveal>
+                <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--text-secondary)", whiteSpace: "nowrap" }}>
+                    Pilar <span style={{ color: ACCENT_COLOR }}>{pilar.n}</span> · {pilar.title}
+                  </span>
+                  <div style={{ flex: 1, height: 1, background: "var(--hairline)" }} />
+                </div>
               </Reveal>
-            ))}
-          </div>
+              <div className="col-pilar-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+                {pilar.blocks.map((b, bi) => {
+                  const Icon = b.icon;
+                  return (
+                    <Reveal key={bi} delay={bi * 0.1}>
+                      <SpotlightCard style={{ padding: "34px 30px", height: "100%" }}>
+                        <div style={{ position: "relative", zIndex: 1 }}>
+                          <div style={{
+                            width: 48, height: 48, borderRadius: 13,
+                            background: "linear-gradient(135deg, rgba(59,130,246,0.2), rgba(59,130,246,0.05))",
+                            border: "1px solid rgba(59,130,246,0.2)",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            marginBottom: 20, color: ACCENT_COLOR,
+                          }}>
+                            <Icon style={{ width: 22, height: 22 }} />
+                          </div>
+                          <p style={{ fontSize: 12, fontWeight: 700, color: ACCENT_COLOR, marginBottom: 8, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                            {b.name}
+                          </p>
+                          <h3 style={{ fontSize: "clamp(19px, 2vw, 22px)", fontWeight: 700, marginBottom: 12, letterSpacing: "-0.01em", color: "var(--foreground)", lineHeight: 1.25 }}>
+                            {b.benefit}
+                          </h3>
+                          <p style={{ fontSize: 15.5, color: "var(--text-secondary)", lineHeight: 1.6, margin: 0 }}>
+                            {b.desc}
+                          </p>
+                        </div>
+                      </SpotlightCard>
+                    </Reveal>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+
+          {/* Cierre del bloque Solución (deck §4) */}
+          <Reveal delay={0.1}>
+            <div style={{ marginTop: 56, padding: "30px 40px", borderRadius: 20, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)" }}>
+              <p style={{ fontSize: "clamp(16px, 2vw, 20px)", color: "var(--foreground)", lineHeight: 1.55, margin: "0 auto", fontWeight: 500, textAlign: "center", maxWidth: 900 }}>
+                Todo esto vive en un solo login, hecho en México, en pesos y con soporte humano que
+                contesta en español. Es la pantalla desde donde manejas tu agencia completa.
+              </p>
+            </div>
+          </Reveal>
+
+          {/* CTA — primario + venta asistida secundaria */}
+          <Reveal delay={0.1}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, flexWrap: "wrap", marginTop: 40 }}>
+              <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en Zefirus" style={{ height: 56, padding: "0 36px", borderRadius: 14 }}>
+                Empieza gratis, sin tarjeta
+              </Link>
+              <a href="#precios" style={{ fontSize: 15, color: "var(--text-secondary)", textDecoration: "none" }}>
+                ¿Equipo grande? <span style={{ color: ACCENT_COLOR, textDecoration: "underline", textUnderlineOffset: 3 }}>Habla con nosotros</span>
+              </a>
+            </div>
+          </Reveal>
         </div>
       </section>
 
