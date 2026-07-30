@@ -712,39 +712,56 @@ export default function Home() {
         <Reveal>
           <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
              <div style={{ padding: "6px 16px", borderRadius: 980, background: "var(--cyan-dim)", border: `1px solid rgba(59,130,246, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
-              El Problema
+              El día a día real de tu agencia
              </div>
           </div>
           <h2 className="col-section-h2 col-title" style={{
             fontWeight: 700, fontSize: "clamp(36px, 5vw, 64px)",
-            textAlign: "center", marginBottom: 80,
+            textAlign: "center", marginBottom: 20,
           }}>
-            ¿Tu marketing se siente así?
+            <span style={{ WebkitTextFillColor: ACCENT_COLOR, color: ACCENT_COLOR }}>20</span> clientes,{" "}
+            <span style={{ WebkitTextFillColor: ACCENT_COLOR, color: ACCENT_COLOR }}>40</span> pestañas abiertas y un solo tú.
           </h2>
+          <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--text-secondary)", textAlign: "center", maxWidth: 680, margin: "0 auto 72px", lineHeight: 1.6 }}>
+            Sostienes cada cuenta con Excel, capturas de pantalla y pura memoria. Así se te va el mes:
+            apagando fuegos en lugar de hacer crecer cuentas.
+          </p>
         </Reveal>
 
-        <div className="col-pain-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 32, textAlign: "center" }}>
+        <div className="col-pain-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 32 }}>
           {[
-            { stat: "10+", unit: "hrs/semana", desc: "perdidas cambiando entre plataformas y hojas de cálculo." },
-            { stat: "$500+", unit: "USD/mes", desc: "gastados en múltiples herramientas que no se comunican." },
-            { stat: "0%", unit: "visibilidad", desc: "del ROI real de tus campañas y conversiones finales." },
-          ].map((p, i) => (
-            <Reveal key={i} delay={i * 0.15}>
-              <SpotlightCard style={{ padding: "48px 32px", height: "100%" }}>
-                <div className="col-glow-bg" style={{ top: 0, right: 0, width: 150, height: 150, opacity: 0.1 }} />
-                <div style={{ position: "relative", zIndex: 1 }}>
-                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 8, marginBottom: 16 }}>
-                    <span style={{ fontSize: "clamp(48px, 6vw, 64px)", fontWeight: 700, color: "var(--foreground)", letterSpacing: "-0.04em", lineHeight: 1 }}>
-                      {p.stat}
-                    </span>
-                    <span style={{ fontSize: 16, fontWeight: 500, color: ACCENT_COLOR }}>{p.unit}</span>
+            { icon: LineChart, title: "El reporte del lunes", desc: "Entras a Meta, brincas a TikTok, entras a Google Ads, copias el número, lo pegas en el Excel del lunes. Multiplícalo por 20 cuentas. Se te va la mañana vaciando datos a mano en lugar de decidir qué campaña subir y cuál apagar." },
+            { icon: MessageSquare, title: "El lead que se enfría", desc: "Un cliente vende por WhatsApp, otro por Instagram, otro por Messenger. Los mensajes llegan a seis celulares distintos y a nadie en particular. Para cuando alguien contesta, el prospecto ya le compró al de enfrente. Y a ti te toca explicar en la junta por qué no cerraron." },
+            { icon: DollarSign, title: "“¿Y cuánto vendí?”", desc: "El cliente te marca y te pregunta cuánto le dejó la inversión del mes. Tú abres cuatro plataformas, sumas de memoria y contestas con un “déjame lo checo y te confirmo”. Mientras tanto, el domingo en la noche vuelves a armar la parrilla de contenido desde cero para los mismos 20 clientes." },
+          ].map((p, i) => {
+            const Icon = p.icon;
+            return (
+              <Reveal key={i} delay={i * 0.12}>
+                <SpotlightCard style={{ padding: "36px 30px", height: "100%" }}>
+                  <div className="col-glow-bg" style={{ top: 0, right: 0, width: 150, height: 150, opacity: 0.08 }} />
+                  <div style={{ position: "relative", zIndex: 1, textAlign: "left" }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 12, background: "rgba(224,168,60,0.10)", border: "1px solid rgba(224,168,60,0.22)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
+                      <Icon style={{ width: 22, height: 22, color: "var(--amber)" }} />
+                    </div>
+                    <h3 style={{ fontSize: 20, fontWeight: 700, color: "var(--foreground)", marginBottom: 12, letterSpacing: "-0.01em" }}>{p.title}</h3>
+                    <p style={{ fontSize: 15.5, color: "var(--text-secondary)", lineHeight: 1.6, margin: 0 }}>{p.desc}</p>
                   </div>
-                  <p style={{ fontSize: 16, color: "var(--text-muted)", lineHeight: 1.6 }}>{p.desc}</p>
-                </div>
-              </SpotlightCard>
-            </Reveal>
-          ))}
+                </SpotlightCard>
+              </Reveal>
+            );
+          })}
         </div>
+
+        {/* Cierre a ancho completo — puente hacia Outcome (deck §2) */}
+        <Reveal delay={0.1}>
+          <div style={{ marginTop: 40, padding: "34px 40px", borderRadius: 20, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)" }}>
+            <p style={{ fontSize: "clamp(17px, 2.1vw, 22px)", color: "var(--foreground)", lineHeight: 1.55, margin: "0 auto", fontWeight: 500, textAlign: "center", maxWidth: 920 }}>
+              Ninguna herramienta gringa te va a resolver esto: cobran en dólares, tratan WhatsApp como
+              plugin y cuando algo truena te contesta un bot en inglés. El desgaste viene de operar
+              cuenta por cuenta, pestaña por pestaña.
+            </p>
+          </div>
+        </Reveal>
       </section>
 
       {/* ═══════════════════════════════════════════════════════
