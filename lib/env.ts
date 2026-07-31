@@ -119,7 +119,7 @@ const envSchema = z.object({
   EMAIL_FROM: z.string().min(1).optional(),
 
   // Google Ads
-  GOOGLE_DEVELOPERTOKEN_ADS: z.string().min(1).optional(),
+  GOOGLE_ADS_DEVELOPER_TOKEN: z.string().min(1).optional(),
 
   // Análisis de Resultados — sal para hashear PII (teléfono/email)
   ANALYTICS_PII_SALT: z.string().min(1).optional(),

@@ -25,9 +25,9 @@ export async function getAdsCampaigns(workspaceId: string, since?: string, until
     throw new Error("No se pudo obtener token de acceso");
   }
 
-  const developerToken = process.env.GOOGLE_DEVELOPERTOKEN_ADS;
+  const developerToken = process.env.GOOGLE_ADS_DEVELOPER_TOKEN;
   if (!developerToken) {
-    throw new Error("GOOGLE_DEVELOPERTOKEN_ADS no configurado en el servidor");
+    throw new Error("GOOGLE_ADS_DEVELOPER_TOKEN no configurado en el servidor");
   }
 
   // Remove dashes from customer ID (Google Ads format: 123-456-7890 → 1234567890)
@@ -127,9 +127,9 @@ export async function updateCampaignStatus(workspaceId: string, campaignId: stri
     throw new Error("No se pudo obtener token de acceso");
   }
 
-  const developerToken = process.env.GOOGLE_DEVELOPERTOKEN_ADS;
+  const developerToken = process.env.GOOGLE_ADS_DEVELOPER_TOKEN;
   if (!developerToken) {
-    throw new Error("GOOGLE_DEVELOPERTOKEN_ADS no configurado en el servidor");
+    throw new Error("GOOGLE_ADS_DEVELOPER_TOKEN no configurado en el servidor");
   }
 
   const cleanCustomerId = customerId.replace(/-/g, "");
