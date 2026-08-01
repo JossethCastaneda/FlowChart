@@ -55,20 +55,20 @@ const safeUrl = (url: string | undefined): URL => {
 export const metadata: Metadata = {
   metadataBase: safeUrl(process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL),
   title: {
-    default: "Zefirus — El centro de mando para agencias de marketing en LATAM",
+    default: "Zefirus — El centro de mando para agencias de marketing",
     template: "%s | Zefirus",
   },
   description:
-    "Maneja la pauta, el WhatsApp y el contenido de todas tus cuentas desde una sola pantalla. Meta, TikTok y Google Ads, inbox unificado y contenido con IA para agencias en LATAM. Hecho en México, en pesos. Empieza gratis, sin tarjeta.",
+    "Maneja la pauta, el WhatsApp y el contenido de todas tus cuentas desde una sola pantalla. Meta, TikTok y Google Ads, inbox unificado y contenido con IA para agencias. Empieza gratis, sin tarjeta.",
   keywords: [
     "plataforma marketing digital",
     "gestión campañas publicitarias",
     "ads manager multicanal",
     "inbox unificado WhatsApp",
     "reportes ROI agencia",
-    "herramienta marketing LATAM",
+    "herramienta marketing multicuenta",
     "Meta Ads TikTok Google Ads",
-    "software agencias marketing México",
+    "software para agencias de marketing",
     "automatización marketing digital",
     "dashboard anuncios",
   ],
@@ -84,9 +84,9 @@ export const metadata: Metadata = {
     locale: "es_MX",
     url: "https://zefirus.xyz",
     siteName: "Zefirus",
-    title: "Zefirus — El centro de mando para agencias de marketing en LATAM",
+    title: "Zefirus — El centro de mando para agencias de marketing",
     description:
-      "Maneja tus 20 clientes desde una sola pantalla: pauta, WhatsApp y contenido de todas tus cuentas en un solo login. Hecho en México, en pesos. Empieza gratis, sin tarjeta.",
+      "Maneja tus 20 clientes desde una sola pantalla: pauta, WhatsApp y contenido de todas tus cuentas en un solo login. Empieza gratis, sin tarjeta.",
     images: [
       {
         url: "/zefirus-logo-1024.jpg",
@@ -98,9 +98,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zefirus — El centro de mando para agencias de marketing en LATAM",
+    title: "Zefirus — El centro de mando para agencias de marketing",
     description:
-      "Pauta, WhatsApp y contenido de todas tus cuentas en una sola pantalla. Para agencias en LATAM. Hecho en México, en pesos. Empieza gratis, sin tarjeta.",
+      "Pauta, WhatsApp y contenido de todas tus cuentas en una sola pantalla. Para agencias. Empieza gratis, sin tarjeta.",
     images: ["/zefirus-logo-1024.jpg"],
   },
   robots: {
