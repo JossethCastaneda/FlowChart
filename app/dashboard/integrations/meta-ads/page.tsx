@@ -106,7 +106,8 @@ export default function MetaAdsPage() {
 
   const handleReconnect = () => {
     setReconnecting(true);
-    openConnectPopup("ads", () => {
+    // Añadimos ?force=1 para ignorar tokens en caché si ocurre un error de sesión
+    openConnectPopup("ads?force=1", () => {
       setReconnecting(false);
       fetchAccounts();
     });

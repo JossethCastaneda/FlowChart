@@ -227,7 +227,7 @@ export default function FacebookPagesPage() {
 
   const handleReconnect = () => {
     setReconnecting(true);
-    openConnectPopup("community", () => {
+    openConnectPopup("community?force=1", () => {
       setReconnecting(false);
       fetchPages();
     });

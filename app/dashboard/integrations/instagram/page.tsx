@@ -165,7 +165,7 @@ export default function InstagramIntegrationPage() {
   const handleConnect = async () => {
     setConnecting(true);
     try {
-      await openConnectPopup("/api/integrations/instagram/connect");
+      await openConnectPopup("/api/integrations/instagram/connect?force=1");
       await loadStatus();
     } finally {
       setConnecting(false);
