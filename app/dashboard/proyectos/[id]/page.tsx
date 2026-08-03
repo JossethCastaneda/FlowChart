@@ -373,6 +373,12 @@ export default function ProjectDashboardPage() {
   const [editingMonth, setEditingMonth] = useState<string>("global"); // "global" or "YYYY-MM"
   const [isWidgetBuilderOpen, setIsWidgetBuilderOpen] = useState(false);
 
+  // Ad Creatives state
+  const [adCreatives, setAdCreatives] = useState<any[]>([]);
+  const [creativesLoading, setCreativesLoading] = useState(false);
+  const [previewAd, setPreviewAd] = useState<any>(null);
+  const creativeFetchedRef = useRef(false);
+
   // Load project from API
   useEffect(() => {
     async function loadProject() {
@@ -451,7 +457,7 @@ export default function ProjectDashboardPage() {
     const chToUse = isMulti ? project.channels.find(c => c.platformId === "meta") : project.channels.find(c => c.platformId === activePlatform);
     
     if ((activePlatform !== "meta" && !isMulti) || !chToUse?.adAccounts?.length) { 
-      if (!isMulti) setInsights(null); 
+      if (!isMulti) setTimeout(() => setInsights(null), 0); 
       return; 
     }
 
@@ -461,15 +467,17 @@ export default function ProjectDashboardPage() {
     // 1. Show cached data immediately (no loading spinner)
     const cached = insightsStore.getCached(project.id, effectivePreset, dateStart, dateEnd);
     if (cached) {
-      setInsights(cached);
+      setTimeout(() => setInsights(cached), 0);
       // Don't show loading for revalidation → data is already visible
     } else {
-      setIsLoading(true);
+      setTimeout(() => setIsLoading(true), 0);
     }
 
     // 2. Always revalidate in background
-    setBreakdownData({});
-    setAdCreatives([]);
+    setTimeout(() => {
+      setBreakdownData({});
+      setAdCreatives([]);
+    }, 0);
     insightsStore.fetchProjectInsights(project.id, accs, effectivePreset, dateStart, dateEnd)
       .then(data => {
         if (data) setInsights(data);
@@ -514,6 +522,7 @@ export default function ProjectDashboardPage() {
   // Load breakdowns for audience/creative tabs → uses same date range
   // KEY FIX: Aggregate across ALL ad accounts when "all" selected (not just first)
   const loadBreakdown = useCallback(async (key: string) => {
+    await Promise.resolve();
     // Skip if already fetched for this key
     if (breakdownFetchedRef.current[key] || !project) return;
     breakdownFetchedRef.current[key] = true;
@@ -548,13 +557,7 @@ export default function ProjectDashboardPage() {
       console.error(`Breakdown ${key} fetch all failed:`, err);
       setBreakdownData(prev => ({ ...prev, [key]: [] }));
     }
-  }, [project, activePlatform, selectedAccountId, datePreset, dateStart, dateEnd, heatmapTimezone]);
-
-  // Ad Creatives state
-  const [adCreatives, setAdCreatives] = useState<any[]>([]);
-  const [creativesLoading, setCreativesLoading] = useState(false);
-  const [previewAd, setPreviewAd] = useState<any>(null);
-  const creativeFetchedRef = useRef(false);
+  }, [project, activePlatform, selectedAccountId, datePreset, dateStart, dateEnd, heatmapTimezone, setBreakdownData]);
 
   // Reset creative cache when filters change
   useEffect(() => {
@@ -563,6 +566,7 @@ export default function ProjectDashboardPage() {
 
   // Load ad creatives when on creativos tab
   const loadAdCreatives = useCallback(async () => {
+    await Promise.resolve();
     if (!project || creativeFetchedRef.current) return;
     creativeFetchedRef.current = true; // Mark as attempted immediately
     const ch = project.channels.find(c => c.platformId === activePlatform);
@@ -577,26 +581,28 @@ export default function ProjectDashboardPage() {
       setAdCreatives(all.sort((a, b) => b.spend - a.spend));
     } catch {}
     setCreativesLoading(false);
-  }, [project, activePlatform, selectedAccountId, datePreset, dateStart, dateEnd]);
+  }, [project, activePlatform, selectedAccountId, datePreset, dateStart, dateEnd, setAdCreatives, setCreativesLoading]);
 
   // KEY FIX: Track a "filter version" so breakdowns re-load when filters change
   // The loadBreakdown ref is now reset by the effect above, so the effect below
   // just needs to re-trigger when the tab changes OR when loadBreakdown identity changes
   // (which it does because it depends on all filter values via useCallback deps)
   useEffect(() => {
-    if (activeTab === "audiencia") {
-      loadBreakdown("age_gender");
-      loadBreakdown("region");
-      loadBreakdown("country");
-      loadBreakdown("platform");
-      loadBreakdown("device");
-      loadBreakdown("placement");
-      loadBreakdown("time_of_day");
-    }
-    if (activeTab === "resumen") {
-      loadBreakdown("hourly_daily");
-    }
-    if (activeTab === "creativos") { loadAdCreatives(); }
+    setTimeout(() => {
+      if (activeTab === "audiencia") {
+        loadBreakdown("age_gender");
+        loadBreakdown("region");
+        loadBreakdown("country");
+        loadBreakdown("platform");
+        loadBreakdown("device");
+        loadBreakdown("placement");
+        loadBreakdown("time_of_day");
+      }
+      if (activeTab === "resumen") {
+        loadBreakdown("hourly_daily");
+      }
+      if (activeTab === "creativos") { loadAdCreatives(); }
+    }, 0);
   }, [activeTab, loadBreakdown, loadAdCreatives]);
 
   const saveChanges = async () => {

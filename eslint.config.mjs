@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Test ignores:
+    "coverage/**",
+    "playwright-report/**",
+    "test-results/**",
+    "trace_unzip/**",
   ]),
   {
     rules: {
