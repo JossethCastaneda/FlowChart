@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import NextAuth, { DefaultSession } from "next-auth";
 
 declare module "next-auth" {

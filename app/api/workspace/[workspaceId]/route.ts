@@ -1,6 +1,6 @@
 import { withAuth } from "@/lib/api-handler";
 import { validateBody } from "@/lib/validate";
-import { apiSuccess, apiError, apiNotFound, apiForbidden } from "@/lib/api-response";
+import { apiSuccess, apiNotFound, apiForbidden } from "@/lib/api-response";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";

@@ -12,6 +12,7 @@ interface CalendarViewProps {
   onTaskClick: (task: Task) => void;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 export function CalendarView({ tasks, members, lang, onTaskClick }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
 

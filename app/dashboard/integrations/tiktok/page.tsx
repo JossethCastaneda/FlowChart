@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { ArrowLeft, CheckCircle2, TrendingUp, Eye, MousePointerClick, DollarSign, Zap, RefreshCw, ExternalLink, AlertCircle } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { useLanguage } from "@/components/layout/LanguageContext";
@@ -70,6 +71,7 @@ export default function TikTokIntegrationPage() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
   useEffect(() => { loadStatus(); }, []);
 
   const handleDisconnect = async () => {

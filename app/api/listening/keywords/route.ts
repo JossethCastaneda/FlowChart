@@ -10,6 +10,7 @@ export const GET = withWorkspace(async (request, ctx) => {
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json({ keywords });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -26,6 +27,7 @@ export const POST = withWorkspace(async (request, ctx) => {
       create: { workspaceId, query: query.trim(), type: type || "keyword" },
     });
     return NextResponse.json({ keyword });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

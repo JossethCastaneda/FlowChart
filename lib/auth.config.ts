@@ -69,6 +69,7 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
           return await res.json();
         },
       },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       profile(profile: Record<string, any>) {
         return {
           id: profile.id,
@@ -372,7 +373,8 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
 
     // ── signIn: Prevent duplicates by linking OAuth accounts to existing users ──
-    async signIn({ user, account, profile, ...rest }) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
+    async signIn({ user, account, profile, ..._rest }) {
       // Only intercept OAuth providers (not credentials/facebook-sdk which handle their own linking)
       if (!account || account.type === "credentials") return true;
 

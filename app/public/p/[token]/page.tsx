@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { Loader2, Calendar, Target, CheckCircle2, TrendingUp, Sparkles, Building2, LayoutDashboard } from "lucide-react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Orbi } from "@/components/ui/Orbi";
 
@@ -15,6 +17,7 @@ interface PublicProject {
   dateEnd: string | null;
   workspace: {
     name: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     branding: any;
   };
   stats: {
@@ -86,6 +89,7 @@ export default function PublicProjectPortal() {
         <div className="flex items-center justify-between pb-6 border-b border-[var(--hairline)]">
           <div className="flex items-center gap-3">
             {branding.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
               <img src={branding.logoUrl} alt="Logo" className="h-8 object-contain" />
             ) : (
               <div className="w-8 h-8 rounded-lg bg-[var(--surface-hover)] border border-[var(--border)] flex items-center justify-center">

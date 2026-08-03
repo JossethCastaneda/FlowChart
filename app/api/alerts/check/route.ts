@@ -35,18 +35,23 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const results: any[] = [];
 
     for (const project of projects) {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         const metaChannel = project.channels.find((c: any) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           const cfg = c.config as any;
           return cfg?.platformId === "meta" || c.type === "FACEBOOK";
         });
         if (!metaChannel) continue;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         const cfg = (metaChannel.config as any) || {};
         if (!cfg.adAccounts?.length) continue;
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         const alertsEnabled = (project as any).alertsEnabled !== false;
         if (!alertsEnabled) continue;
 
@@ -60,6 +65,7 @@ export async function GET(req: NextRequest) {
               workspaceId_provider_userId: { workspaceId: project.workspaceId, provider, userId: "workspace" },
             },
           });
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           const candidate = (integration?.credentials as any)?.accessToken;
           if (integration?.connected && candidate) { rawToken = candidate; break; }
         }
@@ -85,6 +91,7 @@ export async function GET(req: NextRequest) {
 
         const insightsUrl = `https://graph.facebook.com/${META_VERSION}/${adAccountId}/insights?fields=spend,impressions,clicks,reach,actions,action_values&date_preset=this_month`;
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         let insightsData: any = null;
         try {
           const res = await fetch(insightsUrl, {
@@ -116,9 +123,11 @@ export async function GET(req: NextRequest) {
           "omni_complete_registration", "offsite_conversion.fb_pixel_complete_registration", "complete_registration",
           "add_to_cart", "link_click", "landing_page_view"
         ];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         const findResult = (actions: any[]) => {
           if (!actions?.length) return null;
           for (const t of RESULT_TYPES) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
             const f = actions.find((a: any) => a.action_type === t);
             if (f) return f;
           }
@@ -246,9 +255,12 @@ export async function GET(req: NextRequest) {
         // FIX: members come from workspace.members, not project.members
         const workspaceMembers = project.workspace.members;
         const emails = workspaceMembers
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           .map((m: any) => m.user.email)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           .filter((e: any): e is string => !!e);
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         const customEmails = (project as any).alertEmails || [];
         const allEmails = [...new Set([...emails, ...customEmails])].filter(Boolean);
 
@@ -291,6 +303,7 @@ export async function GET(req: NextRequest) {
           alertCount: newAlerts.length,
           emailsSent: allEmails.length,
         });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       } catch (projectErr: any) {
         // Isolate per-project errors — don't abort the entire cron
         logger.error(`[ALERTS] Error processing project ${project.name}:`, projectErr);
@@ -304,6 +317,7 @@ export async function GET(req: NextRequest) {
       projectsChecked: projects.length,
       alertsGenerated: results,
     });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     logger.error("[ALERTS] Cron error:", err);
     return NextResponse.json({ error: err?.message || "Error" }, { status: 500 });

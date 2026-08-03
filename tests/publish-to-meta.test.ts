@@ -12,10 +12,13 @@ import { publishPostToMeta } from "../lib/publisher/publish-to-meta";
 const mGetAll = metaGetAll as unknown as ReturnType<typeof vi.fn>;
 const fetchMock = vi.fn();
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 function jsonRes(body: any, ok = true) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   return { ok, json: async () => body } as any;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 function page(extra: Record<string, any> = {}) {
   return {
     id: "PAGE",
@@ -26,6 +29,7 @@ function page(extra: Record<string, any> = {}) {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 function makePost(overrides: Record<string, any> = {}) {
   return {
     id: "post1",
@@ -41,6 +45,7 @@ function makePost(overrides: Record<string, any> = {}) {
     scheduledAt: null,
     status: "Draft",
     ...overrides,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } as any;
 }
 

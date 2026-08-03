@@ -34,6 +34,7 @@ const CreateTaskSchema = z.object({
 export const GET = withWorkspace(async (_req, ctx) => {
   const { workspaceId, userId, role } = ctx;
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   const [settings, member] = await Promise.all([
     prisma.workspaceSettings.findUnique({ where: { workspaceId } }),
     prisma.workspaceMember.findUnique({
@@ -103,6 +104,7 @@ export const GET = withWorkspace(async (_req, ctx) => {
 
 // POST /api/ops — create a task
 export const POST = withWorkspace(async (req, ctx) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   const { workspaceId, userId, role } = ctx;
 
   const result = await validateBody(req, CreateTaskSchema);

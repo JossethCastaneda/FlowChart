@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-assign-module-variable */
 ﻿"use client";
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";

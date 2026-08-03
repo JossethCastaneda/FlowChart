@@ -8,6 +8,7 @@ export type WidgetType = "DynamicComposedChart" | "DynamicKpiCard";
 
 interface WidgetBuilderModalProps {
   onClose: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   onAdd: (type: WidgetType, config: any, w: number, h: number) => void;
   availableMetrics: { key: string; label: string; type: "currency" | "percentage" | "number" }[];
 }

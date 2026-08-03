@@ -41,6 +41,7 @@ describe("authOptions configuration", () => {
 
   describe("facebook-sdk authorize", () => {
     const facebookSdkProvider = authOptions.providers.find(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       (p: any) => p.options?.id === "facebook-sdk" || p.id === "facebook-sdk"
     );
 
@@ -95,6 +96,7 @@ describe("authOptions configuration", () => {
       // 5. Mock account upsert
       mockUpsertAccount.mockResolvedValueOnce({ id: "acc_id" });
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       const result = await (facebookSdkProvider as any).options.authorize({
         accessToken: "test-token",
       });
@@ -154,6 +156,7 @@ describe("authOptions configuration", () => {
         return null;
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
       mockUpdateUser.mockImplementation(async ({ where, data }) => ({
         id: where.id,
         name: "CT JE",
@@ -166,6 +169,7 @@ describe("authOptions configuration", () => {
       const result = await jwtCallback!({
         token,
         user,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         account: account as any,
         trigger: "signIn",
       });

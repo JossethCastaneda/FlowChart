@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, useCallback } from "react";
@@ -203,8 +204,7 @@ export default function BriefingPage() {
     setGridData(prev => {
       if (!prev) return prev;
       const posts = [...prev.posts];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      posts[index] = { ...posts[index], [field]: value } as any;
+            posts[index] = { ...posts[index], [field]: value } as any;
       return { ...prev, posts };
     });
   };

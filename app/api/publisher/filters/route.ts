@@ -62,6 +62,7 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
     });
 
     for (const integration of integrations) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       const creds = integration.credentials as any;
       const pages = creds?.pages || [];
       for (const page of pages) {

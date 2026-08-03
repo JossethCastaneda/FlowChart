@@ -92,8 +92,10 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
         },
       },
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     if (integration && (integration.credentials as any)?.instagramUserId && !(integration.credentials as any)?.pages) {
       isDirectInstagram = true;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       directIgUserId = (integration.credentials as any).instagramUserId as string;
     }
   }

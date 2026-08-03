@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState, useCallback, useRef } from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { AlertTriangle, Info, AlertCircle, CheckCircle, X, Bell, BellOff, Activity } from "lucide-react";
 import { useAlertsStore, type ZefirusAlert, type AlertSeverity } from "@/stores/alertsStore";
 import AlertsPanel from "./AlertsPanel";
@@ -153,7 +154,9 @@ export function AlertToastContainer() {
 /* ── Alert Bell Button (for header/navbar) ── */
 export function AlertBellButton() {
   const unreadCount = useAlertsStore((s) => s.unreadCount);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   const soundEnabled = useAlertsStore((s) => s.soundEnabled);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   const toggleSound = useAlertsStore((s) => s.toggleSound);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);

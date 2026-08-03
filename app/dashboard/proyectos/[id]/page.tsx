@@ -405,14 +405,14 @@ export default function ProjectDashboardPage() {
           setEditForm(mapped);
           if (mapped.channels.length > 0) setActivePlatform(mapped.channels[0].platformId);
         } else {
-          router.push("/dashboard/proyectos");
+          window.location.href = "/dashboard/proyectos";
         }
       } catch {
-        router.push("/dashboard/proyectos");
+        window.location.href = "/dashboard/proyectos";
       }
     }
     loadProject();
-  }, [params.id, router]);
+  }, [params.id]);
 
   // Load account names + pages + integrations
   useEffect(() => {

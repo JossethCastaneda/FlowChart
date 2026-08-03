@@ -81,6 +81,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx: WorkspaceContext
     select: { branding: true },
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const branding = (wsSettings?.branding ?? {}) as Record<string, any>;
   const reportSettings: ReportSettings = {
     logoUrl: branding.logoUrl || undefined,
@@ -102,7 +103,9 @@ export const POST = withWorkspace(async (req: NextRequest, ctx: WorkspaceContext
       slug: generateReportSlug(),
       dateFrom: new Date(dateFrom),
       dateTo: new Date(dateTo),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       data: snapshot as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       settings: reportSettings as any,
       createdById: ctx.userId,
       expiresAt,

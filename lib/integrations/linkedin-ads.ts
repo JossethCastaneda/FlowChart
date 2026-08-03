@@ -18,6 +18,7 @@ export function createLinkedInAdsClient(workspaceId: string): AdsClient {
      * Endpoint: GET /adAnalytics
      * Docs: https://learn.microsoft.com/en-us/linkedin/marketing/integrations/ads-reporting/ads-reporting
      */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
     async getInsights(_params: InsightsParams): Promise<NormalizedInsights> {
       const token = await getValidAccessToken(workspaceId, "linkedin_ads");
       if (!token) throw new Error("LinkedIn Ads not connected for this workspace");
@@ -25,16 +26,19 @@ export function createLinkedInAdsClient(workspaceId: string): AdsClient {
     },
 
     /** TODO: POST /adCampaigns */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
     async createCampaign(..._args: unknown[]): Promise<unknown> {
       throw new Error("TODO: LinkedIn Ads createCampaign — POST /adCampaigns");
     },
 
     /** TODO: POST /adCampaigns/{id} */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
     async updateCampaign(..._args: unknown[]): Promise<unknown> {
       throw new Error("TODO: LinkedIn Ads updateCampaign — POST /adCampaigns/{id}");
     },
 
     /** TODO: POST /adCampaigns/{id} (status: PAUSED) */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
     async pauseCampaign(..._args: unknown[]): Promise<unknown> {
       throw new Error("TODO: LinkedIn Ads pauseCampaign — PATCH /adCampaigns/{id} status=PAUSED");
     },

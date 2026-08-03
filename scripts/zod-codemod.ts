@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { Project, SyntaxKind, VariableDeclarationList } from "ts-morph";
 
 const project = new Project();

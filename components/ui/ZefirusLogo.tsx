@@ -336,6 +336,7 @@ function EmblemSVG({ uid, vb, animated = false }: { uid: string; vb: typeof VB.i
 /**
  * ZefirusIcon — Solo el emblema sin texto. Para favicons, avatares, etc.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 export function ZefirusIcon({ size = 24 }: { size?: number }) {
   const uid = React.useId().replace(/:/g, "");
   const vb = VB.icon;

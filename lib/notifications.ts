@@ -122,6 +122,7 @@ export async function createNotification({
  * Sends: in-app + email + WhatsApp (if the assignee has a whatsappPhone saved)
  */
 export async function notifyTaskAssigned({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   taskId,
   taskTitle,
   assigneeName,
@@ -207,6 +208,7 @@ export async function notifyTaskAssigned({
  * Sends: in-app + WhatsApp (if assignee has whatsappPhone)
  */
 export async function notifyTaskStatusChanged({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   taskId,
   taskTitle,
   assigneeName,
@@ -283,6 +285,7 @@ export async function notifyTaskStatusChanged({
  * Sends: in-app + WhatsApp (if assignee has whatsappPhone)
  */
 export async function notifyTaskPriorityChanged({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   taskId,
   taskTitle,
   assigneeName,
@@ -353,6 +356,7 @@ export async function notifyTaskPriorityChanged({
  * Sends: in-app + WhatsApp (if assignee has whatsappPhone)
  */
 export async function notifyTaskCommented({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   taskId,
   taskTitle,
   assigneeName,
@@ -475,9 +479,6 @@ export async function checkSLAWarnings(workspaceId: string) {
 
     const dueDateFormatted = task.dueDate.toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
     const slaTitle = hoursLeft <= 0 ? "SLA Vencido" : "SLA por vencer";
-    const waMessage = hoursLeft <= 0
-      ? ` *SLA VENCIDO* — ZEFIRUS\n\n*${task.title}*\nVenció el ${dueDateFormatted}\n\nVer: ${taskUrl}`
-      : ` *SLA por vencer* — ZEFIRUS\n\n*${task.title}*\nVence: ${dueDateFormatted} (${hoursLeft}h)\n\nVer: ${taskUrl}`;
 
     await createNotification({
       userId: user.id,

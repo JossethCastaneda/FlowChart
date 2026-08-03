@@ -19,6 +19,7 @@ export function createXAdsClient(workspaceId: string): AdsClient {
      * Endpoint: GET /stats/accounts/{account_id}
      * Docs: https://developer.x.com/en/docs/twitter-ads-api/analytics/api-reference/asynchronous
      */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
     async getInsights(_params: InsightsParams): Promise<NormalizedInsights> {
       const token = await getValidAccessToken(workspaceId, "x_ads");
       if (!token) throw new Error("X Ads not connected for this workspace");
@@ -26,16 +27,19 @@ export function createXAdsClient(workspaceId: string): AdsClient {
     },
 
     /** TODO: POST /accounts/{account_id}/campaigns */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
     async createCampaign(..._args: unknown[]): Promise<unknown> {
       throw new Error("TODO: X Ads createCampaign — POST /accounts/{id}/campaigns");
     },
 
     /** TODO: PUT /accounts/{account_id}/campaigns/{campaign_id} */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
     async updateCampaign(..._args: unknown[]): Promise<unknown> {
       throw new Error("TODO: X Ads updateCampaign — PUT /accounts/{id}/campaigns/{id}");
     },
 
     /** TODO: PUT /accounts/{account_id}/campaigns/{campaign_id} (entity_status: PAUSED) */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
     async pauseCampaign(..._args: unknown[]): Promise<unknown> {
       throw new Error("TODO: X Ads pauseCampaign — PUT entity_status=PAUSED");
     },

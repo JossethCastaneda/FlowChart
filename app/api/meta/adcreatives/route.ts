@@ -18,7 +18,9 @@ import { logger } from "@/lib/logger";
 function extractImageUrl(creative: {
   image_url?: string;
   thumbnail_url?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   object_story_spec?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   asset_feed_spec?: any;
 }): string {
   const spec = creative.object_story_spec || {};
@@ -55,7 +57,9 @@ function extractTexts(creative: {
   title?: string;
   body?: string;
   call_to_action_type?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   object_story_spec?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   asset_feed_spec?: any;
 }): {
   title: string;
@@ -70,8 +74,11 @@ function extractTexts(creative: {
   const link = spec.link_data || {};
 
   // Collect ALL texts from DCO feed (for text analysis panels)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const allTitles: string[] = (feed.titles || []).map((t: any) => t.text || "").filter(Boolean);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const allBodies: string[] = (feed.bodies || []).map((b: any) => b.text || "").filter(Boolean);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const allDescriptions: string[] = (feed.descriptions || []).map((d: any) => d.text || "").filter(Boolean);
   const allCtas: string[] = (feed.call_to_action_types || []).filter(Boolean);
 
@@ -87,6 +94,7 @@ function extractTexts(creative: {
 
 // Detects creative format based on creative structure — NOT action types
 // Meta records video_view for ALL ads (even images with autoplay preview)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 function detectFormat(creative: any, detail: any): "video" | "image" | "carousel" {
   const spec = creative.object_story_spec || {};
   const feed = creative.asset_feed_spec || detail?.assetFeedSpec || {};
@@ -181,6 +189,7 @@ export async function GET(req: NextRequest) {
   // ── Build lookup maps ────────────────────────────────────────────────────
 
   // Performance by ad_id
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const insightsMap: Record<string, any> = {};
   for (const ins of (insightsJson.data || [])) {
     insightsMap[ins.ad_id] = ins;
@@ -192,10 +201,13 @@ export async function GET(req: NextRequest) {
     thumbUrl: string;
     feedTitles: string[];
     feedBodies: string[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     assetFeedSpec: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     objectStorySpec: any;
   }> = {};
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const creativeIds = Array.from(new Set<string>((adsJson.data || []).map((ad: any) => ad.creative?.id as string).filter(Boolean)));
   if (creativeIds.length > 0) {
     const chunks: string[][] = [];
@@ -214,13 +226,16 @@ export async function GET(req: NextRequest) {
       if (result.status === "fulfilled" && result.value.ok) {
         try {
           const json = await result.value.json();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           for (const [id, cr] of Object.entries<any>(json)) {
             const imageUrl = extractImageUrl(cr);
             const feed = cr.asset_feed_spec || {};
             creativeDetailMap[id] = {
               imageUrl,
               thumbUrl: cr.thumbnail_url || "",
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
               feedTitles: (feed.titles || []).map((t: any) => t.text || "").filter(Boolean),
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
               feedBodies: (feed.bodies || []).map((b: any) => b.text || "").filter(Boolean),
               assetFeedSpec: feed,
               objectStorySpec: cr.object_story_spec || {},
@@ -282,6 +297,7 @@ export async function GET(req: NextRequest) {
         try {
           const json = await result.value.json();
           for (const [id, data] of Object.entries(json)) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
             if ((data as any).source) videoSourceMap[id] = (data as any).source;
           }
         } catch { /* ignore parse errors */ }
@@ -290,6 +306,7 @@ export async function GET(req: NextRequest) {
   }
 
   // ── Merge ads + creatives + insights ────────────────────────────────────
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const creatives = (adsJson.data || []).map((ad: any) => {
     const creative = ad.creative || {};
     const ins = insightsMap[ad.id] || {};
@@ -380,6 +397,7 @@ export async function GET(req: NextRequest) {
   });
 
   // Sort by spend descending
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   creatives.sort((a: any, b: any) => b.spend - a.spend);
 
   return NextResponse.json({ data: creatives });

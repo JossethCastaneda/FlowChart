@@ -97,3 +97,19 @@ fetch con IDs de B, verificar 403/404) requiere:
 4. Correr el spec de E2E (archivo pendiente de escribir: `e2e/aislamiento-tenant.spec.ts`)
 
 Las seeds ya están creadas en `prisma/seed.e2e.ts` con IDs determinísticos.
+
+---
+
+## 8. Confirmar o proveer base de datos segura para E2E
+
+**Prioridad:** ALTA (Bloquea la Fase A)
+
+Actualmente `DATABASE_URL` apunta a Neon (`ep-long-unit-ape6kzxh-pooler.c-7.us-east-1.aws.neon.tech`). Las reglas de saneamiento y el propio guardián en `seed.e2e.ts` prohíben inyectar semillas si no es explícitamente una base local o se confirma que es una rama de desarrollo. 
+
+El humano debe:
+1. Proveer una base de datos local en `DATABASE_URL` en `.env.local` y asegurarse de aplicar el esquema.
+2. O bien, entrar a console.neon.tech (bloqueado por denylist del navegador) y confirmar que la rama actual es de desarrollo, y ajustar `seed.e2e.ts` para permitir ese host específico.
+
+---
+
+- **Arquitectura de tipos Meta API:** Se requiere un refactor completo para eliminar los 362+  ny en lib/ads-metrics.ts y relacionados. Las respuestas de Graph API (como spend) llegan como strings y se usan como numbers. Requiere type boundaries fuertes.

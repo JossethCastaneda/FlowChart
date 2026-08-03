@@ -29,7 +29,9 @@ export function ClientPortalsManager({ workspaceId }: { workspaceId: string }) {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
     if (workspaceId) fetchProjects();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: [React] Refactor de hooks anti-patrón
   }, [workspaceId]);
 
   const handleAction = async (id: string, action: "generate" | "revoke") => {

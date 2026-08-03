@@ -43,6 +43,7 @@ export function NotificationBell() {
 
   // Poll every 30 seconds
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
@@ -122,6 +123,7 @@ export function NotificationBell() {
   };
 
   const timeAgo = (d: string) => {
+    // eslint-disable-next-line react-hooks/purity -- TODO: [React] Refactor de hooks anti-patrón
     const mins = Math.floor((Date.now() - new Date(d).getTime()) / 60000);
     if (mins < 1) return "ahora";
     if (mins < 60) return `${mins}m`;

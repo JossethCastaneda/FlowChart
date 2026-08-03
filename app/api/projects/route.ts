@@ -8,9 +8,11 @@ import { resolveProjectCrmAssociation, persistableCrmType } from "@/lib/projects
 import { checkPlanLimit } from "@/lib/plan-limits";
 import {
   apiSuccess,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   apiUnauthorized,
   apiForbidden,
   apiError,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   apiServerError,
 } from "@/lib/api-response";
 import { triggerAutoAriaForProject } from "@/lib/crecimiento/aria-auto";

@@ -30,6 +30,7 @@ export default function CrecimientoInsights() {
     highIntentLeads: 0,
     lift: "0x"
   });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const [insights, setInsights] = useState<any>(null);
   const [loadingInsights, setLoadingInsights] = useState(false);
 

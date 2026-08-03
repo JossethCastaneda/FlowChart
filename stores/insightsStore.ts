@@ -13,6 +13,7 @@ import { create } from "zustand";
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 interface CachedInsights {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   data: any;
   fetchedAt: number;
 }
@@ -49,11 +50,13 @@ const RESULT_TYPES_FALLBACK = [
 ];
 
 /** Find the best result action from an actions array using goal-aware matching */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function findResultAction(actions: any[] | undefined, goal?: string): any | null {
   if (!actions?.length) return null;
   // 1. If we know the goal AND it has a specific map, use ONLY those types
   if (goal && GOAL_ACTION_MAP[goal]) {
     for (const t of GOAL_ACTION_MAP[goal]) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       const exact = actions.find((a: any) => a.action_type === t);
       if (exact) return exact;
     }
@@ -63,11 +66,13 @@ export function findResultAction(actions: any[] | undefined, goal?: string): any
   }
   // 2. No explicit goal: try common result types
   for (const t of RESULT_TYPES_FALLBACK) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const exact = actions.find((a: any) => a.action_type === t);
     if (exact) return exact;
   }
   // 3. Last resort when no goal: substring match
   for (const t of RESULT_TYPES_FALLBACK) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const partial = actions.find((a: any) => a.action_type?.includes(t));
     if (partial) return partial;
   }
@@ -75,6 +80,7 @@ export function findResultAction(actions: any[] | undefined, goal?: string): any
 }
 
 /** Count total results from a timeSeries array using goal-aware matching */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function countResultsFromTimeSeries(timeSeries: any[], goal?: string): number {
   let total = 0;
   if (!timeSeries?.length) return 0;
@@ -94,6 +100,7 @@ interface InsightsState {
   buildKey: (projectId: string, preset?: string, dateStart?: string, dateEnd?: string) => string;
 
   /** Get cached insights (returns null if expired or missing) */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   getCached: (projectId: string, preset?: string, dateStart?: string, dateEnd?: string) => any | null;
 
   /** Fetch and cache insights for a single project's ad accounts */
@@ -103,9 +110,11 @@ interface InsightsState {
     preset?: string,
     dateStart?: string,
     dateEnd?: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   ) => Promise<any>;
 
   /** Preload insights for ALL active projects (called on login) */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   preloadAll: (projects: any[]) => Promise<void>;
 
   /** Invalidate cache for a specific project */
@@ -158,13 +167,17 @@ export const useInsightsStore = create<InsightsState>((set, get) => ({
         )
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       const valid = results.filter(Boolean).filter((r: any) => !r.error);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       const merged: any = { timeSeries: [], campaigns: [], adsets: [], ads: [] };
       if (valid.length === 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         const errResult = results.find((r: any) => r && r.error);
         merged._error = errResult ? errResult.error : "No data";
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         valid.forEach((r: any) => {
           const payload = r.data && Array.isArray(r.data.timeSeries) ? r.data : r;
           Object.keys(merged).forEach(k => {
@@ -195,6 +208,7 @@ export const useInsightsStore = create<InsightsState>((set, get) => ({
     if (get().preloading) return;
     set({ preloading: true });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const activeProjects = projects.filter((p: any) => p.status === "EN VUELO" || p.status === "EN ÓRBITA" || p.status === "Activo");
     if (activeProjects.length === 0) {
       set({ preloading: false, preloaded: true });
@@ -202,13 +216,16 @@ export const useInsightsStore = create<InsightsState>((set, get) => ({
     }
 
     // Extract ad accounts from each project's channels
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const fetchPromises = activeProjects.map(async (p: any) => {
       // Find Meta channel
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       const metaCh = p.channels?.find((c: any) => {
         const cfg = (typeof c.config === "string" ? JSON.parse(c.config) : c.config) || {};
         return cfg?.platformId === "meta" || cfg?.platformId === "facebook"
           || (c.name || "").toLowerCase().includes("meta")
           || (c.type || "").toLowerCase().includes("facebook");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       }) || p.channels?.find((c: any) => {
         const cfg = (typeof c.config === "string" ? JSON.parse(c.config) : c.config) || {};
         return cfg?.adAccounts?.length > 0;

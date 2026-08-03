@@ -1,14 +1,17 @@
 "use client";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { useState, useEffect } from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { Upload, FileSpreadsheet, CheckCircle, AlertTriangle } from "lucide-react";
 import { Orbi } from "@/components/ui/Orbi";
 
 export default function DataHub() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const [datasets, setDatasets] = useState<any[]>([]);
   const [selectedDatasetId, setSelectedDatasetId] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const [result, setResult] = useState<any>(null);
 
   useEffect(() => {

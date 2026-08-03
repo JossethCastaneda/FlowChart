@@ -38,6 +38,7 @@ if (baseDbUrl && dbUrlRaw) {
       url.host = url.host.replace("-pooler", "");
       dbUrl = url.toString();
     }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   } catch (e) {
     // Ignore parse errors
   }

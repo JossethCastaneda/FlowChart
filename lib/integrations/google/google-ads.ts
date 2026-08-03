@@ -74,6 +74,7 @@ export async function getAdsCampaigns(workspaceId: string, since?: string, until
   }
 
   const data = await res.json();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const campaigns: any[] = [];
 
   for (const batch of data) {

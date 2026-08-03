@@ -111,6 +111,7 @@ export async function GET(request: NextRequest) {
     const existing = await prisma.integration.findUnique({
       where: { workspaceId_provider_userId: { workspaceId, provider: "google", userId: "workspace" } },
     });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const existingCreds = existing?.credentials as Record<string, any> || {};
 
     const grantedScopes = tokenData.scope ? tokenData.scope.split(" ") : [];
@@ -154,6 +155,7 @@ export async function GET(request: NextRequest) {
     logger.info(`[OAUTH GOOGLE] Successfully connected Google for workspace ${workspaceId}`);
     return NextResponse.redirect(new URL(`/dashboard/integrations?success=google_connected`, request.url));
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     logger.error("[OAUTH GOOGLE] Unexpected error:", err);
     return NextResponse.redirect(new URL("/dashboard/integrations?error=google_internal_error", request.url));

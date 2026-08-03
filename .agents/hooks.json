@@ -16,7 +16,7 @@
     {
       "event": "before_tool_call",
       "match": {
-        "tool": ["browser_subagent"]
+        "tool": ["browser_subagent", "call_mcp_tool", "mcp_chrome-devtools-mcp_navigate_page"]
       },
       "action": {
         "type": "script",

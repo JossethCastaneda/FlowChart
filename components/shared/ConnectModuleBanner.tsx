@@ -46,6 +46,7 @@ interface ConnectModuleBannerProps {
  */
 export function ConnectModuleBanner({ module, onConnected }: ConnectModuleBannerProps) {
   const [status, setStatus] = useState<"loading" | "connected" | "disconnected">("loading");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const [pages, setPages] = useState<any[]>([]);
 
   useEffect(() => {
@@ -61,17 +62,20 @@ export function ConnectModuleBanner({ module, onConnected }: ConnectModuleBanner
         }
       })
       .catch(() => setStatus("disconnected"));
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: [React] Refactor de hooks anti-patrón
   }, [module]);
 
   // Check URL params for recently connected
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("connected") === module) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
       setStatus("connected");
       // Clean URL
       window.history.replaceState({}, "", window.location.pathname);
       onConnected?.();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: [React] Refactor de hooks anti-patrón
   }, [module]);
 
   const config = MODULE_CONFIG[module];

@@ -14,6 +14,7 @@ export function useTaskFilters() {
       const r = localStorage.getItem("zefirus:ops-prefs");
       if (r) {
         const p = JSON.parse(r);
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
         if (p.groupBy) setGroupBy(p.groupBy);
         if (p.viewMode) setViewMode(p.viewMode);
         if (typeof p.fAssignee === "string") setFAssignee(p.fAssignee);

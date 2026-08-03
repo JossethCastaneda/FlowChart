@@ -17,6 +17,7 @@ export const GET = withWorkspaceRole(["OWNER", "ADMIN", "MEMBER"])(async (req, c
     return apiSuccess({ model: DEFAULT_MODEL }); // Default si no hay settings
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const extConfig = settings.extConfig as Record<string, any>;
   return apiSuccess({ model: extConfig?.ariaGenerativeModel || DEFAULT_MODEL });
 });
@@ -49,6 +50,7 @@ export const PUT = withWorkspaceRole(["OWNER", "ADMIN"])(async (req, ctx) => {
     where: { workspaceId: ctx.workspaceId },
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const currentExtConfig = (settings?.extConfig as Record<string, any>) || {};
   const updatedExtConfig = { ...currentExtConfig, ariaGenerativeModel: model };
 

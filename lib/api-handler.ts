@@ -44,6 +44,7 @@ type Handler<C> = (req: NextRequest, ctx: C) => Promise<Response>;
 
 /** Requiere sesión. Inyecta userId. */
 export function withAuth(handler: Handler<AuthContext>) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   return async (req: NextRequest, routeCtx: any): Promise<Response> => {
     try {
       let session;

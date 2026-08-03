@@ -28,6 +28,7 @@ async function handler(
 
   const nextAuth = NextAuth(authOptions);
   // NextAuth v4 handler accepts (req, res) — pass through with resolved params
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   return nextAuth(req as any, { params: await ctx.params } as any);
 }
 

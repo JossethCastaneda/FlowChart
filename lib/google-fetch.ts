@@ -51,6 +51,7 @@ export async function googleFetch(
       // E.g. a 401 means token expired, which caller might want to handle by refreshing.
       return response;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     } catch (error: any) {
       // Network errors (e.g. connection reset, timeout)
       if (attempt >= maxRetries) {

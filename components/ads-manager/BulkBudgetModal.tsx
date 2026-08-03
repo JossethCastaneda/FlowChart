@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 ﻿"use client";
 import React, { useState, useMemo } from "react";
 import { X, DollarSign, Percent } from "lucide-react";

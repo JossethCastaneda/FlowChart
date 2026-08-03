@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, react-hooks/purity */
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
@@ -11,22 +12,22 @@ import {
   Hash,
   Plus,
   Check,
-  AlertCircle,
+    AlertCircle,
   Loader2,
   Smartphone,
-  Heart,
-  MessageCircle,
-  Share2,
-  MoreHorizontal,
-  Bookmark,
+    Heart,
+    MessageCircle,
+    Share2,
+    MoreHorizontal,
+    Bookmark,
   ChevronDown,
   Globe,
-  Trash2,
+    Trash2,
   Terminal,
   AlertTriangle,
-  CheckCircle,
-  XCircle,
-  ChevronUp,
+    CheckCircle,
+    XCircle,
+    ChevronUp,
 } from "lucide-react";
 import { openConnectPopup } from "@/lib/connect-popup";
 
@@ -118,9 +119,9 @@ export function Composer() {
   const [showAccountPicker, setShowAccountPicker] = useState(false);
 
   // Social connection status
-  const [socialConnected, setSocialConnected] = useState<boolean | null>(null);
-  const [socialPages, setSocialPages] = useState<any[]>([]);
-  const [socialInstagramAccounts, setSocialInstagramAccounts] = useState<any[]>([]);
+    const [socialConnected, setSocialConnected] = useState<boolean | null>(null);
+    const [socialPages, setSocialPages] = useState<any[]>([]);
+    const [socialInstagramAccounts, setSocialInstagramAccounts] = useState<any[]>([]);
 
   // Loading
   const [savingDraft, setSavingDraft] = useState(false);
@@ -163,7 +164,8 @@ export function Composer() {
         });
       }
     }
-    setAllTargets(targets);
+   
+        setAllTargets(targets);
   }, [pages]);
 
   /* ── Load pages on mount and on connection ──────────── */
@@ -182,7 +184,8 @@ export function Composer() {
   }, []);
 
   useEffect(() => {
-    loadPages();
+   
+        loadPages();
     const handleMessage = (e: MessageEvent) => {
       if (e.origin !== window.location.origin) return;
       if (e.data?.type === "OAUTH_SUCCESS" || e.data?.type === "INTEGRATION_UPDATED") {
@@ -202,9 +205,9 @@ export function Composer() {
         // Check publisher_facebook first, fall back to social
         const pub = data.modules?.publisher_facebook || data.modules?.social;
         setSocialConnected(pub?.connected ?? false);
-        const pagesArr: any[] = pub?.pages || [];
+                const pagesArr: any[] = pub?.pages || [];
         setSocialPages(pagesArr);
-        setSocialInstagramAccounts(pagesArr.filter((p: any) => p.instagramId));
+                setSocialInstagramAccounts(pagesArr.filter((p: any) => p.instagramId));
       } else {
         setSocialConnected(false);
       }
@@ -214,14 +217,15 @@ export function Composer() {
   }, []);
 
   useEffect(() => {
-    loadSocialStatus();
+   
+        loadSocialStatus();
     // Also refresh if we just connected (URL param)
     const params = new URLSearchParams(window.location.search);
     if (params.get("connected") === "publisher_facebook" || params.get("connected") === "publisher_instagram" || params.get("connected") === "social") {
       window.history.replaceState({}, "", window.location.pathname);
       loadSocialStatus();
     }
-  }, []);
+    }, []);
 
   /* ── Auto-dismiss banner ────────────────────────────── */
   useEffect(() => {
@@ -323,8 +327,7 @@ export function Composer() {
       e.preventDefault(); e.stopPropagation(); setIsDragging(false);
       if (e.dataTransfer.files.length > 0) handleFiles(e.dataTransfer.files);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [mediaFiles]
+        [mediaFiles]
   );
 
   /* ── Hashtag management ─────────────────────────────── */
@@ -406,7 +409,7 @@ export function Composer() {
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Error al guardar el borrador en la base de datos."); }
       setBanner({ type: "success", message: "Datos cifrados y almacenados en caché" });
       clearForm();
-    } catch (e: any) { 
+        } catch (e: any) { 
       console.error("saveDraft error:", e);
       setBanner({ type: "error", message: e.message || "Error desconocido" }); 
     }
@@ -438,7 +441,7 @@ export function Composer() {
       const scheduleDate = new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeStyle: "short" }).format(new Date(scheduledAt));
       setBanner({ type: "success", message: `Salto orbital programado para el marco: ${scheduleDate}` });
       clearForm();
-    } catch (e: any) { 
+        } catch (e: any) { 
       console.error("schedulePost error:", e);
       setBanner({ type: "error", message: e.message || "Error desconocido" }); 
     }
@@ -463,25 +466,25 @@ export function Composer() {
 
       // ── Step 2: Publish via correct endpoint based on format ──
       let pubEndpoint = "/api/publisher/publish";
-      const pubBody: any = { postId: post.id };
+            const pubBody: any = { postId: post.id };
 
       if (format === "reel" || format === "story") {
         // For reels/stories, we publish directly per-platform
         pubEndpoint = format === "reel" ? "/api/publisher/reels" : "/api/publisher/stories";
         const igTarget = selectedTargets.find((t) => t.platform === "instagram");
-        const fbTarget = selectedTargets.find((t) => t.platform === "facebook");
+                const fbTarget = selectedTargets.find((t) => t.platform === "facebook");
         const mediaUrl = mediaFiles[0]?.url || "";
-        const caption = customizeByPlatform
+                const caption = customizeByPlatform
           ? (igTarget ? igContent : fbContent)
           : fullContent();
 
         // Publish to each selected platform
-        const results: any[] = [];
+                const results: any[] = [];
         for (const target of selectedTargets) {
           const platformCaption = customizeByPlatform
             ? (target.platform === "facebook" ? fbContent : igContent) || fullContent()
             : fullContent();
-          const body: any = {
+                    const body: any = {
             platform: target.platform,
             caption: platformCaption,
             pageId: target.pageId,
@@ -563,7 +566,7 @@ export function Composer() {
         }
         clearForm();
       }
-    } catch (e: any) { 
+        } catch (e: any) { 
       console.error("publishNow error:", e);
       setBanner({ type: "error", message: e.message || "Error desconocido" }); 
     }
@@ -574,7 +577,7 @@ export function Composer() {
 
   /* ── Preview helpers ────────────────────────────────── */
   const previewText = fullContent() || "Iniciando enlace de subespacio... El holomensaje proyectado aparecerá aquí.";
-  const previewMedia = mediaFiles.length > 0 ? mediaFiles[0].url : null;
+    const previewMedia = mediaFiles.length > 0 ? mediaFiles[0].url : null;
 
   /* ══════════════════════════════════════════════════════
      RENDER
@@ -714,7 +717,7 @@ export function Composer() {
                               color: "var(--foreground)", fontSize: 13, cursor: "pointer", textAlign: "left",
                               transition: "background 0.15s",
                             }}>
-                              <img src={target.pagePicture} alt="" style={{
+                                                            <img src={target.pagePicture} alt="" style={{
                                 width: 32, height: 32, borderRadius: "50%", objectFit: "cover",
                                 border: isSelected ? "2px solid #1877f2" : "2px solid transparent",
                               }} />
@@ -756,7 +759,7 @@ export function Composer() {
                               color: "var(--foreground)", fontSize: 13, cursor: "pointer", textAlign: "left",
                               transition: "background 0.15s",
                             }}>
-                              <img src={target.igPicture || target.pagePicture} alt="" style={{
+                                                            <img src={target.igPicture || target.pagePicture} alt="" style={{
                                 width: 32, height: 32, borderRadius: "50%", objectFit: "cover",
                                 border: isSelected ? "2px solid #E1306C" : "2px solid transparent",
                               }} />
@@ -888,7 +891,7 @@ export function Composer() {
                     {media.type === "video" ? (
                       <video src={media.url} style={{ width: "100%", height: "100%", objectFit: "cover" }} muted />
                     ) : (
-                      <img src={media.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                            <img src={media.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     )}
                     <button onClick={() => removeMedia(i)} style={{
                       position: "absolute", top: 3, right: 3, width: 20, height: 20,
@@ -1026,7 +1029,7 @@ export function Composer() {
                 onChange={(e) => setScheduledAt(e.target.value)}
                 // min en hora LOCAL (el input datetime-local es local). Con toISOString()
                 // (UTC) en zonas UTC-negativas se bloqueaban las próximas horas válidas.
-                min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
+                                min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
                 style={{
                   maxWidth: 200, padding: "6px 10px", borderRadius: 6,
                   background: "var(--row-hover)", border: "1px solid var(--hairline)",

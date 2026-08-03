@@ -1,9 +1,11 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import {
   Plus, Home, AtSign, Hash, Calendar, Send, Heart, MessageCircle, Share2,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   MoreHorizontal, X, Settings, RefreshCw, ChevronDown, ChevronUp, Trash2, Loader2,
   ExternalLink, Search, Check
 } from "lucide-react";
@@ -190,6 +192,7 @@ export function StreamsDashboard() {
   const [newColQuery, setNewColQuery] = useState("");
   const [loadingBoards, setLoadingBoards] = useState(true);
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const [availablePages, setAvailablePages] = useState<any[]>([]);
   const [selectedPost, setSelectedPost] = useState<StreamPost | null>(null);
 
@@ -338,6 +341,7 @@ export function StreamsDashboard() {
   useEffect(() => {
     if (["home_feed", "mentions", "published"].includes(newColType)) {
       if (filteredAssets[0] && !newColQuery) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
         setNewColQuery(filteredAssets[0].id);
       }
     }
@@ -547,6 +551,7 @@ export function StreamsDashboard() {
 const INITIAL_VISIBLE = 10;
 
 function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPostClick }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   col: BoardColumn; availablePages: any[]; onRemove: (id: string) => void;
   onUpdateConfig: (id: string, pageId: string, nickname: string, interval: number, keyword: string) => void;
   onPostClick: (post: StreamPost) => void;
@@ -564,6 +569,7 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  // eslint-disable-next-line react-hooks/purity -- TODO: [React] Refactor de hooks anti-patrón
   const [lastRefresh, setLastRefresh] = useState(Date.now());
   const [secondsAgo, setSecondsAgo] = useState(0);
   
@@ -582,6 +588,7 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data?.posts?.length) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           const mapped: StreamPost[] = data.posts.map((p: any) => ({
             id: p.id,
             author: p.author || "Usuario",
@@ -609,6 +616,7 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
 
   // Initial fetch
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
     fetchData();
   }, [fetchData]);
 

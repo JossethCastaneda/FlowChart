@@ -125,9 +125,11 @@ export async function resolveWorkspaceForMetaAsset(
       select: { workspaceId: true, credentials: true }
     });
     for (const integ of metaIntegrations) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       const creds = integ.credentials as any;
       if (!creds?.pages || !Array.isArray(creds.pages)) continue;
       
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       const found = creds.pages.some((p: any) => {
         if (kind === "page") return p.id === externalId || p.id === normalized;
         return p.instagramId === externalId || p.instagramId === normalized;
@@ -153,6 +155,7 @@ export async function resolveWorkspaceForMetaAsset(
         select: { workspaceId: true, credentials: true },
       });
       for (const integ of igIntegrations) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         const creds = integ.credentials as any;
         const igUserId = creds?.instagramUserId?.toString() ?? null;
         if (igUserId && (igUserId === externalId || igUserId === normalized)) {
@@ -196,10 +199,12 @@ export interface InboundMessageInput {
   sender?: "user" | "page";
   /** Override for conversation ID (e.g. post ID for comments). Defaults to contactId */
   conversationExternalId?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   attachments?: any[];
   /** mid del mensaje al que se responde (Messenger reply-to / message_context). */
   replyToId?: string | null;
   /** Custom fields extraidos de Graph API (locale, timezone, gender) */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   customFields?: Record<string, any>;
 }
 

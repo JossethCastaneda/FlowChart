@@ -34,6 +34,7 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   } else if (!integration.connected) {
     results.integration_db = { ok: false, detail: "Integration.connected = false" };
   } else {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const creds = integration.credentials as any;
     results.integration_db = {
       ok: !!creds?.accessToken,
@@ -70,6 +71,7 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
       };
       return apiSuccess({ results, ready: false });
     }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (e: any) {
     results.meta_me = { ok: false, detail: `Excepción: ${e.message}` };
     return apiSuccess({ results, ready: false });
@@ -89,6 +91,7 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
         detail: pagesData?.error?.message || "No se encontraron páginas de Facebook. Verifica permisos de la app (pages_show_list, pages_read_engagement).",
       };
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       const pagesSummary = pages.map((p: any) => {
         const ig = p.instagram_business_account;
         return `"${p.name}" (FB: ${p.id}${ig ? `, IG: @${ig.username}` : ", sin IG"})`;
@@ -99,6 +102,7 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
       };
 
       // Check if any page has IG account
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       const hasIg = pages.some((p: any) => p.instagram_business_account);
       results.instagram_account = {
         ok: hasIg,
@@ -107,6 +111,7 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
           : "Ninguna página tiene Instagram Business Account vinculado — no podrás publicar en Instagram",
       };
     }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (e: any) {
     results.meta_pages = { ok: false, detail: `Excepción: ${e.message}` };
   }

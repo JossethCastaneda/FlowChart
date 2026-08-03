@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
     const cta = callToAction || DEFAULT_CTA;
 
     // Determine creative type: video, image+link, or text-only
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     let storySpec: Record<string, any>;
 
     if (videoId) {
@@ -77,6 +78,7 @@ export async function POST(req: NextRequest) {
       };
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const creativePayload: Record<string, any> = {
       name: `Creative — ${String(name).trim()}`,
       object_story_spec: JSON.stringify(storySpec),
@@ -144,6 +146,7 @@ export async function POST(req: NextRequest) {
       created_paused: true,
       data: adJson,
     });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (error: any) {
     logger.error("[ADS] Ad create unhandled", { error: error.message });
     return NextResponse.json({ status: "error", error: error.message }, { status: 500 });

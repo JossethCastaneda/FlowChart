@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text, @typescript-eslint/no-explicit-any */
 ﻿"use client";
 import React, { useState, useEffect, useRef } from "react";
 import { X, Save, Loader2, AlertCircle, Image, Eye } from "lucide-react";
@@ -43,7 +44,7 @@ const CTA_OPTIONS = [
 ];
 
 interface EditAdModalProps {
-  ad: any;
+    ad: any;
   adAccountId?: string;
   onClose: () => void;
   onSaved: () => void;
@@ -106,13 +107,13 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
     setLocalError(null);
     if (!name.trim()) { setLocalError("El nombre es obligatorio"); return; }
 
-    const fields: any = { name };
+        const fields: any = { name };
     if (status !== ad.status) fields.status = status;
 
     // If creative changed, build new creative spec
     if (creativeChanged && existingStorySpec.page_id) {
       const pageId = existingStorySpec.page_id;
-      const newCreative: any = {
+            const newCreative: any = {
         name: `${name} - Creativo`,
         object_story_spec: {
           page_id: pageId,
@@ -246,10 +247,10 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
               {/* Ad info read-only */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <FormGroup label="ID del creativo">
-                  <div style={{ ...inputStyle as any, color: "var(--text-muted)", fontSize: 12, fontFamily: "var(--font-mono)" }}>{existingCreative.id || "—"}</div>
+                                    <div style={{ ...inputStyle as any, color: "var(--text-muted)", fontSize: 12, fontFamily: "var(--font-mono)" }}>{existingCreative.id || "—"}</div>
                 </FormGroup>
                 <FormGroup label="Conjunto">
-                  <div style={{ ...inputStyle as any, color: "var(--text-muted)", fontSize: 12, fontFamily: "var(--font-mono)" }}>{ad.adset_id || "—"}</div>
+                                    <div style={{ ...inputStyle as any, color: "var(--text-muted)", fontSize: 12, fontFamily: "var(--font-mono)" }}>{ad.adset_id || "—"}</div>
                 </FormGroup>
               </div>
             </>
@@ -269,7 +270,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
                   onChange={(e) => setMessage(e.target.value)}
                   rows={4}
                   placeholder="Escribe el texto principal del anuncio..."
-                  style={{ ...inputStyle as any, resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }}
+                                    style={{ ...inputStyle as any, resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }}
                 />
               </FormGroup>
 

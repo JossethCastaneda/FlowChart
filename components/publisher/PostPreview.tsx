@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 ﻿"use client";
 import React from "react";
 import {
@@ -111,7 +112,7 @@ function MediaBox({
     );
   }
   return (
-    <img src={url} alt="" style={{ width: "100%", objectFit: "cover", ...style }} />
+        <img src={url} alt="" style={{ width: "100%", objectFit: "cover", ...style }} />
   );
 }
 
@@ -152,7 +153,7 @@ export function PostPreview({
         {/* Header */}
         <div style={{ padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <img src={pageAvatar} alt="" style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover" }} />
+                        <img src={pageAvatar} alt="" style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover" }} />
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)" }}>{pageName}</div>
               <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>Justo ahora · </div>
@@ -209,7 +210,7 @@ export function PostPreview({
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}
             >
-              <img src={avatar} alt="" style={{ width: 26, height: 26, borderRadius: "50%", objectFit: "cover" }} />
+                            <img src={avatar} alt="" style={{ width: 26, height: 26, borderRadius: "50%", objectFit: "cover" }} />
             </div>
             <div style={{ fontSize: 13, fontWeight: 600 }}>@{username}</div>
           </div>
@@ -275,7 +276,7 @@ export function PostPreview({
                 style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", top: 0, left: 0 }}
               />
             ) : (
-              <img
+                            <img
                 src={firstMedia}
                 alt=""
                 style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", top: 0, left: 0 }}
@@ -324,7 +325,7 @@ export function PostPreview({
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <img
+                            <img
                 src={avatar}
                 alt=""
                 style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(255,255,255,0.3)" }}
@@ -403,7 +404,7 @@ export function PostPreview({
                 style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", top: 0, left: 0 }}
               />
             ) : (
-              <img
+                            <img
                 src={firstMedia}
                 alt=""
                 style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", top: 0, left: 0 }}
@@ -457,7 +458,7 @@ export function PostPreview({
               zIndex: 2,
             }}
           >
-            <img
+                        <img
               src={avatar}
               alt=""
               style={{
@@ -503,7 +504,7 @@ export function PostPreview({
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}
             >
-              <img src={avatar} alt="" style={{ width: 26, height: 26, borderRadius: "50%", objectFit: "cover" }} />
+                            <img src={avatar} alt="" style={{ width: 26, height: 26, borderRadius: "50%", objectFit: "cover" }} />
             </div>
             <div style={{ fontSize: 13, fontWeight: 600 }}>@{username}</div>
           </div>

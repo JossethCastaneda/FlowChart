@@ -12,6 +12,7 @@ export interface DashboardWidgetProps extends React.HTMLAttributes<HTMLDivElemen
 }
 
 export const DashboardWidget = forwardRef<HTMLDivElement, DashboardWidgetProps>(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   ({ id, title, icon, children, onRemove, style, className, ...rest }, ref) => {
     return (
       <div

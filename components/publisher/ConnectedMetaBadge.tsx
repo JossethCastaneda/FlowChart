@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { openConnectPopup } from "@/lib/connect-popup";
 import { X, Plus } from "lucide-react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { MetaIcon, FacebookIcon, InstagramIcon } from "@/components/ui/AppIcons";
 
 interface ConnectedProfile {
@@ -49,6 +50,7 @@ export function ConnectedMetaBadge({
       const res = await fetch(`/api/workspace/integrations`);
       const json = await res.json();
       // Envelope estándar { success, data: { data: [...] } }.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       const list: any[] = Array.isArray(json) ? json : (json?.data?.data ?? []);
       // Primer provider conectado (en orden de prioridad). Se prefiere el perfil
       // de Facebook (nickname + avatar); si una conexión antigua aún no lo tiene
@@ -105,6 +107,7 @@ export function ConnectedMetaBadge({
   }, [module, fetchIntegrations]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
     fetchIntegrations();
     // Reaccionar a conexiones hechas desde el popup OAuth.
     const handleMessage = (e: MessageEvent) => {

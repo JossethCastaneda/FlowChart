@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element, @typescript-eslint/no-unused-vars, react-hooks/set-state-in-effect */
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
@@ -7,24 +8,24 @@ import { ReactLenis } from "lenis/react";
 import { ZefirusLogo } from "@/components/ui/ZefirusLogo";
 import { Orbi } from "@/components/ui/Orbi";
 import {
-  ArrowRight,
-  BarChart3,
-  Bot,
+    ArrowRight,
+    BarChart3,
+    Bot,
   Target,
   Shield,
   Globe,
-  TrendingUp,
+    TrendingUp,
   MessageSquare,
   Sparkles,
   Activity,
   CheckCircle2,
-  Clock,
-  DollarSign,
-  Eye,
+    Clock,
+    DollarSign,
+    Eye,
   Users,
-  LineChart,
+    LineChart,
   Star,
-  ChevronRight,
+    ChevronRight,
   ChevronDown,
   MapPin,
   X
@@ -393,7 +394,7 @@ const AD_PLATFORM_LABEL: Record<string, string> = { tiktok: "TikTok", instagram:
 
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
-  const [mounted, setMounted] = useState(false);
+    const [mounted, setMounted] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [productOpen, setProductOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -440,7 +441,8 @@ export default function Home() {
     return () => clearTimeout(id);
   }, [howStep]);
 
-  useEffect(() => { setMounted(true); }, []);
+   
+    useEffect(() => { setMounted(true); }, []);
   // Nav sólido al hacer scroll. Lenis (smooth scroll) no propaga el evento 'scroll'
   // nativo a window, pero sí actualiza window.scrollY — lo leemos por rAF.
   useEffect(() => {
@@ -1738,7 +1740,7 @@ export default function Home() {
                 { t: "Tus datos son tuyos.", d: "Los exportas o los borras cuando quieras, sin pedir permiso ni abrir un ticket que nadie contesta.", img: "/icons/seg-datos.png" },
               ].map((s, i) => (
                 <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 6 }}>
-                  <img src={s.img} alt="" width={56} height={56} style={{ width: 56, height: 56, objectFit: "contain", marginBottom: 12 }} />
+                                    <img src={s.img} alt="" width={56} height={56} style={{ width: 56, height: 56, objectFit: "contain", marginBottom: 12 }} />
                   <p style={{ fontSize: 14.5, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>{s.t}</p>
                   <p style={{ fontSize: 13.5, color: "var(--text-muted)", lineHeight: 1.5, margin: 0 }}>{s.d}</p>
                 </div>

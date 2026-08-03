@@ -3,7 +3,6 @@ import { withWorkspace, withWorkspaceRole } from "@/lib/api-handler";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 
-const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
 const GoogleSourcesSchema = z.object({
   adsCustomerId: z.string().max(64).optional(),
@@ -105,6 +104,7 @@ export const PUT = withWorkspaceRole(["OWNER", "ADMIN"])(async (request, ctx) =>
     // 1. Update Project's legacy JSON field
     await tx.project.update({
       where: { id },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       data: { googleSources: newSources as any },
     });
 

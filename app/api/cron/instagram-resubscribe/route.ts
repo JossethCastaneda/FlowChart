@@ -52,7 +52,6 @@ export async function GET(req: NextRequest) {
   for (const integ of integrations) {
     const creds = integ.credentials as Record<string, unknown>;
     const instagramUserId = creds?.instagramUserId ? String(creds.instagramUserId) : null;
-    const existingResult = creds?.webhookSubscriptionResult as string | null;
 
     // Intentar suscribir incluso si ya tiene éxito previo (para renovar)
     // En producción podrías saltar si `existingResult === "success"` y la fecha es reciente

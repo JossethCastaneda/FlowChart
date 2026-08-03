@@ -41,6 +41,7 @@ export function WhatsAppPhonePrompt() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   const [waConnected, setWaConnected] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 

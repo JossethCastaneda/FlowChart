@@ -21,6 +21,7 @@ import {
   Menu
 } from "lucide-react";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 const ICON_MAP: Record<string, any> = {
   "activity": Activity,
   "folder-kanban": FolderKanban,

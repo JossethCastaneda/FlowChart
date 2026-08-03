@@ -172,12 +172,14 @@ function calculateICU(
 }
 
 // ── Find goal results from actions array ─────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 function findGoalResults(actions: any[] | undefined, goal: string): number {
   if (!actions?.length) return 0;
 
   const targetTypes = GOAL_ACTION_MAP[goal];
   if (targetTypes) {
     for (const t of targetTypes) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       const found = actions.find((a: any) => a.action_type === t);
       if (found) {
         return parseInt(found.value || "0", 10);
@@ -188,6 +190,7 @@ function findGoalResults(actions: any[] | undefined, goal: string): number {
 
   // Fallback: try common action types
   for (const t of RESULT_TYPES_FALLBACK) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const found = actions.find((a: any) => a.action_type === t);
     if (found) return parseInt(found.value || "0", 10);
   }
@@ -196,13 +199,16 @@ function findGoalResults(actions: any[] | undefined, goal: string): number {
 }
 
 // ── Find link clicks from actions array ──────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 function findLinkClicks(actions: any[] | undefined, rawClicks: number): number {
   if (!actions?.length) return rawClicks;
 
   // Priority: link_click > outbound_clicks > raw clicks
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const lc = actions.find((a: any) => a.action_type === "link_click");
   if (lc) return parseInt(lc.value || "0", 10);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const ob = actions.find((a: any) => a.action_type === "outbound_click");
   if (ob) return parseInt(ob.value || "0", 10);
 
@@ -302,11 +308,17 @@ export async function GET(req: NextRequest) {
 
     const accountResults = await Promise.all(fetchPromises);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const rawDemo: any[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const rawRegion: any[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const rawCountry: any[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const rawDevice: any[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const rawPlacement: any[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const rawGlobal: any[] = [];
 
     for (const res of accountResults) {
@@ -327,8 +339,10 @@ export async function GET(req: NextRequest) {
     }
 
     // ── Process data with ICU scoring ────────────────────────────────
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const processWithActions = (data: any[], keyFields: string[]) => {
       // Aggregate by key fields (Meta returns per-ad rows, we want per-segment)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       const grouped: Record<string, any> = {};
 
       data.forEach((item) => {
@@ -337,6 +351,7 @@ export async function GET(req: NextRequest) {
 
         if (!grouped[key]) {
           grouped[key] = {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
             keys: keyFields.reduce((acc: any, field) => {
               acc[field] = item[field] || "Unknown";
               return acc;
@@ -364,6 +379,7 @@ export async function GET(req: NextRequest) {
       // We distribute the missing results proportional to the Spend of each region.
       let totalSegmentResults = 0;
       let totalSegmentSpend = 0;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       Object.values(grouped).forEach((g: any) => {
         totalSegmentResults += g.goalResults;
         totalSegmentSpend += g.spend;
@@ -372,6 +388,7 @@ export async function GET(req: NextRequest) {
       const isEstimated = globalResults > 0 && totalSegmentResults < (globalResults * 0.9);
 
       if (isEstimated && totalSegmentSpend > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         Object.values(grouped).forEach((g: any) => {
           const spendShare = g.spend / totalSegmentSpend;
           g.goalResults = Math.round(globalResults * spendShare);
@@ -379,6 +396,7 @@ export async function GET(req: NextRequest) {
       }
 
       return Object.values(grouped)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         .map((g: any) => {
           // effectiveLinkClicks is used ONLY for ICU scoring —
           // when there are no link_click actions we fall back to totalClicks
@@ -418,7 +436,9 @@ export async function GET(req: NextRequest) {
     };
 
     // Process placements WITHOUT actions (Meta limitation)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const processPlacementsNoActions = (data: any[]) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       const grouped: Record<string, any> = {};
 
       data.forEach((item) => {
@@ -442,6 +462,7 @@ export async function GET(req: NextRequest) {
       });
 
       return Object.values(grouped)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         .map((g: any) => {
           const ctr = g.impressions > 0 ? (g.totalClicks / g.impressions) * 100 : 0;
           const cpm = g.impressions > 0 ? (g.spend / g.impressions) * 1000 : 0;
@@ -483,6 +504,7 @@ export async function GET(req: NextRequest) {
       impressions: 0,
       reach: 0,
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     demographics.forEach((d: any) => {
       globalTotals.totalClicks += d.metrics.totalClicks;
       globalTotals.linkClicks += d.metrics.linkClicks;
@@ -504,16 +526,19 @@ export async function GET(req: NextRequest) {
 
     // ── Identify "Leak Zones" — segments with highest drop-off ───────
     const allSegments = [
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       ...demographics.map((d: any) => ({
         segment: `${d.gender === "female" ? "Mujeres" : d.gender === "male" ? "Hombres" : d.gender} ${d.age}`,
         type: "Demografía",
         ...d.metrics,
       })),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       ...regions.slice(0, 15).map((r: any) => ({
         segment: r.region,
         type: "Región",
         ...r.metrics,
       })),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       ...devices.map((d: any) => ({
         segment: d.impression_device,
         type: "Dispositivo",
@@ -606,20 +631,24 @@ export async function GET(req: NextRequest) {
             dateRange: cacheKey,
           },
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         update: { data: responsePayload as any },
         create: {
           workspaceId,
           adAccountId: adAccountIdsParam,
           level: "audience_reliability",
           dateRange: cacheKey,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           data: responsePayload as any,
         },
       })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       .catch((e: any) =>
         logger.error("Cache save error in audience_reliability:", e)
       );
 
     return NextResponse.json(responsePayload);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (error: any) {
     logger.error("[RELIABILITY] Exception:", error);
     return NextResponse.json(

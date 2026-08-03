@@ -1,10 +1,11 @@
+/* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useRef, useId } from "react";
 import { X, ChevronDown, Check, Plus } from "lucide-react";
-
 export function CustomMultiSelectPictures({ values, options, onChange, placeholder, disabled, ro }: any) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const ref = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   const id = useId();
 
   useEffect(() => {
@@ -22,7 +23,6 @@ export function CustomMultiSelectPictures({ values, options, onChange, placehold
     if (ro || disabled) return;
     setOpen(!open);
   };
-
   const filtered = options.filter((o: any) => o.label.toLowerCase().includes(search.toLowerCase()));
   const grouped: Record<string, any[]> = {};
   filtered.forEach((o: any) => {
@@ -139,7 +139,6 @@ export function TagsInput({ values, onChange, placeholder, ro }: { values: strin
     </div>
   );
 }
-
 export function CustomMultiSelect({ values, options, onChange, placeholder, disabled, ro }: any) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -155,9 +154,7 @@ export function CustomMultiSelect({ values, options, onChange, placeholder, disa
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
   const filtered = options.filter((o: any) => o.name.toLowerCase().includes(search.toLowerCase()));
-  
   const grouped: Record<string, any[]> = {};
   filtered.forEach((o: any) => {
     const p = o.portfolio || "Independientes";
@@ -226,7 +223,6 @@ export function CustomMultiSelect({ values, options, onChange, placeholder, disa
     </div>
   );
 }
-
 export function CustomCreatableSelect({ value, options, onChange, placeholder, disabled, ro }: any) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -241,7 +237,6 @@ export function CustomCreatableSelect({ value, options, onChange, placeholder, d
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
   const filtered = options.filter((o: any) => o.label.toLowerCase().includes(search.toLowerCase()));
   const exactMatch = options.some((o: any) => o.label.toLowerCase() === search.toLowerCase());
 

@@ -120,6 +120,31 @@ describe("guardrail — browser navigation", () => {
     ));
     expect(result.decision).toBe("deny");
   });
+
+  it("rejects call_mcp_tool navigate_page with denied URL", () => {
+    const result = runGuardrail({
+      toolCall: {
+        name: "call_mcp_tool",
+        args: {
+          ServerName: "chrome-devtools-mcp",
+          ToolName: "navigate_page",
+          Arguments: { url: "https://vercel.com/dashboard" }
+        }
+      }
+    });
+    expect(result.decision).toBe("deny");
+    expect(result.reason).toContain("denylist");
+  });
+
+  it("allows mcp_chrome-devtools-mcp_navigate_page with allowed URL", () => {
+    const result = runGuardrail({
+      toolCall: {
+        name: "mcp_chrome-devtools-mcp_navigate_page",
+        args: { url: "http://localhost:3000" }
+      }
+    });
+    expect(result.decision).toBe("allow");
+  });
 });
 
 describe("guardrail — unknown tools", () => {

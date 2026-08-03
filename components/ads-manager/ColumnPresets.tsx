@@ -55,6 +55,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
       if (stored) setCustomPresets(JSON.parse(stored));
     } catch {}
   }, []);

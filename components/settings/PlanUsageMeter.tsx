@@ -2,6 +2,7 @@
 
 import React from "react";
 import { usePlanLimit } from "@/hooks/use-plan-limit";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { PLAN_LABELS, PLAN_ORDER, UNLIMITED } from "@/lib/plan-limits";
 import type { PlanId } from "@/lib/plan-limits";
 

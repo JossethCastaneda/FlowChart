@@ -72,6 +72,7 @@ export async function recordAiUsage(
     if (opts?.estimatedCostUsd != null) data.estimatedCostUsd = opts.estimatedCostUsd;
     if (opts?.feature) data.feature = opts.feature;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     await prisma.aiUsage.create({ data: data as any });
   } catch (err) {
     logger.error("[METERING] Error al guardar AiUsage", { workspaceId, route, error: String(err) });

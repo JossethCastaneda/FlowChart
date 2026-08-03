@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 /**
  * Módulo AGENTES — nodo principal de la capa de IA de Zefirus.
@@ -90,7 +91,7 @@ export default function AgentesPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const [orchestrating, setOrchestrating] = useState(false);
-  const [orchestratorResult, setOrchestratorResult] = useState<any>(null);
+    const [orchestratorResult, setOrchestratorResult] = useState<any>(null);
   const [orchestratorError, setOrchestratorError] = useState<string | null>(null);
 
   // Recarga por clave: el efecto sincroniza con la API (sistema externo) y solo
@@ -223,7 +224,7 @@ export default function AgentesPage() {
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {orchestratorResult.agentes.map((ag: any) => (
+                            {orchestratorResult.agentes.map((ag: any) => (
                 <div key={ag.key} style={{ padding: 12, background: "var(--background)", borderRadius: 8, border: `1px solid ${ag.ok ? "var(--border)" : "var(--red-dim)"}` }}>
                   <div className="flex justify-between items-center mb-2">
                     <span style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)" }}>{ag.nombre}</span>

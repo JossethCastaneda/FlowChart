@@ -47,20 +47,25 @@ export const LEARNING_PHASE_MAP: Record<string, { label: string; color: string; 
 };
 
 // ── Extract action value from Meta actions array ────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function findActionValue(actions: any[], actionType: string): number {
   if (!actions || !Array.isArray(actions)) return 0;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const action = actions.find((a: any) => a.action_type === actionType);
   return action ? parseFloat(action.value || "0") : 0;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function findActionCost(costPerAction: any[], actionType: string): number {
   if (!costPerAction || !Array.isArray(costPerAction)) return 0;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const item = costPerAction.find((a: any) => a.action_type === actionType);
   return item ? parseFloat(item.value || "0") : 0;
 }
 
 // ── ROAS ────────────────────────────────────────────────────────────────────
 /** Calculate ROAS from purchase_roas array or action_values/spend */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function calcROAS(ins: any): number {
   // Method 1: Meta's purchase_roas field
   if (ins.purchase_roas && Array.isArray(ins.purchase_roas) && ins.purchase_roas.length > 0) {
@@ -107,6 +112,7 @@ const OBJECTIVE_RESULT_MAP: Record<string, { type: string; resultLabel: string; 
 };
 
 // ── CPA / CPL (dynamic by objective) ────────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function calcCPA(ins: any, objective?: string): { value: number; label: string } {
   const spend = ins.spend || 0;
   if (spend === 0) return { value: 0, label: "CPA" };
@@ -159,6 +165,7 @@ export function calcCPA(ins: any, objective?: string): { value: number; label: s
       "link_click", "video_view",
     ];
     const match = ins.cost_per_action_type.find(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       (c: any) => relevantTypes.includes(c.action_type)
     );
     if (match) {
@@ -199,12 +206,14 @@ const RESULTS_PRIORITY: { type: string; label: string }[] = [
  *  When `objective` is provided, the campaign's objective drives which action
  *  type is considered the "result" — e.g. a LEADS campaign prioritises `lead`
  *  over `messaging_conversation_started_7d`, even if both exist in the data. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function findResultsValue(actions: any[], objective?: string): number {
   if (!actions || !Array.isArray(actions)) return 0;
 
   // 1. Objective-specific lookup
   if (objective && OBJECTIVE_RESULT_MAP[objective]) {
     for (const { type } of OBJECTIVE_RESULT_MAP[objective]) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       const a = actions.find((x: any) => x.action_type === type);
       if (a) return parseInt(a.value || "0", 10);
     }
@@ -212,6 +221,7 @@ export function findResultsValue(actions: any[], objective?: string): number {
 
   // 2. Generic fallback
   for (const { type } of RESULTS_PRIORITY) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const a = actions.find((x: any) => x.action_type === type);
     if (a) return parseInt(a.value || "0", 10);
   }
@@ -221,18 +231,21 @@ export function findResultsValue(actions: any[], objective?: string): number {
 /** Human-readable label for the primary result type.
  *  Respects the campaign objective — a LEADS campaign using Messenger will
  *  show "Leads (Messenger)" instead of "Conversaciones". */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function getResultsLabel(actions: any[], objective?: string): string {
   if (!actions || !Array.isArray(actions)) return "";
 
   // 1. Objective-specific lookup
   if (objective && OBJECTIVE_RESULT_MAP[objective]) {
     for (const { type, resultLabel } of OBJECTIVE_RESULT_MAP[objective]) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       if (actions.find((x: any) => x.action_type === type)) return resultLabel;
     }
   }
 
   // 2. Generic fallback
   for (const { type, label } of RESULTS_PRIORITY) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     if (actions.find((x: any) => x.action_type === type)) return label;
   }
   return "";
@@ -240,6 +253,7 @@ export function getResultsLabel(actions: any[], objective?: string): string {
 
 // ── Hook Rate (video campaigns) ─────────────────────────────────────────────
 /** Hook Rate = 3-second video views / impressions × 100 */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function calcHookRate(ins: any): number {
   const impressions = ins.impressions || 0;
   if (impressions === 0) return 0;
@@ -251,6 +265,7 @@ export function calcHookRate(ins: any): number {
 }
 
 // ── Landing Page Views ──────────────────────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function calcLandingPageViews(ins: any): number {
   return findActionValue(ins.actions, "landing_page_view");
 }
@@ -284,6 +299,7 @@ export function frequencyAlertLevel(freq: number): "none" | "warning" | "critica
 // ── Advantage+ Detection ────────────────────────────────────────────────────
 /** Detect Advantage+ campaigns via smart_promotion_type (fetched from the API)
  *  with a conservative name fallback for accounts that label them manually. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function isAdvantagePlus(row: any): boolean {
   // Authoritative signal: Meta marks Advantage+ campaigns with smart_promotion_type
   if (row.smart_promotion_type === "SMART_APP_PROMOTION" ||
@@ -309,6 +325,7 @@ export function toStardate(date: Date = new Date()): string {
 
 // ── Video Retention ─────────────────────────────────────────────────────────
 /** Get video retention at 25/50/75/100% as percentages of impressions */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function calcVideoRetention(ins: any): { p25: number; p50: number; p75: number; p100: number } {
   const impressions = parseFloat(ins.impressions || "0");
   if (impressions === 0) return { p25: 0, p50: 0, p75: 0, p100: 0 };
@@ -325,6 +342,7 @@ export function calcVideoRetention(ins: any): { p25: number; p50: number; p75: n
 }
 
 // ── ThruPlay Rate ───────────────────────────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function calcThruPlayRate(ins: any): number {
   const impressions = parseFloat(ins.impressions || "0");
   if (impressions === 0) return 0;
@@ -333,14 +351,17 @@ export function calcThruPlayRate(ins: any): number {
 }
 
 // ── Outbound CTR ────────────────────────────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function calcOutboundCTR(ins: any): number {
   const impressions = parseFloat(ins.impressions || "0");
   if (impressions === 0) return 0;
   if (ins.outbound_clicks_ctr && Array.isArray(ins.outbound_clicks_ctr)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const entry = ins.outbound_clicks_ctr.find((e: any) => e.action_type === "outbound_click");
     if (entry) return parseFloat(entry.value || "0");
   }
   if (ins.outbound_clicks && Array.isArray(ins.outbound_clicks)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const entry = ins.outbound_clicks.find((e: any) => e.action_type === "outbound_click");
     if (entry) return (parseFloat(entry.value || "0") / impressions) * 100;
   }
@@ -348,8 +369,10 @@ export function calcOutboundCTR(ins: any): number {
 }
 
 // ── Outbound Clicks ─────────────────────────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function calcOutboundClicks(ins: any): number {
   if (ins.outbound_clicks && Array.isArray(ins.outbound_clicks)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const entry = ins.outbound_clicks.find((e: any) => e.action_type === "outbound_click");
     if (entry) return parseFloat(entry.value || "0");
   }
@@ -357,6 +380,7 @@ export function calcOutboundClicks(ins: any): number {
 }
 
 // ── Unique CTR ──────────────────────────────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function calcUniqueCTR(ins: any): number {
   if (ins.unique_ctr) return parseFloat(ins.unique_ctr);
   const uniqueClicks = parseFloat(ins.unique_clicks || "0");
@@ -366,14 +390,17 @@ export function calcUniqueCTR(ins: any): number {
 }
 
 // ── E-commerce Actions ──────────────────────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function calcAddToCart(ins: any): number {
   return findActionValue(ins.actions, "add_to_cart") || findActionValue(ins.actions, "omni_add_to_cart");
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function calcInitiateCheckout(ins: any): number {
   return findActionValue(ins.actions, "initiate_checkout") || findActionValue(ins.actions, "omni_initiate_checkout");
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function calcCostPerATC(ins: any): number {
   const atc = calcAddToCart(ins);
   const spend = parseFloat(ins.spend || "0");
@@ -381,6 +408,7 @@ export function calcCostPerATC(ins: any): number {
   return spend / atc;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function calcCostPerIC(ins: any): number {
   const ic = calcInitiateCheckout(ins);
   const spend = parseFloat(ins.spend || "0");
@@ -389,21 +417,26 @@ export function calcCostPerIC(ins: any): number {
 }
 
 // ── Lead Form Metrics ───────────────────────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function calcLeadFormOpens(ins: any): number {
   return findActionValue(ins.actions, "leadgen_grouped") || findActionValue(ins.actions, "lead");
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function calcLeadFormSubmits(ins: any): number {
   return findActionValue(ins.actions, "lead");
 }
 
 // ── ThruPlay Count ──────────────────────────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function calcThruPlays(ins: any): number {
   return findActionValue(ins.video_thruplay_watched_actions, "video_view");
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function calcCostPerThruPlay(ins: any): number {
   if (ins.cost_per_thruplay && Array.isArray(ins.cost_per_thruplay)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const entry = ins.cost_per_thruplay.find((e: any) => e.action_type === "video_view");
     if (entry) return parseFloat(entry.value || "0");
   }

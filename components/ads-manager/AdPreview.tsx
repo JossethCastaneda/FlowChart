@@ -71,6 +71,7 @@ function FallbackImage({ url, alt, style }: { url?: string; alt: string; style?:
       </div>
     );
   }
+  // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
   return <img src={url} alt={alt} style={{ ...style, objectFit: "cover" }} onError={() => setError(true)} />;
 }
 
@@ -99,6 +100,7 @@ function FacebookFeedPreview({ creative }: { creative: AdCreativeData }) {
           }}
         >
           {creative.pageAvatar
+            // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
             ? <img src={creative.pageAvatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             : <FacebookIcon style={{ width: 20, height: 20, color: "var(--foreground)" }} />
           }
@@ -219,6 +221,7 @@ function InstagramFeedPreview({ creative }: { creative: AdCreativeData }) {
         >
           <div style={{ width: "100%", height: "100%", borderRadius: "50%", overflow: "hidden", background: "var(--surface)" }}>
             {creative.pageAvatar
+              // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
               ? <img src={creative.pageAvatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               : <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#1877F2,#4299E1)" }} />
             }
@@ -313,6 +316,7 @@ function StoryPreview({ creative, platform }: { creative: AdCreativeData; platfo
     >
       {/* Background image fills entire story */}
       {creative.imageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
         <img
           src={creative.imageUrl}
           alt="story"
@@ -354,6 +358,7 @@ function StoryPreview({ creative, platform }: { creative: AdCreativeData; platfo
           >
             <div style={{ width: "100%", height: "100%", borderRadius: "50%", overflow: "hidden", background: "var(--surface)" }}>
               {creative.pageAvatar
+                // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
                 ? <img src={creative.pageAvatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 : <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#1877F2,#4299E1)" }} />
               }

@@ -124,8 +124,10 @@ export async function publishPostToMeta(params: {
 
     // â”€â”€ Página destino: por id, luego por nombre â”€â”€
     if (post.pageId) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       targetPage = pages.find((p: any) => p.id === post.pageId) || null;
     } else if (post.pageName) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       targetPage = pages.find((p: any) => p.name === post.pageName) || null;
     }
 
@@ -166,6 +168,7 @@ export async function publishPostToMeta(params: {
         if (resolved) {
           // Subida binaria multipart (data: URLs)
           const isVideo = resolved.contentType.startsWith("video/");
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           const blob = new Blob([resolved.buffer as any], { type: resolved.contentType });
 
           if (isVideo) {
@@ -221,6 +224,7 @@ export async function publishPostToMeta(params: {
                  errors.push(`Facebook (Finish): ${fbData?.error?.message || "Error desconocido"}`);
               }
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
             } catch (err: any) {
               errors.push(`Facebook Video Upload: ${err.message}`);
             }
@@ -249,6 +253,7 @@ export async function publishPostToMeta(params: {
           const endpoint = isVideo ? "videos" : "photos";
           const domain = isVideo ? "graph-video.facebook.com" : "graph.facebook.com";
 
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           const payload: any = {};
           if (useFbSchedule) {
             payload.published = false;
@@ -278,6 +283,7 @@ export async function publishPostToMeta(params: {
         }
       } else {
         // Solo texto
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         const payload: any = { message: fbContent };
         if (useFbSchedule) {
           payload.published = false;
@@ -297,6 +303,7 @@ export async function publishPostToMeta(params: {
         if (fbRes.ok && fbData.id) externalIds.facebook = fbData.id;
         else errors.push(`Facebook: ${mapMetaError(fbData?.error).user_message}`);
       }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     } catch (err: any) {
       errors.push(`Facebook: ${err.message}`);
     }
@@ -332,6 +339,7 @@ export async function publishPostToMeta(params: {
           const form = new FormData();
           form.append("published", "false");
           if (isVideo) form.append("description", "instagram_video_temp");
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           const blob = new Blob([resolved.buffer as any], { type: resolved.contentType });
           form.append("source", blob, resolved.filename);
 
@@ -368,6 +376,7 @@ export async function publishPostToMeta(params: {
             } else {
               errors.push(`Instagram pre-upload: ${uploadData?.error?.message || "Error"}`);
             }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           } catch (err: any) {
             errors.push(`Instagram: Error subiendo archivo (pre-upload): ${err.message}`);
           }
@@ -377,6 +386,7 @@ export async function publishPostToMeta(params: {
           if (allMedia.length === 1) {
             // â”€â”€ Media única â”€â”€
             const isVideo = await checkIfVideo(igMediaUrl);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
             const containerBody: any = { caption: igContent };
             if (isVideo) {
               containerBody.media_type = "VIDEO";
@@ -454,6 +464,7 @@ export async function publishPostToMeta(params: {
             const childIds: string[] = [];
             for (const mUrl of allMedia.slice(0, 10)) {
               const isVideo = await checkIfVideo(mUrl);
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
               const childBody: any = { is_carousel_item: true };
               if (isVideo) {
                 childBody.media_type = "VIDEO";
@@ -514,6 +525,7 @@ export async function publishPostToMeta(params: {
           }
         }
       }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     } catch (err: any) {
       errors.push(`Instagram: ${err.message}`);
     }

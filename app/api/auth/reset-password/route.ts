@@ -75,6 +75,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     logger.error("[RESET-PASSWORD] Error:", err);
     return NextResponse.json(

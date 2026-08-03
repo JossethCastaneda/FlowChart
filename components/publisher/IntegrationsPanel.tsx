@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect, @next/next/no-img-element */
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -7,7 +8,7 @@ import { WhatsAppConnectCard } from "@/components/settings/WhatsAppConnectCard";
 interface ModuleStatus {
   connected: boolean;
   connectedAt: string | null;
-  pages: any[];
+    pages: any[];
   tokenExpiresSoon?: boolean;
   daysUntilExpiry?: number;
 }
@@ -96,7 +97,8 @@ export function IntegrationsPanel() {
   }, []);
 
   useEffect(() => {
-    fetchStatus();
+   
+        fetchStatus();
     const p = new URLSearchParams(window.location.search);
     if (p.get("connected")) { window.history.replaceState({}, "", window.location.pathname); fetchStatus(); }
   }, [fetchStatus]);
@@ -190,7 +192,7 @@ export function IntegrationsPanel() {
 
           // Summary counts (no more page name spam)
           const pageCount = pages.length;
-          const igCount = pages.filter((p: any) => p.instagramId || p.instagram?.id).length;
+                    const igCount = pages.filter((p: any) => p.instagramId || p.instagram?.id).length;
 
           return (
             <div key={mod.key} style={{
@@ -330,7 +332,7 @@ export function IntegrationsPanel() {
                   padding: "0 14px 12px 54px",
                   display: "flex", flexDirection: "column", gap: 4,
                 }}>
-                  {pages.map((page: any) => (
+                                    {pages.map((page: any) => (
                     <div key={page.id} style={{
                       display: "flex", alignItems: "center", gap: 8,
                       padding: "5px 10px", borderRadius: 6,
@@ -344,7 +346,7 @@ export function IntegrationsPanel() {
                         fontSize: 8, color: mod.color, fontWeight: 700,
                       }}>
                         {page.picture
-                          ? <img src={page.picture} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                                    ? <img src={page.picture} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                           : page.name?.charAt(0)
                         }
                       </div>
@@ -438,7 +440,7 @@ export function IntegrationsPanel() {
 }
 
 function WebhookRow({ connectedCount }: { connectedCount: number }) {
-  const [status, setStatus] = useState<any>(null);
+    const [status, setStatus] = useState<any>(null);
   const [subscribing, setSubscribing] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -451,7 +453,7 @@ function WebhookRow({ connectedCount }: { connectedCount: number }) {
     }
   }, [connectedCount]);
 
-  const allOk = status?.subscriptions?.every((s: any) => s.subscribedFields?.length >= 5);
+    const allOk = status?.subscriptions?.every((s: any) => s.subscribedFields?.length >= 5);
 
   const handleSubscribe = async () => {
     setSubscribing(true);

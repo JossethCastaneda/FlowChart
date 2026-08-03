@@ -14,6 +14,7 @@ export function StatusToggle({ status, onToggle }: StatusToggleProps) {
     if (loading) return;
     setLoading(true);
     const targetStatus = isActive ? "PAUSED" : "ACTIVE";
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
     const success = await onToggle(targetStatus);
     setLoading(false);
   };

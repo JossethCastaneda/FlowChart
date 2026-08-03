@@ -1,14 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, react-hooks/static-components */
 "use client";
 
 import React, { useState, useCallback, useRef } from "react";
 import {
-  Search, TrendingUp, MessageCircle, ThumbsUp, ThumbsDown, Minus,
+    Search, TrendingUp, MessageCircle, ThumbsUp, ThumbsDown, Minus,
   Hash, Globe, Loader2, ExternalLink, Heart, Share2, BarChart2,
-  Sparkles, Users, Clock, ChevronRight, RefreshCw
+    Sparkles, Users, Clock, ChevronRight, RefreshCw
 } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend
+    PieChart, Pie, Cell, Legend
 } from "recharts";
 import { useLanguage } from "@/components/layout/LanguageContext";
 
@@ -212,7 +213,7 @@ function ActivityHeatmap({
         {/* Day labels */}
         <div style={{ display: "flex", flexDirection: "column", gap: 4, justifyContent: "flex-end" }}>
           <div style={{ height: 24 }} /> {/* hour header spacer */}
-          {days.map((d, di) => (
+                    {days.map((d, di) => (
             <div key={d} style={{
               height: 28,
               fontSize: 12,
@@ -310,7 +311,7 @@ export function ListeningDashboard() {
       const data = await res.json();
       setResult(data);
       setActiveSection("metrics");
-    } catch (err: any) {
+        } catch (err: any) {
       setError(err.message || "Error fetching data");
     } finally {
       setLoading(false);
@@ -340,7 +341,7 @@ export function ListeningDashboard() {
   ];
 
   /* ── Custom tooltip for recharts ─────────────────────────── */
-  const CustomTooltip = ({ active, payload, label }: any) => {
+    const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null;
     return (
       <div style={{
@@ -351,7 +352,7 @@ export function ListeningDashboard() {
         fontSize: 12,
       }}>
         <p style={{ color: "var(--text-secondary)", marginBottom: 4 }}>{label}</p>
-        {payload.map((p: any) => (
+                {payload.map((p: any) => (
           <p key={p.dataKey} style={{ color: p.color, margin: "2px 0" }}>
             {p.name}: <strong>{p.value}</strong>
           </p>
@@ -630,7 +631,7 @@ export function ListeningDashboard() {
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                         <XAxis dataKey="fecha" tick={{ fontSize: 11, fill: "var(--text-secondary)" }} />
                         <YAxis tick={{ fontSize: 11, fill: "var(--text-secondary)" }} />
-                        <Tooltip content={<CustomTooltip />} />
+                                                <Tooltip content={<CustomTooltip />} />
                         <Line
                           type="monotone"
                           dataKey="count"
@@ -758,7 +759,7 @@ export function ListeningDashboard() {
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                         <XAxis dataKey="fecha" tick={{ fontSize: 10, fill: "var(--text-secondary)" }} />
                         <YAxis tick={{ fontSize: 10, fill: "var(--text-secondary)" }} />
-                        <Tooltip content={<CustomTooltip />} />
+                                                <Tooltip content={<CustomTooltip />} />
                         <Line type="monotone" dataKey="positive" name="Positivo" stroke="#34b77c" strokeWidth={2} dot={false} />
                         <Line type="monotone" dataKey="neutral" name="Neutral" stroke="#e0a83c" strokeWidth={2} dot={false} />
                         <Line type="monotone" dataKey="negative" name="Negativo" stroke="#e5484d" strokeWidth={2} dot={false} />

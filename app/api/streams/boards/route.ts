@@ -27,6 +27,7 @@ export const GET = withWorkspace(async (request, ctx) => {
       boards = [board];
     }
     return NextResponse.json({ boards });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -42,6 +43,7 @@ export const POST = withWorkspace(async (request, ctx) => {
       include: { columns: true },
     });
     return NextResponse.json({ board });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

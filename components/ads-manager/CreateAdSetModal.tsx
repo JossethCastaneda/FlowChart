@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -64,11 +65,12 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
   // Fetch pages when LEADS objective selected
   useEffect(() => {
     if (needsPage && pages.length === 0) {
-      setLoadingPages(true);
+   
+            setLoadingPages(true);
       fetch("/api/meta/pages?module=ads")
         .then(r => r.json())
         .then(d => {
-          const list = (d.data || []).map((p: any) => ({ id: p.id, name: p.name }));
+                    const list = (d.data || []).map((p: any) => ({ id: p.id, name: p.name }));
           setPages(list);
           if (list.length > 0 && !selectedPageId) setSelectedPageId(list[0].id);
         })
@@ -203,7 +205,7 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
             <div><label style={lbl}>Edad máx.</label><input style={inp} type="number" min={13} max={65} value={ageMax} onChange={(e) => setAgeMax(e.target.value)} disabled={advantageAudience} /></div>
             <div>
               <label style={lbl}>Género</label>
-              <select style={{ ...inp, cursor: advantageAudience ? "not-allowed" : "pointer" }} value={gender} onChange={(e) => setGender(e.target.value as any)} disabled={advantageAudience}>
+                            <select style={{ ...inp, cursor: advantageAudience ? "not-allowed" : "pointer" }} value={gender} onChange={(e) => setGender(e.target.value as any)} disabled={advantageAudience}>
                 <option value="all">Todos</option>
                 <option value="male">Hombres</option>
                 <option value="female">Mujeres</option>

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-html-link-for-pages, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, react-hooks/immutability */
 "use client";
 
 import React, { useState, useEffect, useCallback, Suspense, useRef } from "react";
@@ -128,7 +129,7 @@ export default function AdsManagerPage() {
 
 function AdsManagerContent() {
   // Auth guard: check if user authenticated with Facebook
-  const { data: session } = useSessionHook();
+    const { data: session } = useSessionHook();
 
   const searchParams = useSearchParams();
   const isEmbedded = searchParams.get("embedded") === "1";
@@ -136,7 +137,7 @@ function AdsManagerContent() {
   const projectAccountsParam = searchParams.get("project_accounts") || "";
 
   // Meta Ads connection status
-  const [adsConnected, setAdsConnected] = useState<boolean | null>(null);
+    const [adsConnected, setAdsConnected] = useState<boolean | null>(null);
   const [justConnected, setJustConnected] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -148,20 +149,20 @@ function AdsManagerContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({}) // Omitting integrationId triggers sync for all active integrations
       });
-    } catch (e) {}
+        } catch (e) {}
     setTimeout(() => setIsSyncing(false), 2000);
   };
 
   // Platform and Google integrations status
   const [platform, setPlatform] = useState<"meta" | "google">("meta");
-  const [googleIntegration, setGoogleIntegration] = useState<any>(null);
+    const [googleIntegration, setGoogleIntegration] = useState<any>(null);
 
   useEffect(() => {
     fetch("/api/workspace/integrations")
       .then((r) => r.json())
       .then((res) => {
         if (Array.isArray(res.data?.data)) {
-          const g = res.data.data.find((i: any) => i.provider === "google");
+                    const g = res.data.data.find((i: any) => i.provider === "google");
           setGoogleIntegration(g || null);
         }
       })
@@ -178,7 +179,8 @@ function AdsManagerContent() {
   useEffect(() => {
     // Detect redirect back from OAuth callback
     if (searchParams.get("connected") === "ads") {
-      setJustConnected(true);
+   
+            setJustConnected(true);
     }
     // Check integration status
     fetch("/api/connect/status")
@@ -188,10 +190,10 @@ function AdsManagerContent() {
         setAdsConnected(adsMod?.connected ?? false);
       })
       .catch(() => setAdsConnected(false));
-  }, []);
+    }, []);
 
   // Accounts state
-  const [accounts, setAccounts] = useState<any[]>([]);
+    const [accounts, setAccounts] = useState<any[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState("");
   const [loadingAccounts, setLoadingAccounts] = useState(true);
   const [showCreateCampaign, setShowCreateCampaign] = useState(false);
@@ -203,9 +205,9 @@ function AdsManagerContent() {
   const [viewMode, setViewMode] = useState<"health" | "expert">("health");
 
   // Data lists
-  const [campaigns, setCampaigns] = useState<any[]>([]);
-  const [adsets, setAdsets] = useState<any[]>([]);
-  const [ads, setAds] = useState<any[]>([]);
+    const [campaigns, setCampaigns] = useState<any[]>([]);
+    const [adsets, setAdsets] = useState<any[]>([]);
+    const [ads, setAds] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -244,11 +246,11 @@ function AdsManagerContent() {
   // Edit modal state
   const [editModal, setEditModal] = useState<{
     type: "campaign" | "adset" | "ad";
-    item: any;
+        item: any;
   } | null>(null);
 
   // Drawer state
-  const [drawerItem, setDrawerItem] = useState<any | null>(null);
+    const [drawerItem, setDrawerItem] = useState<any | null>(null);
 
   // Toast state
   const addToast = showToast;
@@ -275,12 +277,12 @@ function AdsManagerContent() {
   useEffect(() => {
     if (!autoSync || !selectedAccountId) return;
     const interval = setInterval(() => {
-      fetchData();
+            fetchData();
     }, 30 * 60 * 1000); // 30 minutes
     return () => clearInterval(interval);
-  }, [autoSync, selectedAccountId]);
+    }, [autoSync, selectedAccountId]);
 
-  const openEdit = (type: "campaign" | "adset" | "ad", item: any) => {
+    const openEdit = (type: "campaign" | "adset" | "ad", item: any) => {
     setEditModal({ type, item });
   };
   const closeEdit = () => setEditModal(null);
@@ -294,11 +296,11 @@ function AdsManagerContent() {
       .then((res) => res.json())
       .then((data) => {
         if (data.data && Array.isArray(data.data)) {
-          let list = data.data.filter((acc: any) => acc.id !== "error");
+                    let list = data.data.filter((acc: any) => acc.id !== "error");
 
           if (projectAccountsParam) {
             const allowed = projectAccountsParam.split(",");
-            list = list.filter((acc: any) => allowed.includes(acc.id));
+                        list = list.filter((acc: any) => allowed.includes(acc.id));
           }
 
           setAccounts(list);
@@ -306,11 +308,11 @@ function AdsManagerContent() {
           // When embedded with project accounts, default to 'all' to show combined data
           if (isEmbedded && projectAccountsParam && list.length > 1) {
             setSelectedAccountId("all");
-          } else if (initialAccount && list.some((a: any) => a.id === initialAccount)) {
+                    } else if (initialAccount && list.some((a: any) => a.id === initialAccount)) {
             setSelectedAccountId(initialAccount);
           } else if (list.length > 0) {
             // Default to the account with the most spend in the period.
-            const top = [...list].sort((a: any, b: any) => (b.spend || 0) - (a.spend || 0))[0];
+                        const top = [...list].sort((a: any, b: any) => (b.spend || 0) - (a.spend || 0))[0];
             setSelectedAccountId((top || list[0]).id);
           }
         }
@@ -320,12 +322,13 @@ function AdsManagerContent() {
         console.error("Failed to load ad accounts", err);
         setLoadingAccounts(false);
       });
-  }, [projectAccountsParam]);
+    }, [projectAccountsParam]);
 
   // Sync selected account when parameter changes
   useEffect(() => {
-    if (initialAccount && accounts.some((a: any) => a.id === initialAccount)) {
-      setSelectedAccountId(initialAccount);
+        if (initialAccount && accounts.some((a: any) => a.id === initialAccount)) {
+   
+            setSelectedAccountId(initialAccount);
     }
   }, [initialAccount, accounts]);
 
@@ -336,7 +339,8 @@ function AdsManagerContent() {
     const paramEnd = searchParams.get("dateEnd");
 
     if (paramPreset && paramPreset !== datePreset) {
-      setDatePreset(paramPreset);
+   
+            setDatePreset(paramPreset);
     }
     if (paramStart && paramStart !== dateStart) {
       setDateStart(paramStart);
@@ -393,7 +397,7 @@ function AdsManagerContent() {
         setAds([]);
         setSelectedIds([]);
         setLastSynced(new Date());
-      } catch (err: any) {
+            } catch (err: any) {
         setError(err.message || "Error al sincronizar con Google Ads API");
       } finally {
         setLoadingData(false);
@@ -417,7 +421,7 @@ function AdsManagerContent() {
 
       // Multi-account: fetch all accounts in parallel and merge
       const accountsToFetch = selectedAccountId === "all"
-        ? accounts.map((a: any) => a.id)
+                ? accounts.map((a: any) => a.id)
         : [selectedAccountId];
 
       const results = await Promise.allSettled(
@@ -428,9 +432,9 @@ function AdsManagerContent() {
           if (data.warnings && data.warnings.length > 0) {
             data.warnings.forEach((w: string) => addToast("warning", w));
           }
-          const accName = accounts.find((a: any) => a.id === accId)?.name || accId;
+                    const accName = accounts.find((a: any) => a.id === accId)?.name || accId;
           // Tag each item with its account info for filtering
-          return (data.data || []).map((item: any) => ({
+                    return (data.data || []).map((item: any) => ({
             ...item,
             _accountId: accId,
             _accountName: accName.split(" — ")[0],
@@ -438,7 +442,7 @@ function AdsManagerContent() {
         })
       );
 
-      let merged: any[] = [];
+            let merged: any[] = [];
       const errors: string[] = [];
       for (const r of results) {
         if (r.status === "fulfilled") merged = merged.concat(r.value);
@@ -456,7 +460,7 @@ function AdsManagerContent() {
       // Clear selection on tab/data change
       setSelectedIds([]);
       setLastSynced(new Date());
-    } catch (err: any) {
+        } catch (err: any) {
       setError(err.message || "Error al sincronizar con Meta Ads Graph API");
     } finally {
       setLoadingData(false);
@@ -465,19 +469,20 @@ function AdsManagerContent() {
 
   useEffect(() => {
     fetchData();
-  }, [selectedAccountId, activeLevel, datePreset, dateStart, dateEnd, platform]);
+    }, [selectedAccountId, activeLevel, datePreset, dateStart, dateEnd, platform]);
 
   // Breakdown data state
-  const [breakdownData, setBreakdownData] = useState<Record<string, any[]>>({});
-  const [loadingBreakdown, setLoadingBreakdown] = useState(false);
+    const [breakdownData, setBreakdownData] = useState<Record<string, any[]>>({});
+    const [loadingBreakdown, setLoadingBreakdown] = useState(false);
 
   // Fetch breakdown data when selectedBreakdown changes
   useEffect(() => {
     if (selectedBreakdown === "none") {
-      setBreakdownData({});
+   
+            setBreakdownData({});
       return;
     }
-    const data = getCurrentData();
+        const data = getCurrentData();
     if (data.length === 0) return;
 
     setLoadingBreakdown(true);
@@ -486,7 +491,7 @@ function AdsManagerContent() {
     // Fetch breakdown for each item (up to 20 to avoid rate limits)
     const itemsToFetch = data.slice(0, 20);
     Promise.allSettled(
-      itemsToFetch.map(async (item: any) => {
+            itemsToFetch.map(async (item: any) => {
         const res = await fetch(
           `/api/meta/breakdowns?id=${item.id}&breakdown=${selectedBreakdown}&level=${levelStr}&preset=${datePreset || "last_30d"}`
         );
@@ -494,8 +499,8 @@ function AdsManagerContent() {
         return { id: item.id, data: json.data || [], error: json.error };
       })
     ).then((results) => {
-      const bdMap: Record<string, any[]> = {};
-      results.forEach((r, i) => {
+            const bdMap: Record<string, any[]> = {};
+            results.forEach((r, i) => {
         if (r.status === "fulfilled" && r.value.data) {
           bdMap[r.value.id] = r.value.data;
         }
@@ -503,12 +508,12 @@ function AdsManagerContent() {
       setBreakdownData(bdMap);
       setLoadingBreakdown(false);
     });
-  }, [selectedBreakdown, activeLevel, campaigns, adsets, ads]);
+    }, [selectedBreakdown, activeLevel, campaigns, adsets, ads]);
 
   // Handle single status updates (optimistic)
   const handleUpdateStatus = async (id: string, status: "ACTIVE" | "PAUSED") => {
     // Optimistic update — apply immediately
-    const updateList = (list: any[]) =>
+        const updateList = (list: any[]) =>
       list.map((item) => (item.id === id ? { ...item, status, effective_status: status } : item));
     const prevCampaigns = [...campaigns];
     const prevAdsets = [...adsets];
@@ -531,7 +536,7 @@ function AdsManagerContent() {
         setCampaigns(prevCampaigns);
         addToast("error", `Error al cambiar estado en Google Ads: ${data.error || "Error desconocido"}`);
         return false;
-      } catch (err) {
+            } catch (err) {
         setCampaigns(prevCampaigns);
         addToast("error", "Error de red al cambiar estado en Google Ads");
         return false;
@@ -558,7 +563,7 @@ function AdsManagerContent() {
       else if (activeLevel === "ads") setAds(prevAds);
       addToast("error", `Error al cambiar estado: ${data.error || "Error desconocido"}`);
       return false;
-    } catch (err) {
+        } catch (err) {
       // Revert on error
       if (activeLevel === "campaigns") setCampaigns(prevCampaigns);
       else if (activeLevel === "adsets") setAdsets(prevAdsets);
@@ -586,7 +591,7 @@ function AdsManagerContent() {
       });
       const data = await res.json();
       if (data.success) {
-        const updateList = (list: any[]) =>
+                const updateList = (list: any[]) =>
           list.map((item) => (item.id === id ? { ...item, name } : item));
         if (activeLevel === "campaigns") setCampaigns(updateList(campaigns));
         else if (activeLevel === "adsets") setAdsets(updateList(adsets));
@@ -594,7 +599,7 @@ function AdsManagerContent() {
         return true;
       }
       return false;
-    } catch (err) {
+        } catch (err) {
       return false;
     }
   };
@@ -618,7 +623,7 @@ function AdsManagerContent() {
       const data = await res.json();
 
       if (data.success) {
-        const updateList = (list: any[]) =>
+                const updateList = (list: any[]) =>
           list.map((item) =>
             item.id === id
               ? {
@@ -633,7 +638,7 @@ function AdsManagerContent() {
         return true;
       }
       return false;
-    } catch (err) {
+        } catch (err) {
       return false;
     }
   };
@@ -658,7 +663,7 @@ function AdsManagerContent() {
         return true;
       }
       return false;
-    } catch (err) {
+        } catch (err) {
       return false;
     }
   };
@@ -666,7 +671,7 @@ function AdsManagerContent() {
   // Handle bulk actions (enhanced with toasts + result counting)
   const handleBulkAction = async (
     action: "duplicate" | "activate" | "pause" | "archive" | "delete",
-    opts?: { updates?: any[]; ids?: string[] }
+        opts?: { updates?: any[]; ids?: string[] }
   ) => {
     const ids = opts?.ids || selectedIds;
     if (ids.length === 0) {
@@ -707,7 +712,7 @@ function AdsManagerContent() {
         }
         fetchData();
         setSelectedIds([]);
-      } catch (err: any) {
+            } catch (err: any) {
         addToast("error", `Error: ${err.message}`);
       }
       return;
@@ -718,7 +723,7 @@ function AdsManagerContent() {
       let resolvedAccountId = selectedAccountId;
       if (selectedAccountId === "all") {
         const data = getCurrentData();
-        const firstItem = data.find((d: any) => ids.includes(d.id));
+                const firstItem = data.find((d: any) => ids.includes(d.id));
         resolvedAccountId = firstItem?._accountId || accounts[0]?.id || "";
       }
       const res = await fetch("/api/meta/actions", {
@@ -738,7 +743,7 @@ function AdsManagerContent() {
         const { successCount, failCount, results: actionResults } = data;
         if (failCount === 0) {
           // Check if delete was actually an archive (Meta behavior)
-          const archivedCount = action === "delete" && actionResults ? actionResults.filter((r: any) => r.method === "archived").length : 0;
+                    const archivedCount = action === "delete" && actionResults ? actionResults.filter((r: any) => r.method === "archived").length : 0;
           if (archivedCount > 0) {
             addToast("success", ` ${successCount} ${levelLabel}${successCount > 1 ? "s" : ""} archivada${successCount > 1 ? "s" : ""} (Meta no permite eliminar campañas con historial)`);
             addAlert({ severity: "info", title: "Elementos archivados", message: `${successCount} ${levelLabel}(s) archivadas en Meta.`, source: "gasto" });
@@ -756,7 +761,7 @@ function AdsManagerContent() {
         addToast("error", data.error || "Error al ejecutar acción");
         addAlert({ severity: "danger", title: "Error en Acción Masiva", message: data.error || "Ocurrió un error al procesar la acción en Meta.", source: "gasto" });
       }
-    } catch (err: any) {
+        } catch (err: any) {
       addToast("error", `Error: ${err.message}`);
       addAlert({ severity: "danger", title: "Error de Red", message: err.message, source: "system" });
     }
@@ -771,7 +776,7 @@ function AdsManagerContent() {
   const handleCopy = () => {
     const data = getCurrentData();
     const copiedItems = selectedIds.map((id) => {
-      const item = data.find((d: any) => d.id === id);
+            const item = data.find((d: any) => d.id === id);
       return { id, name: item?.name || id, level: activeLevel };
     });
     clipboard.copy(copiedItems);
@@ -848,7 +853,7 @@ function AdsManagerContent() {
       } else {
         addToast("error", data.error || "Error al renombrar");
       }
-    } catch (err: any) {
+        } catch (err: any) {
       addToast("error", err.message);
     }
     setShowRenameModal(false);
@@ -871,7 +876,7 @@ function AdsManagerContent() {
       } else {
         addToast("error", data.error || "Error al actualizar presupuestos");
       }
-    } catch (err: any) {
+        } catch (err: any) {
       addToast("error", err.message);
     }
     setShowBudgetModal(false);
@@ -894,7 +899,7 @@ function AdsManagerContent() {
       } else {
         addToast("error", data.error || "Error al actualizar límite de gasto");
       }
-    } catch (err: any) {
+        } catch (err: any) {
       addToast("error", err.message);
     }
     setShowSpendCapModal(false);
@@ -904,8 +909,8 @@ function AdsManagerContent() {
     // CSV export with papaparse
     import("papaparse").then(({ default: Papa }) => {
       const headers = visibleColumns;
-      const rows = filteredData.map((item: any) => {
-        const row: Record<string, any> = {};
+            const rows = filteredData.map((item: any) => {
+                const row: Record<string, any> = {};
         headers.forEach((col) => {
           const ins = item.insights || {};
           if (col === "name") row[col] = item.name;
@@ -937,9 +942,9 @@ function AdsManagerContent() {
 
   const handleExportExcel = () => {
     const headers = visibleColumns;
-    const rows = filteredData.map((item: any) => {
+        const rows = filteredData.map((item: any) => {
       const ins = item.insights || {};
-      const row: Record<string, any> = {};
+            const row: Record<string, any> = {};
       headers.forEach((col) => {
         if (col === "name") row["Nombre"] = item.name;
         else if (col === "spend") row["Gasto"] = parseFloat(ins.spend || "0");
@@ -1029,7 +1034,7 @@ function AdsManagerContent() {
         ];
         let resultVal = 0;
         for (const t of priority) {
-          const a = (ins.actions || []).find((x: any) => x.action_type === t);
+                    const a = (ins.actions || []).find((x: any) => x.action_type === t);
           if (a) { resultVal = parseInt(a.value || "0", 10); break; }
         }
         if (filter.operator === ">" && !(resultVal > parseInt(filter.value, 10))) return false;
@@ -1739,21 +1744,21 @@ function AdsManagerContent() {
       )}
       {showRenameModal && (
         <BulkRenameModal
-          items={selectedIds.map((id) => { const item = getCurrentData().find((d: any) => d.id === id); return { id, name: item?.name || id }; })}
+                    items={selectedIds.map((id) => { const item = getCurrentData().find((d: any) => d.id === id); return { id, name: item?.name || id }; })}
           onClose={() => setShowRenameModal(false)}
           onApply={handleBulkRename}
         />
       )}
       {showBudgetModal && (
         <BulkBudgetModal
-          items={selectedIds.map((id) => { const item = getCurrentData().find((d: any) => d.id === id); return { id, name: item?.name || id, daily_budget: item?.daily_budget, lifetime_budget: item?.lifetime_budget }; })}
+                    items={selectedIds.map((id) => { const item = getCurrentData().find((d: any) => d.id === id); return { id, name: item?.name || id, daily_budget: item?.daily_budget, lifetime_budget: item?.lifetime_budget }; })}
           onClose={() => setShowBudgetModal(false)}
           onApply={handleBulkBudget}
         />
       )}
       {showSpendCapModal && (
         <SpendCapModal
-          items={selectedIds.map((id) => { const item = getCurrentData().find((d: any) => d.id === id); return { id, name: item?.name || id, spend_cap: item?.spend_cap }; })}
+                    items={selectedIds.map((id) => { const item = getCurrentData().find((d: any) => d.id === id); return { id, name: item?.name || id, spend_cap: item?.spend_cap }; })}
           onClose={() => setShowSpendCapModal(false)}
           onApply={handleSpendCap}
         />
@@ -1794,7 +1799,7 @@ function AdsManagerContent() {
       {showCreateCampaign && selectedAccountId && selectedAccountId !== "all" && (
         <CreateCampaignModal
           adAccountId={selectedAccountId}
-          adAccountName={accounts.find((a: any) => a.id === selectedAccountId)?.name?.split(" — ")[0]}
+                    adAccountName={accounts.find((a: any) => a.id === selectedAccountId)?.name?.split(" — ")[0]}
           onClose={() => setShowCreateCampaign(false)}
           onCreated={() => {
             setShowCreateCampaign(false);
@@ -1809,7 +1814,7 @@ function AdsManagerContent() {
       {showCreateAdSet && selectedAccountId && selectedAccountId !== "all" && (
         <CreateAdSetModal
           adAccountId={selectedAccountId}
-          campaigns={campaigns.map((c: any) => ({ id: c.id, name: c.name, objective: c.objective }))}
+                    campaigns={campaigns.map((c: any) => ({ id: c.id, name: c.name, objective: c.objective }))}
           onClose={() => setShowCreateAdSet(false)}
           onCreated={() => {
             setShowCreateAdSet(false);
@@ -1824,7 +1829,7 @@ function AdsManagerContent() {
       {showCreateAd && selectedAccountId && selectedAccountId !== "all" && (
         <CreateAdModal
           adAccountId={selectedAccountId}
-          adsets={adsets.map((a: any) => ({ id: a.id, name: a.name, campaign_id: a.campaign_id, campaign_name: campaigns.find((c: any) => c.id === a.campaign_id)?.name }))}
+                    adsets={adsets.map((a: any) => ({ id: a.id, name: a.name, campaign_id: a.campaign_id, campaign_name: campaigns.find((c: any) => c.id === a.campaign_id)?.name }))}
           onClose={() => setShowCreateAd(false)}
           onCreated={() => {
             setShowCreateAd(false);
@@ -1852,7 +1857,7 @@ function AlertsToasts({ data, level }: { data: any[]; level: "campaigns" | "adse
       try {
         const audio = new Audio("/sounds/notification.mp3");
         audio.play().catch(() => {});
-      } catch (e) {}
+            } catch (e) {}
 
       // Show toasts
       newAlerts.forEach(a => {

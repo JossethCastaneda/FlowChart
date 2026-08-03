@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
 ﻿"use client";
 
 import React, { useState } from "react";
@@ -13,7 +14,7 @@ interface Post {
   status: string;
   pageId: string | null;
   pageName: string | null;
-  [key: string]: any;
+    [key: string]: any;
 }
 
 export interface BoostResult {
@@ -99,7 +100,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
         adsetId: data.adsetId,
         adId: data.adId,
       });
-    } catch (err: any) {
+        } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
@@ -163,7 +164,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
               width: 44, height: 44, borderRadius: 6, overflow: "hidden",
               flexShrink: 0, background: "var(--background)",
             }}>
-              <img
+                            <img
                 src={post.mediaUrls?.[0] || post.mediaUrl || ""}
                 alt=""
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}

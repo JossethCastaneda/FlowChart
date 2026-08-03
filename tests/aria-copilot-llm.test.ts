@@ -22,6 +22,7 @@ function mockJsonResponse(json: unknown, ok = true, status = 200) {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 function lastRequestBody(): Record<string, any> {
   const [, init] = fetchMock.mock.calls[fetchMock.mock.calls.length - 1];
   return JSON.parse(init.body);
@@ -57,6 +58,7 @@ describe("geminiProvider.complete (camino del copilot)", () => {
     expect(r.text).toBe("Tienes 3 modelos.");
     const body = lastRequestBody();
     expect(body.systemInstruction.parts[0].text).toBe("Eres Aria.");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     expect(body.contents.map((c: any) => c.role)).toEqual(["user", "model", "user"]);
     expect(body.generationConfig.maxOutputTokens).toBe(1024);
   });
@@ -138,6 +140,7 @@ describe("anthropicProvider.complete (camino del copilot)", () => {
     expect(body).not.toHaveProperty("temperature");
     expect(body).not.toHaveProperty("top_p");
     expect(body).not.toHaveProperty("thinking");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     expect(body.messages.map((m: any) => m.role)).toEqual(["user", "assistant", "user"]);
   });
 

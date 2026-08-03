@@ -31,6 +31,7 @@ export interface DynamicChartConfig {
 
 interface DynamicChartProps {
   config?: DynamicChartConfig;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   timeSeriesData: any[];
   isLoading: boolean;
   fmtMXN: (n: number) => string;
@@ -54,6 +55,7 @@ export function DynamicComposedChartWidget({ config, timeSeriesData, fmtMXN }: D
   const hasLeft = series.some((s) => s.yAxisId === "left");
   const hasRight = series.some((s) => s.yAxisId === "right");
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const formatValue = (val: any, s?: DynamicChartSeries) => {
     if (!s) return String(val);
     if (s.isCurrency) return fmtMXN(Number(val));
@@ -147,6 +149,7 @@ export interface DynamicKpiConfig {
 
 interface DynamicKpiProps {
   config?: DynamicKpiConfig;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   totalData: Record<string, any>;
   fmtMXN: (n: number) => string;
 }

@@ -1,0 +1,129 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: aislamiento-tenant.spec.ts >> Tenant Isolation (Aislamiento de Agencias) >> Tenant A no puede acceder a las páginas (UI) del Tenant B
+- Location: e2e\aislamiento-tenant.spec.ts:20:7
+
+# Error details
+
+```
+Error: expect(page).toHaveURL(expected) failed
+
+Expected pattern: /.*dashboard.*/
+Received string:  "http://localhost:3000/login"
+Timeout: 10000ms
+
+Call log:
+  - Expect "toHaveURL" with timeout 10000ms
+    21 × locator resolved to <html lang="es" class="inter_tight_df815ac5-module__7W7M1G__variable jetbrains_mono_76dc473d-module__DDg1fa__variable orbitron_7533ff9f-module__1tHESa__variable space_grotesk_bacd558c-module__Zi8yGW__variable sora_4903d227-module__gHFHjW__variable instrument_serif_8d99e028-module__HL9Mnq__variable light">…</html>
+       - unexpected value "http://localhost:3000/login"
+    - waiting for "http://localhost:3000/dashboard/resumen" navigation to finish...
+
+```
+
+```yaml
+- button "ES"
+- button "EN"
+- text: · ZEFIRUS COMMAND BRIDGE ·
+- link "Zefirus emblem ZEFIRUS SOFTWARE PLATFORM":
+  - /url: /
+  - img "Zefirus emblem"
+  - text: ZEFIRUS SOFTWARE PLATFORM
+- img
+- text: Acceso concedido Entrando al puente de mando…
+- button "Open Tanstack query devtools":
+  - img
+- alert
+```
+
+# Test source
+
+```ts
+  1  | import { test, expect } from '@playwright/test';
+  2  | import { E2E_IDS } from '../prisma/seed.e2e';
+  3  | 
+  4  | test.describe('Tenant Isolation (Aislamiento de Agencias)', () => {
+  5  |   // Config: Usamos el estado global del navegador o hacemos login en cada test.
+  6  |   // Para asegurar aislamiento total, hacemos login en el beforeEach
+  7  |   
+  8  |   test.beforeEach(async ({ page }) => {
+  9  |     // 1. Ir al login
+  10 |     await page.goto('/login');
+  11 |     
+  12 |     // 2. Llenar formulario como Tenant A (Alfa)
+  13 |     await page.fill('input[type="email"]', 'alfa@e2e.local');
+  14 |     await page.fill('input[type="password"]', 'e2e-password');
+  15 |     await page.click('button:has-text("ENTRAR AL PUENTE"), button[type="submit"]');
+  16 |     
+> 17 |     await expect(page).toHaveURL(/.*dashboard.*/, { timeout: 10000 });
+     |                        ^ Error: expect(page).toHaveURL(expected) failed
+  18 |   });
+  19 | 
+  20 |   test('Tenant A no puede acceder a las páginas (UI) del Tenant B', async ({ page }) => {
+  21 |     // Tenant B project
+  22 |     const betaProjectId = E2E_IDS.beta.project;
+  23 |     
+  24 |     // Intentar navegar al proyecto del Tenant B
+  25 |     const response = await page.goto(`/dashboard/proyectos/${betaProjectId}`);
+  26 |     
+  27 |     // Debería redirigir o dar 404/403
+  28 |     if (response && response.ok()) {
+  29 |       // Si la página carga con 200, verificar que no muestra datos de Beta
+  30 |       // O típicamente mostrará un mensaje de "No encontrado"
+  31 |       const content = await page.content();
+  32 |       expect(content).not.toContain('E2E Beta Project');
+  33 |       
+  34 |       // Comprobar si hay un mensaje de error 404 visible
+  35 |       const has404 = await page.locator('text=404').count() > 0 || await page.locator('text=No encontrado').count() > 0;
+  36 |       expect(has404).toBeTruthy();
+  37 |     } else {
+  38 |       // Si el status es 404 o 403, es un éxito de aislamiento
+  39 |       expect(response?.status()).toBeGreaterThanOrEqual(403);
+  40 |     }
+  41 |   });
+  42 | 
+  43 |   test('Tenant A no puede acceder a las APIs de datos del Tenant B', async ({ request }) => {
+  44 |     // 1. Intentar ver miembros del workspace Beta
+  45 |     const wsResponse = await request.get(`/api/workspace/${E2E_IDS.beta.workspace}/members`);
+  46 |     expect(wsResponse.status()).toBeGreaterThanOrEqual(403); 
+  47 | 
+  48 |     // 2. Intentar acceder a la conversación de Beta
+  49 |     const convResponse = await request.get(`/api/inbox/conversations/${E2E_IDS.beta.inboxConv}`);
+  50 |     expect(convResponse.status()).toBeGreaterThanOrEqual(403); 
+  51 | 
+  52 |     // 3. Intentar usar la cuenta publicitaria Meta de Beta
+  53 |     const adsResponse = await request.get(`/api/integrations/meta/ads/campaigns?accountId=${E2E_IDS.beta.metaSrc}`);
+  54 |     expect(adsResponse.status()).toBeGreaterThanOrEqual(400); 
+  55 |   });
+  56 | });
+  57 | 
+  58 | test.describe('Tenant Isolation - Reverse (Tenant B)', () => {
+  59 |   test.beforeEach(async ({ page }) => {
+  60 |     await page.goto('/login');
+  61 |     await page.fill('input[type="email"]', 'beta@e2e.local');
+  62 |     await page.fill('input[type="password"]', 'e2e-password');
+  63 |     await page.click('button:has-text("ENTRAR AL PUENTE"), button[type="submit"]');
+  64 |     await expect(page).toHaveURL(/.*dashboard.*/, { timeout: 10000 });
+  65 |   });
+  66 | 
+  67 |   test('Tenant B no puede acceder a las páginas (UI) del Tenant A', async ({ page }) => {
+  68 |     const alfaProjectId = E2E_IDS.alfa.project;
+  69 |     const response = await page.goto(`/dashboard/proyectos/${alfaProjectId}`);
+  70 |     
+  71 |     if (response && response.ok()) {
+  72 |       const content = await page.content();
+  73 |       expect(content).not.toContain('E2E Alfa Project');
+  74 |       const has404 = await page.locator('text=404').count() > 0 || await page.locator('text=No encontrado').count() > 0;
+  75 |       expect(has404).toBeTruthy();
+  76 |     } else {
+  77 |       expect(response?.status()).toBeGreaterThanOrEqual(403);
+  78 |     }
+  79 |   });
+  80 | });
+  81 | 
+```

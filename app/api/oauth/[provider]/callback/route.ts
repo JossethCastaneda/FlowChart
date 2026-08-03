@@ -30,7 +30,9 @@ export async function GET(
   const integrationsUrl = `${baseUrl}/dashboard/integrations`;
   // Helper: pick redirect URL based on popup mode (set after state decode)
    
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   let getSuccessUrl: (p: string) => string;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   let getErrorUrl: (e: string) => string;
 
   // User cancelled

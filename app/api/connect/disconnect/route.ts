@@ -4,7 +4,6 @@ import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
-const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
 /**
  * POST /api/connect/disconnect
@@ -53,6 +52,7 @@ export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (request, ctx) =
           where: { workspaceId, provider: "meta" }
         });
         if (metaGlobal) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           const c = (metaGlobal.credentials as any) || {};
           await prisma.integration.update({
             where: { id: metaGlobal.id },
@@ -93,6 +93,7 @@ export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (request, ctx) =
     }).catch(() => {});
 
     return NextResponse.json({ success: true, scope: "all", removed: result.count });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     logger.error("[DISCONNECT] Error:", err);
     return NextResponse.json({ error: err?.message || "Error al desvincular" }, { status: 500 });

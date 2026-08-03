@@ -7,6 +7,7 @@ const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: 
 
 /* ═══ ALERTAS DE GASTO ═══ */
 interface AlertasGastoProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   timeSeriesData: any[];
   bk: { daily: number; weekly: number; monthly: number; label: string };
   effectiveBudget: number;
@@ -28,6 +29,7 @@ export function AlertasGastoWidget({
 }: AlertasGastoProps) {
   const alerts: { type: "warning" | "danger" | "info"; msg: string }[] = [];
   const todayStr2 = new Date().toISOString().slice(0, 10);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const todayS = timeSeriesData.filter((d: any) => d.fullDate === todayStr2).reduce((s: number, d: any) => s + d.spend, 0);
   if (todayS > bk.daily * 1.5) alerts.push({ type: "danger", msg: `Sobregasto hoy: ${fmtMXN0(todayS)} gastado (${pct((todayS / bk.daily) * 100)} del diario ideal de ${fmtMXN(bk.daily)})` });
   if (totalSpend > idealSpendToday * 1.2 && idealSpendToday > 0) alerts.push({ type: "warning", msg: `El acumulado (${fmtMXN0(totalSpend)}) va ${pct(((totalSpend / idealSpendToday) - 1) * 100)} por encima de la curva ideal (${fmtMXN0(idealSpendToday)})` });
@@ -52,6 +54,7 @@ interface BudgetCardsProps {
   totalSpend: number;
   idealSpendToday: number;
   daysRemaining: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   timeSeriesData: any[];
   goalBreakdown: { daily: number; weekly: number; monthly: number };
   fmtMXN: (n: number) => string;
@@ -62,14 +65,18 @@ interface BudgetCardsProps {
 
 export function BudgetCardsWidget({
   bk, effectiveBudget, totalSpend, idealSpendToday, daysRemaining,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   timeSeriesData, goalBreakdown,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   fmtMXN, fmtMXN0, pct, panelStyle,
 }: BudgetCardsProps) {
   const pctUsed = effectiveBudget > 0 ? (totalSpend / effectiveBudget) * 100 : 0;
   const isOverBudget = totalSpend > idealSpendToday * 1.1;
 
   const todayStr = new Date().toISOString().slice(0, 10);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const todaySpend = timeSeriesData.filter((d: any) => d.fullDate === todayStr).reduce((sum: number, d: any) => sum + d.spend, 0);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const todayResults = timeSeriesData.filter((d: any) => d.fullDate === todayStr).reduce((sum: number, d: any) => sum + d.results, 0);
   const todayOverBudget = todaySpend > bk.daily * 1.1;
   const todayPct = bk.daily > 0 ? (todaySpend / bk.daily) * 100 : 0;

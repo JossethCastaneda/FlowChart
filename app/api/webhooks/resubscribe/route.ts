@@ -30,6 +30,7 @@ export const POST = withWorkspace(async (_req, ctx) => {
   const version = env.META_API_VERSION;
   let totalSubscribed = 0;
   let totalFailed = 0;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const details: any[] = [];
   
   // Aggregate all scopes across all meta integrations for this workspace
@@ -43,6 +44,7 @@ export const POST = withWorkspace(async (_req, ctx) => {
   const unionScopes = Array.from(allScopesSet);
 
   for (const integ of metaIntegrations) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const creds = integ.credentials as any;
     if (!creds?.pages || !Array.isArray(creds.pages)) continue;
 
@@ -76,6 +78,7 @@ export const POST = withWorkspace(async (_req, ctx) => {
         totalSubscribed += subscribed;
         totalFailed += failed;
         details.push(...subResults);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       } catch (err: any) {
         logger.error(`[RESUBSCRIBE] Error subscribing pages for ${integ.provider}`, { err });
         return apiError(`Failed to subscribe pages: ${err.message}`, "INTERNAL_ERROR", 500);

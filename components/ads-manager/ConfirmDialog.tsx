@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import React from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { AlertTriangle, X } from "lucide-react";
 
 interface ConfirmDialogProps {

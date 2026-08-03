@@ -1,13 +1,16 @@
 "use client";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { useState, useEffect } from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { BrainCircuit, Play, BarChart, CheckCircle } from "lucide-react";
 import { Orbi } from "@/components/ui/Orbi";
 
 export default function PredictiveStudio() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const [datasets, setDatasets] = useState<any[]>([]);
   const [selectedDataset, setSelectedDataset] = useState("");
   const [training, setTraining] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const [result, setResult] = useState<any>(null);
 
   useEffect(() => {

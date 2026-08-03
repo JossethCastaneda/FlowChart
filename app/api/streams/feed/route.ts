@@ -8,8 +8,8 @@ import { logger } from "@/lib/logger";
  * Fetches page feed or mentions for a stream column
  * Query params: type (home_feed|mentions|published), platform, pageId
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 export const GET = withWorkspace(async (request, ctx) => {
-  const workspaceId = ctx.workspaceId;
   const token = await getMetaAccessToken(request, "streams");
   if (!token) return NextResponse.json({ error: "No Meta token" }, { status: 401 });
 
@@ -31,6 +31,7 @@ export const GET = withWorkspace(async (request, ctx) => {
       return NextResponse.json({ posts: [], error: "No pages found" });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const posts: any[] = [];
     // El frontend manda como pageId el id de la PÁGINA FB o el de la CUENTA IG vinculada.
     // Hay que matchear ambos; antes solo comparaba p.id (FB) y para columnas IG caía
@@ -38,6 +39,7 @@ export const GET = withWorkspace(async (request, ctx) => {
     let page = pages[0];
     if (pageId) {
       const found = pages.find(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         (p: any) => p.id === pageId || p.instagram_business_account?.id === pageId
       );
       if (!found) {
@@ -173,6 +175,7 @@ export const GET = withWorkspace(async (request, ctx) => {
     posts.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
 
     return NextResponse.json({ posts });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     logger.error("[STREAMS] Error:", err);
     return NextResponse.json({ error: err.message || "Error fetching feed" }, { status: 500 });

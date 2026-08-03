@@ -26,6 +26,7 @@ export function useInboxData() {
     return () => document.removeEventListener("click", requestPerm);
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const mapConversations = useCallback((raw: any[]): Conversation[] => {
     const pm: Record<string, Platform> = {
       facebook_messenger: "fb_messenger", instagram_dm: "instagram_dm", ig_dm: "ig_dm",
@@ -49,7 +50,9 @@ export function useInboxData() {
   // Último dato conocido por fuente: DMs (DB) y comentarios FB/IG (Graph en vivo).
   // Separados para que la fuente lenta no bloquee a la rápida y un fallo transitorio
   // de una no borre de la lista lo que la otra ya trajo.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const dmCacheRef = useRef<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const commentsCacheRef = useRef<any[]>([]);
 
   const fetchConversations = useCallback(async (silent = false) => {
@@ -84,6 +87,7 @@ export function useInboxData() {
         const currentMax = lastNotifiedAtRef.current;
         let newMax = currentMax;
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         data.conversations.forEach((c: any) => {
           const msgTime = new Date(c.lastMessageAt || 0).getTime();
           if (c.unread && msgTime > currentMax) {
@@ -112,11 +116,13 @@ export function useInboxData() {
         const mapped = rebuild();
 
         const prefetchers = mapped.slice(0, 3).map(conv => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           const pageId = (conv as any)._pageId;
           return fetch(`/api/inbox/messages?conversationId=${conv.id}&pageId=${pageId || ""}&_t=${Date.now()}`)
             .then(r => r.ok ? r.json() : null)
             .then(d => ({
               id: conv.id,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
               messages: d?.messages?.map((m: any) => ({
                 id: m.id,
                 text: m.text,
@@ -147,6 +153,7 @@ export function useInboxData() {
           )
           .slice(0, 5)  // máximo 5 por ciclo
           .map(conv => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           const pageId = (conv as any)._pageId;
           return fetch(`/api/inbox/profile?userId=${conv.contactId}&pageId=${pageId || ""}`)
             .then(r => r.ok ? r.json() : null)
@@ -163,6 +170,7 @@ export function useInboxData() {
             const validProfiles = results.filter(Boolean);
             if (validProfiles.length > 0) {
               setConversations(prev => prev.map(c => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
                 const p = validProfiles.find((x: any) => x.id === c.id);
                 if (p) {
                   return { ...c, contactName: p.name, contactAvatar: p.picture || c.contactAvatar };
@@ -192,16 +200,19 @@ export function useInboxData() {
     await commentsFetch;
   }, [mapConversations]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
   useEffect(() => { fetchConversations(); }, [fetchConversations]);
 
   const loadMessages = useCallback((id: string) => {
     const conv = conversationsRef.current.find(c => c.id === id);
     if (!conv) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const pageId = (conv as any)?._pageId;
     fetch(`/api/inbox/messages?conversationId=${id}&pageId=${pageId || ""}&_t=${Date.now()}`)
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data?.messages?.length) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           const msgs: Message[] = data.messages.map((m: any) => ({
             id: m.id,
             text: m.text,
@@ -330,6 +341,7 @@ export function useInboxData() {
     });
     
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       const pageId = (selected as any)._pageId || selected.pageId || "";
       const recipientId = selected.contactId || selected.id.replace("igc_", "").replace("fbc_", "");
       const isWhatsApp = selected.platform === "whatsapp";

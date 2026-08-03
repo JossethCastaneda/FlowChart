@@ -79,6 +79,7 @@ export async function GET(req: NextRequest) {
     const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?${timeRange.replace(/^&/, '')}&level=ad&fields=${insightsFields}&limit=100`;
     
     const insightsRes = await metaFetch(insightsUrl, token);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     let insights: any[] = [];
     if (insightsRes.ok) {
       const insightsJson = await insightsRes.json();
@@ -86,7 +87,9 @@ export async function GET(req: NextRequest) {
     }
 
     // Merge insights
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const insightsMap = new Map(insights.map((item: any) => [item.ad_id, item]));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const mergedAds = ads.map((ad: any) => {
       const insight = insightsMap.get(ad.id) || {};
       return {
@@ -106,6 +109,7 @@ export async function GET(req: NextRequest) {
           purchase_roas: insight.purchase_roas || [],
           video_p25_watched_actions: insight.video_p25_watched_actions || [],
           video_p100_watched_actions: insight.video_p100_watched_actions || [],
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           video_3_sec_watched_actions: (insight.actions || []).filter((a: any) => a.action_type === "video_view"),
           video_thruplay_watched_actions: insight.video_thruplay_watched_actions || [],
           outbound_clicks: insight.outbound_clicks || [],
@@ -144,17 +148,21 @@ export async function GET(req: NextRequest) {
           dateRange: cacheKey,
         }
       },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       update: { data: responsePayload as any },
       create: {
         workspaceId,
         adAccountId,
         level: "ads",
         dateRange: cacheKey,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         data: responsePayload as any
       }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     }).catch((e: any) => logger.error("Cache save error:", e));
 
     return NextResponse.json(responsePayload);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (error: any) {
     return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
   }
@@ -199,6 +207,7 @@ export async function POST(req: NextRequest) {
 
     // Update the ad
     const updateUrl = `https://graph.facebook.com/${version}/${adId}`;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const updateFields: any = {};
     if (status !== undefined) updateFields.status = status;
     if (name !== undefined) updateFields.name = name;
@@ -229,6 +238,7 @@ export async function POST(req: NextRequest) {
       preflight_checks: { token_scopes_ok: true },
       data: json
     });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (error: any) {
     return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
   }

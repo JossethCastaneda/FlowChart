@@ -1,5 +1,6 @@
 ﻿"use client";
 import React, { useState } from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { X, DollarSign, ToggleLeft, ToggleRight } from "lucide-react";
 
 interface SpendCapModalProps {

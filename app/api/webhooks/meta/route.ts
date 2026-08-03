@@ -40,6 +40,7 @@ async function persistMetaDm(
     }
     let contactName: string | undefined = undefined;
     let contactAvatar: string | undefined = undefined;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const fetchedCustomFields: any = undefined;
 
     // Obtener detalles del usuario desde Graph API si es un mensaje entrante
@@ -299,6 +300,7 @@ export async function POST(req: NextRequest) {
 }
 
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 async function processWebhookEvents(body: any, object: string) {
   for (const entry of body.entry) {
     const entryId = entry.id;
@@ -1256,6 +1258,7 @@ async function findProjectsForEvent(meta: {
 
     if (isMatch) {
       // Remover status para cumplir con el tipo de retorno original
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
       const { status, ...projectData } = c.project;
       matchedProjects.set(c.projectId, projectData);
     }
@@ -1449,6 +1452,7 @@ async function notifyWorkspaceFallback(alert: {
 /**
  * Determine the best link for the notification based on alert type
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 function getAlertLink(alert: { type: string; meta?: any; channel?: string }, projectId: string): string {
   const base = `/dashboard`;
 

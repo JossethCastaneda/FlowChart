@@ -68,6 +68,7 @@ export function usePlanLimit(feature: keyof typeof PLAN_LIMITS["free"]) {
         }
       });
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
       setLoading(false);
     }
 

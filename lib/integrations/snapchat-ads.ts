@@ -18,6 +18,7 @@ export function createSnapchatAdsClient(workspaceId: string): AdsClient {
      * Endpoint: GET /adaccounts/{ad_account_id}/stats
      * Docs: https://developers.snap.com/api/marketing-api/campaigns-api/stats-api
      */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
     async getInsights(_params: InsightsParams): Promise<NormalizedInsights> {
       const token = await getValidAccessToken(workspaceId, "snapchat_ads");
       if (!token) throw new Error("Snapchat Ads not connected for this workspace");
@@ -25,16 +26,19 @@ export function createSnapchatAdsClient(workspaceId: string): AdsClient {
     },
 
     /** TODO: POST /adaccounts/{id}/campaigns */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
     async createCampaign(..._args: unknown[]): Promise<unknown> {
       throw new Error("TODO: Snapchat Ads createCampaign — POST /adaccounts/{id}/campaigns");
     },
 
     /** TODO: PUT /campaigns/{id} */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
     async updateCampaign(..._args: unknown[]): Promise<unknown> {
       throw new Error("TODO: Snapchat Ads updateCampaign — PUT /campaigns/{id}");
     },
 
     /** TODO: PUT /campaigns/{id} (status: PAUSED) */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
     async pauseCampaign(..._args: unknown[]): Promise<unknown> {
       throw new Error("TODO: Snapchat Ads pauseCampaign — PUT /campaigns/{id} status=PAUSED");
     },

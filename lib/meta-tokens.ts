@@ -33,6 +33,7 @@ export interface UserTokenData {
 /**
  * Parse credentials from Integration table
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function parseIntegrationCredentials(credentials: any): UserTokenData | null {
   if (!credentials?.accessToken) return null;
 
@@ -43,6 +44,7 @@ export function parseIntegrationCredentials(credentials: any): UserTokenData | n
       expiresAt: credentials.expiresAt || "",
       refreshedAt: credentials.refreshedAt || "",
       pages: Array.isArray(credentials.pages) 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         ? credentials.pages.map((p: any) => ({
             pageId: p.id,
             pageName: p.name,

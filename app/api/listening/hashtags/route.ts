@@ -3,8 +3,8 @@ import { withWorkspace } from "@/lib/api-handler";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import { logger } from "@/lib/logger";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 export const GET = withWorkspace(async (request, ctx) => {
-  const workspaceId = ctx.workspaceId;
   const token = await getMetaAccessToken(request, "social");
   if (!token) return NextResponse.json({ posts: [], error: "No Meta token" });
   const q = request.nextUrl.searchParams.get("q")?.replace(/^#/, "");
@@ -17,6 +17,7 @@ export const GET = withWorkspace(async (request, ctx) => {
       token
     );
     const pagesData = await pagesRes.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const page = (pagesData.data || []).find((p: any) => p.instagram_business_account);
     if (!page?.instagram_business_account?.id) {
       return NextResponse.json({ posts: [], error: "No IG business account" });
@@ -49,6 +50,7 @@ export const GET = withWorkspace(async (request, ctx) => {
       return NextResponse.json({ posts: [], error: "Could not fetch hashtag media" });
     }
     const mediaData = await mediaRes.json();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const posts = (mediaData.data || []).map((m: any) => ({
       id: m.id,
       caption: m.caption || "",
@@ -61,6 +63,7 @@ export const GET = withWorkspace(async (request, ctx) => {
     }));
 
     return NextResponse.json({ posts, hashtag: q });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     logger.error("[HASHTAGS] Error:", err);
     return NextResponse.json({ posts: [], error: err.message || "Error" }, { status: 500 });

@@ -77,12 +77,14 @@ export const GET = withWorkspaceRole(["OWNER", "ADMIN"])(async (
         connected: true,
         connectedAt: new Date(),
         connectedBy: userId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         credentials: existingIntegration.credentials as any,
       },
       update: {
         connected: true,
         connectedAt: new Date(),
         connectedBy: userId,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         credentials: existingIntegration.credentials as any,
       }
     });

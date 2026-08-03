@@ -8,6 +8,7 @@ interface CachedAsset {
   provider: string;
   externalId: string;
   name: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   metadata: any;
 }
 

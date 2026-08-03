@@ -37,18 +37,22 @@ export interface ProjectWidgetProps {
   trackStatus: string;
 
   /* ── Chart Data ── */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   timeSeriesData: any[];
 
   /* ── Channel Config ── */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   ch: any; // ChannelConfig | undefined
 
   /* ── Loading State ── */
   isLoading: boolean;
 
   /* ── Breakdown Data (for heatmap, etc.) ── */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   breakdownData: Record<string, any[]>;
 
   /* ── Insights (raw, for finding result actions) ── */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   insights: any;
 
   /* ── Formatters (passed down so widgets don't re-import) ── */
@@ -62,5 +66,6 @@ export interface ProjectWidgetProps {
 export interface GastoWidgetProps extends ProjectWidgetProps {
   timeGranularity: string;
   setTimeGranularity: (v: string) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   getSpendTable: () => any[];
 }

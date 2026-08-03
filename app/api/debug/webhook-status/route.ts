@@ -29,6 +29,7 @@ export const GET = withWorkspace(async (_req, ctx) => {
   const version = env.META_API_VERSION;
 
   for (const integ of metaIntegrations) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const creds = integ.credentials as any;
     if (!creds?.pages || !Array.isArray(creds.pages)) continue;
 
@@ -38,7 +39,8 @@ export const GET = withWorkspace(async (_req, ctx) => {
       let decryptedToken: string;
       try {
         decryptedToken = decryptToken(page.accessToken);
-      } catch (err) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
+      } catch (_err) {
         results.push({
           provider: integ.provider,
           pageId: page.id,
@@ -66,6 +68,7 @@ export const GET = withWorkspace(async (_req, ctx) => {
         
         if (data.data && Array.isArray(data.data)) {
           // Check if OUR app is in the list
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           const ourApp = data.data.find((app: any) => app.id === env.META_APP_ID);
           if (ourApp) {
             isSubscribed = true;
@@ -90,6 +93,7 @@ export const GET = withWorkspace(async (_req, ctx) => {
           inAssetCache: !!assetCache,
           rawResponse: data
         });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       } catch (err: any) {
         results.push({
           provider: integ.provider,

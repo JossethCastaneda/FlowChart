@@ -40,14 +40,17 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
   const ro = mode === "view";
   const isCreate = mode === "create";
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
   useEffect(() => { setMounted(true); }, []);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps, @typescript-eslint/no-explicit-any -- TODO: Limpieza de deuda técnica
   const analyticsIntegrations: any[] = [];
 
   useEffect(() => {
     if (mode === "view") return;
     if (analyticsIntegrations.length === 1 && !form.crmIntegrationId && !(form.crmIntegrationIds && form.crmIntegrationIds.length)) {
       const only = analyticsIntegrations[0];
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
       setForm((prev) => ({ ...prev, crmIntegrationId: only.id, crmIntegrationIds: [only.id], crmType: only.provider }));
     }
   }, [activeIntegrations.length, mode, analyticsIntegrations, form.crmIntegrationId, form.crmIntegrationIds]);

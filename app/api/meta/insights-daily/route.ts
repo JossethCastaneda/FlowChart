@@ -9,7 +9,6 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
-  const level = searchParams.get("level") || "campaign";
   // days no numérico daba NaN → since.setDate(NaN) = Invalid Date → toISOString() lanzaba
   // RangeError FUERA del try (500). Se clampa a [1, 365] con default 30.
   const daysRaw = parseInt(searchParams.get("days") || "30", 10);
@@ -49,6 +48,7 @@ export async function GET(req: NextRequest) {
     const data = json.data || [];
 
     // Parse into simplified daily records
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const daily = data.map((d: any) => ({
       date: d.date_start,
       spend: parseFloat(d.spend || "0"),
@@ -66,6 +66,7 @@ export async function GET(req: NextRequest) {
     }));
 
     return NextResponse.json({ data: daily });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

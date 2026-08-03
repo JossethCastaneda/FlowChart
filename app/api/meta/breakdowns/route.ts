@@ -147,6 +147,7 @@ export async function GET(req: NextRequest) {
     const json = await res.json();
 
     // Normalise numerics server-side — frontend gets clean numbers
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const data = (json.data || []).map((d: any) => {
       // Meta returns the hour field with the breakdown name as the key.
       // Normalize to a clean integer 'hour' field regardless of which TZ field was used.
@@ -175,6 +176,7 @@ export async function GET(req: NextRequest) {
       logger.info(`[BREAKDOWNS:${breakdownKey}] Total rows returned: ${data.length}`);
       // Show unique dates and their hour ranges
       const dateHourMap: Record<string, number[]> = {};
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       data.forEach((r: any) => {
         if (!dateHourMap[r.date_start]) dateHourMap[r.date_start] = [];
         if (r.hour !== null) dateHourMap[r.date_start].push(r.hour);
@@ -189,6 +191,7 @@ export async function GET(req: NextRequest) {
       breakdownKey,
       breakdownType: mapping.time_increment ? "time" : "dimension",
     });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (error: any) {
     logger.error(`[BREAKDOWNS:${breakdownKey}] Exception`, { error });
     return NextResponse.json(

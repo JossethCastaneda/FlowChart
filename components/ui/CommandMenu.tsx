@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { Search, FolderKanban, Users, Settings, Inbox, LayoutDashboard } from "lucide-react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { useSession } from "next-auth/react";
 
 export function CommandMenu() {

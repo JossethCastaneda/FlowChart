@@ -54,10 +54,12 @@ export function CreateAdModal({ adAccountId, adsets, onClose, onCreated }: Props
   const [loadingPages, setLoadingPages] = useState(true);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
     setLoadingPages(true);
     fetch("/api/meta/pages?module=ads")
       .then(r => r.json())
       .then(d => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         const list: Page[] = (d.data || []).map((p: any) => ({
           id: p.id,
           name: p.name,

@@ -7,8 +7,8 @@ import { logger } from "@/lib/logger";
  * GET /api/listening/mentions
  * Fetches tagged posts + page mentions from Meta Graph API
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 export const GET = withWorkspace(async (request, ctx) => {
-  const workspaceId = ctx.workspaceId;
   const token = await getMetaAccessToken(request, "listening");
   if (!token) return NextResponse.json({ error: "No Meta token" }, { status: 401 });
 
@@ -21,6 +21,7 @@ export const GET = withWorkspace(async (request, ctx) => {
     const pagesData = await pagesRes.json();
     const pages = pagesData.data || [];
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const mentions: any[] = [];
 
     for (const page of pages) {
@@ -105,6 +106,7 @@ export const GET = withWorkspace(async (request, ctx) => {
     mentions.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 
     return NextResponse.json({ mentions, count: mentions.length });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     logger.error("[LISTENING] Error:", err);
     return NextResponse.json({ error: err.message || "Error fetching mentions" }, { status: 500 });

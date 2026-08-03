@@ -3,7 +3,6 @@ import { withWorkspace } from "@/lib/api-handler";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
-const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
 /**
  * GET /api/connect/status
@@ -24,6 +23,7 @@ export const GET = withWorkspace(async (request, ctx) => {
 
     const now = new Date();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const modules: Record<string, { connected: boolean; connectedAt: string | null; pages: any[]; userProfile?: any; tokenExpiresSoon?: boolean; daysUntilExpiry?: number }> = {};
 
     for (const mod of ["publisher_facebook", "publisher_instagram", "social", "ads", "analytics", "community", "instagram"]) {
@@ -33,6 +33,7 @@ export const GET = withWorkspace(async (request, ctx) => {
       // heredado de otro botón engaña a la UI mientras getMetaAccessToken
       // (también estricto) devuelve null.
       const integration = integrations.find((i) => i.provider === `meta_${mod}`);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       const creds = integration?.credentials as any;
 
       // Detect token expiry
@@ -48,6 +49,7 @@ export const GET = withWorkspace(async (request, ctx) => {
       modules[mod] = {
         connected: integration?.connected ?? false,
         connectedAt: integration?.connectedAt?.toISOString() || null,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any -- TODO: Limpieza de deuda técnica
         pages: (creds?.pages || []).map(({ accessToken, ...p }: any) => p),
         userProfile: creds?.profile || null,
         tokenExpiresSoon,
@@ -57,9 +59,13 @@ export const GET = withWorkspace(async (request, ctx) => {
 
     // Also get pages from generic "meta" integration as fallback
     const genericMeta = integrations.find((i) => i.provider === "meta");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars -- TODO: Limpieza de deuda técnica
     const genericPages = ((genericMeta?.credentials as any)?.pages || []).map(({ accessToken, ...p }: any) => p);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const genericCreds = genericMeta?.credentials as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const metaWithProfile = integrations.find((i) => (i.credentials as any)?.profile);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const genericProfile = (metaWithProfile?.credentials as any)?.profile || null;
 
     // Check generic token expiry

@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { DndContext, DragOverlay, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors, DragStartEvent, DragOverEvent, DragEndEvent } from "@dnd-kit/core";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Plus } from "lucide-react";
@@ -87,12 +89,15 @@ export interface KanbanBoardProps {
     color: string;
     wipLimit?: number;
     match: (t: Task) => boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     createDefaults: any;
   }>;
   myPerms: { canAccessOps: boolean };
   lang: "es" | "en";
   onTaskClick: (task: Task) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   onTaskUpdate: (taskId: string, data: any) => Promise<void>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   onCreateTask: (data: any) => Promise<void>;
   groupBy: string; // "status", "assignee", etc to know which field to patch
 }

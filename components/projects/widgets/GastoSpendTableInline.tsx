@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 "use client";
 
 import React from "react";
@@ -64,19 +65,19 @@ interface GastoTableProps {
   headingStyle: React.CSSProperties;
   subStyle: React.CSSProperties;
   labelStyle: React.CSSProperties;
-  timeSeriesData: any[];
+    timeSeriesData: any[];
   timeGranularity: string;
   setTimeGranularity: (v: string) => void;
-  getSpendTable: () => any[];
+    getSpendTable: () => any[];
   bk: { daily: number; weekly: number; monthly: number; label: string };
   totalSpend: number;
   totalResults: number;
   goalNum: number;
   goalBreakdown: { daily: number; weekly: number; monthly: number };
   cprTarget: number;
-  ch: any;
-  project: any;
-  insights: any;
+    ch: any;
+    project: any;
+    insights: any;
   daysElapsed: number;
   daysInMonth: number;
   fmtMXN: (n: number) => string;
@@ -84,13 +85,13 @@ interface GastoTableProps {
   fmtNum: (n: number) => string;
   pct: (n: number) => string;
   goalLabel: (goal?: string) => string;
-  findResultAction: (actions: any[] | undefined, goal?: string, objective?: string) => any;
+    findResultAction: (actions: any[] | undefined, goal?: string, objective?: string) => any;
 }
 
 /* ═══ SPEND TABLE (solo la tabla, sin chart) ═══ */
 export function GastoSpendTableInline({
   panelStyle, headingStyle, subStyle,
-  timeSeriesData, timeGranularity, setTimeGranularity,
+    timeSeriesData, timeGranularity, setTimeGranularity,
   getSpendTable, bk, totalSpend, totalResults,
   goalNum, goalBreakdown, cprTarget,
   ch, project,
@@ -111,7 +112,7 @@ export function GastoSpendTableInline({
           const tableData = getSpendTable();
           const DAYS_ES = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
-          const cols = tableData.map((d: any) => {
+                    const cols = tableData.map((d: any) => {
             let dayName = "";
             if (d.fullDate) {
               const dt = new Date(d.fullDate + "T12:00:00");
@@ -162,17 +163,17 @@ export function GastoSpendTableInline({
 
           const metricRows = [
             { label: "Presupuesto", key: "presupuesto", total: fmtMXN0(totPresupuesto), values: cols.map(() => fmtMXN(bk.daily)), color: "var(--foreground)" },
-            { label: "Importe Gastado", key: "gastado", total: fmtMXN0(totGastado), values: cols.map((c: any) => fmtMXN(c.spend)), color: "var(--amber)" },
-            { label: "%Gastado", key: "pctGastado", total: pct(pctGastado), values: cols.map((c: any) => bk.daily > 0 ? pct((c.spend / bk.daily) * 100) : "—"), color: "var(--foreground)" },
-            { label: goalLabel(ch?.goal), key: "leads", total: fmtNum(totLeads), values: cols.map((c: any) => String(c.results || 0)), color: "var(--emerald)" },
-            { label: "Cumplimiento", key: "cumplimiento", total: goalNum > 0 ? pct(totCumplimiento) : "—", values: cols.map((c: any) => goalBreakdown.daily > 0 ? pct((c.results / goalBreakdown.daily) * 100) : "—"), color: "#c084fc" },
-            { label: CPR_MAP[ch?.goal || ""] || "CPR", key: "cpr", total: fmtMXN(totCPL), values: cols.map((c: any) => c.results > 0 ? fmtMXN(c.spend / c.results) : "—"), color: "var(--cyan)" },
+                        { label: "Importe Gastado", key: "gastado", total: fmtMXN0(totGastado), values: cols.map((c: any) => fmtMXN(c.spend)), color: "var(--amber)" },
+                        { label: "%Gastado", key: "pctGastado", total: pct(pctGastado), values: cols.map((c: any) => bk.daily > 0 ? pct((c.spend / bk.daily) * 100) : "—"), color: "var(--foreground)" },
+                        { label: goalLabel(ch?.goal), key: "leads", total: fmtNum(totLeads), values: cols.map((c: any) => String(c.results || 0)), color: "var(--emerald)" },
+                        { label: "Cumplimiento", key: "cumplimiento", total: goalNum > 0 ? pct(totCumplimiento) : "—", values: cols.map((c: any) => goalBreakdown.daily > 0 ? pct((c.results / goalBreakdown.daily) * 100) : "—"), color: "#c084fc" },
+                        { label: CPR_MAP[ch?.goal || ""] || "CPR", key: "cpr", total: fmtMXN(totCPL), values: cols.map((c: any) => c.results > 0 ? fmtMXN(c.spend / c.results) : "—"), color: "var(--cyan)" },
             { label: `${CPR_MAP[ch?.goal || ""] || "CPR"} Objetivo`, key: "cprObj", total: cprTarget > 0 ? fmtMXN(cprTarget) : "—", values: cols.map(() => cprTarget > 0 ? fmtMXN(cprTarget) : "—"), color: "var(--text-secondary)" },
-            { label: "Desvío", key: "desvio", total: cprTarget > 0 ? `${desvioCPL > 0 ? "+" : ""}${desvioCPL.toFixed(1)}%` : "—", values: cols.map((c: any) => { if (!cprTarget || c.results === 0) return "—"; const d = ((c.spend / c.results) / cprTarget - 1) * 100; return `${d > 0 ? "+" : ""}${d.toFixed(1)}%`; }), color: "var(--text-secondary)" },
+                        { label: "Desvío", key: "desvio", total: cprTarget > 0 ? `${desvioCPL > 0 ? "+" : ""}${desvioCPL.toFixed(1)}%` : "—", values: cols.map((c: any) => { if (!cprTarget || c.results === 0) return "—"; const d = ((c.spend / c.results) / cprTarget - 1) * 100; return `${d > 0 ? "+" : ""}${d.toFixed(1)}%`; }), color: "var(--text-secondary)" },
           ];
 
           const exportCSV = () => {
-            const headers = ["Métrica", "Al Día", ...cols.map((c: any) => c.fullDate || c.date)];
+                        const headers = ["Métrica", "Al Día", ...cols.map((c: any) => c.fullDate || c.date)];
             const rows = metricRows.map(row => [row.label, row.total, ...row.values]);
             const csvContent = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(",")).join("\n");
             const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
@@ -199,7 +200,7 @@ export function GastoSpendTableInline({
                 <tr>
                   <th style={{ ...totalCellStyle, background: "var(--surface-hover)", borderBottom: "none", minWidth: 100, textAlign: "left", fontSize: 10, color: "var(--foreground)" }}>AL DÍA</th>
                   <th style={{ ...labelCellStyle, borderBottom: "none", minWidth: 120, fontSize: 10, color: "var(--foreground)" }}>FECHA</th>
-                  {cols.map((c: any, i: number) => {
+                                    {cols.map((c: any, i: number) => {
                     const isToday = c.fullDate === todayFullDate;
                     return <th key={i} style={{ ...headerCellStyle, ...(isToday ? { background: "var(--emerald)", fontWeight: 800 } : {}) }}>{c.dayName}{isToday ? " (Hoy)" : ""}</th>;
                   })}
@@ -207,7 +208,7 @@ export function GastoSpendTableInline({
                 <tr>
                   <th style={{ ...totalCellStyle, borderBottom: "2px solid rgba(0,120,255,0.3)" }}></th>
                   <th style={{ ...labelCellStyle, borderBottom: "2px solid rgba(0,120,255,0.3)" }}></th>
-                  {cols.map((c: any, i: number) => {
+                                    {cols.map((c: any, i: number) => {
                     const isToday = c.fullDate === todayFullDate;
                     return <th key={i} style={{ ...subHeaderStyle, ...(isToday ? { background: "rgba(0,200,117,0.1)", borderBottom: "2px solid var(--emerald)" } : {}) }}>{c.date}</th>;
                   })}
@@ -250,7 +251,7 @@ export function GastoSpendTableInline({
 
 /* ═══ SPEND CURVE CHART (separate widget) ═══ */
 interface GastoCurvaProps {
-  timeSeriesData: any[];
+    timeSeriesData: any[];
   bk: { daily: number; weekly: number; monthly: number; label: string };
   fmtMXN: (n: number) => string;
 }
@@ -259,10 +260,10 @@ export function GastoCurvaWidget({ timeSeriesData, bk, fmtMXN }: GastoCurvaProps
   return (
     <div style={{ display: "flex", flexDirection: "column", width: "100%", height: "100%" }}>
       <div style={{ flex: 1, width: "100%", minHeight: 0 }}>
-      {timeSeriesData.length > 0 ? <ResponsiveContainer width="100%" height="100%"><ComposedChart data={timeSeriesData.map((d: any, i: number) => ({ ...d, idealAccum: bk.daily * (i + 1), spendAccum: timeSeriesData.slice(0, i + 1).reduce((a: number, b: any) => a + b.spend, 0) }))} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
+            {timeSeriesData.length > 0 ? <ResponsiveContainer width="100%" height="100%"><ComposedChart data={timeSeriesData.map((d: any, i: number) => ({ ...d, idealAccum: bk.daily * (i + 1), spendAccum: timeSeriesData.slice(0, i + 1).reduce((a: number, b: any) => a + b.spend, 0) }))} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} /><XAxis dataKey="date" stroke="var(--text-secondary)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" />
         <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
-        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, n: any) => [fmtMXN(v as number), n]} /><Legend wrapperStyle={{ fontSize: 10 }} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v: any, n: any) => [fmtMXN(v as number), n]} /><Legend wrapperStyle={{ fontSize: 10 }} />
         <Line type="monotone" dataKey="spendAccum" name="Gasto acumulado" stroke="var(--amber)" strokeWidth={2} dot={false} />
         <Line type="monotone" dataKey="idealAccum" name="Presupuesto ideal" stroke="rgba(148,163,184,0.65)" strokeWidth={2} strokeDasharray="5 5" dot={false} />
       </ComposedChart></ResponsiveContainer> : <NoData />}

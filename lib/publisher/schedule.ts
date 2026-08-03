@@ -15,6 +15,7 @@ export function isWorkflowScheduleToken(token: string | null | undefined): boole
 }
 
 export async function cancelLegacyQstashSchedule(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   scheduleId: string | null | undefined
 ): Promise<void> {
   // Legacy qstash schedules are no longer supported.

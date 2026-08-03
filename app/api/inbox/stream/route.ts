@@ -1,4 +1,3 @@
-import { NextRequest } from "next/server";
 import { withWorkspace } from "@/lib/api-handler";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";

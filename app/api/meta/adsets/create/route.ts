@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
     const ctry = Array.isArray(countries) && countries.length
       ? countries.map((c: string) => String(c).toUpperCase().trim()).filter(Boolean)
       : ["MX"];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const targeting: any = {
       geo_locations: { countries: ctry },
       age_min: Math.max(13, Math.min(65, Number(ageMin) || 18)),
@@ -67,6 +68,7 @@ export async function POST(req: NextRequest) {
     // Advantage+ Audience — official Marketing API format
     targeting.targeting_automation = { advantage_audience: advantageAudience ? 1 : 0 };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const payload: Record<string, any> = {
       campaign_id: campaignId,
       name: String(name).trim(),
@@ -114,6 +116,7 @@ export async function POST(req: NextRequest) {
 
     logger.info("[ADS] AdSet created", { id: json.id, objective });
     return NextResponse.json({ status: "success", object_id: json.id, created_paused: true, data: json });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (error: any) {
     logger.error("[ADS] AdSet create unhandled", { error: error.message });
     return NextResponse.json({ status: "error", error: error.message }, { status: 500 });

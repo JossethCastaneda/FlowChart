@@ -3,16 +3,19 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { Zap, Users, Loader2, CheckCircle } from "lucide-react";
 import { Orbi } from "@/components/ui/Orbi";
 
 export default function InvitePage() {
   const params = useParams();
   const router = useRouter();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   const { data: session, status, update } = useSession();
   const token = params.token as string;
   const autoAcceptAttempted = useRef(false);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const [invite, setInvite] = useState<any>(null);
   const [pageLoading, setPageLoading] = useState(true);
   const [accepting, setAccepting] = useState(false);

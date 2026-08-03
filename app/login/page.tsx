@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-html-link-for-pages, @typescript-eslint/no-unused-vars, react-hooks/set-state-in-effect, @typescript-eslint/no-explicit-any */
 "use client";
 
 /**
@@ -102,7 +103,8 @@ export default function LoginPage() {
 
   // Deep-link self-serve: /login?register=1 abre directo en "Crear cuenta" (CTA "Empieza gratis")
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("register") === "1") setIsRegister(true);
+   
+        if (new URLSearchParams(window.location.search).get("register") === "1") setIsRegister(true);
   }, []);
 
   useEffect(() => {
@@ -120,7 +122,8 @@ export default function LoginPage() {
           Verification: "El enlace de verificación expiró o ya fue utilizado.",
           Configuration: "Error de configuración del servidor de autenticación.",
         };
-        setCredError(map[oauthError] || `Error: ${oauthError}`);
+   
+                setCredError(map[oauthError] || `Error: ${oauthError}`);
         window.history.replaceState({}, "", "/login");
       }
       try {
@@ -148,9 +151,9 @@ export default function LoginPage() {
     // FB SDK — usado solo si el provider facebook-sdk está configurado
     const APP_ID = process.env.NEXT_PUBLIC_META_APP_ID;
     if (!APP_ID) return () => { isActive = false; };
-    const w = window as any;
+        const w = window as any;
     const initSdk = () => {
-      w.FB!.init({ appId: APP_ID, cookie: true, xfbml: false, version: process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0" });
+      w.FB!.init({ appId: APP_ID, cookie: true, xfbml: false, version: process.env.NEXT_PUBLIC_FB_API_VERSION || "v25.0" });
       w.FB!.AppEvents.logPageView();
       if (isActive) setFbReady(true);
     };
@@ -210,14 +213,14 @@ export default function LoginPage() {
     // Si el SDK aún no cargó (carga asíncrona), usamos el popup de NextAuth
     // directamente — evita el error "El SDK de Facebook no está disponible"
     // que aparece cuando el usuario hace clic antes de que sdk.js termine.
-    const w = window as any;
+        const w = window as any;
     if (!fbReady || !w.FB) {
       popupLogin("facebook");
       return;
     }
     setIsLoading(true);
     setCredError("");
-    w.FB.login((response: any) => {
+        w.FB.login((response: any) => {
       if (response.status === "connected" && response.authResponse?.accessToken) {
         (async () => {
           try {

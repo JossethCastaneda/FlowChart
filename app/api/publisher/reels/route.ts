@@ -23,7 +23,8 @@ const META_V = process.env.META_API_VERSION || "v25.0";
  *   pageToken: string (encrypted page access token)
  *   shareToFeed?: boolean (IG only, default true)
  */
-export const POST = withWorkspace(async (req: NextRequest, ctx) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
+export const POST = withWorkspace(async (req: NextRequest, _ctx) => {
   // Try module-specific token, then fallback
   const token = await getMetaAccessToken(req, "publisher_facebook");
   if (!token) {

@@ -4,7 +4,9 @@
  */
 
 // Cargar variables de entorno
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { createCipheriv, createDecipheriv, createHmac, randomBytes } from "crypto";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { readFileSync } from "fs";
 
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;

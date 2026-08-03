@@ -7,6 +7,7 @@ import {
 import { CustomTooltip } from "@/components/ui/charts/CustomTooltip";
 
 interface ChartWidgetProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   timeSeriesData: any[];
   isLoading: boolean;
   fmtMXN: (n: number) => string;

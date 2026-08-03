@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { Plus, Copy, Edit2, Trash2, Tag, MoreHorizontal, ChevronDown, Download, Upload, Maximize2, FlaskConical, Play, Pause, Type, Search, DollarSign, Gauge, Settings, FileSpreadsheet, FileText, Table2 } from "lucide-react";
 
 export interface TableActionBarProps {
@@ -35,6 +36,7 @@ export interface TableActionBarProps {
 export function TableActionBar({
   children,
   selectedCount,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   selectedIds,
   level,
   onDuplicateQuick, onCopy, onPaste, onShowClipboard,

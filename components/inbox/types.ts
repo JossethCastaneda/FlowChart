@@ -5,6 +5,7 @@ export interface Message {
     timestamp: Date;
     status?: "sending" | "sent" | "error";
     errorText?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     attachments?: any[];
     reaction?: string;
     /** ISO Date — when the outgoing message was delivered to the recipient's device */
@@ -63,6 +64,7 @@ export interface Conversation {
     /** ISO string of when conversation was first created */
     createdAt?: string;
     priority?: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     customFields?: Record<string, any> | null;
 }
 

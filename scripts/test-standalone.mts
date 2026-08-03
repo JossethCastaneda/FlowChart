@@ -24,8 +24,10 @@ async function main() {
     });
     if (!integration) throw new Error("No botmaker integration");
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const encryptedToken = (integration.credentials as any)?.accessToken;
     const token = decryptToken(encryptedToken);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const baseUrl = normalizeBotmakerBase((integration.credentials as any)?.baseUrl);
 
     const conn = createConnection(token, baseUrl);

@@ -35,6 +35,7 @@ const BID_STRATEGIES_ADSET = [
 ];
 
 interface EditAdSetModalProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   adset: any;
   onClose: () => void;
   onSaved: () => void;
@@ -86,6 +87,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
     setLocalError(null);
     if (!name.trim()) { setLocalError("El nombre es obligatorio"); return; }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const fields: any = { name };
     if (status !== adset.status) fields.status = status;
 

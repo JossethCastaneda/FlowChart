@@ -11,7 +11,9 @@ export async function GET(request: Request) {
     // listadas deben ser las de la cuenta conectada en ese botón, no las de
     // otro módulo). Sin módulo, se usa el genérico de workspace.
     const accessToken = requestedModule
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       ? await getMetaAccessToken(request as any, requestedModule)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       : await getMetaAccessToken(request as any);
 
     if (!accessToken) {
@@ -31,6 +33,7 @@ export async function GET(request: Request) {
       });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const pages = allData.map((page: any) => ({
       id: page.id,
       name: page.name,
@@ -55,6 +58,7 @@ export async function GET(request: Request) {
     }));
 
     return NextResponse.json({ data: pages, source: "meta_api" });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (error: any) {
     logger.error("Error in Meta pages API:", error);
     return NextResponse.json({

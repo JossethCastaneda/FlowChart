@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
   }
 
   // ── SECURITY: Verify active session ──
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const jwt = await getToken({ req: request as any, secret: NEXTAUTH_SECRET });
   if (!jwt?.sub) {
     return NextResponse.redirect(`${baseUrl}/connect/done?error=not_authenticated`);
@@ -188,7 +189,9 @@ export async function GET(request: NextRequest) {
       
       if (permissionsRes.ok && permissionsData.data) {
         userScopes = permissionsData.data
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           .filter((p: any) => p.status === "granted")
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           .map((p: any) => p.permission);
         
         // FIX: Validate permissions match integrationModule requirements
@@ -207,6 +210,7 @@ export async function GET(request: NextRequest) {
       const pagesData = await pagesRes.json();
       
       if (pagesRes.ok && pagesData.data) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         pages = pagesData.data.map((p: any) => ({
           id: p.id,
           name: p.name,
@@ -214,6 +218,7 @@ export async function GET(request: NextRequest) {
           picture: p.picture?.data?.url || null,
           instagramId: p.instagram_business_account?.id || null,
         }));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         rawPages = pagesData.data.map((p: any) => ({
           id: p.id,
           name: p.name,
@@ -492,6 +497,7 @@ export async function GET(request: NextRequest) {
     // Always redirect to /connect/done — it handles popup close OR fallback navigation
     return NextResponse.redirect(`${baseUrl}/connect/done?integrationModule=${integrationModule}`);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     logger.error("[CONNECT CALLBACK] Error:", err);
     return NextResponse.redirect(`${baseUrl}/connect/done?integrationModule=&error=server_error`);

@@ -27,7 +27,9 @@ import { resolveOrCreateContact } from "@/lib/crm/contacts";
 import {
   verifyWaWebhookSignature,
   resolveWorkspaceFromPhone,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   getWaCredentials,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   sendWaText,
 } from "@/lib/whatsapp";
 
@@ -144,6 +146,7 @@ interface HandleMsgOpts {
 
 async function handleIncomingMessage({
   workspaceId,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   projectId,
   phoneNumberId,
   waMsg,

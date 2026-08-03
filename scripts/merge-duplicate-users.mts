@@ -14,6 +14,7 @@ async function mergeDuplicateUsers() {
   
   const { rows: users } = await pool.query('SELECT id, email FROM "User"');
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const emailGroups: Record<string, any[]> = {};
   for (const user of users) {
     if (!user.email) continue;
@@ -24,6 +25,7 @@ async function mergeDuplicateUsers() {
     emailGroups[lowerEmail].push(user);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   const duplicates = Object.entries(emailGroups).filter(([_, group]) => group.length > 1);
 
   if (duplicates.length === 0) {

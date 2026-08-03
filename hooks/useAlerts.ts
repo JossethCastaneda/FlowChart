@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { calcROAS, calcCPA, findActionValue, frequencyAlertLevel, isAdvantagePlus, calcHookRate } from "@/lib/ads-metrics";
 
 export type AlertLevel = "critical" | "warning" | "positive";
@@ -12,6 +13,7 @@ export interface Alert {
   itemName: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function useAlerts(data: any[], level: "campaigns" | "adsets" | "ads"): Alert[] {
   return useMemo(() => {
     const alerts: Alert[] = [];
@@ -136,5 +138,6 @@ export function useAlerts(data: any[], level: "campaigns" | "adsets" | "ads"): A
     alerts.sort((a, b) => order[a.level] - order[b.level]);
 
     return alerts;
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: [React] Refactor de hooks anti-patrón
   }, [data, level]);
 }

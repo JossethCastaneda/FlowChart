@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { BrainCircuit, Download } from "lucide-react";
 
 export default function ScoresPage() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const [predictions, setPredictions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("ALL"); // ALL, PROJECT, CLIENT, VERTICAL

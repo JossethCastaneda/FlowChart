@@ -25,6 +25,7 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   const days = daysParam ? parseInt(daysParam, 10) : 28;
 
   // Use the project-level GA4 property ID if configured, otherwise fall back to workspace
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const googleSources = (project.googleSources as any) || {};
   const projectGa4PropertyId: string | undefined = googleSources.ga4PropertyId || undefined;
 

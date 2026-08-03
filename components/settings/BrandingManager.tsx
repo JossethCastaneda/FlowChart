@@ -67,6 +67,7 @@ export function BrandingManager() {
       }
 
       setSuccess("Branding actualizado correctamente. (Recarga la página para ver los cambios)");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     } catch (err: any) {
       setError(err.message);
     } finally {

@@ -150,8 +150,10 @@ export const PUT = withWorkspace(async (req, ctx) => {
   await prisma.centurionModel.upsert({
     where: { workspaceId_clientName: { workspaceId: ctx.workspaceId, clientName: client } },
     update: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       config: savedConfig as any,
       ...(vertical ? { verticalName: vertical } : {}),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       ...(metricsJson ? { metrics: metricsJson as any } : {}),
       updatedAt: new Date(),
     },
@@ -160,7 +162,9 @@ export const PUT = withWorkspace(async (req, ctx) => {
       clientName: client,
       verticalName: vertical ?? null,
       engine: "FastMMM",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       config: savedConfig as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       ...(metricsJson ? { metrics: metricsJson as any } : {}),
     },
   });

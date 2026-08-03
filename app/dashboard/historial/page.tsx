@@ -1,10 +1,11 @@
+/* eslint-disable jsx-a11y/alt-text, @next/next/no-img-element */
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
 import {
-  CheckCircle2, XCircle, Clock, RefreshCw, Filter, Search,
+    CheckCircle2, XCircle, Clock, RefreshCw, Filter, Search,
   Globe, Play, Image, AlignLeft, ChevronDown,
-  ExternalLink, Zap, Calendar, GitBranch, Activity,
+    ExternalLink, Zap, Calendar, GitBranch, Activity,
 } from "lucide-react";
 
 /* ─── Types ─── */
@@ -153,7 +154,8 @@ export default function DeploymentHistoryPage() {
     }
   }, []);
 
-  useEffect(() => { fetchPosts(); }, [fetchPosts]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+    useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
   /* ─── Derived ─── */
   const filtered = posts.filter(p => {
@@ -457,7 +459,7 @@ export default function DeploymentHistoryPage() {
                             width: 48, height: 48, borderRadius: 3, overflow: "hidden",
                             border: "1px solid var(--border)", background: "var(--background)",
                           }}>
-                            <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                                        <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                           </div>
                         ))}
                         {post.mediaUrls.length > 4 && (

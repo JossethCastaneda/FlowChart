@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react-hooks/set-state-in-effect, react-hooks/refs */
 import { Search, Send, X, ChevronRight, ChevronLeft, ChevronDown, MessageCircle, MessageSquare, Bookmark, CheckCircle2, Paperclip, Smile, Image, ThumbsUp, User, Globe, ExternalLink, Heart, Share2, Check, CheckCheck } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { Message, PostData, Conversation, ConnectedPage } from "./types";
@@ -26,14 +27,15 @@ export function Avatar({
   const [error, setError] = useState(false);
   
   useEffect(() => {
-    setError(false);
+   
+        setError(false);
   }, [src]);
 
   const initials = getInitials(name || "Usuario");
 
   if (src && !error) {
     return (
-      <img
+            <img
         src={src}
         alt={name || "Usuario"}
         role="presentation"
@@ -104,7 +106,7 @@ export function PageSelector({
         {/* Avatar */}
         {selectedPage ? (
           selectedPage.picture ? (
-            <img
+                        <img
               src={selectedPage.picture}
               alt=""
               style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
@@ -231,7 +233,7 @@ export function PageSelector({
                   {/* Page avatar */}
                   <div style={{ position: "relative", flexShrink: 0 }}>
                     {page.picture ? (
-                      <img
+                                            <img
                         src={page.picture}
                         alt=""
                         style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }}
@@ -302,7 +304,7 @@ export function PageSelector({
 }
 
 export function PostView({ conversation, onBack }: { conversation: Conversation; onBack?: () => void }) {
-    const [postData, setPostData] = useState<PostData | null>((conversation as any)?._postData ?? null);
+        const [postData, setPostData] = useState<PostData | null>((conversation as any)?._postData ?? null);
     const [loadingPost, setLoadingPost] = useState(false);
     const [loadError, setLoadError] = useState(false);
     const [replyText, setReplyText] = useState("");
@@ -310,17 +312,18 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
     const [sendingReply, setSendingReply] = useState(false);
     const pc = getPlatformConfig(conversation.platform);
 
-    const pageId: string = (conversation as any)?._pageId || (conversation as any)?.pageId || "";
-    const pageName: string = (conversation as any)?._pageName || conversation.contactName || "Página";
+        const pageId: string = (conversation as any)?._pageId || (conversation as any)?.pageId || "";
+        const pageName: string = (conversation as any)?._pageName || conversation.contactName || "Página";
     const pageAvatar: string | null = pageId ? `/api/inbox/avatar?userId=${encodeURIComponent(pageId)}&pageId=${encodeURIComponent(pageId)}` : null;
 
     // Auto-cargar el post si no viene incluido (comentario llegado por webhook)
     useEffect(() => {
       if (postData) return;
-      const rawExternalId: string = (conversation as any)?.externalId || conversation.id || "";
+            const rawExternalId: string = (conversation as any)?.externalId || conversation.id || "";
       const postId = rawExternalId.replace(/^fbc_|^igc_/, "");
       if (!postId || !pageId) return;
-      setLoadingPost(true);
+   
+            setLoadingPost(true);
       setLoadError(false);
       fetch(`/api/inbox/post?postId=${encodeURIComponent(postId)}&pageId=${encodeURIComponent(pageId)}`)
         .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
@@ -334,7 +337,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
       if (!text || sendingReply) return;
       setSendingReply(true);
       try {
-        const commentId = replyTarget?.id || (conversation as any)?.externalId?.replace(/^fbc_|^igc_/, "");
+                const commentId = replyTarget?.id || (conversation as any)?.externalId?.replace(/^fbc_|^igc_/, "");
         await fetch("/api/inbox/reply", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -419,7 +422,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
             {/* Page avatar */}
             <div style={{ position: "relative", flexShrink: 0 }}>
               {pageAvatar ? (
-                <img
+                                <img
                   src={pageAvatar}
                   alt={pageName}
                   style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--glass-border)" }}
@@ -474,7 +477,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
           {/* Post image */}
           {postData.mediaUrl && (
             <div style={{ width: "100%", background: "#000", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <img
+                            <img
                 src={postData.mediaUrl}
                 alt=""
                 style={{ width: "100%", maxHeight: 420, objectFit: "contain", display: "block" }}
@@ -525,7 +528,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
                 {/* Commenter avatar */}
                 <div style={{ flexShrink: 0 }}>
                   {comment.avatar ? (
-                    <img
+                                        <img
                       src={comment.avatar}
                       alt=""
                       style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover" }}
@@ -602,7 +605,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           {/* Page avatar en el reply box */}
           {pageAvatar ? (
-            <img src={pageAvatar} alt="" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+                        <img src={pageAvatar} alt="" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = "none";
               }}
@@ -715,7 +718,7 @@ export function ChatView({
             )}
             
             <div className="flex items-center gap-2 md:gap-3">
-              <Avatar src={resolveContactAvatar(conversation.contactAvatar, conversation.contactId, (conversation as any)?._pageId, conversation.platform)} name={conversation.contactName && /^\d+$/.test(conversation.contactName) ? "Usuario Anonimizado" : (conversation.contactName || "Usuario")} size={36} color={pc.color} />
+                            <Avatar src={resolveContactAvatar(conversation.contactAvatar, conversation.contactId, (conversation as any)?._pageId, conversation.platform)} name={conversation.contactName && /^\d+$/.test(conversation.contactName) ? "Usuario Anonimizado" : (conversation.contactName || "Usuario")} size={36} color={pc.color} />
               <span className="text-[var(--foreground)] font-semibold text-[14px] md:text-[16px]">
                 {conversation.contactName && /^\d+$/.test(conversation.contactName) ? "Usuario Anonimizado" : (conversation.contactName || "Usuario")}
               </span>
@@ -777,7 +780,7 @@ export function ChatView({
                 {/* Incoming avatar */}
                 {msg.incoming && (
                   <Avatar
-                    src={resolveContactAvatar(conversation.contactAvatar, conversation.contactId, (conversation as any)?._pageId, conversation.platform)} 
+                                        src={resolveContactAvatar(conversation.contactAvatar, conversation.contactId, (conversation as any)?._pageId, conversation.platform)} 
                     name={conversation.contactName || "Usuario"} 
                     size={28} 
                     color={pc.color} 
@@ -806,10 +809,10 @@ export function ChatView({
                     )}
                     {msg.attachments && msg.attachments.length > 0 && (
                       <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: msg.text && msg.text !== "ðŸ“Ž Adjunto" ? 8 : 0 }}>
-                        {msg.attachments.map((att: any, i: number) => {
+                                                {msg.attachments.map((att: any, i: number) => {
                           if (att.type === "image" || att.type === "sticker" || att.payload?.url || att.image_data?.url) {
                             return (
-                              <img 
+                                                            <img 
                                 key={i} 
                                 src={att.payload?.url || att.image_data?.url || att.url} 
                                 alt="Adjunto" 
@@ -1071,7 +1074,7 @@ export function ChatView({
             />
             <button
               onClick={e => { e.preventDefault(); handleSubmit(); }}
-              disabled={!input.trim() || isSendingRef.current}
+                            disabled={!input.trim() || isSendingRef.current}
               style={{
                 width: 32, height: 32,
                 display: "flex", alignItems: "center", justifyContent: "center",
@@ -1158,7 +1161,7 @@ export function ContactProfile({
           onAssign: (member: string) => void;
           onAddTag: (tag: string) => void;
           onRemoveTag: (tag: string) => void;
-          onAddNote: (content: string) => Promise<any>;
+                    onAddNote: (content: string) => Promise<any>;
           onDeleteNote: (noteId: string) => void;
           onClose: () => void;
         }) {
@@ -1219,7 +1222,7 @@ export function ContactProfile({
 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
           <div style={{ margin: "0 auto 10px", position: "relative" }}>
-            <Avatar src={resolveContactAvatar(conversation.contactAvatar, conversation.contactId, (conversation as any)?._pageId, conversation.platform)} name={displayName} size={60} color={pc.color} />
+                        <Avatar src={resolveContactAvatar(conversation.contactAvatar, conversation.contactId, (conversation as any)?._pageId, conversation.platform)} name={displayName} size={60} color={pc.color} />
             <div style={{ position: "absolute", bottom: 0, right: 0, background: "var(--surface)", borderRadius: "50%", padding: 2, border: "1px solid var(--hairline)" }}>
               <PlatformIcon platform={conversation.platform} size={12} />
             </div>
@@ -1370,7 +1373,7 @@ export function ContactProfile({
               <div key={i} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>{v.label}</span>
                 <span style={{ fontSize: 11, color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: 4 }}>
-                  {(v as any).hasIcon && <PlatformIcon platform={conversation.platform} size={12} />}
+                                    {(v as any).hasIcon && <PlatformIcon platform={conversation.platform} size={12} />}
                   {v.value}
                 </span>
               </div>

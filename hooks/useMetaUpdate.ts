@@ -36,6 +36,7 @@ export function useMetaUpdate() {
         return { success: false, error: json.user_message || json.error || json.blocked_reason };
       }
       return { success: true };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     } catch (e: any) {
       setError(e.message);
       return { success: false, error: e.message };
@@ -73,6 +74,7 @@ export function useMetaUpdate() {
         return { success: false, error: json.user_message || json.error || json.blocked_reason };
       }
       return { success: true };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     } catch (e: any) {
       setError(e.message);
       return { success: false, error: e.message };
@@ -104,6 +106,7 @@ export function useMetaUpdate() {
         return { success: false, error: json.user_message || json.error || json.blocked_reason };
       }
       return { success: true };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     } catch (e: any) {
       setError(e.message);
       return { success: false, error: e.message };

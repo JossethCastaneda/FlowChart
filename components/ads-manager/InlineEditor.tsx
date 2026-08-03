@@ -15,6 +15,7 @@ export function InlineEditor({ value, type = "text", prefix = "", onSave }: Inli
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
     setCurrVal(value);
   }, [value]);
 

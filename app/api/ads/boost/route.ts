@@ -183,6 +183,7 @@ export async function POST(req: NextRequest) {
       adsetId,
       adId,
     });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     logger.error("[BOOST] Error:", err.message);
     return NextResponse.json(

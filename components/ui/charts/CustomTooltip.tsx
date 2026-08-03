@@ -3,6 +3,7 @@
  * Sólido (sin blur), JetBrains Mono para valores, acento cyan izquierdo
  */
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 interface TooltipEntry {
   name: string;
   value: number | string;

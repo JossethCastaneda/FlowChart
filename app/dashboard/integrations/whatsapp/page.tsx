@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
@@ -267,7 +268,7 @@ function CopyButton({ text }: { text: string }) {
 function loadFbSdk(): Promise<void> {
   return new Promise((resolve) => {
     if (typeof window === "undefined") return;
-    const w = window as any;
+        const w = window as any;
     if (w.FB) { resolve(); return; }
     const prevInit = w.fbAsyncInit;
     w.fbAsyncInit = function () {
@@ -304,7 +305,7 @@ function PhoneAvatar({ name, linked, profilePic }: { name: string; linked: boole
         border: linked ? "2px solid rgba(37,211,102,0.4)" : "2px solid rgba(255,255,255,0.06)",
         overflow: "hidden",
       }}>
-        <img src={profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img src={profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       </div>
     );
   }
@@ -673,7 +674,7 @@ export default function WhatsAppIntegrationPage() {
   const [connectError, setConnectError]   = useState<string | null>(null);
 
   const [lines, setLines]               = useState<WaLine[]>([]);
-  const [projects, setProjects]         = useState<Project[]>([]);
+    const [projects, setProjects]         = useState<Project[]>([]);
   const [loadingLines, setLoadingLines] = useState(false);
   const [linesError, setLinesError]     = useState<string | null>(null);
 
@@ -719,10 +720,11 @@ export default function WhatsAppIntegrationPage() {
       setLinesError(lang === "es" ? "Error de red al obtener las líneas." : "Network error retrieving WhatsApp lines.");
     }
     setLoadingLines(false);
-  }, []);
+    }, []);
 
   useEffect(() => {
-    fetchStatus();
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+        fetchStatus();
     fetch("/api/workspace").then((r) => r.json()).then((d) => {
       const ws = d.data?.[0] || d.workspace || d;
       setWsInfo((p) => ({ ...p, name: ws.name }));
@@ -730,11 +732,12 @@ export default function WhatsAppIntegrationPage() {
     loadFbSdk().then(() => setSdkReady(true));
   }, [fetchStatus]);
 
-  useEffect(() => { if (wabaStatus.connected) fetchLines(); else setLines([]); }, [wabaStatus.connected, fetchLines]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+    useEffect(() => { if (wabaStatus.connected) fetchLines(); else setLines([]); }, [wabaStatus.connected, fetchLines]);
 
   // ── Connect via Embedded Signup ─────────────────────────────────────────────
   const handleConnect = useCallback(() => {
-    const w = window as any;
+        const w = window as any;
     if (!sdkReady || !w.FB) { setConnectError(t.sdkLoading); return; }
     if (!APP_ID || !CONFIG_ID) { setConnectError(t.missingVars); return; }
     setConnectError(null); setConnecting(true);
@@ -764,7 +767,7 @@ export default function WhatsAppIntegrationPage() {
       } catch { /* not JSON */ }
     };
     window.addEventListener("message", onMessage);
-    const win = window as any;
+        const win = window as any;
     win.FB.login((response: FbLoginResponse) => {
       const code = response?.authResponse?.code;
       if (!code) {

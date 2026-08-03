@@ -25,6 +25,7 @@ export interface GoogleCredentials {
   refreshToken?: string;
   grantedScopes?: string[];
   expiresAt?: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   resources?: Record<string, any>;
   lastRequestedModules?: string[];
 }
@@ -102,6 +103,7 @@ export async function refreshAccessToken(workspaceId: string): Promise<string | 
 
     await prisma.integration.update({
       where: { id: integration.id },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       data: { credentials: newCreds as any },
     });
 

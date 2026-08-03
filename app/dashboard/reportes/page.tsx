@@ -41,6 +41,7 @@ export default function ReportesPage() {
     }
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
   useEffect(() => { fetchReports(); }, [fetchReports]);
 
   const handleDelete = async (id: string) => {

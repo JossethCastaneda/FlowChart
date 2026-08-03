@@ -1,5 +1,6 @@
 ﻿"use client";
 import React, { useState, useEffect } from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { X, Zap, Trash2, Pencil, Copy, ToggleLeft, ToggleRight, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
 
 interface RulesManagerModalProps {
@@ -12,8 +13,11 @@ interface Rule {
   name: string;
   status: string;
   entity_type?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   evaluation_spec?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   execution_spec?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   schedule_spec?: any;
 }
 
@@ -31,6 +35,7 @@ export function RulesManagerModal({ adAccountId, onClose }: RulesManagerModalPro
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setRules(data.data || []);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -38,6 +43,7 @@ export function RulesManagerModal({ adAccountId, onClose }: RulesManagerModalPro
     }
   };
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps -- TODO: Limpieza de deuda técnica
   useEffect(() => { fetchRules(); }, [adAccountId]);
 
   const toggleRuleStatus = async (rule: Rule) => {

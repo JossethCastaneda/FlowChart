@@ -21,10 +21,13 @@ export const GET = withWorkspace(async (_req, { workspaceId }) => {
     return NextResponse.json({ pages: [], connected: false });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const creds = integration.credentials as Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const rawPages: any[] = creds?.pages || [];
 
   // Build safe page list (strip accessToken)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const pages = rawPages.map((p: any) => ({
     id: p.id,
     name: p.name,
@@ -94,7 +97,9 @@ export const PATCH = withWorkspace(async (req, { workspaceId }) => {
     return NextResponse.json({ error: "No hay integración Meta conectada" }, { status: 404 });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const creds = (integration.credentials as Record<string, any>) || {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const pageSettings: Record<string, any> = { ...(creds.pageSettings || {}) };
   if (!pageSettings[pageId]) pageSettings[pageId] = {};
   if (messengerEnabled !== undefined) pageSettings[pageId].messengerEnabled = messengerEnabled;

@@ -97,14 +97,15 @@ function isAllowed(url) {
   return BROWSER_ALLOWLIST.some((pattern) => pattern.test(url));
 }
 
-/**
- * Evaluate a browser_subagent tool call.
- * Extracts URLs from the Task arg and checks against allow/deny lists.
- * Fail-closed: if no URL is found or URL is not in allowlist → deny.
- */
-function evaluateBrowserCall(args) {
+function evaluateBrowserCall(toolName, args) {
   const task = args.Task || args.task || "";
   const urls = extractUrls(task);
+
+  // Support MCP navigate_page
+  const urlArg = args.url || (args.Arguments && args.Arguments.url);
+  if (urlArg && typeof urlArg === "string") {
+    urls.push(urlArg);
+  }
 
   // If the task mentions a denied URL, block immediately
   for (const url of urls) {
@@ -134,6 +135,7 @@ function evaluateBrowserCall(args) {
   // No URLs found in task description — allow (the task might be describing
   // actions on an already-open page, which hooks.json will re-evaluate on
   // each sub-tool call if those are also hooked).
+  // But wait, if it's call_mcp_tool but NOT navigate_page, we should allow it.
   return { decision: "allow" };
 }
 
@@ -166,9 +168,8 @@ async function main() {
   const toolName = payload?.toolCall?.name;
   const args = payload?.toolCall?.args || {};
 
-  // ── Browser navigation tools ──────────────────────────────────────────
-  if (toolName === "browser_subagent") {
-    const result = evaluateBrowserCall(args);
+  if (toolName === "browser_subagent" || toolName === "call_mcp_tool" || toolName === "mcp_chrome-devtools-mcp_navigate_page") {
+    const result = evaluateBrowserCall(toolName, args);
     console.log(JSON.stringify(result));
     return;
   }

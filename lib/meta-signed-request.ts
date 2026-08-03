@@ -15,6 +15,7 @@ import { logger } from "@/lib/logger";
 export function verifySignedRequest(
   signedRequest: string,
   appSecret: string
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 ): Record<string, any> | null {
   const parts = signedRequest.split(".");
   if (parts.length !== 2) return null;

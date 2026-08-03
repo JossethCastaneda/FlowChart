@@ -12,7 +12,6 @@ export const GET = withWorkspaceRole(["OWNER", "ADMIN", "MEMBER"])(async (req, c
   }
   
   try {
-    const signal = req.signal; // Usa el request signal si está disponible (next.js app router no lo expone directo a veces, pero para abortar)
     const insights = await generateAriaInsights(ctx.workspaceId);
     return apiSuccess(insights);
   } catch (error) {

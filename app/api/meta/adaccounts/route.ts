@@ -4,6 +4,7 @@ import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const accessToken = await getMetaAccessToken(request as any, "ads");
 
     if (!accessToken) {
@@ -43,6 +44,7 @@ export async function GET(request: Request) {
       });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const accounts = allData.map((acc: any) => {
       const portfolioName = acc.business?.name || "Sin Portafolio Comercial";
       const spend = parseFloat(acc.insights?.data?.[0]?.spend || "0") || 0;
@@ -58,6 +60,7 @@ export async function GET(request: Request) {
       data: accounts,
       source: "meta_api",
     });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (error: any) {
     logger.error("Error in Meta adaccounts API:", error);
     return NextResponse.json({

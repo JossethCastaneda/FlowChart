@@ -54,6 +54,7 @@ export function WorkspaceSwitcher() {
     if (res.ok) {
       // Recargar página completa para que TODAS las queries
       // tomen el nuevo workspace activo desde la cookie
+      // eslint-disable-next-line react-hooks/immutability -- TODO: [React] Refactor de hooks anti-patrón
       window.location.href = "/dashboard/resumen";
     } else {
       setSwitching(false);

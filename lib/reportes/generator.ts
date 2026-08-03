@@ -88,7 +88,9 @@ export async function buildReportData(
   dateFrom: string,
   dateTo: string,
   insightsData?: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     timeSeries?: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     creatives?: any[];
   },
 ): Promise<ReportSnapshot> {
@@ -110,6 +112,7 @@ export async function buildReportData(
   const channelCfg = project.channels?.[0]?.config;
   const cfg = typeof channelCfg === "string"
     ? JSON.parse(channelCfg)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     : (channelCfg as Record<string, any>) ?? {};
 
   const parseBudget = (s: string) => parseFloat((s || "0").replace(/[^0-9.]/g, "")) || 0;
@@ -118,6 +121,7 @@ export async function buildReportData(
   const goal = cfg.goal || "Resultados";
 
   // Process time series
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const timeSeries: ReportTimeSeries[] = (insightsData?.timeSeries || []).map((d: any) => {
     const spend = parseFloat(d.spend || "0");
     const results = parseInt(d.results || d.actions?.[0]?.value || "0", 10);
@@ -167,6 +171,7 @@ export async function buildReportData(
 
   // Top creatives
   const topCreatives: ReportCreative[] = (insightsData?.creatives || [])
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     .map((c: any) => ({
       id: c.ad_id || c.id || "",
       name: c.ad_name || c.name || "Sin nombre",

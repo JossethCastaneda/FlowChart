@@ -46,7 +46,6 @@ export function scenarioInverseTarget(
   maxBudget = 500_000,
   tolerance = 100,
 ): { totalBudget: number; allocation: Allocation; achievable: boolean } {
-  const enabledCh = channels.filter(c => c.enabled);
 
   // Verificar si el objetivo es alcanzable con maxBudget
   const maxAlloc = optimizeBudget(currentSpend, maxBudget, channels, model);

@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import {
-  LayoutDashboard, FolderKanban, Users, Zap, Target, Plug, Loader2, ArrowRight,
-  TrendingUp, TrendingDown, CheckCircle, AlertTriangle,
+    LayoutDashboard, FolderKanban, Users, Zap, Target, Plug, Loader2, ArrowRight,
+    TrendingUp, TrendingDown, CheckCircle, AlertTriangle,
   Activity, ShieldCheck, Clock, AlertCircle, ChevronRight,
-  BarChart3, Inbox, Megaphone, Link2
+    BarChart3, Inbox, Megaphone, Link2
 } from "lucide-react";
 import Link from "next/link";
 import { useInsightsStore, countResultsFromTimeSeries } from "@/stores/insightsStore";
@@ -13,7 +14,7 @@ import { useInsightsStore, countResultsFromTimeSeries } from "@/stores/insightsS
 interface ResumenData {
   workspace: { name: string; slug: string; plan: string; createdAt: string } | null;
   projects: { total: number; active: number };
-  projectsList: any[];
+    projectsList: any[];
   members: { total: number };
   tasks: { total: number; backlog: number; wip: number; done: number };
   briefs: { total: number; draft: number; review: number; approved: number };
@@ -58,7 +59,7 @@ function PacingBar({ pct, color }: { pct: number; color: string }) {
 
 /* ─── KPI Card ─── */
 function KpiCard({ icon: Icon, label, value, sub, color, href }: {
-  icon: any; label: string; value: number; sub: string; color: string; href: string;
+    icon: any; label: string; value: number; sub: string; color: string; href: string;
 }) {
   return (
     <Link href={href} style={{ textDecoration: "none" }}>
@@ -113,7 +114,7 @@ function ProjectCard({ pc }: { pc: any }) {
   const isWarning = (pc.cumplimiento >= 60 && pc.cumplimiento < 90) || (pc.spendPct > 110 && pc.spendPct <= 125);
 
   type HealthKey = "healthy" | "warning" | "danger";
-  const configs: Record<HealthKey, { color: string; text: string; bg: string; Icon: any }> = {
+    const configs: Record<HealthKey, { color: string; text: string; bg: string; Icon: any }> = {
     healthy: { color: "var(--emerald)", text: "SALUDABLE", bg: "rgba(52,183,124,0.06)", Icon: ShieldCheck },
     warning: { color: "var(--amber)", text: "PRECAUCIÓN", bg: "rgba(224,168,60,0.06)", Icon: Clock },
     danger: { color: "var(--red)", text: "EN RIESGO", bg: "rgba(229,72,77,0.06)", Icon: AlertCircle },
@@ -243,10 +244,10 @@ export default function ResumenPage() {
   const [data, setData] = useState<ResumenData | null>(null);
   const [loading, setLoading] = useState(true);
   const insightsStore = useInsightsStore();
-  const [projectInsights, setProjectInsights] = useState<Record<string, any>>({});
+    const [projectInsights, setProjectInsights] = useState<Record<string, any>>({});
   const [insightsLoading, setInsightsLoading] = useState(false);
   const now = new Date();
-  const timeLabel = now.getHours() < 12 ? "Buenos días" : now.getHours() < 18 ? "Buenas tardes" : "Buenas noches";
+    const timeLabel = now.getHours() < 12 ? "Buenos días" : now.getHours() < 18 ? "Buenas tardes" : "Buenas noches";
 
   useEffect(() => {
     fetch("/api/resumen")
@@ -258,15 +259,16 @@ export default function ResumenPage() {
 
   useEffect(() => {
     if (!data?.projectsList?.length) return;
-    const activeProjects = data.projectsList?.filter((p: any) => p.status === "EN VUELO" || p.status === "Activo") || [];
+        const activeProjects = data.projectsList?.filter((p: any) => p.status === "EN VUELO" || p.status === "Activo") || [];
     if (activeProjects.length === 0) return;
 
-    setInsightsLoading(true);
-    const fetches = activeProjects.map(async (p: any) => {
-      const metaCh = p.channels?.find((c: any) => {
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+        setInsightsLoading(true);
+        const fetches = activeProjects.map(async (p: any) => {
+            const metaCh = p.channels?.find((c: any) => {
         const cfg = (typeof c.config === "string" ? JSON.parse(c.config) : c.config) || {};
         return cfg?.platformId === "meta" || cfg?.platformId === "facebook" || (c.name || "").toLowerCase().includes("meta") || (c.type || "").toLowerCase().includes("facebook");
-      }) || p.channels?.find((c: any) => {
+            }) || p.channels?.find((c: any) => {
         const cfg = (typeof c.config === "string" ? JSON.parse(c.config) : c.config) || {};
         return cfg?.adAccounts?.length > 0;
       });
@@ -278,8 +280,8 @@ export default function ResumenPage() {
     });
 
     Promise.all(fetches).then(results => {
-      const map: Record<string, any> = {};
-      results.filter(Boolean).forEach((r: any) => { map[r.projectId] = r; });
+            const map: Record<string, any> = {};
+            results.filter(Boolean).forEach((r: any) => { map[r.projectId] = r; });
       setProjectInsights(map);
       setInsightsLoading(false);
     });
@@ -308,9 +310,9 @@ export default function ResumenPage() {
 
   const d = data;
   const taskDoneRate = d.tasks?.total > 0 ? Math.round((d.tasks.done / d.tasks.total) * 100) : 0;
-  const activeProjects = d.projectsList?.filter((p: any) => p.status === "EN VUELO" || p.status === "Activo") || [];
+    const activeProjects = d.projectsList?.filter((p: any) => p.status === "EN VUELO" || p.status === "Activo") || [];
 
-  const projectCards = activeProjects.map((p: any) => {
+    const projectCards = activeProjects.map((p: any) => {
     const pi = projectInsights[p.id];
     const cfg = pi?.config || {};
     const ins = pi?.insights;
@@ -332,7 +334,7 @@ export default function ResumenPage() {
 
     let totalSpend = 0, totalResults = 0;
     if (ins?.timeSeries) {
-      ins.timeSeries.forEach((d: any) => { totalSpend += parseFloat(d.spend || "0"); });
+            ins.timeSeries.forEach((d: any) => { totalSpend += parseFloat(d.spend || "0"); });
     }
     totalResults = countResultsFromTimeSeries(ins?.timeSeries || [], cfg.goal);
 
@@ -351,13 +353,13 @@ export default function ResumenPage() {
     };
   });
 
-  const healthyCount = projectCards.filter((pc: any) => pc.cumplimiento >= 90 && pc.spendPct <= 110).length;
-  const warningCount = projectCards.filter((pc: any) => {
+    const healthyCount = projectCards.filter((pc: any) => pc.cumplimiento >= 90 && pc.spendPct <= 110).length;
+    const warningCount = projectCards.filter((pc: any) => {
     const isHealthy = pc.cumplimiento >= 90 && pc.spendPct <= 110;
     const isDanger = !isHealthy && !(pc.cumplimiento >= 60 && pc.cumplimiento < 90);
     return !isHealthy && !isDanger;
   }).length;
-  const dangerCount = projectCards.filter((pc: any) => {
+    const dangerCount = projectCards.filter((pc: any) => {
     const isHealthy = pc.cumplimiento >= 90 && pc.spendPct <= 110;
     const isWarning = !isHealthy && ((pc.cumplimiento >= 60 && pc.cumplimiento < 90) || (pc.spendPct > 110 && pc.spendPct <= 125));
     return !isHealthy && !isWarning;
@@ -400,7 +402,7 @@ export default function ResumenPage() {
             </Link>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 14 }}>
-            {projectCards.map((pc: any) => <ProjectCard key={pc.id} pc={pc} />)}
+                        {projectCards.map((pc: any) => <ProjectCard key={pc.id} pc={pc} />)}
           </div>
         </div>
       )}

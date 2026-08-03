@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { AlertTriangle, Info, AlertCircle, CheckCircle, X, Trash2, CheckCheck, Bell, BellOff, Filter } from "lucide-react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { useAlertsStore, type ZefirusAlert, type AlertSeverity } from "@/stores/alertsStore";
 
 const SEVERITY_CONFIG: Record<AlertSeverity, {

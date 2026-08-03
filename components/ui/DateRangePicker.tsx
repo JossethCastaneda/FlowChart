@@ -49,6 +49,7 @@ function fmtDisplay(d: Date) {
   return `${d.getDate()} de ${MONTH_NAMES_LONG[d.getMonth()]} de ${d.getFullYear()}`;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 function fmtShort(d: Date) {
   return `${d.getDate()} de ${MONTH_NAMES[d.getMonth()]} ...`;
 }
@@ -158,6 +159,7 @@ export default function DateRangePicker({
   // Sync on open
   useEffect(() => {
     if (showDatePicker) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
       setPendingPreset(datePreset);
       if (datePreset === "custom" && dateStart && dateEnd) {
         setSelStart(new Date(dateStart + "T00:00:00"));
@@ -483,6 +485,7 @@ export default function DateRangePicker({
    --------------------------------------- */
 
 function MonthGrid({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   monthDate, today, selStart, selEnd, hoverDate,
   isInRange, isRangeStart, isRangeEnd,
   onDayClick, onDayHover

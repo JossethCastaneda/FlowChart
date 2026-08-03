@@ -1,4 +1,4 @@
-import { withAuth, withWorkspace } from "@/lib/api-handler";
+import { withAuth } from "@/lib/api-handler";
 import { validateBody } from "@/lib/validate";
 import { apiSuccess, apiCreated, apiError } from "@/lib/api-response";
 import { logger } from "@/lib/logger";

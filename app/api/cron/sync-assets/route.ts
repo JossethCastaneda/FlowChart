@@ -31,6 +31,7 @@ export async function GET(req: NextRequest) {
       success: true, 
       message: `Triggered sync for ${integrations.length} integrations` 
     });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (error: any) {
     logger.error("Error en el cron de sync assets", { error: error.message });
     return NextResponse.json({ error: "Error interno del cron" }, { status: 500 });

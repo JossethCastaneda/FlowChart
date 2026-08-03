@@ -93,6 +93,7 @@ export function GalaxyBackground() {
       // Store the pre-rendered nebulae as an Image for lightning-fast 60fps rendering
       const nebulaeImg = new Image();
       nebulaeImg.src = offscreen.toDataURL();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       nebulae.push({ img: nebulaeImg } as any);
     }
 
@@ -102,7 +103,9 @@ export function GalaxyBackground() {
       const t = performance.now() / 1000;
 
       // Draw pre-rendered nebulae (static but extremely fast)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       if (nebulae[0] && (nebulae[0] as any).img) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         ctx.drawImage((nebulae[0] as any).img, 0, 0);
       }
 

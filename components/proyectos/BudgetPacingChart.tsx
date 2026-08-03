@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { fmt$, fmtPct } from "@/lib/ads-metrics";
 import { TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react";
 import { ChartTheme } from "@/components/ui/charts/ChartTheme";
@@ -23,6 +24,7 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
     // Sort by date
     const sorted = [...dailyData].sort((a, b) => a.date_start.localeCompare(b.date_start));
     const firstDate = new Date(sorted[0].date_start);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
     const lastDate = new Date(sorted[sorted.length - 1].date_start);
 
     // Determine total period days
@@ -171,6 +173,7 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
               tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
             />
             <Tooltip
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
               content={<CustomTooltip formatter={(value: any, name: any) => [fmt$(Number(value || 0)), name === "ideal" ? "Ideal" : name === "real" ? "Real" : "Proyección"]} />}
               cursor={{ fill: 'rgba(255,255,255,0.02)', stroke: 'rgba(255,255,255,0.05)' }}
             />

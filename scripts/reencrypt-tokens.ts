@@ -38,6 +38,7 @@ async function main() {
   let secretsEncrypted = 0;
 
   for (const integration of integrations) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const creds = (integration.credentials ?? {}) as Record<string, any>;
     let changed = false;
 

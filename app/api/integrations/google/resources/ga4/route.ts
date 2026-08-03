@@ -5,7 +5,6 @@ import { refreshAccessToken, GoogleCredentials } from "@/lib/integrations/google
 import { logger } from "@/lib/logger";
 import { googleFetch } from "@/lib/google-fetch";
 
-const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
 export const GET = withWorkspace(async (request, ctx) => {
   const workspaceId = ctx.workspaceId;
@@ -73,6 +72,7 @@ export const GET = withWorkspace(async (request, ctx) => {
     }
 
     return NextResponse.json({ properties });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     logger.error("[GA4 API] Exception", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -108,6 +108,7 @@ export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (request, ctx) =
 
   await prisma.integration.update({
     where: { id: integration.id },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     data: { credentials: newCreds as any },
   });
 

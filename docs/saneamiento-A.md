@@ -80,3 +80,18 @@ Tests que ya existían de sesiones previas:
 - `tests/no-binary-docs.test.ts` (Z3): 2 tests
 - `tests/ai-usage.test.ts` (Z12): 13 tests
 - `tests/meta-api-version.test.ts` (Z7): 1 test
+# Fase A - Saneamiento
+
+## Completado
+- Medición de la línea base (Tests en verde, typecheck sin errores, lint a niveles mínimos en core).
+- Limpieza de `bytes nulos` en documentación (completado anteriormente).
+- Eliminación de versiones cableadas de la Graph API en el Frontend (`v21.0` / `v22.0` eliminadas y unificadas en `process.env.NEXT_PUBLIC_FB_API_VERSION`).
+- Guardián del navegador extendido en `scripts/agy-guardrail.mjs` y `.agents/hooks.json` para interceptar y validar `browser_subagent` y herramientas MCP. Tests del guardián corriendo en verde.
+- Semillas E2E adversarias creadas en `prisma/seed.e2e.ts` incluyendo Account, Campaña en caché, y Conversación para los tenants A y B.
+
+## Lo que quedó fuera y por qué
+- **Ejecución del test E2E (`e2e/aislamiento-tenant.spec.ts`) y de las seeds**: Quedaron bloqueados.
+  - **Razón 1 (Base de datos):** El entorno actual apunta a un cluster de Neon y no es posible determinar de forma automatizada si es una rama de desarrollo segura o la base de datos de producción (lo cual viola la regla 3.1).
+  - **Razón 2 (Playwright):** Se requiere instalar `@playwright/test` u otra herramienta de E2E con soporte real de navegador para llevar a cabo el test de aislamiento de sesión, y la regla 10 prohíbe instalar dependencias sin aprobación en el Implementation Plan.
+
+Ambos bloqueos fueron derivados a `docs/pendientes-humanos.md` y al `implementation_plan.md` para revisión humana.

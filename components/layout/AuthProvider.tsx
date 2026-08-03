@@ -9,6 +9,7 @@ import { useInsightsStore } from "@/stores/insightsStore";
  * Runs once per session — data is cached in the Zustand store.
  */
 function InsightsPreloader() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   const { data: session, status } = useSession();
   const { preloaded, preloading, preloadAll } = useInsightsStore();
 

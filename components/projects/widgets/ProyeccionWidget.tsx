@@ -11,6 +11,7 @@ export function ProyeccionWidget({
   daysElapsed, daysInMonth, goalNum, trackStatus,
   projectedResults, projectedSpend, goalBreakdown,
   dailyNeeded, goalCompletion, daysRemaining,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   bk, cprTarget, budgetNum, fmtNum, fmtMXN, fmtMXN0, pct,
 }: ProjectWidgetProps) {
   return (

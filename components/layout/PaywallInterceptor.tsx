@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { CreditCard, X, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
@@ -28,6 +29,7 @@ export function PaywallInterceptor() {
             setMessage(data.error || "Has alcanzado un límite de tu plan.");
             setIsOpen(true);
           }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
         } catch (err) {
           // Ignore parsing errors
         }

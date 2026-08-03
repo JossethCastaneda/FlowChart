@@ -104,6 +104,7 @@ export async function POST(req: NextRequest) {
           }
 
           return { id, success: false, error: "Unsupported action" };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         } catch (err: any) {
           return { id, success: false, error: err.message };
         }
@@ -115,6 +116,7 @@ export async function POST(req: NextRequest) {
       return { id: ids[i], success: false, error: r.reason?.message || "Unknown error" };
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const successCount = processedResults.filter((r: any) => r.success).length;
     const failCount = processedResults.length - successCount;
 
@@ -125,6 +127,7 @@ export async function POST(req: NextRequest) {
       successCount,
       failCount,
       results: processedResults,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       error: successCount === 0 ? (processedResults[0] as any)?.error || (processedResults[0] as any)?.data?.error?.message || "Todas las operaciones fallaron" : undefined,
       operation: action,
       object_type: level || "unknown",
@@ -136,6 +139,7 @@ export async function POST(req: NextRequest) {
         api_version: version
       }
     });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (error: any) {
     return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
   }

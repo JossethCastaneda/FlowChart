@@ -364,10 +364,13 @@ export function getWelcomeEmailHtml({
 // TASK ASSIGNED EMAIL
 // ─────────────────────────────────────────────────
 export function getTaskAssignedEmailHtml({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   assigneeName,
   taskTitle,
   assignerName,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   priority,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   dueDate,
   taskUrl,
 }: {
@@ -423,9 +426,11 @@ export function getTaskAssignedEmailHtml({
 // SLA WARNING EMAIL
 // ─────────────────────────────────────────────────
 export function getSLAWarningEmailHtml({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   userName,
   taskTitle,
   hoursLeft,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   dueDate,
   taskUrl,
 }: {

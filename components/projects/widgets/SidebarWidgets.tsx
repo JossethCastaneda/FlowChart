@@ -8,6 +8,7 @@ const headingStyle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color
 const subStyle: React.CSSProperties = { fontSize: 11, color: "var(--text-secondary)", marginBottom: 12, lineHeight: 1.5 };
 
 interface CuentasWidgetProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   ch: any;
   accountNames: Record<string, string>;
 }

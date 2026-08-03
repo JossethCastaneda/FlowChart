@@ -70,6 +70,7 @@ export const GET = withWorkspace(async (request, ctx) => {
         lastMessageAt: c.lastMessageAt || c.updatedAt,
         createdAt: c.createdAt,
         unread: c.unread,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         priority: (c as any).priority ?? null,
         status: c.status,
         assignedTo: c.assignedTo,

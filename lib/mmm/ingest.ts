@@ -76,6 +76,7 @@ export async function extractMetaSpendFromCache(
     if (cacheEntries.length === 0) continue;
 
     const cache = cacheEntries[0];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const campaigns = cache.data as any[];
 
     if (!Array.isArray(campaigns)) continue;
@@ -95,6 +96,7 @@ export async function extractMetaSpendFromCache(
       let outcomeValue = 0;
       if (insights.action_values && Array.isArray(insights.action_values)) {
         const purchaseAction = insights.action_values.find(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           (a: any) =>
             a.action_type === "offsite_conversion.fb_pixel_purchase" ||
             a.action_type === "purchase"
@@ -144,8 +146,10 @@ export async function extractGoogleSpend(
     // Google Ads returns aggregate per campaign, not per day
     // For now, distribute evenly across weeks (the API doesn't give daily breakdown by default)
     // TODO: Use daily segmented query for proper weekly aggregation
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const totalSpend = campaigns.reduce((sum: number, c: any) => sum + (c.spend || 0), 0);
     const totalConversionsValue = campaigns.reduce(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       (sum: number, c: any) => sum + (c.conversionsValue || 0),
       0
     );
@@ -340,10 +344,12 @@ async function mergeSpendIntoCenturion(
 
   if (!model) return; // No model created yet — will be merged on next manual save
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const config = model.config as { channels?: any[]; rows?: any[]; [key: string]: any };
   const existingRows = Array.isArray(config.rows) ? config.rows : [];
 
   // Build a map of existing rows by week for quick lookup
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const existingMap = new Map(existingRows.map((r: any) => [r.week, r]));
 
   // Get all weekly spend data for this client
@@ -367,6 +373,7 @@ async function mergeSpendIntoCenturion(
   }
 
   // Merge: update existing rows with new spend data, add new rows
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const mergedRows: any[] = [];
   const allWeeks = new Set([...existingMap.keys(), ...weekSpend.keys()]);
 

@@ -31,6 +31,7 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
       } else {
         setTestResult({ success: false, msg: data.error || "Fallo la conexión con el API." });
       }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
     } catch (e) {
       setTestResult({ success: false, msg: "Error de red al probar conexión." });
     } finally {

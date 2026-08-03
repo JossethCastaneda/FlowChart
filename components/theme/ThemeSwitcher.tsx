@@ -10,6 +10,7 @@ export function ThemeSwitcher() {
 
   // Prevent hydration mismatch
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
     setMounted(true);
   }, []);
 

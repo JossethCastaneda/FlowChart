@@ -100,6 +100,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       messageId: result.messageId,
       to: result.to,
     });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     logger.error("Error realizando test call de WhatsApp", {
       workspaceId,

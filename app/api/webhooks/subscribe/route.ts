@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
   const token = await getMetaAccessToken(request, "webhook");
   if (!token) return NextResponse.json({ error: "No Meta token" }, { status: 401 });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const results: any[] = [];
 
   try {
@@ -63,6 +64,7 @@ export async function POST(request: NextRequest) {
     // ─── Subscribe each page (and its linked IG) to webhook fields ───
     // Lógica compartida con el callback de conexión (lib/meta-webhooks.ts):
     // página + IG se suscriben en un solo POST para no sobrescribir campos.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const subscribablePages = pages.map((page: any) => ({
       id: page.id,
       name: page.name,
@@ -103,6 +105,7 @@ export async function POST(request: NextRequest) {
         whatsappFields: "messages, message_template_status_update",
       },
     });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     logger.error("[WEBHOOK-SUBSCRIBE] Error:", err);
     return NextResponse.json({ error: err.message || "Error" }, { status: 500 });
@@ -129,6 +132,7 @@ export async function GET(request: NextRequest) {
     const pagesData = await pagesRes.json();
     const pages = pagesData.data || [];
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const subscriptions: any[] = [];
 
     for (const page of pages) {
@@ -150,6 +154,7 @@ export async function GET(request: NextRequest) {
           subscribedFields: subData.data?.[0]?.subscribed_fields || [],
           appId: subData.data?.[0]?.id || null,
         });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       } catch (err: any) {
         subscriptions.push({
           pageId: page.id,
@@ -172,6 +177,7 @@ export async function GET(request: NextRequest) {
       verifyToken,
       subscriptions,
     });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Error" }, { status: 500 });
   }

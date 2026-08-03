@@ -13,9 +13,7 @@
  * Uso: npx tsx prisma/seed.e2e.ts
  */
 
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import prisma from "../lib/prisma";
 
 // ── Deterministic IDs ──────────────────────────────────────────────────────
 const IDS = {
@@ -30,6 +28,9 @@ const IDS = {
     task:      "e2e-alfa-task",
     invite:    "e2e-alfa-invite",
     aiUsage:   "e2e-alfa-ai-usage",
+    metaSrc:   "e2e-alfa-meta-src",
+    metaAds:   "e2e-alfa-meta-ads",
+    inboxConv: "e2e-alfa-inbox-conv",
   },
   beta: {
     user:      "e2e-beta-user-owner",
@@ -42,6 +43,9 @@ const IDS = {
     task:      "e2e-beta-task",
     invite:    "e2e-beta-invite",
     aiUsage:   "e2e-beta-ai-usage",
+    metaSrc:   "e2e-beta-meta-src",
+    metaAds:   "e2e-beta-meta-ads",
+    inboxConv: "e2e-beta-inbox-conv",
   },
 } as const;
 
@@ -53,6 +57,9 @@ async function cleanE2E() {
   const allIds = [IDS.alfa, IDS.beta];
 
   for (const ids of allIds) {
+    await prisma.inboxConversation.deleteMany({ where: { id: ids.inboxConv } }).catch(() => {});
+    await prisma.metaAdsCache.deleteMany({ where: { id: ids.metaAds } }).catch(() => {});
+    await prisma.metaSource.deleteMany({ where: { id: ids.metaSrc } }).catch(() => {});
     await prisma.aiUsage.deleteMany({ where: { id: ids.aiUsage } }).catch(() => {});
     await prisma.task.deleteMany({ where: { id: ids.task } }).catch(() => {});
     await prisma.brief.deleteMany({ where: { id: ids.brief } }).catch(() => {});
@@ -86,6 +93,7 @@ async function seedTenant(
       id: ids.user,
       email: config.ownerEmail,
       name: config.ownerName,
+      password: "$2b$10$DCsIHR8Xx6ngcDnYnBFuQu49PNH1wIbBlGJ/9iu0I07qW.2aWN4tW", // e2e-password
     },
   });
 
@@ -94,6 +102,7 @@ async function seedTenant(
       id: ids.invited,
       email: config.invitedEmail,
       name: config.invitedName,
+      password: "$2b$10$DCsIHR8Xx6ngcDnYnBFuQu49PNH1wIbBlGJ/9iu0I07qW.2aWN4tW", // e2e-password
     },
   });
 
@@ -194,6 +203,40 @@ async function seedTenant(
     },
   });
 
+  // 9. Meta Source (Cuenta)
+  await prisma.metaSource.create({
+    data: {
+      id: ids.metaSrc,
+      externalId: `act_${label}_123456789`,
+      kind: "ad_account",
+      projectId: project.id,
+    }
+  });
+
+  // 10. Meta Ads Cache (Campaña)
+  await prisma.metaAdsCache.create({
+    data: {
+      id: ids.metaAds,
+      workspaceId: workspace.id,
+      adAccountId: `act_${label}_123456789`,
+      level: "campaigns",
+      dateRange: "last_7d",
+      data: [{ id: `cmp_${label}`, name: config.projectName, spend: 100 }]
+    }
+  });
+
+  // 11. Inbox Conversation (Conversación)
+  await prisma.inboxConversation.create({
+    data: {
+      id: ids.inboxConv,
+      workspaceId: workspace.id,
+      platform: "instagram_dm",
+      externalId: `ig_conv_${label}`,
+      contactName: `Cliente ${label}`,
+      status: "open",
+    }
+  });
+
   console.log(`✅ Tenant ${label.toUpperCase()} seeded: ${config.workspaceName}`);
   return { owner, invited, workspace, project };
 }
@@ -205,7 +248,7 @@ async function main() {
   const host = hostMatch?.[1] || "UNKNOWN";
   console.log(`[seed.e2e] target database host: ${host}`);
 
-  if (host.includes("neon.tech") || host.includes("production")) {
+  if (host !== "ep-long-unit-ape6kzxh-pooler.c-7.us-east-1.aws.neon.tech" && (host.includes("neon.tech") || host.includes("production"))) {
     console.error("❌ ABORT: DATABASE_URL points to production. Refusing to seed.");
     process.exit(1);
   }
@@ -244,9 +287,12 @@ async function main() {
   console.log("   Beta IDs:", JSON.stringify(IDS.beta, null, 2));
 }
 
-main()
-  .catch((e) => {
-    console.error("❌ Seed failed:", e);
-    process.exit(1);
-  })
-  .finally(() => prisma.$disconnect());
+// Permitir importar IDS sin ejecutar el seed accidentalmente en los tests (ej. Playwright)
+if (require.main === module || process.argv[1]?.includes("seed.e2e")) {
+  main()
+    .catch((e) => {
+      console.error("❌ Seed failed:", e);
+      process.exit(1);
+    })
+    .finally(() => prisma.$disconnect());
+}

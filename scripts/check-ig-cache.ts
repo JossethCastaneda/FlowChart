@@ -21,6 +21,7 @@ async function main() {
     },
   });
   integrations.forEach(i => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const creds = i.credentials as any;
     console.log(`Integration ${i.id}:`);
     console.log(`  workspaceId: ${i.workspaceId}`);

@@ -6,14 +6,19 @@ const headingStyle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color
 const subStyle: React.CSSProperties = { fontSize: 11, color: "var(--text-secondary)", marginBottom: 12, lineHeight: 1.5 };
 
 interface HeatmapWidgetProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   breakdownData: Record<string, any[]>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   ch: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   insights: any;
   heatmapTimezone: "advertiser" | "audience";
   setHeatmapTimezone: (v: "advertiser" | "audience") => void;
   /** Result action finder function */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   findResultAction: (actions: any[] | undefined, goal?: string, objective?: string) => any;
   /** Objective getter */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   getObjective: (entity: any, insights: any) => string | null;
   /** Goal label helper */
   goalLabel: (goal?: string) => string;
@@ -38,6 +43,7 @@ export function HeatmapWidget({
   // Build date × hour matrix
   const dateMap: Record<string, Record<number, { impressions: number; spend: number; clicks: number; results: number }>> = {};
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   hourlyData.forEach((row: any) => {
     const hourRaw =
       row.hour ??

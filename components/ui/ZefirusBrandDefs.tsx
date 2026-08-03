@@ -12,6 +12,7 @@ export function ZefirusBrandDefs() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
     setMounted(true);
   }, []);
 

@@ -22,7 +22,8 @@ const META_V = process.env.META_API_VERSION || "v25.0";
  *   igUserId?: string (Instagram business account ID)
  *   pageToken: string (encrypted page access token)
  */
-export const POST = withWorkspace(async (req: NextRequest, ctx) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
+export const POST = withWorkspace(async (req: NextRequest, _ctx) => {
   const token = await getMetaAccessToken(req, "publisher_facebook");
   if (!token) {
     return apiError("No hay token Meta. Ve a Integraciones y conecta tu cuenta.", "UNAUTHORIZED", 401);
@@ -182,6 +183,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     }
 
     // Step 1: Create media container
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const containerPayload: Record<string, any> = {
       media_type: "STORIES",
     };

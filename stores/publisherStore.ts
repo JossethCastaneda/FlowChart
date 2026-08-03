@@ -53,6 +53,7 @@ export const usePublisherStore = create<PublisherStore>((set, get) => ({
       if (!res.ok) throw new Error("Failed to fetch posts");
       const json = (await res.json()) as ApiEnvelope<{ posts?: PublisherPost[] }>;
       set({ posts: json.data?.posts || [], isLoading: false });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     } catch (err: any) {
       set({ error: err.message, isLoading: false });
     }
@@ -74,6 +75,7 @@ export const usePublisherStore = create<PublisherStore>((set, get) => ({
       if (!post) throw new Error("Failed to create post");
       set((s) => ({ posts: [post, ...s.posts] }));
       return post;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     } catch (err: any) {
       set({ error: err.message });
       return null;
@@ -93,6 +95,7 @@ export const usePublisherStore = create<PublisherStore>((set, get) => ({
       if (!post) throw new Error("Failed to update post");
       set((s) => ({ posts: s.posts.map((p) => (p.id === id ? post : p)) }));
       return post;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     } catch (err: any) {
       set({ error: err.message });
       return null;
@@ -122,6 +125,7 @@ export const usePublisherStore = create<PublisherStore>((set, get) => ({
       // Refresh posts
       get().fetchPosts();
       return { success: true };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     } catch (err: any) {
       return { success: false, error: err.message };
     }

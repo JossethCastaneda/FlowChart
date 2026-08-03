@@ -34,6 +34,7 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
         if (modPages.length) {
           setPages(modPages);
           // Select all by default
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           setSelectedIds(new Set(modPages.map((p: any) => p.id)));
         }
         setLoading(false);
@@ -43,6 +44,7 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
 
   useEffect(() => {
     onSelectionChange?.(Array.from(selectedIds));
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: [React] Refactor de hooks anti-patrón
   }, [selectedIds]);
 
   const toggle = (pageId: string) => {
@@ -174,6 +176,7 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
 
                 {/* Page picture */}
                 {page.picture ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
                   <img
                     src={page.picture}
                     alt={page.name}

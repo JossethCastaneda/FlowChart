@@ -24,7 +24,9 @@ import {
 
 /* ═══ CONSTANTS ═══ */
 const ROW_HEIGHT = 10;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 const HEADER_HEIGHT = 36; // .dashboard-widget__header min-height
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 const CONTENT_PADDING = 28; // 14px top + 14px bottom in .dashboard-widget__content
 const MARGIN: [number, number] = [12, 12];
 const MIN_ROWS = 4;

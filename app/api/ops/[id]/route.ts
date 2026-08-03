@@ -132,7 +132,6 @@ export const PATCH = withAuth(async (req, ctx) => {
   });
 
   // Log activity for meaningful field changes
-  const userName = ctx.userId; // userId is sufficient for audit
   const activities: { action: string; field: string; oldValue: string | null; newValue: string | null }[] = [];
   if (status !== undefined && status !== task.status)
     activities.push({ action: "status_changed", field: "status", oldValue: task.status, newValue: status });

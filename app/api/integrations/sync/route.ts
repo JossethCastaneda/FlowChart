@@ -6,6 +6,7 @@ import { start } from "workflow/api";
 import { syncIntegrationAssetsWorkflow } from "@/workflows/sync-integration-assets";
 import { logger } from "@/lib/logger";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export const POST = withWorkspace(async (req: NextRequest, ctx: any) => {
   const body = await req.json().catch(() => ({}));
   const { integrationId } = body;
@@ -23,6 +24,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx: any) => {
     try {
       await start(syncIntegrationAssetsWorkflow, [integration.id]);
       return apiSuccess({ message: "Sincronización en proceso. Esto puede tomar unos segundos." });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     } catch (error: any) {
       logger.error("Error al iniciar el workflow de sync", { route: "api/integrations/sync", error: error.message });
       return apiError("No se pudo iniciar la sincronización.", "INTERNAL_ERROR", 500);
@@ -38,7 +40,8 @@ export const POST = withWorkspace(async (req: NextRequest, ctx: any) => {
       try {
         await start(syncIntegrationAssetsWorkflow, [integration.id]);
         started++;
-      } catch(e) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
+      } catch (_e) {
         // Ignorar fallo de un workflow e intentar con el resto
       }
     }

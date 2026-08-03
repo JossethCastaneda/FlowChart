@@ -1,6 +1,6 @@
 import { withAuth } from "@/lib/api-handler";
 import { validateBody } from "@/lib/validate";
-import { apiSuccess, apiForbidden } from "@/lib/api-response";
+import { apiForbidden } from "@/lib/api-response";
 import { ACTIVE_WORKSPACE_COOKIE } from "@/lib/active-workspace";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";

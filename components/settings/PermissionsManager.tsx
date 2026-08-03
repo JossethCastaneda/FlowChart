@@ -66,6 +66,7 @@ export function PermissionsManager() {
         external: { ...DEFAULT_EXTERNAL_PERMS },
       };
       const newScopePerms = { ...perms[scope] };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       PERM_KEYS.forEach(p => { (newScopePerms as any)[p.key] = val; });
       return { ...a, permissions: { ...perms, [scope]: newScopePerms } };
     })); mark();
@@ -144,6 +145,7 @@ export function PermissionsManager() {
             {/* Expandable Content (Members Only) */}
             {isExpanded && (() => {
               const scopeId = "members" as PermScope;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
               const scopePerms = (perms as any)[scopeId] as AreaPermissions | undefined;
               const effectivePerms = scopePerms || defaultsFor(scopeId);
               

@@ -48,6 +48,7 @@ async function backfillThread(
   if (!res.ok) return 0;
   const data = await res.json();
   const thread = data?.data?.[0];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const msgs: Array<{ id: string; message?: string; from?: { id: string }; created_time?: string; attachments?: any; shares?: any }> =
     thread?.messages?.data ?? [];
   if (msgs.length === 0) return 0;
@@ -141,6 +142,7 @@ export const GET = withWorkspace(async (request, ctx) => {
       timestamp: m.createdAt,
       senderName: m.senderName || (m.sender === "user" ? conv.contactName || "Usuario" : "page"),
       senderId: m.senderName,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       attachments: m.attachments ? (m.attachments as any[]) : undefined,
       reaction: m.reaction || undefined,
       deliveredAt: m.deliveredAt || undefined,

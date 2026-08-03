@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
 
     if (!String(adAccountId).startsWith("act_")) adAccountId = `act_${adAccountId}`;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const payload: Record<string, any> = {
       name: String(name).trim(),
       objective,
@@ -77,6 +78,7 @@ export async function POST(req: NextRequest) {
       // Surface blame field if available for better UX
       const blameFields = json?.error?.error_data?.blame_field_specs;
       const blameDetail = Array.isArray(blameFields) && blameFields.length > 0
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
         ? ` Campo: ${blameFields.map((b: any) => b?.field || b).join(", ")}.`
         : "";
 
@@ -92,6 +94,7 @@ export async function POST(req: NextRequest) {
 
     logger.info("[ADS] Campaign created", { adAccountId, objective, id: json.id });
     return NextResponse.json({ status: "success", object_id: json.id, created_paused: true, data: json });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (error: any) {
     logger.error("[ADS] Campaign create unhandled", { error: error.message });
     return NextResponse.json({ status: "error", error: error.message }, { status: 500 });

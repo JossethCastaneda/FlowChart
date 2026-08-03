@@ -10,6 +10,7 @@ export const DELETE = withWorkspace(async (request, ctx) => {
     if (!kw) return NextResponse.json({ error: "Not found" }, { status: 404 });
     await prisma.trackedKeyword.update({ where: { id }, data: { active: false } });
     return NextResponse.json({ success: true });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

@@ -69,6 +69,7 @@ export function TrafficAnalytics({ project }: { project: Project }) {
       const raw = localStorage.getItem(storeKey);
       if (raw) {
         const p = JSON.parse(raw);
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
         if (Array.isArray(p.order)) setOrder(p.order);
         if (Array.isArray(p.hidden)) setHidden(p.hidden);
       }

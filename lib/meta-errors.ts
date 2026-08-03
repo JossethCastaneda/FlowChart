@@ -12,6 +12,7 @@ export interface MetaErrorParsed {
   original_subcode?: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function mapMetaError(metaError: any): MetaErrorParsed {
   // If the error object is nested inside 'error'
   const err = metaError?.error || metaError;
@@ -140,6 +141,7 @@ export function calculateDataQuality(sinceDateStr?: string, untilDateStr?: strin
 }
 
 // Helper to extract error from fetch response (mantener para no romper el resto del app si se usa en otros lados)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export async function handleMetaResponse(res: Response): Promise<{ success: boolean; data?: any; error?: MetaErrorParsed }> {
   const json = await res.json();
   if (!res.ok || json.error) {

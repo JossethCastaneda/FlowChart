@@ -119,6 +119,7 @@ export function analyzeFatigue(
  * Quick fatigue check from a single insight row (without historical data).
  * Uses frequency and basic heuristics.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 export function quickFatigueCheck(ins: any): FatigueAnalysis["level"] {
   const frequency = parseFloat(ins.frequency || "0");
   const ctr = parseFloat(ins.ctr || "0");

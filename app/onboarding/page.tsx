@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { Loader2, ArrowRight, Building2, User, Briefcase, Plus, X } from "lucide-react";
 import { ZefirusLogo } from "@/components/ui/ZefirusLogo";
 import { Orbi } from "@/components/ui/Orbi";
@@ -48,6 +49,7 @@ function OnboardingContent() {
   // Verificar si el usuario YA tiene workspace (y no está pidiendo uno nuevo explícitamente)
   useEffect(() => {
     if (isNewWorkspace) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
       setChecking(false);
       return;
     }

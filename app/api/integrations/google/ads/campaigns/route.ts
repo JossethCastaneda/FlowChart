@@ -58,6 +58,7 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({ data: mappedCampaigns });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     logger.error("[Google Ads campaigns GET error]", err);
     return NextResponse.json(
@@ -106,6 +107,7 @@ export async function POST(request: NextRequest) {
     await updateCampaignStatus(workspaceId, campaignId, googleStatus);
     
     return NextResponse.json({ success: true });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     logger.error("[Google Ads campaigns POST error]", err);
     return NextResponse.json(

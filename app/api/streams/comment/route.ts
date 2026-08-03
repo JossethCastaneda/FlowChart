@@ -1,4 +1,3 @@
-import { NextRequest } from "next/server";
 import { validateBody } from "@/lib/validate";
 import { apiSuccess, apiError } from "@/lib/api-response";
 import { getMetaAccessToken, metaFetch, metaUrl, resolvePageToken } from "@/lib/server-auth";

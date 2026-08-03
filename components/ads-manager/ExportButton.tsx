@@ -4,13 +4,16 @@ import React, { useState } from "react";
 import { Download, FileText, Table2, ChevronDown, Sheet } from "lucide-react";
 
 interface ExportButtonProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   data: any[];
   level: "campaigns" | "adsets" | "ads";
   visibleColumns: string[];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
 function findActionValue(actions: any[], type: string): number {
   if (!actions || !Array.isArray(actions)) return 0;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const a = actions.find((x: any) => x.action_type === type);
   return a ? parseInt(a.value || "0", 10) : 0;
 }
@@ -28,6 +31,7 @@ export function ExportButton({ data, level, visibleColumns }: ExportButtonProps)
     spend: "Gasto", quality_ranking: "Calidad",
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const getCellValue = (row: any, col: string): string => {
     const ins = row.insights || {};
     switch (col) {

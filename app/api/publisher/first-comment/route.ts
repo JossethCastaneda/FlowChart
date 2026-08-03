@@ -19,7 +19,8 @@ const META_V = process.env.META_API_VERSION || "v25.0";
  *   comment:   string  — The comment text
  *   pageToken: string  — Encrypted page access token
  */
-export const POST = withWorkspace(async (req: NextRequest, ctx) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
+export const POST = withWorkspace(async (req: NextRequest, _ctx) => {
   // Comentario en IG → estricto: solo la cuenta vinculada en el botón de
   // Publisher Instagram (el token de Publisher Facebook puede ser OTRA cuenta
   // y Graph rechazaría la acción sobre este media).

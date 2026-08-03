@@ -37,6 +37,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ rul
       return NextResponse.json({ error: json.error?.message || "Error updating rule" }, { status: res.status });
     }
     return NextResponse.json({ success: true, data: json });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -68,6 +69,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ r
       return NextResponse.json({ error: json.error?.message || "Error deleting rule" }, { status: res.status });
     }
     return NextResponse.json({ success: true });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

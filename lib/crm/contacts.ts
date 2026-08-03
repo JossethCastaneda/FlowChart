@@ -22,6 +22,7 @@ export interface ResolveContactInput {
   name?: string | null;
   avatar?: string | null;
   phone?: string | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   customFields?: Record<string, any>;
 }
 
@@ -89,6 +90,7 @@ export async function resolveOrCreateContact(input: ResolveContactInput): Promis
  */
 async function enrich(contactId: string, input: ResolveContactInput): Promise<void> {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const updateData: any = { lastContactedAt: new Date() };
 
     // Si nos envían customFields desde el webhook (ej. timezone, locale, gender)

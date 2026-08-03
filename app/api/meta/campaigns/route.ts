@@ -77,6 +77,7 @@ export async function GET(req: NextRequest) {
     const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?${timeRange.replace(/^&/, "")}&level=campaign&fields=${insightsFields}&limit=100`;
 
     const insightsResult = await metaGetAll(insightsUrl, token);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     let insights: any[] = insightsResult.data;
     let insightsError: string | null = insightsResult.error
       ? (mapMetaError({ error: { message: insightsResult.error } }).user_message || insightsResult.error)
@@ -99,7 +100,9 @@ export async function GET(req: NextRequest) {
     }
 
     // 3. Merge insights into campaigns
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const insightsMap = new Map(insights.map((item: any) => [item.campaign_id, item]));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const mergedCampaigns = campaigns.map((campaign: any) => {
       const insight = insightsMap.get(campaign.id) || {};
       return {
@@ -122,6 +125,7 @@ export async function GET(req: NextRequest) {
           video_p50_watched_actions: insight.video_p50_watched_actions || [],
           video_p75_watched_actions: insight.video_p75_watched_actions || [],
           video_p100_watched_actions: insight.video_p100_watched_actions || [],
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
           video_3_sec_watched_actions: (insight.actions || []).filter((a: any) => a.action_type === "video_view"),
           video_thruplay_watched_actions: insight.video_thruplay_watched_actions || [],
           outbound_clicks: insight.outbound_clicks || [],
@@ -156,11 +160,14 @@ export async function GET(req: NextRequest) {
       where: {
         workspaceId_adAccountId_level_dateRange: { workspaceId, adAccountId, level: "campaigns", dateRange: cacheKey },
       },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       update: { data: responsePayload as any },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       create: { workspaceId, adAccountId, level: "campaigns", dateRange: cacheKey, data: responsePayload as any },
     }).catch((e: unknown) => logger.warn("Campaigns cache save failed", { error: e }));
 
     return NextResponse.json(responsePayload);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (error: any) {
     logger.error("[ADS] Campaigns GET unhandled error", { error });
     return NextResponse.json({ status: "error", error: "Error interno" }, { status: 500 });

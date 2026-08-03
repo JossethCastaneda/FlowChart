@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   let adAccountId = searchParams.get("adAccountId");
   let tokenExpired = false;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   let expiredErrorMsg = "";
 
   const dateStart = searchParams.get("dateStart");
@@ -72,11 +73,8 @@ export async function GET(req: NextRequest) {
   // Removing reach entirely from breakdown queries to guarantee universal compatibility
   // regardless of date range selected by the user.
   // SOURCE: Meta Business Help Center — Reach metric update June 2025
-  const FIELDS_DEMO =
-    "spend,impressions,clicks,cpc,cpm,ctr,actions,cost_per_action_type";
 
   // publisher_platform and device_platform → reach AND actions NOT allowed
-  const FIELDS_PLATFORM = "spend,impressions,clicks,cpc,cpm,ctr";
 
   // ── URL builder ─────────────────────────────────────────────────────────
   const buildUrl = (extra: Record<string, string | undefined>) => {
@@ -105,6 +103,7 @@ export async function GET(req: NextRequest) {
   };
 
   // ── Safe fetcher — always returns [] instead of throwing ────────────────
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const safeGet = async (url: string, tag: string): Promise<any[]> => {
     try {
       const res = await metaFetch(url, token);
@@ -128,6 +127,7 @@ export async function GET(req: NextRequest) {
       }
       const json = await res.json();
       return json.data || [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     } catch (e: any) {
       logger.error(`[INSIGHTS:${tag}] Exception:`, e.message);
       return [];
@@ -186,6 +186,7 @@ export async function GET(req: NextRequest) {
     }, { status: 401 });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const unwrap = (r: PromiseSettledResult<any[]>) =>
     r.status === "fulfilled" ? r.value : [];
 

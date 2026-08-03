@@ -119,7 +119,9 @@ export async function publishSinglePost(
       return { id: claimedPost.id, status: "Failed", error: "Invalid token" };
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const isDirectInstagram = integration?.provider === "meta_publisher_instagram" && !!(credentials as any)?.instagramUserId && !(credentials as any)?.pages;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const directIgUserId = isDirectInstagram ? (credentials as any).instagramUserId as string : undefined;
 
     const { externalIds, errors, targetPage } = await publishPostToMeta({

@@ -4,6 +4,7 @@ import { X, Save, Loader2, AlertCircle, TrendingUp } from "lucide-react";
 import { useMetaUpdate } from "@/hooks/useMetaUpdate";
 
 interface EditCampaignModalProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   campaign: any;
   onClose: () => void;
   onSaved: () => void;
@@ -63,6 +64,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
     if (!name.trim()) { setLocalError("El nombre es obligatorio"); return; }
     if (hasCampaignBudget && budget <= 0) { setLocalError("El presupuesto debe ser mayor a 0"); return; }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     const fields: any = { name };
     if (status !== campaign.status) fields.status = status;
     if (hasCampaignBudget) {
@@ -285,6 +287,7 @@ export const inputStyle: React.CSSProperties = {
 };
 
 export const selectStyle: React.CSSProperties = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   ...inputStyle as any,
   cursor: "pointer",
   appearance: "none",

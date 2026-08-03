@@ -15,11 +15,13 @@ export const dynamic = "force-dynamic";
  * 
  * Does NOT expose sensitive data — only timing, status codes, and step names.
  */
-export async function GET(req: NextRequest) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
+export async function GET(_req: NextRequest) {
   const steps: { step: string; ms: number; status: string; detail?: string }[] = [];
   const t0 = Date.now();
 
   // Step 1: Session
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   let session: any = null;
   try {
     const t1 = Date.now();

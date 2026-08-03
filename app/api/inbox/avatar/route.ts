@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
         token
       );
       const pagesData = await pagesRes.json();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       const page = (pagesData.data || []).find((p: any) => p.id === pageId);
       if (page?.access_token) pageToken = page.access_token;
     }

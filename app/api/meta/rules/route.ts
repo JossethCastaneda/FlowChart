@@ -34,6 +34,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: json.error?.message || "Error fetching rules" }, { status: res.status });
     }
     return NextResponse.json({ data: json.data || [] });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -75,6 +76,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: json.error?.message || "Error creating rule" }, { status: res.status });
     }
     return NextResponse.json({ success: true, data: json });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

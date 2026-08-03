@@ -10,6 +10,7 @@ import { QueryProvider } from "@/components/layout/QueryProvider";
 import { ToastContainer } from "@/components/ui/Toast";
 import { ConfirmModalContainer } from "@/components/ui/ConfirmModal";
 import { PermissionsProvider } from "@/components/layout/PermissionsContext";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { getBaseUrl } from "@/lib/get-base-url";
 import { LanguageProvider } from "@/components/layout/LanguageContext";
 import { ZefirusBrandDefs } from "@/components/ui/ZefirusBrandDefs";
@@ -22,7 +23,9 @@ import { AlertToastContainer } from "@/components/alerts/AlertToast";
 // así un placeholder en Vercel no genera scripts rotos en producción.
 const rawGtmId = process.env.NEXT_PUBLIC_GTM_ID;
 const rawGa4Id = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 const GTM_ID = rawGtmId?.startsWith("GTM-") ? rawGtmId : undefined;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 const GA4_ID = rawGa4Id?.startsWith("G-") ? rawGa4Id : undefined;
 
 const inter = Inter_Tight({ subsets: ["latin", "latin-ext"], variable: "--font-inter" });

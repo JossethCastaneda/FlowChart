@@ -71,6 +71,7 @@ export async function updateAutoSLA(
   if (!area) return null;
 
   // Only auto-calculate if slaMode is "auto"
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   if ((area as any).slaMode !== "auto") return null;
 
   const newSLA = await calculateAutoSLA(areaId, workspaceId);
@@ -83,6 +84,7 @@ export async function updateAutoSLA(
 
   await prisma.workspaceSettings.update({
     where: { workspaceId },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     data: { areas: updatedAreas as any },
   });
 

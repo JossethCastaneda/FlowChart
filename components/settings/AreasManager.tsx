@@ -61,6 +61,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
       slaHours: 24, slaMode: "manual", leadIds: [], memberIds: [], requestTypes: [],
       requireLeadReview: true,
       permissions: { leaders: { ...DEFAULT_LEADER_PERMS }, members: { ...DEFAULT_PERMS }, external: { ...EXTERNAL_PERMS } },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     } as any]);
     setExpanded(new Set([newId]));
     mark();
@@ -73,6 +74,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
       requireLeadReview: true, slaMode: "manual",
       permissions: { leaders: { ...DEFAULT_LEADER_PERMS }, members: { ...DEFAULT_PERMS }, external: { ...EXTERNAL_PERMS } },
     }));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     setAreas(seeded as any);
     setExpanded(new Set([seeded[0]?.id]));
     mark();
