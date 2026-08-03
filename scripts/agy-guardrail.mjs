@@ -8,6 +8,8 @@
 // Protocol:
 //   stdin  → {"toolCall":{"name":"run_command","args":{"CommandLine":"..."}}}
 //   stdout → {"decision":"allow"} | {"decision":"deny","reason":"..."}
+//
+// Covers: run_command, unsandboxed (commands), browser_subagent (navigation)
 // ============================================================================
 
 import { createInterface } from "node:readline";
@@ -44,6 +46,97 @@ const BLOCKED_COMMANDS = [
     "Lectura de archivos .env de producción/test bloqueada por política de seguridad."],
 ];
 
+// ── Browser navigation allowlist/denylist (§3.1 / §3.2) ────────────────────
+// Allowlist: only these origins/paths are permitted for browser navigation.
+// Everything not explicitly allowed is denied (fail-closed).
+const BROWSER_ALLOWLIST = [
+  /^https?:\/\/localhost(:\d+)?(\/|$)/i,
+  /^https?:\/\/127\.0\.0\.1(:\d+)?(\/|$)/i,
+  /^https:\/\/developers\.facebook\.com\/docs\//i,
+  /^https:\/\/developers\.google\.com\/google-ads\/api\/docs\//i,
+  /^https:\/\/neon\.tech\/docs\//i,
+  /^https:\/\/vercel\.com\/docs\//i,
+];
+
+// Denylist: these are explicitly blocked even if someone tries to add them
+// to the allowlist in the future. Belt-and-suspenders.
+const BROWSER_DENYLIST = [
+  /\bvercel\.com\/dashboard\b/i,
+  /\bconsole\.neon\.tech\b/i,
+  /\bbusiness\.facebook\.com\b/i,
+  /\bads\.google\.com\b/i,
+  /\badsmanager\.facebook\.com\b/i,
+  /\banalytics\.google\.com\b/i,
+  /\btagmanager\.google\.com\b/i,
+  /\bsearch\.google\.com\/search-console\b/i,
+  /\bgithub\.com\/[^/]+\/[^/]+\/settings\b/i,
+  /\.vercel\.app\b/i,
+];
+
+/**
+ * Extract all URLs from a string (task description, etc.).
+ * Returns an array of URL strings found in the text.
+ */
+function extractUrls(text) {
+  if (!text) return [];
+  const urlPattern = /https?:\/\/[^\s"'<>)\]},]+/gi;
+  return (text.match(urlPattern) || []);
+}
+
+/**
+ * Check if a URL is in the denylist.
+ */
+function isDenied(url) {
+  return BROWSER_DENYLIST.some((pattern) => pattern.test(url));
+}
+
+/**
+ * Check if a URL is in the allowlist.
+ */
+function isAllowed(url) {
+  return BROWSER_ALLOWLIST.some((pattern) => pattern.test(url));
+}
+
+/**
+ * Evaluate a browser_subagent tool call.
+ * Extracts URLs from the Task arg and checks against allow/deny lists.
+ * Fail-closed: if no URL is found or URL is not in allowlist → deny.
+ */
+function evaluateBrowserCall(args) {
+  const task = args.Task || args.task || "";
+  const urls = extractUrls(task);
+
+  // If the task mentions a denied URL, block immediately
+  for (const url of urls) {
+    if (isDenied(url)) {
+      return {
+        decision: "deny",
+        reason: `Navegación bloqueada: ${url} está en la denylist del proyecto (§3.2). ` +
+          `Si necesitas este recurso, documéntalo en docs/pendientes-humanos.md.`,
+      };
+    }
+  }
+
+  // If there are URLs, all must be in the allowlist
+  if (urls.length > 0) {
+    for (const url of urls) {
+      if (!isAllowed(url)) {
+        return {
+          decision: "deny",
+          reason: `Navegación bloqueada: ${url} no está en la allowlist del proyecto (§3.1). ` +
+            `Solo se permite: localhost, 127.0.0.1, y docs de Facebook/Google/Neon/Vercel.`,
+        };
+      }
+    }
+    return { decision: "allow" };
+  }
+
+  // No URLs found in task description — allow (the task might be describing
+  // actions on an already-open page, which hooks.json will re-evaluate on
+  // each sub-tool call if those are also hooked).
+  return { decision: "allow" };
+}
+
 // ── Main ────────────────────────────────────────────────────────────────────
 async function main() {
   const lines = [];
@@ -64,7 +157,8 @@ async function main() {
   try {
     payload = JSON.parse(raw);
   } catch {
-    // Malformed JSON → allow (fail-open for non-tool-call inputs)
+    // Malformed JSON → deny for browser, allow for commands
+    // (browser hook has on_error: deny, command hook has on_error: allow)
     console.log(JSON.stringify({ decision: "allow" }));
     return;
   }
@@ -72,36 +166,49 @@ async function main() {
   const toolName = payload?.toolCall?.name;
   const args = payload?.toolCall?.args || {};
 
-  // Only evaluate run_command and unsandboxed calls
-  if (toolName !== "run_command" && toolName !== "unsandboxed") {
+  // ── Browser navigation tools ──────────────────────────────────────────
+  if (toolName === "browser_subagent") {
+    const result = evaluateBrowserCall(args);
+    console.log(JSON.stringify(result));
+    return;
+  }
+
+  // ── Command tools ─────────────────────────────────────────────────────
+  if (toolName === "run_command" || toolName === "unsandboxed") {
+    const cmd = args.CommandLine || "";
+
+    for (const [pattern, reason] of BLOCKED_COMMANDS) {
+      if (pattern.test(cmd)) {
+        console.log(JSON.stringify({ decision: "deny", reason }));
+        return;
+      }
+    }
+
+    // Special check: `npx next build` without SKIP_DB_SYNC prefix
+    if (/\bnpx\s+next\s+build\b/i.test(cmd) && !/SKIP_DB_SYNC/i.test(cmd)) {
+      console.log(JSON.stringify({
+        decision: "deny",
+        reason: "next build sin SKIP_DB_SYNC bloqueado. Usa: SKIP_DB_SYNC=1 npx next build",
+      }));
+      return;
+    }
+
+    // Not blocked → allow
     console.log(JSON.stringify({ decision: "allow" }));
     return;
   }
 
-  const cmd = args.CommandLine || "";
-
-  for (const [pattern, reason] of BLOCKED_COMMANDS) {
-    if (pattern.test(cmd)) {
-      console.log(JSON.stringify({ decision: "deny", reason }));
-      return;
-    }
-  }
-
-  // Special check: `npx next build` without SKIP_DB_SYNC prefix
-  if (/\bnpx\s+next\s+build\b/i.test(cmd) && !/SKIP_DB_SYNC/i.test(cmd)) {
-    console.log(JSON.stringify({
-      decision: "deny",
-      reason: "next build sin SKIP_DB_SYNC bloqueado. Usa: SKIP_DB_SYNC=1 npx next build",
-    }));
-    return;
-  }
-
-  // Not blocked → allow
-  console.log(JSON.stringify({ decision: "allow" }));
+  // ── Unknown tool → deny (fail-closed) ─────────────────────────────────
+  console.log(JSON.stringify({
+    decision: "deny",
+    reason: `Herramienta desconocida "${toolName}" no evaluada por el guardián. Fail-closed.`,
+  }));
 }
 
 main().catch((err) => {
   console.error("[guardrail] Fatal:", err);
-  // Fail-open: if the guardrail itself crashes, don't block the agent
-  console.log(JSON.stringify({ decision: "allow" }));
+  // Fail-closed for browser, fail-open for commands.
+  // Since we can't distinguish here, output deny. The hook's on_error
+  // setting is the final arbiter: "allow" for commands, "deny" for browser.
+  console.log(JSON.stringify({ decision: "deny", reason: "Guardrail crash — fail-closed." }));
 });

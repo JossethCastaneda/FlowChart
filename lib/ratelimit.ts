@@ -7,6 +7,40 @@ import { logger } from "@/lib/logger";
  * Falls back to an in-memory store in unit testing (Vitest) to avoid requiring a live database.
  */
 
+// ── In-memory store for test environment ────────────────────────────────────
+// Mirrors the DB-backed logic (count per key, window expiry) so tests exercise
+// the actual rate-limiting semantics without needing a live Postgres connection.
+const testStore = new Map<string, { count: number; resetAt: number }>();
+
+function rateLimitInMemory(
+  key: string,
+  maxAttempts: number,
+  windowMs: number
+): { ok: boolean; remaining: number } {
+  const now = Date.now();
+
+  // Expire stale entries
+  const entry = testStore.get(key);
+  if (entry && entry.resetAt < now) {
+    testStore.delete(key);
+  }
+
+  const existing = testStore.get(key);
+  if (!existing) {
+    // First request for this key
+    testStore.set(key, { count: 1, resetAt: now + windowMs });
+    return { ok: true, remaining: Math.max(0, maxAttempts - 1) };
+  }
+
+  // Increment
+  existing.count += 1;
+
+  if (existing.count > maxAttempts) {
+    return { ok: false, remaining: 0 };
+  }
+  return { ok: true, remaining: Math.max(0, maxAttempts - existing.count) };
+}
+
 // Local state (Map/setInterval) is removed to prevent memory leaks in serverless/edge runtimes.
 
 /**
@@ -21,9 +55,10 @@ export async function rateLimit(
   maxAttempts: number,
   windowMs: number
 ): Promise<{ ok: boolean; remaining: number }> {
-  // If in test environment (Vitest), bypass to avoid DB connection issues
+  // In test environment, use in-memory store to avoid DB connection issues
+  // while still exercising rate-limiting logic.
   if (process.env.NODE_ENV === "test" || process.env.VITEST) {
-    return { ok: true, remaining: maxAttempts };
+    return rateLimitInMemory(key, maxAttempts, windowMs);
   }
 
   // Database-backed rate limiting for production/dev

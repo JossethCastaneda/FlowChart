@@ -66,7 +66,7 @@ export const GOOGLE_MODULES: GoogleModule[] = [
     ],
     capabilities: ["read"],
     resourceTypes: ["ga4_property", "gsc_site"],
-    status: "ready",
+    status: "beta",  // No data-reading route yet — only resource listing (onboarding)
     docsUrl: "https://developers.google.com/analytics/devguides/reporting/data/v1",
   },
   {
@@ -78,7 +78,7 @@ export const GOOGLE_MODULES: GoogleModule[] = [
     scopes: ["https://www.googleapis.com/auth/tagmanager.readonly"],
     capabilities: ["read"],
     resourceTypes: ["gtm_container"],
-    status: "ready",
+    status: "beta",  // No data-reading route yet — only resource listing (onboarding)
     docsUrl: "https://developers.google.com/tag-platform/tag-manager/api/v2",
   },
   {

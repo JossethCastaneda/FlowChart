@@ -150,7 +150,7 @@ export default function LoginPage() {
     if (!APP_ID) return () => { isActive = false; };
     const w = window as any;
     const initSdk = () => {
-      w.FB!.init({ appId: APP_ID, cookie: true, xfbml: false, version: process.env.NEXT_PUBLIC_META_API_VERSION || "v22.0" });
+      w.FB!.init({ appId: APP_ID, cookie: true, xfbml: false, version: process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0" });
       w.FB!.AppEvents.logPageView();
       if (isActive) setFbReady(true);
     };
