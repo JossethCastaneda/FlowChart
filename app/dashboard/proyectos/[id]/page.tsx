@@ -13,7 +13,6 @@ import {
 
 
 import { GoogleSourcesPanel } from "@/components/projects/GoogleSourcesPanel";
-import { GoogleAdsDashboard } from "@/components/projects/GoogleAdsDashboard";
 import { UserReliabilityModule } from "@/components/analytics/UserReliabilityModule";
 import { OmnichannelHub } from "@/components/projects/OmnichannelHub";
 import {
@@ -457,16 +456,17 @@ export default function ProjectDashboardPage() {
     const isMulti = activePlatform === "multichannel";
     const chToUse = isMulti ? project.channels.find(c => c.platformId === "meta") : project.channels.find(c => c.platformId === activePlatform);
     
-    if ((activePlatform !== "meta" && !isMulti) || !chToUse?.adAccounts?.length) { 
+    if ((activePlatform !== "meta" && activePlatform !== "google" && !isMulti) || !chToUse?.adAccounts?.length) { 
       if (!isMulti) setTimeout(() => setInsights(null), 0); 
       return; 
     }
 
     const accs = selectedAccountId === "all" ? chToUse.adAccounts : [selectedAccountId];
     const effectivePreset = (dateStart && dateEnd) ? undefined : (datePreset || "this_month");
+    const platformToFetch = isMulti ? "meta" : activePlatform;
 
     // 1. Show cached data immediately (no loading spinner)
-    const cached = insightsStore.getCached(project.id, effectivePreset, dateStart, dateEnd);
+    const cached = insightsStore.getCached(project.id, effectivePreset, dateStart, dateEnd, platformToFetch);
     if (cached) {
       setTimeout(() => setInsights(cached), 0);
       // Don't show loading for revalidation → data is already visible
@@ -479,7 +479,7 @@ export default function ProjectDashboardPage() {
       setBreakdownData({});
       setAdCreatives([]);
     }, 0);
-    insightsStore.fetchProjectInsights(project.id, accs, effectivePreset, dateStart, dateEnd)
+    insightsStore.fetchProjectInsights(project.id, accs, effectivePreset, dateStart, dateEnd, platformToFetch)
       .then(data => {
         if (data) setInsights(data);
         setIsLoading(false);
@@ -1109,10 +1109,7 @@ export default function ProjectDashboardPage() {
       {activeTab === "resumen" && activePlatform === "multichannel" && (
         <OmnichannelHub project={project} dateStart={dateStart} dateEnd={dateEnd} preset={datePreset} />
       )}
-      {activeTab === "resumen" && activePlatform === "google" && (
-        <GoogleAdsDashboard project={project} dateStart={dateStart} dateEnd={dateEnd} preset={datePreset} />
-      )}
-      {activeTab === "resumen" && activePlatform !== "google" && activePlatform !== "multichannel" && (
+      {activeTab === "resumen" && activePlatform !== "multichannel" && (
         <ErrorBoundary name="Tab Resumen">
         <DashboardGrid
           layoutKey="project-resumen"

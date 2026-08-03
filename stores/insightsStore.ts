@@ -97,11 +97,11 @@ interface InsightsState {
   preloaded: boolean;
 
   /** Build cache key from project ID and date params */
-  buildKey: (projectId: string, preset?: string, dateStart?: string, dateEnd?: string) => string;
+  buildKey: (projectId: string, preset?: string, dateStart?: string, dateEnd?: string, platformId?: string) => string;
 
   /** Get cached insights (returns null if expired or missing) */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
-  getCached: (projectId: string, preset?: string, dateStart?: string, dateEnd?: string) => any | null;
+  getCached: (projectId: string, preset?: string, dateStart?: string, dateEnd?: string, platformId?: string) => any | null;
 
   /** Fetch and cache insights for a single project's ad accounts */
   fetchProjectInsights: (
@@ -109,7 +109,8 @@ interface InsightsState {
     adAccounts: string[],
     preset?: string,
     dateStart?: string,
-    dateEnd?: string
+    dateEnd?: string,
+    platformId?: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   ) => Promise<any>;
 
@@ -129,13 +130,13 @@ export const useInsightsStore = create<InsightsState>((set, get) => ({
   preloading: false,
   preloaded: false,
 
-  buildKey: (projectId, preset, dateStart, dateEnd) => {
-    if (dateStart && dateEnd) return `${projectId}:${dateStart}:${dateEnd}`;
-    return `${projectId}:${preset || "this_month"}`;
+  buildKey: (projectId, preset, dateStart, dateEnd, platformId = "meta") => {
+    if (dateStart && dateEnd) return `${projectId}:${platformId}:${dateStart}:${dateEnd}`;
+    return `${projectId}:${platformId}:${preset || "this_month"}`;
   },
 
-  getCached: (projectId, preset, dateStart, dateEnd) => {
-    const key = get().buildKey(projectId, preset, dateStart, dateEnd);
+  getCached: (projectId, preset, dateStart, dateEnd, platformId = "meta") => {
+    const key = get().buildKey(projectId, preset, dateStart, dateEnd, platformId);
     const entry = get().cache[key];
     if (!entry) return null;
     // Check TTL
@@ -143,7 +144,7 @@ export const useInsightsStore = create<InsightsState>((set, get) => ({
     return entry.data;
   },
 
-  fetchProjectInsights: async (projectId, adAccounts, preset, dateStart, dateEnd) => {
+  fetchProjectInsights: async (projectId, adAccounts, preset, dateStart, dateEnd, platformId = "meta") => {
     if (!adAccounts?.length) return null;
 
     // Check cache first
@@ -159,9 +160,10 @@ export const useInsightsStore = create<InsightsState>((set, get) => ({
     const accs = adAccounts.map(a => a.startsWith("act_") ? a : `act_${a}`);
 
     try {
+      const endpoint = platformId === "google" ? "/api/google/insights" : "/api/meta/insights";
       const results = await Promise.all(
         accs.map(accId =>
-          fetch(`/api/meta/insights?adAccountId=${accId}${dp}`)
+          fetch(`${endpoint}?adAccountId=${accId}${dp}`)
             .then(r => r.json())
             .catch(() => null)
         )
@@ -189,7 +191,7 @@ export const useInsightsStore = create<InsightsState>((set, get) => ({
       }
 
       // Store in cache
-      const key = get().buildKey(projectId, preset, dateStart, dateEnd);
+      const key = get().buildKey(projectId, preset, dateStart, dateEnd, platformId);
       set(state => ({
         cache: {
           ...state.cache,
