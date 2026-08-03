@@ -35,6 +35,7 @@ interface IntegrationData {
   connectedBy: { id: string; name: string | null } | null;
   canDisconnect: boolean;
   pages?: { id: string; name: string; picture?: string | null }[];
+  connectedModules?: string[];
 }
 
 // ─── Token Modal (token entry) ────────────────────────────────────────────────
@@ -235,7 +236,13 @@ export function IntegrationsView() {
   // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
   useEffect(() => { loadIntegrations(); }, [loadIntegrations]);
 
-  const getState = (provider: string) => integrations.find((i) => i.provider === provider) || null;
+  const getState = (provider: string) => {
+    const exact = integrations.find((i) => i.provider === provider);
+    if (exact) return exact;
+    const parent = integrations.find((i) => i.connectedModules?.includes(provider));
+    if (parent) return parent;
+    return null;
+  };
 
   const handleDisconnect = async (provider: string) => {
     try {
@@ -282,7 +289,11 @@ export function IntegrationsView() {
     }
   };
 
-  const connectedProviders = new Set(integrations.filter(i => i.connected).map(i => i.provider));
+  const connectedProviders = new Set(
+    integrations
+      .filter((i) => i.connected)
+      .flatMap((i) => [i.provider, ...(i.connectedModules || [])])
+  );
   const uniqueConnected = ALL_CHANNELS.filter((c, i) => {
     const first = ALL_CHANNELS.findIndex(x => x.provider === c.provider);
     return first === i && !c.comingSoon && connectedProviders.has(c.provider);
