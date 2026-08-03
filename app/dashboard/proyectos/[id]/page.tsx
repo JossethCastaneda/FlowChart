@@ -15,6 +15,7 @@ import {
 import { GoogleSourcesPanel } from "@/components/projects/GoogleSourcesPanel";
 import { GoogleAdsDashboard } from "@/components/projects/GoogleAdsDashboard";
 import { UserReliabilityModule } from "@/components/analytics/UserReliabilityModule";
+import { OmnichannelHub } from "@/components/projects/OmnichannelHub";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ComposedChart, Line, PieChart, Pie, Cell, Legend, BarChart, Bar, ReferenceLine
@@ -922,15 +923,17 @@ export default function ProjectDashboardPage() {
               );
             })}
             
-            <button onClick={() => { setActivePlatform("multichannel"); setBreakdownData({}); }} style={{
-                  padding: "6px 14px", fontSize: 11, fontWeight: 700,
-                  background: activePlatform === "multichannel" ? `rgba(255,255,255,0.15)` : "rgba(255,255,255,0.04)",
-                  border: `1px solid ${activePlatform === "multichannel" ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.08)"}`,
-                  color: activePlatform === "multichannel" ? "var(--foreground)" : "var(--text-muted)",
-                  borderRadius: 20, cursor: "pointer", transition: "all 0.2s",
-                }}>
-                  Multicanal (Vista Global)
-            </button>
+            {project.channels.length > 1 && (
+              <button onClick={() => { setActivePlatform("multichannel"); setBreakdownData({}); }} style={{
+                    padding: "6px 14px", fontSize: 11, fontWeight: 700,
+                    background: activePlatform === "multichannel" ? `rgba(255,255,255,0.15)` : "rgba(255,255,255,0.04)",
+                    border: `1px solid ${activePlatform === "multichannel" ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.08)"}`,
+                    color: activePlatform === "multichannel" ? "var(--foreground)" : "var(--text-muted)",
+                    borderRadius: 20, cursor: "pointer", transition: "all 0.2s",
+                  }}>
+                    Multicanal (Vista Global)
+              </button>
+            )}
 
             {ch?.adAccounts && ch.adAccounts.length > 1 && activePlatform !== "multichannel" && (
               <select value={selectedAccountId} onChange={e => { setSelectedAccountId(e.target.value); setBreakdownData({}); }} style={{
@@ -1103,10 +1106,13 @@ export default function ProjectDashboardPage() {
       )}
 
       {/* " " "  TAB: RESUMEN " " "  */}
+      {activeTab === "resumen" && activePlatform === "multichannel" && (
+        <OmnichannelHub project={project} dateStart={dateStart} dateEnd={dateEnd} preset={datePreset} />
+      )}
       {activeTab === "resumen" && activePlatform === "google" && (
         <GoogleAdsDashboard project={project} dateStart={dateStart} dateEnd={dateEnd} preset={datePreset} />
       )}
-      {activeTab === "resumen" && activePlatform !== "google" && (
+      {activeTab === "resumen" && activePlatform !== "google" && activePlatform !== "multichannel" && (
         <ErrorBoundary name="Tab Resumen">
         <DashboardGrid
           layoutKey="project-resumen"
