@@ -42,7 +42,7 @@ const BUILT_IN_PRESETS: Preset[] = [
   },
 ];
 
-const STORAGE_KEY = "zefirus-column-presets";
+const STORAGE_KEY = "flowchart-column-presets";
 
 export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
   const [showMenu, setShowMenu] = useState(false);

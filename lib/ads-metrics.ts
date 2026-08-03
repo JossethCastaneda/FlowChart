@@ -1,6 +1,6 @@
 /**
  * Ads Manager — Calculated Metrics Library
- * Métricas calculadas por Zefirus (no nativas de Meta)
+ * Métricas calculadas por FlowChart (no nativas de Meta)
  */
 
 // ── Meta Objective mapping ──────────────────────────────────────────────────

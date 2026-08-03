@@ -1,5 +1,5 @@
 ﻿/**
- * SIcon - Zefirus Standard Icon Wrapper
+ * SIcon - FlowChart Standard Icon Wrapper
  * Brand Guide: Lucide - strokeWidth 1.75 - sizes 18px (nav) / 20px (content)
  *
  * Usage:

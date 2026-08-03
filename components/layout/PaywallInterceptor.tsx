@@ -50,7 +50,7 @@ export function PaywallInterceptor() {
     router.push("/dashboard/settings");
     // To trigger the Plan tab to open, we can store it in localStorage
     try {
-      localStorage.setItem("zefirus:settings-section", "plan");
+      localStorage.setItem("flowchart:settings-section", "plan");
     } catch {}
   };
 

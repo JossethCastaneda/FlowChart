@@ -1,5 +1,5 @@
 /**
- * Punto de entrada de la capa LLM multi-proveedor de Zefirus/Aria.
+ * Punto de entrada de la capa LLM multi-proveedor de FlowChart/Aria.
  * Uso típico (server-side):
  *   import { getActiveProvider } from "@/lib/ai";
  *   const { text } = await getActiveProvider().complete({ system, messages });

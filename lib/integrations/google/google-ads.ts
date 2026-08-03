@@ -298,7 +298,7 @@ export async function updateCampaignStatus(workspaceId: string, campaignId: stri
   // We don't know which customerId owns the campaignId from the request, 
   // so we try mutating them all sequentially until one succeeds, 
   // or we could require the frontend to pass the customerId. 
-  // Since Zefirus currently only passes campaignId, we try all mapped accounts.
+  // Since FlowChart currently only passes campaignId, we try all mapped accounts.
   
   let lastError = null;
   let success = false;

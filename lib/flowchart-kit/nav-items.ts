@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════
-   ZEFIRUS · NAV ITEMS (sidebar)
+   FLOWCHART · NAV ITEMS (sidebar)
    Deriva del registro central — NO declares nombres aquí otra vez.
    Reemplaza el NAV_ITEMS hardcodeado de ClientMainWrapper.tsx.
 
@@ -25,7 +25,7 @@ export const NAV_GROUPS: NavGroup[] = ORDER.map((g) => ({
 }));
 
 /* Ejemplo de render (Next.js / React) ───────────────────────────
-import { NAV_GROUPS } from "@/zefirus-kit/nav-items";
+import { NAV_GROUPS } from "@/flowchart-kit/nav-items";
 import { usePathname } from "next/navigation";
 
 {NAV_GROUPS.map((group) => (

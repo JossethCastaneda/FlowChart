@@ -144,7 +144,7 @@ export function useBrowserNotifications() {
           body,
           icon: "/icon.svg",
           badge: "/icon.svg",
-          tag: `zefirus-inbox-${c.id}`,
+          tag: `flowchart-inbox-${c.id}`,
           silent: true, // Nosotros manejamos el sonido
         });
 
@@ -170,7 +170,7 @@ export function useBrowserNotifications() {
               .join("\n"),
             icon: "/icon.svg",
             badge: "/icon.svg",
-            tag: "zefirus-inbox-batch",
+            tag: "flowchart-inbox-batch",
             silent: true,
           }
         );

@@ -1,5 +1,5 @@
 /**
- * ZEFIRUS MMM — Engine + Optimizador (v2)
+ * FLOWCHART MMM — Engine + Optimizador (v2)
  * - Filtra semanas outlier antes de correr el modelo
  * - Calcula base vs. incremental revenue
  * - Respeta restricciones minSpend/maxSpend en el optimizador

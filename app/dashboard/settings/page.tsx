@@ -53,8 +53,8 @@ const SETTINGS_GROUPS: {
   },
 ];
 
-const SECTION_KEY = "zefirus:settings-section";
-const PREFS_KEY = "zefirus:prefs";
+const SECTION_KEY = "flowchart:settings-section";
+const PREFS_KEY = "flowchart:prefs";
 const DEFAULT_PREFS = {
   emailNotifications: true,
   slaAlerts: true,
@@ -484,7 +484,7 @@ export default function SettingsPage() {
                     placeholder="ej. 5215512345678 (sin +, espacios ni guiones)"
                   />
                 </div>
-                <p className="text-[10px] text-[var(--text-secondary)] mb-5">Si configuras tu número, Zefirus te enviará notificaciones por WhatsApp cuando te asignen tareas o cambien su estado.</p>
+                <p className="text-[10px] text-[var(--text-secondary)] mb-5">Si configuras tu número, FlowChart te enviará notificaciones por WhatsApp cuando te asignen tareas o cambien su estado.</p>
 
                 <button onClick={handleSaveProfile} disabled={savingProfile} className="btn-primary" style={{ opacity: savingProfile ? 0.6 : 1 }}>
                   {savingProfile ? "Guardando..." : "Guardar cambios"}
@@ -871,13 +871,13 @@ export default function SettingsPage() {
 
               <PlanUsageMeter
                 onUpgrade={() => {
-                  window.open("mailto:soporte@zefirus.com?subject=Quiero%20mejorar%20mi%20plan", "_blank");
+                  window.open("mailto:soporte@flowchart.com?subject=Quiero%20mejorar%20mi%20plan", "_blank");
                 }}
               />
 
               <p className="text-[11px] text-[var(--text-muted)] mt-4">
                 Para cambiar de plan o gestionar la facturación, contacta a
-                {" "}<a href="mailto:soporte@zefirus.com" className="text-[var(--cyan)] hover:underline">soporte@zefirus.com</a>.
+                {" "}<a href="mailto:soporte@flowchart.com" className="text-[var(--cyan)] hover:underline">soporte@flowchart.com</a>.
               </p>
             </div>
           )}

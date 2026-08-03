@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ZefirusLogo } from "@/components/ui/ZefirusLogo";
+import { FlowChartLogo } from "@/components/ui/FlowChartLogo";
 
 export default function NotFound() {
   return (
@@ -11,7 +11,7 @@ export default function NotFound() {
       padding: "24px",
       textAlign: "center" as const,
     }}>
-      <ZefirusLogo size="sm" animated={false} />
+      <FlowChartLogo size="sm" animated={false} />
 
       <h1 style={{
         fontSize: "clamp(80px, 15vw, 160px)",

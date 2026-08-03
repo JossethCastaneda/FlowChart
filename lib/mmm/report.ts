@@ -1,5 +1,5 @@
 /**
- * ZEFIRUS MMM — Generador de reportes
+ * FLOWCHART MMM — Generador de reportes
  * CSV de datos + resumen ejecutivo en texto para compartir con el cliente.
  */
 
@@ -69,7 +69,7 @@ export function generateSummaryText(model: MmmModel, channels: ChannelConfig[], 
     `* ${fmtPct(model.incrementalShare)} de las ventas son atribuibles a publicidad pagada`,
     `* El modelo explica el ${(model.rSquared * 100).toFixed(0)}% de la variabilidad en ventas`,
     "",
-    "Generado por Zefirus Media Mix - " + new Date().toLocaleDateString("es-MX"),
+    "Generado por FlowChart Media Mix - " + new Date().toLocaleDateString("es-MX"),
   ];
 
   return lines.filter(l => l !== undefined).join("\n");

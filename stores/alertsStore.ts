@@ -3,7 +3,7 @@ import { create } from "zustand";
 /* ── Alert Types ── */
 export type AlertSeverity = "info" | "warning" | "danger" | "success";
 
-export interface ZefirusAlert {
+export interface FlowChartAlert {
   id: string;
   severity: AlertSeverity;
   title: string;
@@ -17,10 +17,10 @@ export interface ZefirusAlert {
 }
 
 interface AlertsState {
-  alerts: ZefirusAlert[];
+  alerts: FlowChartAlert[];
   unreadCount: number;
   soundEnabled: boolean;
-  addAlert: (alert: Omit<ZefirusAlert, "id" | "timestamp" | "read" | "dismissed">) => void;
+  addAlert: (alert: Omit<FlowChartAlert, "id" | "timestamp" | "read" | "dismissed">) => void;
   markRead: (id: string) => void;
   markAllRead: () => void;
   dismiss: (id: string) => void;
@@ -28,10 +28,10 @@ interface AlertsState {
   toggleSound: () => void;
 }
 
-const STORAGE_KEY = "zefirus-alerts";
+const STORAGE_KEY = "flowchart-alerts";
 const MAX_ALERTS = 200;
 
-function loadAlerts(): ZefirusAlert[] {
+function loadAlerts(): FlowChartAlert[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -39,7 +39,7 @@ function loadAlerts(): ZefirusAlert[] {
   } catch { return []; }
 }
 
-function saveAlerts(alerts: ZefirusAlert[]) {
+function saveAlerts(alerts: FlowChartAlert[]) {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(alerts.slice(0, MAX_ALERTS)));
@@ -49,7 +49,7 @@ function saveAlerts(alerts: ZefirusAlert[]) {
 function loadSoundPref(): boolean {
   if (typeof window === "undefined") return true;
   try {
-    const v = localStorage.getItem("zefirus-alerts-sound");
+    const v = localStorage.getItem("flowchart-alerts-sound");
     return v === null ? true : v === "true";
   } catch { return true; }
 }
@@ -60,7 +60,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
   soundEnabled: loadSoundPref(),
 
   addAlert: (alert) => {
-    const newAlert: ZefirusAlert = {
+    const newAlert: FlowChartAlert = {
       ...alert,
       id: `alert-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       timestamp: Date.now(),
@@ -116,7 +116,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
     set((state) => {
       const next = !state.soundEnabled;
       if (typeof window !== "undefined") {
-        localStorage.setItem("zefirus-alerts-sound", String(next));
+        localStorage.setItem("flowchart-alerts-sound", String(next));
       }
       return { soundEnabled: next };
     });

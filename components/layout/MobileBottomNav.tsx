@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { MODULES } from "@/lib/zefirus-kit/modules";
+import { MODULES } from "@/lib/flowchart-kit/modules";
 import {
   Activity,
   FolderKanban,

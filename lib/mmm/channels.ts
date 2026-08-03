@@ -1,5 +1,5 @@
 /**
- * ZEFIRUS · MMM — Canales reales (no demo)
+ * FLOWCHART · MMM — Canales reales (no demo)
  *
  * El set por defecto refleja las plataformas de medios pagados que el producto
  * sabe conectar (ver app/dashboard/proyectos PLATFORMS): Meta, Google y TikTok.

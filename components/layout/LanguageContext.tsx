@@ -16,14 +16,14 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Language>("es");
 
   useEffect(() => {
-    const saved = localStorage.getItem("zefirus:lang") as Language | null;
+    const saved = localStorage.getItem("flowchart:lang") as Language | null;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
     if (saved) setLangState(saved);
   }, []);
 
   const setLang = (l: Language) => {
     setLangState(l);
-    localStorage.setItem("zefirus:lang", l);
+    localStorage.setItem("flowchart:lang", l);
     showToast("success", l === "es" ? "Idioma cambiado a Español" : "Language changed to English");
   };
 

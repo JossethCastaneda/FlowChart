@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { Loader2, ArrowRight, Building2, User, Briefcase, Plus, X } from "lucide-react";
-import { ZefirusLogo } from "@/components/ui/ZefirusLogo";
+import { FlowChartLogo } from "@/components/ui/FlowChartLogo";
 import { Orbi } from "@/components/ui/Orbi";
 
 export default function OnboardingPage() {
@@ -157,7 +157,7 @@ function OnboardingContent() {
         </div>
 
         <div style={{ marginBottom: "32px" }}>
-          <ZefirusLogo size="md" />
+          <FlowChartLogo size="md" />
         </div>
 
         {/* STEP 1: WORKSPACE NAME */}

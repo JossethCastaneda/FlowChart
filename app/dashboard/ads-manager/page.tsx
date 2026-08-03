@@ -223,7 +223,7 @@ function AdsManagerContent() {
   // Column persistence via localStorage
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("zefirus_ads_columns");
+      const saved = localStorage.getItem("flowchart_ads_columns");
       if (saved) try { return JSON.parse(saved); } catch {}
     }
     return DEFAULT_COLUMNS.map((c) => c.key);
@@ -233,7 +233,7 @@ function AdsManagerContent() {
   const handleColumnsChange = (cols: string[]) => {
     setVisibleColumns(cols);
     if (typeof window !== "undefined") {
-      localStorage.setItem("zefirus_ads_columns", JSON.stringify(cols));
+      localStorage.setItem("flowchart_ads_columns", JSON.stringify(cols));
     }
   };
 
@@ -933,7 +933,7 @@ function AdsManagerContent() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `zefirus_${activeLevel}_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `flowchart_${activeLevel}_${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
       addToast("success", "CSV exportado correctamente");
@@ -967,7 +967,7 @@ function AdsManagerContent() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `zefirus_${activeLevel}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `flowchart_${activeLevel}_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     addToast("success", "Exportado correctamente");
@@ -994,7 +994,7 @@ function AdsManagerContent() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "zefirus_plantilla_importacion.csv";
+    a.download = "flowchart_plantilla_importacion.csv";
     a.click();
     URL.revokeObjectURL(url);
     addToast("info", "Plantilla descargada");
@@ -1265,7 +1265,7 @@ function AdsManagerContent() {
             position: "relative",
             zIndex: 1
           }}>
-            Inicia sesión con Facebook para importar tus campañas, conjuntos de anuncios y métricas en tiempo real a Zefirus.
+            Inicia sesión con Facebook para importar tus campañas, conjuntos de anuncios y métricas en tiempo real a FlowChart.
           </p>
 
           <a

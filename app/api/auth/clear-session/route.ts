@@ -29,7 +29,7 @@ export async function GET(_req: NextRequest) {
     "__Secure-next-auth.pkce.code_verifier",
     "__Secure-next-auth.state",
     // Possibly set by our old config (just in case)
-    "zefirus_active_workspace",
+    "flowchart_active_workspace",
   ];
 
   for (const name of cookieNames) {
@@ -42,13 +42,13 @@ export async function GET(_req: NextRequest) {
     res.cookies.set(name, "", { 
       maxAge: 0, 
       path: "/",
-      domain: ".zefirus.xyz",
+      domain: ".flowchart.xyz",
       expires: new Date(0),
     });
     res.cookies.set(name, "", { 
       maxAge: 0, 
       path: "/",
-      domain: "zefirus.xyz",
+      domain: "flowchart.xyz",
       expires: new Date(0),
     });
   }

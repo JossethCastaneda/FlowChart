@@ -384,7 +384,7 @@ export function IntegrationsPanel() {
           }}>
             <AlertTriangle style={{ width: 15, height: 15, color: "var(--red)", flexShrink: 0 }} />
             <div style={{ flex: 1, fontSize: 11, color: "var(--red)" }}>
-              Esto <strong>revoca el acceso de Zefirus a Meta</strong> y desconecta todas las páginas y cuentas. Podrás volver a conectar cuando quieras.
+              Esto <strong>revoca el acceso de FlowChart a Meta</strong> y desconecta todas las páginas y cuentas. Podrás volver a conectar cuando quieras.
             </div>
             <button
               onClick={() => setConfirmUnlink(false)}

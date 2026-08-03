@@ -5,7 +5,7 @@
 
 ## Resumen
 
-Fase A del saneamiento de Zefirus: restaurar la capacidad del proyecto de detectar
+Fase A del saneamiento de FlowChart: restaurar la capacidad del proyecto de detectar
 sus propios problemas. Se arreglan señales rotas (versiones de API cableadas,
 statuses incorrectos en módulos) y se añaden tests que convierten riesgos de
 calendario en errores de build.

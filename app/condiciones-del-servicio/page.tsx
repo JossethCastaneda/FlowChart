@@ -46,7 +46,7 @@ export default function CondicionesDelServicio() {
         <div style={{ display: "flex", flexDirection: "column", gap: "24px", lineHeight: "1.7", fontSize: "15px" }}>
           <section>
             <p>
-              Bienvenido a <strong>ZEFIRUS</strong> (zefirus.xyz). Al acceder o utilizar nuestra plataforma, aceptas cumplir y estar sujeto a las siguientes Condiciones del Servicio. Por favor, léelas atentamente.
+              Bienvenido a <strong>FLOWCHART</strong> (flowchart.xyz). Al acceder o utilizar nuestra plataforma, aceptas cumplir y estar sujeto a las siguientes Condiciones del Servicio. Por favor, léelas atentamente.
             </p>
           </section>
 
@@ -55,7 +55,7 @@ export default function CondicionesDelServicio() {
               1. Aceptación de los Términos
             </h2>
             <p>
-              Al utilizar el servicio de ZEFIRUS, conectar tu cuenta de Meta/Facebook Ads, o interactuar con nuestra plataforma, confirmas tu conformidad y aceptación total de estos términos. Si no estás de acuerdo con alguna parte de estas condiciones, no debes utilizar la plataforma.
+              Al utilizar el servicio de FLOWCHART, conectar tu cuenta de Meta/Facebook Ads, o interactuar con nuestra plataforma, confirmas tu conformidad y aceptación total de estos términos. Si no estás de acuerdo con alguna parte de estas condiciones, no debes utilizar la plataforma.
             </p>
           </section>
 
@@ -64,7 +64,7 @@ export default function CondicionesDelServicio() {
               2. Descripción del Servicio
             </h2>
             <p>
-              ZEFIRUS es una plataforma de inteligencia multicanal que permite a los usuarios consolidar y gestionar métricas de campañas publicitarias en Meta (Facebook, Instagram, etc.), programar contenidos y automatizar tareas operativas de marketing digital. Los servicios se proveen "tal cual" y según disponibilidad.
+              FLOWCHART es una plataforma de inteligencia multicanal que permite a los usuarios consolidar y gestionar métricas de campañas publicitarias en Meta (Facebook, Instagram, etc.), programar contenidos y automatizar tareas operativas de marketing digital. Los servicios se proveen "tal cual" y según disponibilidad.
             </p>
           </section>
 
@@ -87,7 +87,7 @@ export default function CondicionesDelServicio() {
               4. Responsabilidades del Usuario
             </h2>
             <p>
-              Eres responsable de mantener la confidencialidad de tus credenciales de inicio de sesión de ZEFIRUS y de cualquier actividad que ocurra bajo tu cuenta. Asimismo, te comprometes a no utilizar el servicio para fines ilegales o no autorizados por la legislación aplicable o las normativas de las redes sociales integradas.
+              Eres responsable de mantener la confidencialidad de tus credenciales de inicio de sesión de FLOWCHART y de cualquier actividad que ocurra bajo tu cuenta. Asimismo, te comprometes a no utilizar el servicio para fines ilegales o no autorizados por la legislación aplicable o las normativas de las redes sociales integradas.
             </p>
           </section>
 
@@ -96,7 +96,7 @@ export default function CondicionesDelServicio() {
               5. Limitación de Responsabilidad
             </h2>
             <p>
-              ZEFIRUS no se hace responsable por pérdidas económicas, interrupciones comerciales o variaciones en el desempeño de tus campañas publicitarias provocadas por cambios de algoritmo de Meta, caídas del servicio de la API de Meta, o por configuraciones realizadas directamente por el usuario a través de nuestra plataforma.
+              FLOWCHART no se hace responsable por pérdidas económicas, interrupciones comerciales o variaciones en el desempeño de tus campañas publicitarias provocadas por cambios de algoritmo de Meta, caídas del servicio de la API de Meta, o por configuraciones realizadas directamente por el usuario a través de nuestra plataforma.
             </p>
           </section>
 
@@ -105,7 +105,7 @@ export default function CondicionesDelServicio() {
               6. Modificaciones de los Términos
             </h2>
             <p>
-              Nos reservamos el derecho de modificar o reemplazar estas Condiciones del Servicio en cualquier momento. La fecha de la última actualización se indicará en la parte superior de esta página. El uso continuo de ZEFIRUS tras cualquier cambio constituye la aceptación de las nuevas condiciones.
+              Nos reservamos el derecho de modificar o reemplazar estas Condiciones del Servicio en cualquier momento. La fecha de la última actualización se indicará en la parte superior de esta página. El uso continuo de FLOWCHART tras cualquier cambio constituye la aceptación de las nuevas condiciones.
             </p>
           </section>
 
@@ -115,8 +115,8 @@ export default function CondicionesDelServicio() {
             </h2>
             <p>
               Si tienes alguna pregunta acerca de estas Condiciones del Servicio, puedes contactarnos a través de:{" "}
-              <a href="mailto:soporte@zefirus.xyz" style={{ color: "var(--cyan)", textDecoration: "none" }}>
-                soporte@zefirus.xyz
+              <a href="mailto:soporte@flowchart.xyz" style={{ color: "var(--cyan)", textDecoration: "none" }}>
+                soporte@flowchart.xyz
               </a>
             </p>
           </section>

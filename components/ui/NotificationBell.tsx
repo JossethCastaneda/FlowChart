@@ -61,7 +61,7 @@ export function NotificationBell() {
     if (unreadCount > 0 && typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
       const latest = notifications.find(n => !n.read);
       if (latest) {
-        const bNotif = new window.Notification(`ZEFIRUS — ${latest.title}`, {
+        const bNotif = new window.Notification(`FLOWCHART — ${latest.title}`, {
           body: latest.message,
           icon: "/icon.svg",
           tag: latest.id,

@@ -1,5 +1,5 @@
 ﻿/**
- * ZEFIRUS MMM — Escenarios de simulacion (v2)
+ * FLOWCHART MMM — Escenarios de simulacion (v2)
  *
  * Escenario A: Redistribuir presupuesto (budget total fijo)
  * Escenario B: Aumentar budget total X% -> forecast de uplift

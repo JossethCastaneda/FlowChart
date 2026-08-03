@@ -432,7 +432,7 @@ function Logo() {
       <span style={{ fontFamily: "var(--font-display)",
         fontSize: "18px", fontWeight: 700, color: "var(--foreground)",
         letterSpacing: "0.2em" }}>
-        ZEFIRUS
+        FLOWCHART
       </span>
     </div>
   );

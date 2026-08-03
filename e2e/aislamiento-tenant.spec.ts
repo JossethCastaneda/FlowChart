@@ -27,7 +27,7 @@ test.describe('Tenant Isolation (Aislamiento de Agencias)', () => {
     // Intentar navegar al proyecto del Tenant B
     await page.goto(`/dashboard/proyectos/${betaProjectId}`);
     
-    // Zefirus SPA hace un fetch client-side y redirige al listado si no tiene acceso
+    // FlowChart SPA hace un fetch client-side y redirige al listado si no tiene acceso
     await expect(page).toHaveURL(/.*\/dashboard\/proyectos$/, { timeout: 35000 });
   });
 
@@ -69,7 +69,7 @@ test.describe('Tenant Isolation - Reverse (Tenant B)', () => {
     const alfaProjectId = E2E_IDS.alfa.project;
     await page.goto(`/dashboard/proyectos/${alfaProjectId}`);
     
-    // Zefirus SPA hace un fetch client-side y redirige al listado si no tiene acceso
+    // FlowChart SPA hace un fetch client-side y redirige al listado si no tiene acceso
     await expect(page).toHaveURL(/.*\/dashboard\/proyectos$/, { timeout: 35000 });
   });
 });

@@ -153,7 +153,7 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
           {isAppPromo && (
             <div style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "10px 12px", borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(251,191,36,0.18)" }}>
               <AlertTriangle style={{ width: 15, height: 15, color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
-              <div style={{ fontSize: 11, color: "var(--amber)" }}>La promoción de app aún no está soportada desde Zefirus. Créalo directamente en Meta.</div>
+              <div style={{ fontSize: 11, color: "var(--amber)" }}>La promoción de app aún no está soportada desde FlowChart. Créalo directamente en Meta.</div>
             </div>
           )}
 

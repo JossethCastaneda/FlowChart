@@ -2,9 +2,9 @@
 "use client";
 
 /**
- * ZEFIRUS · Login Page — Línea gráfica nativa
+ * FLOWCHART · Login Page — Línea gráfica nativa
  *
- * Usa 100% los design tokens del sistema Zefirus:
+ * Usa 100% los design tokens del sistema FlowChart:
  *  • Background: --background (#04070e) + dashboard-bg radial gradients
  *  • Superficies: --surface glass-panel con borde var(--border) cyan
  *  • Color primario: --c-brand / --cyan (#5b9bff)
@@ -18,7 +18,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { ZefirusLogo } from "@/components/ui/ZefirusLogo";
+import { FlowChartLogo } from "@/components/ui/FlowChartLogo";
 import { GalaxyBackground } from "@/components/ui/GalaxyBackground";
 import { useLanguage } from "@/components/layout/LanguageContext";
 
@@ -127,8 +127,8 @@ export default function LoginPage() {
         window.history.replaceState({}, "", "/login");
       }
       try {
-        const le = window.localStorage.getItem("zefirus:lastEmail");
-        const ln = window.localStorage.getItem("zefirus:lastName");
+        const le = window.localStorage.getItem("flowchart:lastEmail");
+        const ln = window.localStorage.getItem("flowchart:lastName");
         if (le) { setSavedEmail(le); setEmail(le); }
         if (ln) setSavedName(ln);
       } catch { /* noop */ }
@@ -176,8 +176,8 @@ export default function LoginPage() {
 
   function rememberAndGo() {
     try {
-      window.localStorage.setItem("zefirus:lastEmail", email);
-      if (name) window.localStorage.setItem("zefirus:lastName", name);
+      window.localStorage.setItem("flowchart:lastEmail", email);
+      if (name) window.localStorage.setItem("flowchart:lastName", name);
     } catch { /* noop */ }
     setSuccess(true);
     setTimeout(() => { window.location.href = getSafeCallbackUrl(); }, 800);
@@ -305,11 +305,11 @@ export default function LoginPage() {
       {/* ── Scoped styles ── */}
       <style>{`
         /* ──────────────────────────────────────────────────
-           LOGIN PAGE — Zefirus brand design system
+           LOGIN PAGE — FlowChart brand design system
            Tokens: var(--background), var(--surface), var(--border),
                    var(--c-brand), var(--cyan), var(--cyan-dim),
                    var(--foreground), var(--text-secondary), var(--text-muted)
-           Fonts:  Inter (body), Orbitron (logo via ZefirusLogo)
+           Fonts:  Inter (body), Orbitron (logo via FlowChartLogo)
         ────────────────────────────────────────────────── */
 
         .login-page-root {
@@ -320,7 +320,7 @@ export default function LoginPage() {
           justify-content: center;
           overflow: hidden;
           padding: 24px;
-          /* Zefirus native dark background */
+          /* FlowChart native dark background */
           background-color: var(--background);
           font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
         }
@@ -386,7 +386,7 @@ export default function LoginPage() {
           opacity: 0;
         }
 
-        /* ── Main card — uses Zefirus glass-panel pattern ── */
+        /* ── Main card — uses FlowChart glass-panel pattern ── */
         .login-card {
           position: relative;
           z-index: 10;
@@ -745,7 +745,7 @@ export default function LoginPage() {
         }
       `}</style>
 
-      {/* ── Galaxy starfield (native Zefirus component) ── */}
+      {/* ── Galaxy starfield (native FlowChart component) ── */}
       <GalaxyBackground />
 
       {/* ── Background radial glow (dashboard-bg pattern) ── */}
@@ -796,12 +796,12 @@ export default function LoginPage() {
         <div className="login-card-inner">
 
           {/* System label */}
-          <div className="login-system-label">· ZEFIRUS COMMAND BRIDGE ·</div>
+          <div className="login-system-label">· FLOWCHART COMMAND BRIDGE ·</div>
 
           {/* Logo */}
           <div style={{ textAlign: "center", marginBottom: 28 }}>
             <a href="/" style={{ display: "inline-flex" }}>
-              <ZefirusLogo size="lg" />
+              <FlowChartLogo size="lg" />
             </a>
           </div>
 

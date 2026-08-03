@@ -1,10 +1,10 @@
-# Zefirus
+# FlowChart
 
 Plataforma SaaS multi-tenant para gestión de marketing en **Meta** (Facebook + Instagram):
 Ads Manager, Analytics, Publisher, Inbox unificado, Social Listening, Streams y operaciones
 de agencia (proyectos, tareas, briefs). Orientada a agencias que gestionan varias cuentas.
 
-**Producción:** [zefirus.xyz](https://zefirus.xyz) · **Hosting:** Vercel · **DB:** PostgreSQL (Neon)
+**Producción:** [flowchart.xyz](https://flowchart.xyz) · **Hosting:** Vercel · **DB:** PostgreSQL (Neon)
 
 ---
 

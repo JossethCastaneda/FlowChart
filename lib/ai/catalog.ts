@@ -1,5 +1,5 @@
 /**
- * Catálogo de IAs de Zefirus — NODO PRINCIPAL de la capa de inteligencia.
+ * Catálogo de IAs de FlowChart — NODO PRINCIPAL de la capa de inteligencia.
  *
  * Metadatos ESTÁTICOS (sin secretos): etiqueta, fabricante, puntos fuertes, modelos
  * con COSTOS por millón de tokens y su RENDIMIENTO en la plataforma. El endpoint

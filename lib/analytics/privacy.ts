@@ -11,7 +11,7 @@ import { createHash } from "crypto";
 // Fallback NO secreto para desarrollo/tests. En staging/producción la sal DEBE
 // venir de ANALYTICS_PII_SALT (ver runbook); de lo contrario el hash de PII es
 // predecible. Este string es un placeholder público a propósito.
-const DEV_FALLBACK_SALT = "zefirus-analytics-dev-only-not-a-secret";
+const DEV_FALLBACK_SALT = "flowchart-analytics-dev-only-not-a-secret";
 const PII_SALT = process.env.ANALYTICS_PII_SALT || DEV_FALLBACK_SALT;
 
 if (PII_SALT === DEV_FALLBACK_SALT && process.env.NODE_ENV === "production") {

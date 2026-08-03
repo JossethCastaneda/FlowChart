@@ -243,8 +243,8 @@ export const InstagramIcon: React.FC<IconProps> = ({ size = 20, style, ...props 
 
 
 
-// ─── Zefirus Brand Logo ────────────────────────────────────────────────────────
-export const ZefirusIcon: React.FC<IconProps> = ({ size = 20, style, ...props }) => (
+// ─── FlowChart Brand Logo ────────────────────────────────────────────────────────
+export const FlowChartIcon: React.FC<IconProps> = ({ size = 20, style, ...props }) => (
   <svg
     viewBox="0 0 64 64"
     width={size}
@@ -254,13 +254,13 @@ export const ZefirusIcon: React.FC<IconProps> = ({ size = 20, style, ...props })
     {...props}
   >
     <defs>
-      <linearGradient id="zefirusGradIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <linearGradient id="flowchartGradIcon" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stopColor="#0ea5e9" />
         <stop offset="100%" stopColor="#2563eb" />
       </linearGradient>
     </defs>
-    <rect x="6" y="6" width="52" height="52" rx="14" fill="rgba(2,6,23,0.9)" stroke="url(#zefirusGradIcon)" strokeWidth="2" />
-    <path d="M 24 20 L 40 20 L 40 24 L 29 40 L 40 40 L 40 44 L 24 44 L 24 40 L 35 24 L 24 24 Z" fill="url(#zefirusGradIcon)" />
+    <rect x="6" y="6" width="52" height="52" rx="14" fill="rgba(2,6,23,0.9)" stroke="url(#flowchartGradIcon)" strokeWidth="2" />
+    <path d="M 24 20 L 40 20 L 40 24 L 29 40 L 40 40 L 40 44 L 24 44 L 24 40 L 35 24 L 24 24 Z" fill="url(#flowchartGradIcon)" />
   </svg>
 );
 
@@ -285,7 +285,7 @@ export const APP_ICONS: Record<string, React.FC<IconProps>> = {
   google_tag: GTMIcon,
   messenger: MessengerIcon,
   instagram: InstagramIcon,
-  zefirus: ZefirusIcon,
+  flowchart: FlowChartIcon,
 };
 
 // ─── Helper to get platform icon component dynamically ────────────────────────

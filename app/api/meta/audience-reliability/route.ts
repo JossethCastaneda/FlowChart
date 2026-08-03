@@ -373,7 +373,7 @@ export async function GET(req: NextRequest) {
         grouped[key].goalResults += findGoalResults(item.actions, goal);
       });
 
-      // Zefirus Heuristic Estimation Algorithm:
+      // FlowChart Heuristic Estimation Algorithm:
       // If Meta hides conversions for demographic/regional breakdowns (due to privacy), 
       // the sum of regional results will be significantly lower than the global total.
       // We distribute the missing results proportional to the Spend of each region.

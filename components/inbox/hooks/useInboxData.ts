@@ -83,7 +83,7 @@ export function useInboxData() {
 
         let shouldNotify = false;
         let notifyTitle = "Nuevo Mensaje";
-        let notifyBody = "Tienes un nuevo mensaje en Zefirus.";
+        let notifyBody = "Tienes un nuevo mensaje en FlowChart.";
         const currentMax = lastNotifiedAtRef.current;
         let newMax = currentMax;
 

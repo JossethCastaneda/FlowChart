@@ -46,7 +46,7 @@ export default function AvisoDePrivacidad() {
         <div style={{ display: "flex", flexDirection: "column", gap: "24px", lineHeight: "1.7", fontSize: "15px" }}>
           <section>
             <p>
-              En <strong>ZEFIRUS</strong> (zefirus.xyz), la privacidad de nuestros usuarios es de suma importancia. Este Aviso de Privacidad detalla cómo recopilamos, utilizamos, protegemos y permitimos la eliminación de tus datos personales cuando utilizas nuestra plataforma y conectas tus cuentas a través de Meta/Facebook Login y la API de Meta.
+              En <strong>FLOWCHART</strong> (flowchart.xyz), la privacidad de nuestros usuarios es de suma importancia. Este Aviso de Privacidad detalla cómo recopilamos, utilizamos, protegemos y permitimos la eliminación de tus datos personales cuando utilizas nuestra plataforma y conectas tus cuentas a través de Meta/Facebook Login y la API de Meta.
             </p>
           </section>
 
@@ -72,7 +72,7 @@ export default function AvisoDePrivacidad() {
               Utilizamos la información recopilada exclusivamente para los siguientes fines:
             </p>
             <ul style={{ paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "8px" }}>
-              <li>Autenticar tu identidad y mantener la seguridad de tu cuenta en ZEFIRUS.</li>
+              <li>Autenticar tu identidad y mantener la seguridad de tu cuenta en FLOWCHART.</li>
               <li>Presentar en tu panel o dashboard de control las métricas y desempeño de tus campañas de anuncios de Meta.</li>
               <li>Permitirte realizar acciones de optimización, tales como pausar, activar o editar parámetros básicos de tus campañas directamente desde nuestra interfaz.</li>
               <li>Generar plantillas de contenido ("Briefing Grid IA") basadas en tus objetivos comerciales.</li>
@@ -101,7 +101,7 @@ export default function AvisoDePrivacidad() {
             <ol style={{ paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px" }}>
               <li>Ve a la sección de Configuración de tu cuenta de Facebook (Configuración y Privacidad &gt; Configuración).</li>
               <li>Busca la sección de <strong>"Aplicaciones y sitios web"</strong>.</li>
-              <li>Busca la aplicación <strong>ZEFIRUS</strong> y haz clic en <strong>"Eliminar"</strong>.</li>
+              <li>Busca la aplicación <strong>FLOWCHART</strong> y haz clic en <strong>"Eliminar"</strong>.</li>
               <li>Si deseas iniciar una solicitud formal de eliminación de datos de nuestros servidores inmediatamente, puedes hacerlo a través de nuestra herramienta de autoservicio ingresando aquí: <Link href="/data-deletion" style={{ color: "var(--cyan)", textDecoration: "underline" }}>Página de Solicitud de Eliminación de Datos</Link>.</li>
             </ol>
             <p>
@@ -114,7 +114,7 @@ export default function AvisoDePrivacidad() {
               5. Uso de datos de Google (Divulgación de Uso Limitado)
             </h2>
             <p style={{ marginBottom: "12px" }}>
-              El uso que ZEFIRUS hace de la información recibida de las APIs de Google se adhiere a la{" "}
+              El uso que FLOWCHART hace de la información recibida de las APIs de Google se adhiere a la{" "}
               <a
                 href="https://developers.google.com/terms/api-services-user-data-policy"
                 target="_blank"
@@ -127,13 +127,13 @@ export default function AvisoDePrivacidad() {
             </p>
             <p style={{ marginBottom: "12px" }}>
               En concreto: (a) solo usamos los datos de Google para mostrar tus métricas y recursos dentro de
-              ZEFIRUS cuando tú conectas cada módulo de forma explícita; (b) no transferimos esos datos a
+              FLOWCHART cuando tú conectas cada módulo de forma explícita; (b) no transferimos esos datos a
               terceros salvo cuando sea necesario para operar el servicio, por requerimiento legal o con tu
               consentimiento; (c) no usamos esos datos para publicidad; y (d) ningún humano lee esos datos,
               salvo con tu consentimiento explícito, por motivos de seguridad o para cumplir la ley.
             </p>
             <p>
-              Puedes revocar el acceso de ZEFIRUS a tu cuenta de Google en cualquier momento desde la sección
+              Puedes revocar el acceso de FLOWCHART a tu cuenta de Google en cualquier momento desde la sección
               de Integraciones de la app (lo que también revoca el permiso ante Google) o directamente en{" "}
               <a
                 href="https://myaccount.google.com/permissions"
@@ -153,8 +153,8 @@ export default function AvisoDePrivacidad() {
             </h2>
             <p>
               Si tienes alguna duda o comentario sobre este Aviso de Privacidad o deseas ejercer tus derechos ARCO, por favor contáctanos vía correo electrónico a:{" "}
-              <a href="mailto:soporte@zefirus.xyz" style={{ color: "var(--cyan)", textDecoration: "none" }}>
-                soporte@zefirus.xyz
+              <a href="mailto:soporte@flowchart.xyz" style={{ color: "var(--cyan)", textDecoration: "none" }}>
+                soporte@flowchart.xyz
               </a>
             </p>
           </section>

@@ -47,7 +47,7 @@ const TRAFFIC_METRICS = [
 interface Project { id: string; website?: string }
 
 export function TrafficAnalytics({ project }: { project: Project }) {
-  const storeKey = `zefirus:traffic-order:${project.id}`;
+  const storeKey = `flowchart:traffic-order:${project.id}`;
   const [order, setOrder] = useState<string[]>(TRAFFIC_METRICS.map((m) => m.id));
   const [hidden, setHidden] = useState<string[]>([]);
   const [showForm, setShowForm] = useState(false);

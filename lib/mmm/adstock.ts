@@ -1,5 +1,5 @@
 ﻿/**
- * ZEFIRUS · MMM — Adstock (Carryover Effect)
+ * FLOWCHART · MMM — Adstock (Carryover Effect)
  *
  * El efecto adstock captura que la publicidad de hoy sigue influyendo
  * en ventas futuras. Usa decaimiento geométrico:

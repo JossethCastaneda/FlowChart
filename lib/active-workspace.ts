@@ -1,12 +1,12 @@
 import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
 
-export const ACTIVE_WORKSPACE_COOKIE = "zefirus_active_workspace";
+export const ACTIVE_WORKSPACE_COOKIE = "flowchart_active_workspace";
 
 /**
  * Obtiene el workspaceId activo del usuario.
  * Orden de prioridad:
- *   1. Cookie zefirus_active_workspace (si existe y es válida)
+ *   1. Cookie flowchart_active_workspace (si existe y es válida)
  *   2. Primer workspace del usuario (fallback)
  * Retorna null si el usuario no tiene workspaces.
  */

@@ -1,5 +1,5 @@
 ﻿/**
- * ChartPanel — Zefirus standard chart wrapper
+ * ChartPanel — FlowChart standard chart wrapper
  * Encapsulates header (title + actions), body, loading and empty states.
  *
  * Usage:

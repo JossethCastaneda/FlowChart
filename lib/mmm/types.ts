@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════
-   ZEFIRUS · MMM — Tipos compartidos (v2)
+   FLOWCHART · MMM — Tipos compartidos (v2)
    ════════════════════════════════════════════════════════════ */
 
 /** Configuracion de un canal publicitario en el modelo MMM */

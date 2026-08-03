@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { ReactLenis } from "lenis/react";
-import { ZefirusLogo } from "@/components/ui/ZefirusLogo";
+import { FlowChartLogo } from "@/components/ui/FlowChartLogo";
 import { Orbi } from "@/components/ui/Orbi";
 import {
     ArrowRight,
@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 
 /* ═══════════════════════════════════════════════════════
-   ZEFIRUS · Landing Page — Collabora-Inspired Theme
+   FLOWCHART · Landing Page — Collabora-Inspired Theme
    Dark obsidian background, cyan glows, glassmorphism,
    metallic typography, and smooth scrolling.
    ═══════════════════════════════════════════════════════ */
@@ -84,7 +84,7 @@ function AnimatedText({ text, delayOffset = 0 }: { text: string, delayOffset?: n
 }
 
 // ── Constants ──────────────────────────────────────────
-const ACCENT_COLOR = "#5b9bff"; // Zefirus Cyan
+const ACCENT_COLOR = "#5b9bff"; // FlowChart Cyan
 const GRADIENT_START = "#0284c7"; // Darker blue for gradient
 
 // ── CTA único self-serve (deck §0). Todos los CTA primarios apuntan aquí. ──
@@ -93,7 +93,7 @@ const LOGIN_URL = "/login";             // "Entrar": clientes existentes (secund
 
 // Ítems de nav (anclas a secciones que se crean en pasos posteriores del deck)
 const NAV_LINKS: [string, string][] = [
-  ["#por-que", "Por qué Zefirus"],
+  ["#por-que", "Por qué FlowChart"],
   ["#precios", "Precios"],
   ["#faq", "Preguntas"],
 ];
@@ -105,7 +105,7 @@ const PRODUCT_PILLARS: [string, string][] = [
 
 // Subhead del hero como slider rotatorio (arriba → abajo)
 const HERO_SLIDES: string[] = [
-  "No es un programador de posts más: Zefirus reúne la pauta, el WhatsApp y el contenido de todas tus cuentas —lo que realmente mueve el dinero— en un solo login.",
+  "No es un programador de posts más: FlowChart reúne la pauta, el WhatsApp y el contenido de todas tus cuentas —lo que realmente mueve el dinero— en un solo login.",
   "Operar cliente por cliente entre Meta, TikTok, WhatsApp y Excel te cuesta horas y deja que el presupuesto se fugue. Aquí ves qué rinde y qué lo drena, por cliente, en un solo lugar.",
 ];
 
@@ -158,9 +158,9 @@ const PILAR_CARDS: { type: string; pilar: string; name: string; benefit: string;
 
 // ── "Cómo funciona": 3 pasos con imagen sincronizada (estilo ejemplo 3) ──
 const HOW_STEPS = [
-  { step: "01", title: "Conecta tus cuentas", desc: "Enlazas los Meta, TikTok, Google Ads y WhatsApp de todos tus clientes con el login oficial de cada plataforma. Zefirus se conecta por la vía oficial, con los permisos que tú controlas y sin contraseñas compartidas ni capturas de pantalla. Toma minutos.", img: "/steps/step-1-conecta.jpg" },
+  { step: "01", title: "Conecta tus cuentas", desc: "Enlazas los Meta, TikTok, Google Ads y WhatsApp de todos tus clientes con el login oficial de cada plataforma. FlowChart se conecta por la vía oficial, con los permisos que tú controlas y sin contraseñas compartidas ni capturas de pantalla. Toma minutos.", img: "/steps/step-1-conecta.jpg" },
   { step: "02", title: "Míralas todas juntas", desc: "Toda la pauta, todos los mensajes y todo el contenido de tus 20 cuentas caen en un solo tablero. Ves qué campaña rinde y cuál desperdicia presupuesto, cliente por cliente, sin alternar entre logins ni capturar números a mano en el Excel del lunes.", img: "/steps/step-2-juntas.jpg" },
-  { step: "03", title: "Opera y responde desde ahí", desc: "Contestas WhatsApp, programas contenido y armas el reporte del cliente sin salir de Zefirus. Lo que antes te tomaba el viernes por la noche ahora sale en una pantalla. Se terminó saltar entre pestañas.", img: "/steps/step-3-opera.jpg" },
+  { step: "03", title: "Opera y responde desde ahí", desc: "Contestas WhatsApp, programas contenido y armas el reporte del cliente sin salir de FlowChart. Lo que antes te tomaba el viernes por la noche ahora sale en una pantalla. Se terminó saltar entre pestañas.", img: "/steps/step-3-opera.jpg" },
 ];
 
 const MOCK_CY = "#5b9bff";
@@ -461,8 +461,8 @@ export default function Home() {
     "@graph": [
       {
         "@type": "SoftwareApplication",
-        "name": "Zefirus",
-        "url": "https://zefirus.xyz",
+        "name": "FlowChart",
+        "url": "https://flowchart.xyz",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web",
         "description": "El centro de mando para agencias de marketing: pauta de Meta, TikTok y Google Ads, inbox unificado de WhatsApp, Instagram y Messenger, y contenido con IA, para manejar todas tus cuentas desde un solo login.",
@@ -470,10 +470,10 @@ export default function Home() {
       },
       {
         "@type": "Organization",
-        "name": "Zefirus",
-        "url": "https://zefirus.xyz",
-        "logo": "https://zefirus.xyz/zefirus-logo-1024.jpg",
-        "contactPoint": { "@type": "ContactPoint", "email": "soporte@zefirus.xyz", "contactType": "customer service", "availableLanguage": ["Spanish"] },
+        "name": "FlowChart",
+        "url": "https://flowchart.xyz",
+        "logo": "https://flowchart.xyz/flowchart-logo-1024.jpg",
+        "contactPoint": { "@type": "ContactPoint", "email": "soporte@flowchart.xyz", "contactType": "customer service", "availableLanguage": ["Spanish"] },
         "sameAs": []
       },
       {
@@ -481,8 +481,8 @@ export default function Home() {
         "mainEntity": [
           { "@type": "Question", "name": "¿Cuánto cuesta cuando se acaba el plan gratis?", "acceptedAnswer": { "@type": "Answer", "text": "Empiezas gratis y sin tarjeta, para siempre, con tus primeras cuentas. Cuando creces, los planes de paga tienen precios claros, sin letra chiquita." } },
           { "@type": "Question", "name": "¿Mis datos y los de mis clientes están seguros?", "acceptedAnswer": { "@type": "Answer", "text": "Sí. Nos conectamos a Meta, TikTok y Google con su login oficial (OAuth): nunca guardamos ni pedimos las contraseñas de tus clientes, y tú decides qué cuentas entran y cuáles salen cuando quieras. Tratamos la información conforme a la Ley Federal de Protección de Datos Personales (LFPDPPP). Sin reventa de datos." } },
-          { "@type": "Question", "name": "¿Sirve si solo manejo 2 o 3 cuentas?", "acceptedAnswer": { "@type": "Answer", "text": "Sirve. Zefirus brilla cuando cargas con 20, pero si hoy llevas 2 o 3 es justo el momento de dejar de crecer sobre pestañas y Excel. Montas la operación ordenada desde chico y cuando lleguen más clientes ya está armado." } },
-          { "@type": "Question", "name": "¿Reemplaza las herramientas que ya uso?", "acceptedAnswer": { "@type": "Answer", "text": "Esa es la idea: cambiar el Frankenstein de 6 apps peleadas entre sí por un solo login. Pauta, WhatsApp y contenido de todas tus cuentas viven en Zefirus, así que dejas de pagar tres suscripciones y de saltar de una a otra todo el día." } }
+          { "@type": "Question", "name": "¿Sirve si solo manejo 2 o 3 cuentas?", "acceptedAnswer": { "@type": "Answer", "text": "Sirve. FlowChart brilla cuando cargas con 20, pero si hoy llevas 2 o 3 es justo el momento de dejar de crecer sobre pestañas y Excel. Montas la operación ordenada desde chico y cuando lleguen más clientes ya está armado." } },
+          { "@type": "Question", "name": "¿Reemplaza las herramientas que ya uso?", "acceptedAnswer": { "@type": "Answer", "text": "Esa es la idea: cambiar el Frankenstein de 6 apps peleadas entre sí por un solo login. Pauta, WhatsApp y contenido de todas tus cuentas viven en FlowChart, así que dejas de pagar tres suscripciones y de saltar de una a otra todo el día." } }
         ]
       }
     ]
@@ -779,8 +779,8 @@ export default function Home() {
       }}>
         <div style={{ padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 12 }}>
-            <ZefirusLogo size="sm" animated={false} showText={false} />
-            <span style={{ fontSize: 20, fontWeight: 700, color: "#fff", letterSpacing: "-0.04em" }}>Zefirus</span>
+            <FlowChartLogo size="sm" animated={false} showText={false} />
+            <span style={{ fontSize: 20, fontWeight: 700, color: "#fff", letterSpacing: "-0.04em" }}>FlowChart</span>
           </Link>
           <nav className="col-nav-links" style={{ display: "flex", alignItems: "center", gap: 36 }}>
             {/* Producto — dropdown con los 3 pilares (deck §0) */}
@@ -823,7 +823,7 @@ export default function Home() {
           </nav>
           <div className="col-nav-links" style={{ display: "flex", alignItems: "center", gap: 20 }}>
             <Link href={LOGIN_URL} className="col-nav-link" style={{ textDecoration: "none" }}>Entrar</Link>
-            <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en Zefirus" style={{
+            <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en FlowChart" style={{
               padding: "9px 22px", borderRadius: 980,
               fontSize: 14, fontWeight: 600, whiteSpace: "nowrap",
             }}>
@@ -880,7 +880,7 @@ export default function Home() {
             pointerEvents: "none",
           }}
         >
-          <source src="/hero/zefirus-hero.mp4" type="video/mp4" />
+          <source src="/hero/flowchart-hero.mp4" type="video/mp4" />
         </video>
         {/* Readability overlay over the video (keeps white text legible) */}
         <div
@@ -978,7 +978,7 @@ export default function Home() {
           style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, position: "relative", zIndex: 10, marginBottom: 40 }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", justifyContent: "center" }}>
-            <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en Zefirus" style={{ height: 56, padding: "0 36px", borderRadius: 14 }}>
+            <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en FlowChart" style={{ height: 56, padding: "0 36px", borderRadius: 14 }}>
               Empieza gratis
             </Link>
             <a href="#como-funciona" className="col-pill col-pill-secondary" style={{ height: 56, padding: "0 28px", borderRadius: 14, display: "inline-flex", alignItems: "center" }}>
@@ -1016,7 +1016,7 @@ export default function Home() {
             color: "rgba(255,255,255,0.96)",
             margin: 0,
           }}>
-            Así se ve tu agencia completa en Zefirus: las campañas, los chats y el calendario de todas tus cuentas, en un tablero.
+            Así se ve tu agencia completa en FlowChart: las campañas, los chats y el calendario de todas tus cuentas, en un tablero.
           </h2>
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", margin: "18px 0 0" }}>
             Los datos mostrados son de ejemplo.
@@ -1065,7 +1065,7 @@ export default function Home() {
           <div style={{ width: 240, border: "1px solid var(--hairline)", padding: 24, display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 48 }}>
               <div style={{ width: 24, height: 24, background: `linear-gradient(180deg, ${GRADIENT_START}, ${ACCENT_COLOR})`, borderRadius: 6 }} />
-              <div style={{ fontSize: 18, fontWeight: 600, color: "var(--foreground)" }}>Zefirus</div>
+              <div style={{ fontSize: 18, fontWeight: 600, color: "var(--foreground)" }}>FlowChart</div>
             </div>
             <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 16 }}>Navegación</div>
             {[
@@ -1250,13 +1250,13 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════
-         OUTCOME — Antes → Con Zefirus (deck §3)
+         OUTCOME — Antes → Con FlowChart (deck §3)
          ═══════════════════════════════════════════════════════ */}
       <section id="outcome" style={{ position: "relative", zIndex: 1, padding: "120px 24px", maxWidth: 1200, margin: "0 auto", width: "100%" }}>
         <Reveal>
           <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
             <div style={{ padding: "6px 16px", borderRadius: 980, background: "rgba(8,9,12,0.45)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.10)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)", color: "#fff", fontSize: 13, fontWeight: 600 }}>
-              Así se ve tu agencia con Zefirus
+              Así se ve tu agencia con FlowChart
             </div>
           </div>
           <h2 className="col-section-h2 col-title" style={{ fontWeight: 700, fontSize: "clamp(34px, 4.6vw, 58px)", textAlign: "center", marginBottom: 20, maxWidth: 940, marginLeft: "auto", marginRight: "auto" }}>
@@ -1284,7 +1284,7 @@ export default function Home() {
                 <span style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--text-muted)" }}>Antes</span>
               </div>
               <div className="col-outcome-cell" style={{ padding: "15px 26px", background: "rgba(59,130,246,0.05)" }}>
-                <span style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: ACCENT_COLOR }}>Con Zefirus</span>
+                <span style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: ACCENT_COLOR }}>Con FlowChart</span>
               </div>
             </div>
             {[
@@ -1309,7 +1309,7 @@ export default function Home() {
 
         <Reveal delay={0.1}>
           <div style={{ display: "flex", justifyContent: "center", marginTop: 48 }}>
-            <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en Zefirus" style={{ height: 56, padding: "0 36px", borderRadius: 14 }}>
+            <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en FlowChart" style={{ height: 56, padding: "0 36px", borderRadius: 14 }}>
               Empieza gratis, sin tarjeta
             </Link>
           </div>
@@ -1409,7 +1409,7 @@ export default function Home() {
           {/* CTA — primario + venta asistida secundaria */}
           <Reveal delay={0.1}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, flexWrap: "wrap", marginTop: 40 }}>
-              <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en Zefirus" style={{ height: 56, padding: "0 36px", borderRadius: 14 }}>
+              <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en FlowChart" style={{ height: 56, padding: "0 36px", borderRadius: 14 }}>
                 Empieza gratis, sin tarjeta
               </Link>
               <a href="#precios" style={{ fontSize: 15, color: "var(--text-secondary)", textDecoration: "none" }}>
@@ -1520,13 +1520,13 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════
-         POR QUÉ ZEFIRUS — comparativa: tu stack actual vs. Zefirus (deck §6)
+         POR QUÉ FLOWCHART — comparativa: tu stack actual vs. FlowChart (deck §6)
          ═══════════════════════════════════════════════════════ */}
       <section id="por-que" style={{ position: "relative", zIndex: 1, padding: "120px 24px", maxWidth: 1200, margin: "0 auto", width: "100%", scrollMarginTop: 90 }}>
         <Reveal>
           <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
             <div style={{ padding: "6px 16px", borderRadius: 980, background: "rgba(8,9,12,0.45)", backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.10)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)", color: "#fff", fontSize: 13, fontWeight: 600 }}>
-              Tu stack de hoy vs. Zefirus
+              Tu stack de hoy vs. FlowChart
             </div>
           </div>
           <h2 className="col-section-h2 col-title" style={{ fontWeight: 700, fontSize: "clamp(32px, 4.4vw, 54px)", textAlign: "center", marginBottom: 18, maxWidth: 940, marginLeft: "auto", marginRight: "auto" }}>
@@ -1537,7 +1537,7 @@ export default function Home() {
             logins y sostienes la operación con pura memoria.
           </p>
           <p style={{ fontSize: "clamp(15px, 1.8vw, 17px)", color: "var(--text-muted)", textAlign: "center", maxWidth: 760, margin: "0 auto 56px", lineHeight: 1.6 }}>
-            Zefirus reemplaza el Frankenstein de 6 apps más el Excel del lunes con el que hoy sostienes
+            FlowChart reemplaza el Frankenstein de 6 apps más el Excel del lunes con el que hoy sostienes
             a tus clientes. Compara lo que usas ahora contra una sola pantalla para todas tus cuentas.
           </p>
         </Reveal>
@@ -1547,7 +1547,7 @@ export default function Home() {
           <div className="col-porque-head" style={{ display: "grid", gridTemplateColumns: "170px 1fr 1fr", gap: 14, padding: "0 20px" }}>
             <span />
             <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)" }}>Tu stack de hoy</span>
-            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: ACCENT_COLOR }}>Con Zefirus</span>
+            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: ACCENT_COLOR }}>Con FlowChart</span>
           </div>
           {[
             { label: "Costo", left: "Seis herramientas que pagas por separado, cada una con su propia suscripción, que se acumulan mes con mes.", right: "Un solo plan para toda tu operación. Pagas una vez, no seis." },
@@ -1590,7 +1590,7 @@ export default function Home() {
 
         <Reveal delay={0.1}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, flexWrap: "wrap", marginTop: 32 }}>
-            <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en Zefirus" style={{ height: 56, padding: "0 36px", borderRadius: 14 }}>
+            <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en FlowChart" style={{ height: 56, padding: "0 36px", borderRadius: 14 }}>
               Empieza gratis, sin tarjeta
             </Link>
             <a href="#precios" style={{ fontSize: 15, color: "var(--text-secondary)", textDecoration: "none" }}>
@@ -1754,7 +1754,7 @@ export default function Home() {
 
         <Reveal delay={0.1}>
           <div style={{ display: "flex", justifyContent: "center", marginTop: 48 }}>
-            <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en Zefirus" style={{ height: 56, padding: "0 36px", borderRadius: 14 }}>Empieza gratis, sin tarjeta</Link>
+            <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en FlowChart" style={{ height: 56, padding: "0 36px", borderRadius: 14 }}>Empieza gratis, sin tarjeta</Link>
           </div>
         </Reveal>
       </section>
@@ -1787,11 +1787,11 @@ export default function Home() {
             },
             {
               q: "¿Sirve si solo manejo 2 o 3 cuentas?",
-              a: "Sirve. Zefirus brilla cuando cargas con 20, pero si hoy llevas 2 o 3 es justo el momento de dejar de crecer sobre pestañas y Excel. Montas la operación ordenada desde chico y cuando lleguen los clientes 10, 15, 20, no tienes que reinventar nada: ya está armado.",
+              a: "Sirve. FlowChart brilla cuando cargas con 20, pero si hoy llevas 2 o 3 es justo el momento de dejar de crecer sobre pestañas y Excel. Montas la operación ordenada desde chico y cuando lleguen los clientes 10, 15, 20, no tienes que reinventar nada: ya está armado.",
             },
             {
               q: "¿Reemplaza las herramientas que ya uso?",
-              a: "Esa es la idea: cambiar el Frankenstein de 6 apps peleadas entre sí por un solo login. Pauta, WhatsApp y contenido de todas tus cuentas viven en Zefirus, así que dejas de pagar tres suscripciones y de saltar de una a otra todo el día. Ahí vive tu operación completa.",
+              a: "Esa es la idea: cambiar el Frankenstein de 6 apps peleadas entre sí por un solo login. Pauta, WhatsApp y contenido de todas tus cuentas viven en FlowChart, así que dejas de pagar tres suscripciones y de saltar de una a otra todo el día. Ahí vive tu operación completa.",
             },
           ].map((faq, i) => {
             const open = openFaq === i;
@@ -1843,7 +1843,7 @@ export default function Home() {
             tus cuentas y las ves todas juntas en minutos.
           </p>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-            <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en Zefirus" style={{ padding: "18px 40px", fontSize: 18 }}>
+            <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en FlowChart" style={{ padding: "18px 40px", fontSize: 18 }}>
               Empieza gratis — sin tarjeta
             </Link>
             <p style={{ fontSize: 14, color: "var(--text-muted)" }}>Sin tarjeta. Sin contrato. Sales cuando quieras.</p>
@@ -1917,7 +1917,7 @@ export default function Home() {
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "64px 24px 40px" }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 48, flexWrap: "wrap" }}>
             <div style={{ maxWidth: 320 }}>
-              <ZefirusLogo size="sm" animated={false} />
+              <FlowChartLogo size="sm" animated={false} />
               <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 16, lineHeight: 1.6 }}>
                 El centro de mando para agencias de marketing, con soporte que sí contesta.
               </p>
@@ -1931,7 +1931,7 @@ export default function Home() {
                 { label: "Conversaciones", href: "#pilar-conversaciones" },
                 { label: "Contenido", href: "#pilar-contenido" },
                 { label: "Precios", href: "#precios" },
-                { label: "Por qué Zefirus", href: "#por-que" },
+                { label: "Por qué FlowChart", href: "#por-que" },
               ]} />
               <FooterCol title="Empresa" links={[
                 { label: "Preguntas", href: "#faq" },
@@ -1957,7 +1957,7 @@ export default function Home() {
             borderTop: "1px solid var(--hairline)",
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap",
           }}>
-            <span style={{ fontSize: 13, color: "var(--text-muted)" }}> {new Date().getFullYear()} Zefirus. Todos los derechos reservados.</span>
+            <span style={{ fontSize: 13, color: "var(--text-muted)" }}> {new Date().getFullYear()} FlowChart. Todos los derechos reservados.</span>
             <span style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 6 }}>
               Hecho en México <MapPin size={14} />
             </span>

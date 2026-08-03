@@ -4,10 +4,10 @@
  * GET — Obtiene todas las líneas de WhatsApp de la WABA del workspace,
  *       cruzadas con la base de datos para saber si están enlazadas y a qué proyectos.
  *
- * POST — Enlaza una línea de WhatsApp (WaPhoneSource) a Zefirus, opcionalmente
+ * POST — Enlaza una línea de WhatsApp (WaPhoneSource) a FlowChart, opcionalmente
  *        asociándola a un proyecto.
  *
- * DELETE — Desvincula una línea de WhatsApp de Zefirus (borra WaPhoneSource).
+ * DELETE — Desvincula una línea de WhatsApp de FlowChart (borra WaPhoneSource).
  */
 
 import { NextRequest } from "next/server";
@@ -162,7 +162,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       select: { workspaceId: true },
     });
     if (existingPhone && existingPhone.workspaceId !== workspaceId) {
-      return apiError("Esta línea ya está enlazada a otra cuenta de Zefirus.", "WA_PHONE_ALREADY_LINKED", 409);
+      return apiError("Esta línea ya está enlazada a otra cuenta de FlowChart.", "WA_PHONE_ALREADY_LINKED", 409);
     }
 
     // Upsert WaPhoneSource

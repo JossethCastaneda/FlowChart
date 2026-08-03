@@ -315,12 +315,12 @@ providers.push(
   })
 );
 
-// Cookie config for production (zefirus.xyz).
+// Cookie config for production (flowchart.xyz).
 // CRITICAL: authOptions is a static object evaluated at module-load time.
 // NEXTAUTH_URL is set dynamically per-request in [...nextauth]/route.ts, so it
 // is ALWAYS empty here. Do NOT check NEXTAUTH_URL.
 // VERCEL_ENV === "production" is injected by Vercel at build time and is stable.
-// On localhost, browsers reject __Secure- cookies over HTTP and ignore domain:.zefirus.xyz,
+// On localhost, browsers reject __Secure- cookies over HTTP and ignore domain:.flowchart.xyz,
 // so enabling the production cookie config locally has no effect on dev sessions.
 const productionCookies: NextAuthOptions["cookies"] =
   process.env.VERCEL_ENV === "production" && process.env.NODE_ENV !== "development"
@@ -332,7 +332,7 @@ const productionCookies: NextAuthOptions["cookies"] =
             sameSite: "lax" as const,
             path: "/",
             secure: true,
-            domain: ".zefirus.xyz",
+            domain: ".flowchart.xyz",
           },
         },
         callbackUrl: {
@@ -341,7 +341,7 @@ const productionCookies: NextAuthOptions["cookies"] =
             sameSite: "lax" as const,
             path: "/",
             secure: true,
-            domain: ".zefirus.xyz",
+            domain: ".flowchart.xyz",
           },
         },
         csrfToken: {
@@ -351,7 +351,7 @@ const productionCookies: NextAuthOptions["cookies"] =
             sameSite: "lax" as const,
             path: "/",
             secure: true,
-            domain: ".zefirus.xyz",
+            domain: ".flowchart.xyz",
           },
         },
       }
@@ -675,7 +675,7 @@ export const authOptions: NextAuthOptions = {
       // Allow relative URLs (like /invite/token)
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       // SEGURIDAD: comparar ORIGEN exacto, no prefijo. `url.startsWith(baseUrl)`
-      // aceptaba https://zefirus.xyz.evil.com (open redirect post-login → phishing).
+      // aceptaba https://flowchart.xyz.evil.com (open redirect post-login → phishing).
       try {
         if (new URL(url).origin === new URL(baseUrl).origin) return url;
       } catch {

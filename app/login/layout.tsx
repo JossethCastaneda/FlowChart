@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Zefirus - Authentication",
-  description: "Login to the Zefirus Multichannel Intelligence platform.",
+  title: "FlowChart - Authentication",
+  description: "Login to the FlowChart Multichannel Intelligence platform.",
 };
 
 export default function LoginLayout({

@@ -13,7 +13,7 @@ import { PermissionsProvider } from "@/components/layout/PermissionsContext";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { getBaseUrl } from "@/lib/get-base-url";
 import { LanguageProvider } from "@/components/layout/LanguageContext";
-import { ZefirusBrandDefs } from "@/components/ui/ZefirusBrandDefs";
+import { FlowChartBrandDefs } from "@/components/ui/FlowChartBrandDefs";
 import { PopupCloseHandler } from "@/components/layout/PopupCloseHandler";
 import { PaywallInterceptor } from "@/components/layout/PaywallInterceptor";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
@@ -45,22 +45,22 @@ export const viewport: Viewport = {
 };
 
 const safeUrl = (url: string | undefined): URL => {
-  if (!url) return new URL("https://zefirus.xyz");
+  if (!url) return new URL("https://flowchart.xyz");
   const cleaned = url.replace(/^"|"$/g, "").trim();
-  if (!cleaned) return new URL("https://zefirus.xyz");
+  if (!cleaned) return new URL("https://flowchart.xyz");
   if (!cleaned.startsWith("http")) return new URL(`http://${cleaned}`);
   try {
     return new URL(cleaned);
   } catch {
-    return new URL("https://zefirus.xyz");
+    return new URL("https://flowchart.xyz");
   }
 };
 
 export const metadata: Metadata = {
   metadataBase: safeUrl(process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL),
   title: {
-    default: "Zefirus — El centro de mando para agencias de marketing",
-    template: "%s | Zefirus",
+    default: "FlowChart — Todos tus canales en un solo flujo de datos",
+    template: "%s | FlowChart",
   },
   description:
     "Maneja la pauta, el WhatsApp y el contenido de todas tus cuentas desde una sola pantalla. Meta, TikTok y Google Ads, inbox unificado y contenido con IA para agencias. Empieza gratis, sin tarjeta.",
@@ -76,9 +76,9 @@ export const metadata: Metadata = {
     "automatización marketing digital",
     "dashboard anuncios",
   ],
-  authors: [{ name: "Zefirus", url: "https://zefirus.xyz" }],
-  creator: "Zefirus",
-  publisher: "Zefirus",
+  authors: [{ name: "FlowChart", url: "https://flowchart.app" }],
+  creator: "FlowChart",
+  publisher: "FlowChart",
   alternates: {
     canonical: "/",
     languages: { "es-MX": "/", "es": "/" },
@@ -86,26 +86,26 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "es_MX",
-    url: "https://zefirus.xyz",
-    siteName: "Zefirus",
-    title: "Zefirus — El centro de mando para agencias de marketing",
+    url: "https://flowchart.app",
+    siteName: "FlowChart",
+    title: "FlowChart — Todos tus canales en un solo flujo de datos",
     description:
-      "Maneja tus 20 clientes desde una sola pantalla: pauta, WhatsApp y contenido de todas tus cuentas en un solo login. Empieza gratis, sin tarjeta.",
+      "Maneja la pauta, el WhatsApp y el contenido de todas tus cuentas desde una sola pantalla. Meta, TikTok y Google Ads, inbox unificado y contenido con IA para agencias. Empieza gratis, sin tarjeta.",
     images: [
       {
-        url: "/zefirus-logo-1024.jpg",
+        url: "/logo/isotipo-claro.svg",
         width: 1024,
         height: 1024,
-        alt: "Zefirus — Plataforma de Marketing Multicanal",
+        alt: "FlowChart — Plataforma de Marketing Multicanal",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zefirus — El centro de mando para agencias de marketing",
+    title: "FlowChart — Todos tus canales en un solo flujo de datos",
     description:
       "Pauta, WhatsApp y contenido de todas tus cuentas en una sola pantalla. Para agencias. Empieza gratis, sin tarjeta.",
-    images: ["/zefirus-logo-1024.jpg"],
+    images: ["/logo/isotipo-claro.svg"],
   },
   robots: {
     index: true,
@@ -139,7 +139,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem themes={["light", "dark", "azul"]}>
-        <ZefirusBrandDefs />
+        <FlowChartBrandDefs />
         <AuthProvider>
           <LanguageProvider>
             <PermissionsProvider>

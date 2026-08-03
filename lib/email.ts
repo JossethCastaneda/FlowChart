@@ -6,7 +6,7 @@ const resend = env.RESEND_API_KEY
   ? new Resend(env.RESEND_API_KEY)
   : null;
 
-const FROM_EMAIL = env.RESEND_FROM_EMAIL || env.EMAIL_FROM || "ZEFIRUS <onboarding@resend.dev>";
+const FROM_EMAIL = env.RESEND_FROM_EMAIL || env.EMAIL_FROM || "FLOWCHART <onboarding@resend.dev>";
 
 interface AlertEmailParams {
   to: string[];
@@ -54,7 +54,7 @@ export async function sendAlertEmail({
   <div style="max-width:600px;margin:0 auto;padding:20px;">
     <!-- Header -->
     <div style="text-align:center;padding:24px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
-      <h1 style="color:white;font-size:18px;font-weight:700;margin:0 0 4px;">ZEFIRUS</h1>
+      <h1 style="color:white;font-size:18px;font-weight:700;margin:0 0 4px;">FLOWCHART</h1>
       <p style="color:#94a3b8;font-size:12px;margin:0;">Alerta de Proyecto</p>
     </div>
 
@@ -84,7 +84,7 @@ export async function sendAlertEmail({
 
     <!-- Footer -->
     <div style="text-align:center;padding:16px 0;border-top:1px solid rgba(255,255,255,0.04);">
-      <p style="color:#64748b;font-size:10px;margin:0;">ZEFIRUS Alert System · ${new Date().toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}</p>
+      <p style="color:#64748b;font-size:10px;margin:0;">FLOWCHART Alert System · ${new Date().toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}</p>
     </div>
   </div>
 </body>
@@ -94,7 +94,7 @@ export async function sendAlertEmail({
     const result = await resend.emails.send({
       from: FROM_EMAIL,
       to,
-      subject: `[ZEFIRUS] ${projectName} - Health Score: ${healthScore} (${healthLabel})`,
+      subject: `[FLOWCHART] ${projectName} - Health Score: ${healthScore} (${healthLabel})`,
       html,
     });
     logger.info("[EMAIL] Sent alert email", { projectName, healthScore, recipients: to.length });
@@ -130,7 +130,7 @@ export async function sendInviteEmail({
     const result = await resend.emails.send({
       from: FROM_EMAIL,
       to,
-      subject: `Invitación a ${workspaceName} — ZEFIRUS`,
+      subject: `Invitación a ${workspaceName} — FLOWCHART`,
       html,
     });
     logger.info("[EMAIL] Sent invite email", { to, workspaceName });
@@ -162,7 +162,7 @@ export async function sendPasswordResetEmail({
     const result = await resend.emails.send({
       from: FROM_EMAIL,
       to,
-      subject: "Recuperar contraseña — ZEFIRUS",
+      subject: "Recuperar contraseña — FLOWCHART",
       html,
     });
     logger.info("[EMAIL] Sent password reset email", { to });
@@ -194,7 +194,7 @@ export async function sendWelcomeEmail({
     const result = await resend.emails.send({
       from: FROM_EMAIL,
       to,
-      subject: "Bienvenido a ZEFIRUS",
+      subject: "Bienvenido a FLOWCHART",
       html,
     });
     logger.info("[EMAIL] Sent welcome email", { to });

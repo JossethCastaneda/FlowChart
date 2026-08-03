@@ -29,11 +29,11 @@ Call log:
 ```yaml
 - button "ES"
 - button "EN"
-- text: · ZEFIRUS COMMAND BRIDGE ·
-- link "Zefirus emblem ZEFIRUS SOFTWARE PLATFORM":
+- text: · FLOWCHART COMMAND BRIDGE ·
+- link "FlowChart emblem FLOWCHART SOFTWARE PLATFORM":
   - /url: /
-  - img "Zefirus emblem"
-  - text: ZEFIRUS SOFTWARE PLATFORM
+  - img "FlowChart emblem"
+  - text: FLOWCHART SOFTWARE PLATFORM
 - img
 - text: Acceso concedido Entrando al puente de mando…
 - button "Open Tanstack query devtools":

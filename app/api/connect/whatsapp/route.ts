@@ -145,7 +145,7 @@ export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (req: NextReques
   });
   if (existingPhone && existingPhone.workspaceId !== workspaceId) {
     return apiError(
-      "Este número de WhatsApp ya está conectado a otra cuenta de Zefirus.",
+      "Este número de WhatsApp ya está conectado a otra cuenta de FlowChart.",
       "WA_PHONE_ALREADY_LINKED",
       409,
     );

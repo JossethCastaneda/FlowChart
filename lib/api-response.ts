@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 
 /**
- * Standardized API response helpers for Zefirus.
+ * Standardized API response helpers for FlowChart.
  * Use these in all API routes for consistent error/success formatting.
  */
 

@@ -17,7 +17,7 @@ const headers = {
 };
 
 // ─────────────────────────────────────────────────
-// HTML BASE GENERATOR (100% Zefirus Theme, Light/Dark)
+// HTML BASE GENERATOR (100% FlowChart Theme, Light/Dark)
 // ─────────────────────────────────────────────────
 
 function baseWrapper(content: string): string {
@@ -67,7 +67,7 @@ function baseWrapper(content: string): string {
 <body class="bg-body" style="margin:0;padding:0;background-color:#f8fafc;font-family:'Segoe UI',Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased;">
   <!-- Preheader -->
   <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">
-    ZEFIRUS — Sistema Operativo de Marketing Digital
+    FLOWCHART — Sistema Operativo de Marketing Digital
   </div>
 
   <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-body" style="background-color:#f8fafc;">
@@ -91,7 +91,7 @@ function baseWrapper(content: string): string {
 
               <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
                 <tr>
-                  <td class="logo-text" style="font-family:'Courier New',Consolas,monospace;font-size:28px;font-weight:900;letter-spacing:10px;color:#0f172a;padding-bottom:12px;">ZEFIRUS</td>
+                  <td class="logo-text" style="font-family:'Courier New',Consolas,monospace;font-size:28px;font-weight:900;letter-spacing:10px;color:#0f172a;padding-bottom:12px;">FLOWCHART</td>
                 </tr>
               </table>
 
@@ -136,7 +136,7 @@ function baseWrapper(content: string): string {
           <tr>
             <td align="center" style="padding:24px 36px 28px;">
               <p class="footer-text" style="margin:0;font-family:'Courier New',monospace;font-size:9px;color:#94a3b8;letter-spacing:3px;">
-                ZEFIRUS
+                FLOWCHART
               </p>
               <p class="footer-text" style="margin:4px 0 0;font-family:'Courier New',monospace;font-size:8px;color:#94a3b8;letter-spacing:2px;">
                 SISTEMA OPERATIVO DE MARKETING DIGITAL
@@ -283,7 +283,7 @@ function getPasswordResetEmailHtmlHandlebars(): string {
             Hola <strong>{{{NAME}}}</strong>,
           </p>
           <p class="text-muted" style="margin:0;font-size:13px;color:#64748b;line-height:1.7;">
-            Recibimos una solicitud para restablecer la contraseña de tu cuenta en ZEFIRUS. Haz clic en el botón de abajo para continuar.
+            Recibimos una solicitud para restablecer la contraseña de tu cuenta en FLOWCHART. Haz clic en el botón de abajo para continuar.
           </p>
         </td>
       </tr>
@@ -323,23 +323,23 @@ function getPasswordResetEmailHtmlHandlebars(): string {
 
 const templates = [
   {
-    name: "zefirus-password-reset",
-    subject: "Recuperar contraseña — ZEFIRUS",
+    name: "flowchart-password-reset",
+    subject: "Recuperar contraseña — FLOWCHART",
     html: getPasswordResetEmailHtmlHandlebars(),
     variables: [
       { key: "NAME", type: "string", fallbackValue: "usuario" },
-      { key: "RESET_URL", type: "string", fallbackValue: "https://zefirus.xyz/reset-password/token" },
+      { key: "RESET_URL", type: "string", fallbackValue: "https://flowchart.xyz/reset-password/token" },
     ],
   },
   {
-    name: "zefirus-workspace-invite",
-    subject: "Te invitaron a {{{WORKSPACE_NAME}}} — ZEFIRUS",
+    name: "flowchart-workspace-invite",
+    subject: "Te invitaron a {{{WORKSPACE_NAME}}} — FLOWCHART",
     html: getInviteEmailHtmlHandlebars(),
     variables: [
       { key: "INVITER_NAME", type: "string", fallbackValue: "Un administrador" },
       { key: "WORKSPACE_NAME", type: "string", fallbackValue: "Workspace" },
       { key: "ROLE", type: "string", fallbackValue: "MEMBER" },
-      { key: "INVITE_URL", type: "string", fallbackValue: "https://zefirus.xyz/invite/token" },
+      { key: "INVITE_URL", type: "string", fallbackValue: "https://flowchart.xyz/invite/token" },
     ],
   },
 ];
@@ -366,8 +366,8 @@ async function main() {
 
       console.log(`✅ ${tpl.name} → ID: ${data.id}`);
       
-      if (tpl.name === "zefirus-password-reset") ids.RESET = data.id;
-      if (tpl.name === "zefirus-workspace-invite") ids.INVITE = data.id;
+      if (tpl.name === "flowchart-password-reset") ids.RESET = data.id;
+      if (tpl.name === "flowchart-workspace-invite") ids.INVITE = data.id;
 
       // Publicar template
       const pubRes = await fetch(`https://api.resend.com/templates/${data.id}/publish`, {

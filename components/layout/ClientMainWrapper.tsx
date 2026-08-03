@@ -5,7 +5,7 @@ import Link from "next/link";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { GalaxyBackground } from "@/components/ui/GalaxyBackground";
 import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
-import { ZefirusLogo } from "@/components/ui/ZefirusLogo";
+import { FlowChartLogo } from "@/components/ui/FlowChartLogo";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { NotificationBell } from "@/components/ui/NotificationBell";
 import { AlertBellButton } from "@/components/alerts/AlertToast";
@@ -59,8 +59,8 @@ import { useLanguage } from "@/components/layout/LanguageContext";
 
 import { HoloIcon } from "@/components/ui/HoloIcon";
 
-import { NAV_GROUPS } from "@/lib/zefirus-kit/nav-items";
-import { MODULES } from "@/lib/zefirus-kit/modules";
+import { NAV_GROUPS } from "@/lib/flowchart-kit/nav-items";
+import { MODULES } from "@/lib/flowchart-kit/modules";
 import {
   Activity,
   MessagesSquare,
@@ -250,7 +250,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   // Load pinned preference on mount
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("zefirus:sidebar-pinned");
+      const saved = localStorage.getItem("flowchart:sidebar-pinned");
       if (saved === "true") {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
         setSidebarPinned(true);
@@ -415,7 +415,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   const toggleSidebarPin = useCallback(() => {
     setSidebarPinned(prev => {
       const next = !prev;
-      try { localStorage.setItem("zefirus:sidebar-pinned", String(next)); } catch {}
+      try { localStorage.setItem("flowchart:sidebar-pinned", String(next)); } catch {}
       if (!next) setSidebarOpen(false);
       return next;
     });
@@ -455,7 +455,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
 
   const changeLang = (l: 'es' | 'en') => {
     setLang(l);
-    localStorage.setItem("zefirus:lang", l);
+    localStorage.setItem("flowchart:lang", l);
     setActivePanel('main');
     showToast("success", l === 'es' ? `Idioma cambiado a Español` : `Language changed to English`);
   };
@@ -468,7 +468,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
       .then(d => { 
         if (d.activityStatus) {
           setActivityStatus(d.activityStatus); 
-          const local = localStorage.getItem("zefirus:sub-status");
+          const local = localStorage.getItem("flowchart:sub-status");
           const matched = STATUS_OPTIONS.find(s => s.key === local);
           if (matched && matched.dbStatus === d.activityStatus) {
             setSubStatus(matched.key);
@@ -495,7 +495,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
 
     setSubStatus(statusKey);
     setActivityStatus(opt.dbStatus);
-    localStorage.setItem("zefirus:sub-status", statusKey);
+    localStorage.setItem("flowchart:sub-status", statusKey);
     setUserMenuOpen(false);
 
     try { 
@@ -583,7 +583,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         {/* Logo */}
         <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: "1px solid var(--hairline)" }}>
           <Link href="/dashboard/resumen" className="flex items-center gap-3" aria-label="Inicio">
-            <ZefirusLogo size="sm" showText={true} />
+            <FlowChartLogo size="sm" showText={true} />
           </Link>
           {/* Pin toggle — inside sidebar, no hamburger needed */}
           <button
@@ -699,7 +699,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <ZefirusLogo size="sm" />
+            <FlowChartLogo size="sm" />
           </div>
           <div className="flex items-center gap-2">
             <AlertBellButton />

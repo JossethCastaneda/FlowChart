@@ -90,7 +90,7 @@ export default function TikTokIntegrationPage() {
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <PageHeader
         title="TikTok Ads"
-        description={lang === "es" ? "Gestiona campañas In-Feed, TopView y Spark Ads directamente desde Zefirus." : "Manage In-Feed, TopView and Spark Ads campaigns directly from Zefirus."}
+        description={lang === "es" ? "Gestiona campañas In-Feed, TopView y Spark Ads directamente desde FlowChart." : "Manage In-Feed, TopView and Spark Ads campaigns directly from FlowChart."}
         icon={<TikTokIcon size={20} />}
       />
 
@@ -222,8 +222,8 @@ export default function TikTokIntegrationPage() {
           {[
             { step: "01", text: lang === "es" ? "Haz clic en \"Conectar TikTok Ads\" para abrir la autorización oficial de TikTok for Business." : "Click \"Connect TikTok Ads\" to open TikTok for Business official authorization." },
             { step: "02", text: lang === "es" ? "Acepta los permisos de acceso a tu cuenta publicitaria." : "Accept the permissions to access your ad account." },
-            { step: "03", text: lang === "es" ? "Serás redirigido de vuelta a Zefirus con la integración activa." : "You'll be redirected back to Zefirus with the integration active." },
-            { step: "04", text: lang === "es" ? "Zefirus sincronizará métricas de campañas In-Feed, TopView y Spark Ads." : "Zefirus will sync metrics for In-Feed, TopView and Spark Ads campaigns." },
+            { step: "03", text: lang === "es" ? "Serás redirigido de vuelta a FlowChart con la integración activa." : "You'll be redirected back to FlowChart with the integration active." },
+            { step: "04", text: lang === "es" ? "FlowChart sincronizará métricas de campañas In-Feed, TopView y Spark Ads." : "FlowChart will sync metrics for In-Feed, TopView and Spark Ads campaigns." },
           ].map(({ step, text }) => (
             <div key={step} style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
               <span style={{ fontSize: 10, fontWeight: 800, fontFamily: "var(--font-display)", color: TK_CYAN, background: `${TK_CYAN}14`, border: `1px solid ${TK_CYAN}25`, borderRadius: 6, padding: "3px 8px", flexShrink: 0 }}>

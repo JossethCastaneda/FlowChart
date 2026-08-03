@@ -1,10 +1,10 @@
 import React from "react";
 import Link from "next/link";
-import { ZefirusLogo } from "@/components/ui/ZefirusLogo";
+import { FlowChartLogo } from "@/components/ui/FlowChartLogo";
 
 export const metadata = {
-  title: "Términos de Servicio — Zefirus",
-  description: "Términos y condiciones de uso de la plataforma Zefirus. Centro de mando de marketing multicanal.",
+  title: "Términos de Servicio — FlowChart",
+  description: "Términos y condiciones de uso de la plataforma FlowChart. Centro de mando de marketing multicanal.",
 };
 
 export default function LegalLayout({ children }: { children: React.ReactNode }) {
@@ -36,7 +36,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
           height: 60,
         }}>
           <Link href="/" style={{ textDecoration: "none" }}>
-            <ZefirusLogo />
+            <FlowChartLogo />
           </Link>
           <nav style={{ display: "flex", gap: 24, alignItems: "center" }}>
             <Link href="/legal/terms" style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none" }}>
@@ -74,7 +74,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
         marginTop: 80,
       }}>
         <p style={{ fontSize: 12, color: "var(--text-muted)" }}>
-           {new Date().getFullYear()} Zefirus. Todos los derechos reservados.
+           {new Date().getFullYear()} FlowChart. Todos los derechos reservados.
         </p>
         <div style={{ display: "flex", gap: 20, justifyContent: "center", marginTop: 12 }}>
           <Link href="/legal/terms" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none" }}>

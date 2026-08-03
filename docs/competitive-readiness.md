@@ -1,4 +1,4 @@
-# Zefirus — Auditoría de madurez competitiva (julio 2026)
+# FlowChart — Auditoría de madurez competitiva (julio 2026)
 
 Evaluación de la herramienta como **CRM (inbox)**, como **publisher rival de Hootsuite**
 y su preparación general para el mercado. Marca el estado actual, lo que se implementó en

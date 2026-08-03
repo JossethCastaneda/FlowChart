@@ -202,7 +202,7 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
         letterSpacing: "0.06em",
       }}>
         <Brain className="w-4 h-4" />
-        ANÁLISIS IA ZEFIRUS
+        ANÁLISIS IA FLOWCHART
       </div>
 
       {loading ? (

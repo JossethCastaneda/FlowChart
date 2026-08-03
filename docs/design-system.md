@@ -1,4 +1,4 @@
-# Zefirus Ink — Design System y Reglas de Integración (Figma MCP)
+# FlowChart Ink — Design System y Reglas de Integración (Figma MCP)
 
 > **Fuente de verdad**: `app/globals.css` (tokens) + este documento (reglas).
 > Vigente desde julio 2026. Reemplaza al antiguo "Imperial Command Center / 1A Comando"
@@ -79,7 +79,7 @@ azul `59,130,246` · azul claro `91,155,255` · verde `52,183,124` · ámbar `22
 | `.theme-claro` | Claro | Blanco/azul `#2563eb`; semánticos oscurecidos para contraste AA |
 | `.theme-azul-medianoche` | Azul medianoche | Azul profundo `#0c1220` |
 
-Mecanismo: `components/layout/ClientMainWrapper.tsx` lee/persiste `localStorage["zefirus:theme"]`
+Mecanismo: `components/layout/ClientMainWrapper.tsx` lee/persiste `localStorage["flowchart:theme"]`
 (valores `original | claro | azul_medianoche`) y aplica la clase. `app/layout.tsx` inyecta un
 script inline en `<head>` que aplica la clase **antes del primer paint** (anti-FOUC) — si se
 añade un tema nuevo hay que actualizar ambos sitios.
@@ -114,7 +114,7 @@ components/
   layout/        ← shell: ClientMainWrapper (sidebar+topbar), providers, WorkspaceSwitcher
   <módulo>/      ← ads-manager/, publisher/, inbox/, settings/, listening/, botmaker/…
   shared/        ← selectores reutilizados entre módulos
-lib/zefirus-kit/  ← registro de módulos/nav: modules.ts (fuente única), nav-items.ts, roles.ts
+lib/flowchart-kit/  ← registro de módulos/nav: modules.ts (fuente única), nav-items.ts, roles.ts
 stores/          ← zustand (insights, projects, publisher, clipboard)
 ```
 
@@ -162,9 +162,9 @@ Datos: `.stat-table`, `.data-row`, `.table-*`, `.badge-*`, `.status-dot-*`, `.st
 
 ## 5. Assets
 
-- `public/`: logos Zefirus (`zefirus-logo*.{jpg,png}`) + `public/icons/` con 15 SVG de
+- `public/`: logos FlowChart (`flowchart-logo*.{jpg,png}`) + `public/icons/` con 15 SVG de
   plataformas (meta, google-ads, ga4, gtm, tiktok, whatsapp, telegram, linkedin, x,
-  instagram, messenger, hubspot, botmaker, cari-ai, zefirus). Favicon: `app/icon.svg`.
+  instagram, messenger, hubspot, botmaker, cari-ai, flowchart). Favicon: `app/icon.svg`.
 - Subidas en runtime → **Vercel Blob** (`app/api/publisher/upload/route.ts`,
   `app/api/crecimiento/datasets/route.ts`). **Nunca** disco local (regla Zero Local State).
 - `next.config.ts` permite imágenes remotas de fbcdn/graph.facebook/cdninstagram/
@@ -188,11 +188,11 @@ Datos: `.stat-table`, `.data-row`, `.table-*`, `.badge-*`, `.status-dot-*`, `.st
 2. **Marcas/plataformas**: `components/ui/AppIcons.tsx` — 14 componentes (`MetaIcon`,
    `GoogleAdsIcon`, `TikTokAdsIcon`, `WhatsAppIcon`…) + mapa `APP_ICONS` (23 alias
    snake_case) + helper `getPlatformIcon(platformId)`. Es la ÚNICA fuente para logos.
-3. **Sidebar**: `lib/zefirus-kit/modules.ts` declara `icon` como nombre lucide en
+3. **Sidebar**: `lib/flowchart-kit/modules.ts` declara `icon` como nombre lucide en
    kebab-case; `ICON_MAP` en `components/layout/ClientMainWrapper.tsx` lo resuelve
    (tipado `Record<string, LucideIcon>`). **Todo icono nuevo en `modules.ts` debe
    añadirse a `ICON_MAP`** (si falta cae al fallback `LayoutDashboard`).
-4. **Marca Zefirus**: `ZefirusLogo` (wordmark + emblema) y `Orbi` (mascota). `HoloIcon`
+4. **Marca FlowChart**: `FlowChartLogo` (wordmark + emblema) y `Orbi` (mascota). `HoloIcon`
    es un wrapper legacy del sidebar: hoy pinta acento sólido del tema, sin glow —
    para iconos nuevos usar `SIcon`.
 
@@ -249,7 +249,7 @@ Reglas al implementar diseños que lleguen vía `get_design_context` / `get_scre
 - 33 emojis como iconos (peor: `app/dashboard/ads-manager/page.tsx` ×13).
 - `SIcon` casi sin adopción (los 117 archivos importan lucide directo con tamaños ad-hoc).
 - `CommandMenu.tsx` enlaza rutas muertas (`/dashboard/integraciones`, `/dashboard/miembros`).
-- `ZefirusIcon` duplicado con diseños distintos en `AppIcons.tsx` y `ZefirusLogo.tsx`;
+- `FlowChartIcon` duplicado con diseños distintos en `AppIcons.tsx` y `FlowChartLogo.tsx`;
   IDs SVG fijos sin `useId()` en algunos componentes de marca.
 - Casi nulo uso de `next/image`.
 - `components/projects/` vs `components/proyectos/` (naming EN/ES).

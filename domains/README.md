@@ -1,4 +1,4 @@
-# Arquitectura por Dominios (Domain-Driven Design) en Zefirus
+# Arquitectura por Dominios (Domain-Driven Design) en FlowChart
 
 Esta carpeta sirve como el hub arquitectónico de la aplicación, agrupando la lógica de negocio, tipos y componentes compartidos de cada módulo, de forma separada al enrutador (App Router).
 

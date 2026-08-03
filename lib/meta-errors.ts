@@ -1,5 +1,5 @@
 /**
- * Router de Manejo de Errores (Capa 3.3 del Sistema Zefirus)
+ * Router de Manejo de Errores (Capa 3.3 del Sistema FlowChart)
  * Mapea los códigos de error oficiales de Meta a acciones de sistema
  */
 

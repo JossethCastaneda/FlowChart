@@ -9,7 +9,7 @@
 
 ### 1. Seeds E2E (§4.2)
 
-**Archivo:** [prisma/seed.e2e.ts](file:///c:/Users/josse/OneDrive/Documentos/Zefirus/prisma/seed.e2e.ts)
+**Archivo:** [prisma/seed.e2e.ts](file:///c:/Users/josse/OneDrive/Documentos/FlowChart/prisma/seed.e2e.ts)
 
 Dos tenants adversarios con IDs determinísticos:
 
@@ -27,7 +27,7 @@ Safety: el script se niega a ejecutar si `DATABASE_URL` apunta a producción (ne
 
 ### 2. Tests de aislamiento funcional (§5)
 
-**Archivo:** [tests/tenant-isolation-functional.test.ts](file:///c:/Users/josse/OneDrive/Documentos/Zefirus/tests/tenant-isolation-functional.test.ts)
+**Archivo:** [tests/tenant-isolation-functional.test.ts](file:///c:/Users/josse/OneDrive/Documentos/FlowChart/tests/tenant-isolation-functional.test.ts)
 
 27 tests en dos capas:
 

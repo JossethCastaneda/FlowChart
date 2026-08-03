@@ -1,5 +1,5 @@
 /**
- * ZEFIRUS MMM — Auto-calibracion de parametros
+ * FLOWCHART MMM — Auto-calibracion de parametros
  * Grid search sobre lambda x alpha x K para maximizar R^2 del modelo.
  * Corre en el browser (cliente) — sin backend.
  */

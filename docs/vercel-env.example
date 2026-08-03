@@ -1,5 +1,5 @@
 # ============================================================================
-#  ZEFIRUS — Plantilla de variables de entorno para VERCEL
+#  FLOWCHART — Plantilla de variables de entorno para VERCEL
 #  Convención (AGENTS.md): PLATAFORMA_FUNCION_MODULO
 #
 #  CÓMO USAR:
@@ -118,7 +118,7 @@ ARIA_LLM_PROVIDER=gemini                                 # gemini | anthropic | 
 # └────────────────────────────────────────────────────────────────────────┘
 
 RESEND_API_KEY=<RESEND_API_KEY>
-RESEND_FROM_EMAIL=Zefirus <no-reply@TU_DOMINIO>
+RESEND_FROM_EMAIL=FlowChart <no-reply@TU_DOMINIO>
 
 
 # ┌────────────────────────────────────────────────────────────────────────┐

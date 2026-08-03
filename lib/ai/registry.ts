@@ -61,7 +61,7 @@ export function hasAnyProvider(): boolean {
 
 /**
  * Obtiene el proveedor y el modelo real configurado en el Workspace.
- * Al eliminar el módulo de Agentes, Zefirus opera estrictamente con el
+ * Al eliminar el módulo de Agentes, FlowChart opera estrictamente con el
  * modelo más potente (GPT-4o) de manera centralizada.
  */
 export async function getWorkspaceAiProvider(

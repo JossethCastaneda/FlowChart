@@ -1,4 +1,4 @@
-# Variables de entorno de Zefirus (Vercel)
+# Variables de entorno de FlowChart (Vercel)
 
 > Plantilla copy-paste: **`docs/vercel-env.example`**. Este documento explica cada
 > grupo, el mapeo de nombres y de dónde sale cada valor.

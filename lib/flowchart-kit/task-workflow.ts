@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════
-   ZEFIRUS · ÁRBOL DE TAREAS — máquina de estados de solicitudes entre áreas
+   FLOWCHART · ÁRBOL DE TAREAS — máquina de estados de solicitudes entre áreas
    Extiende el sistema que Ops/Tareas (✦ Misiones) ya tiene:
    areas, requestTypes (slaHours), assignee, attachments, targetAreaId,
    areaSlaStats. NO crea un sistema paralelo — formaliza los estados.

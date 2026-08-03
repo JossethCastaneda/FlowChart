@@ -59,7 +59,7 @@ describe("guardrail — browser navigation", () => {
   });
 
   it("rejects a denylist URL (*.vercel.app)", () => {
-    const result = runGuardrail(browserCall("Open https://zefirus-git-main-josseths.vercel.app/"));
+    const result = runGuardrail(browserCall("Open https://flowchart-git-main-josseths.vercel.app/"));
     expect(result.decision).toBe("deny");
   });
 
@@ -74,7 +74,7 @@ describe("guardrail — browser navigation", () => {
   });
 
   it("rejects a denylist URL (github.com/*/settings)", () => {
-    const result = runGuardrail(browserCall("Go to https://github.com/JossethCastaneda/Zefirus/settings"));
+    const result = runGuardrail(browserCall("Go to https://github.com/JossethCastaneda/FlowChart/settings"));
     expect(result.decision).toBe("deny");
   });
 

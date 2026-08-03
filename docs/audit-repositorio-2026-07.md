@@ -1,4 +1,4 @@
-# Auditoría de repositorio — Zefirus (2026-07-24)
+# Auditoría de repositorio — FlowChart (2026-07-24)
 
 > Auditoría del estado del repo en `main` (`59cecec`), contrastada contra documentación oficial
 > (Next.js 16 en `node_modules/next/dist/docs/`, GitHub Advisory Database vía `npm audit`,

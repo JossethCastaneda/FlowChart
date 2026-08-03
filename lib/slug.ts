@@ -8,7 +8,7 @@
  *
  * @example
  *   generateSlug("Agencia Mamá & Papá")  // → "agencia-mama-papa"
- *   generateSlug("Zefirus 2026!")          // → "zefirus-2026"
+ *   generateSlug("FlowChart 2026!")          // → "flowchart-2026"
  */
 export function generateSlug(name: string, maxLength = 50): string {
   return name

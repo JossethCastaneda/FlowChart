@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════
-   ZEFIRUS · REPORT GENERATOR
+   FLOWCHART · REPORT GENERATOR
    Genera snapshots inmutables de métricas de un proyecto
    para su visualización como reporte white-label.
    ════════════════════════════════════════════════════════════ */

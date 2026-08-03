@@ -237,7 +237,7 @@ export async function GET(request: NextRequest) {
 
     // 3c. Identidad del PERFIL DE FACEBOOK que otorgó el acceso (nickname +
     // avatar). Se guarda por módulo para que cada sección muestre la cuenta
-    // independiente con la que fue conectada — no el usuario de Zefirus.
+    // independiente con la que fue conectada — no el usuario de FlowChart.
     let connectedProfile: { id: string; name: string | null; picture: string | null } | null = null;
     try {
       const meRes = await metaFetch(

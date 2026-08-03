@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════
-   ZEFIRUS · REGISTRO CENTRAL DE MÓDULOS
+   FLOWCHART · REGISTRO CENTRAL DE MÓDULOS
    Fuente única para nombres, rutas, color de esencia, ícono y voz.
    Modelo de DOS CAPAS:
      · label → lo que ve el marketer en el menú (funcional, obvio)

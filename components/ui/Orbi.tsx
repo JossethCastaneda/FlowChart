@@ -3,7 +3,7 @@
 import React from "react";
 
 /**
- * ORBI — mascota/copiloto de Zefirus.
+ * ORBI — mascota/copiloto de FlowChart.
  * SVG/CSS puro, sin assets externos. Respeta prefers-reduced-motion.
  *
  * Uso:

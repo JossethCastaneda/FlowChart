@@ -11,7 +11,7 @@ export function useTaskFilters() {
 
   useEffect(() => {
     try {
-      const r = localStorage.getItem("zefirus:ops-prefs");
+      const r = localStorage.getItem("flowchart:ops-prefs");
       if (r) {
         const p = JSON.parse(r);
         // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
@@ -27,7 +27,7 @@ export function useTaskFilters() {
 
   useEffect(() => {
     try {
-      localStorage.setItem("zefirus:ops-prefs", JSON.stringify({ groupBy, viewMode, fAssignee, fPriority, fTag, fArea }));
+      localStorage.setItem("flowchart:ops-prefs", JSON.stringify({ groupBy, viewMode, fAssignee, fPriority, fTag, fArea }));
     } catch { /* ignore */ }
   }, [groupBy, viewMode, fAssignee, fPriority, fTag, fArea]);
 

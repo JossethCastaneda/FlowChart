@@ -1,5 +1,5 @@
 /**
- * CustomTooltip — Zefirus premium chart tooltip
+ * CustomTooltip — FlowChart premium chart tooltip
  * Sólido (sin blur), JetBrains Mono para valores, acento cyan izquierdo
  */
 
