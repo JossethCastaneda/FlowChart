@@ -1,6 +1,6 @@
 import { withWorkspace } from "@/lib/api-handler";
 import { validateBody } from "@/lib/validate";
-import { apiSuccess, apiCreated, apiServerError } from "@/lib/api-response";
+import { apiSuccess, apiCreated } from "@/lib/api-response";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import { z } from "zod";

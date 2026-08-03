@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { withWorkspace } from "@/lib/api-handler";
 import { decryptToken } from "@/lib/encryption";
 import prisma from "@/lib/prisma";

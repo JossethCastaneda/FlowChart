@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch , META_API_VERSION } from "@/lib/server-auth";
-import { mapMetaError } from "@/lib/meta-errors";
 import { validateBody } from "@/lib/validate";
 import { BulkActionSchema } from "@/lib/ads-schemas";
 

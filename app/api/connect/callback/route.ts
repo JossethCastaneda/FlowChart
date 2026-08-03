@@ -3,7 +3,6 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { getToken } from "next-auth/jwt";
 import prisma from "@/lib/prisma";
 import { encryptToken } from "@/lib/encryption";
-import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { env } from "@/lib/env";
 import { metaFetch } from "@/lib/server-auth";
 import { start } from "workflow/api";

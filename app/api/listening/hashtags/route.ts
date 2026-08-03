@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { withWorkspace } from "@/lib/api-handler";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
-import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
 export const GET = withWorkspace(async (request, ctx) => {

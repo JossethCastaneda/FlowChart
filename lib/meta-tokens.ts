@@ -9,7 +9,7 @@
  * REGLA CRÍTICA: User token ≠ Page token. No intercambiar.
  */
 
-import { decryptToken, encryptToken } from "@/lib/encryption";
+import { decryptToken } from "@/lib/encryption";
 import { logger } from "@/lib/logger";
 
 export interface PageTokenData {

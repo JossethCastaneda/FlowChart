@@ -1,6 +1,6 @@
-import { withAuth, withWorkspace, withWorkspaceRole } from "@/lib/api-handler";
+import { withAuth, withWorkspace } from "@/lib/api-handler";
 import { validateBody } from "@/lib/validate";
-import { apiSuccess, apiCreated, apiError, apiServerError } from "@/lib/api-response";
+import { apiSuccess, apiCreated, apiError } from "@/lib/api-response";
 import { logger } from "@/lib/logger";
 import { generateSlug, generateUniqueSlug } from "@/lib/slug";
 import prisma from "@/lib/prisma";

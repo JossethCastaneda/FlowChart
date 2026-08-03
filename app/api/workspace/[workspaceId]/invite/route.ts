@@ -1,6 +1,6 @@
 import { withAuth } from "@/lib/api-handler";
 import { validateBody } from "@/lib/validate";
-import { apiSuccess, apiCreated, apiError, apiNotFound, apiForbidden } from "@/lib/api-response";
+import { apiSuccess, apiCreated, apiError, apiForbidden } from "@/lib/api-response";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { logger } from "@/lib/logger";
 import { getBaseUrl } from "@/lib/get-base-url";

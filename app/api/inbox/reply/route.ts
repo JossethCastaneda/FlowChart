@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { withWorkspace } from "@/lib/api-handler";
 import { metaFetch } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";

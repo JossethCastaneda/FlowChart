@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { withWorkspace, withWorkspaceRole } from "@/lib/api-handler";
 import { z } from "zod";
 import prisma from "@/lib/prisma";

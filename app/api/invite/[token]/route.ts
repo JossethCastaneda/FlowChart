@@ -1,8 +1,8 @@
 import { withAuth, safeGetSession } from "@/lib/api-handler";
-import { apiSuccess, apiNotFound, apiForbidden, apiError, apiServerError } from "@/lib/api-response";
+import { apiSuccess, apiNotFound, apiForbidden, apiError } from "@/lib/api-response";
 import { ACTIVE_WORKSPACE_COOKIE } from "@/lib/active-workspace";
 import { logger } from "@/lib/logger";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 
 // GET /api/invite/[token] — get invite info (public, no auth required)

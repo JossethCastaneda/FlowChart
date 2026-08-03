@@ -10,7 +10,7 @@
  * AriaModel.params para aplicar exactamente la misma transformación al puntuar.
  */
 
-import type { ColumnProfile, FeatureArtifact, FeatureColumnSpec } from "./types";
+import type { ColumnProfile, FeatureArtifact } from "./types";
 import { isNullToken } from "./profiling";
 
 const MAX_CATEGORIES = 12;

@@ -1,6 +1,6 @@
 import { withAuth } from "@/lib/api-handler";
 import { validateBody } from "@/lib/validate";
-import { apiSuccess, apiNotFound, apiForbidden, apiError, apiServerError } from "@/lib/api-response";
+import { apiSuccess, apiNotFound, apiForbidden, apiError } from "@/lib/api-response";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { notifyTaskAssigned, notifyTaskStatusChanged, notifyTaskPriorityChanged } from "@/lib/notifications";
 import { updateAutoSLA } from "@/lib/sla-calculator";

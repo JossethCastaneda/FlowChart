@@ -1,6 +1,6 @@
 import { withWorkspace } from "@/lib/api-handler";
 import { validateBody } from "@/lib/validate";
-import { apiSuccess, apiCreated, apiError, apiNotFound, apiForbidden } from "@/lib/api-response";
+import { apiSuccess, apiError, apiNotFound, apiForbidden } from "@/lib/api-response";
 import { encryptToken } from "@/lib/encryption";
 import { logger } from "@/lib/logger";
 import { recordAudit } from "@/lib/audit";

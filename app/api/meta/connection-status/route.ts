@@ -1,5 +1,5 @@
 import { withWorkspace } from "@/lib/api-handler";
-import { apiSuccess, apiError } from "@/lib/api-response";
+import { apiSuccess } from "@/lib/api-response";
 import { metaFetch, META_API_VERSION } from "@/lib/server-auth";
 import { decryptToken } from "@/lib/encryption";
 import { getRequiredScopes, scopeGranted } from "@/lib/meta-scopes";
