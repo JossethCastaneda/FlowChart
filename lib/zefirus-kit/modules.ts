@@ -8,7 +8,6 @@
    ════════════════════════════════════════════════════════════ */
 
 export type ModuleKey =
-  | "agentes"
   | "resumen" | "clientes" | "publicacion" | "inbox" | "anuncios"
   | "escucha" | "envivo" | "briefs" | "tareas" | "chatbots"
   | "integraciones" | "configuracion" | "mmm"
@@ -37,9 +36,6 @@ export interface ModuleDef {
 
 export const MODULES: ModuleDef[] = [
   // ── OPERACIÓN — el día a día ──
-  // Agentes va PRIMERO en el menú: es el nodo principal de la capa de IA
-  // (catálogo de modelos por proveedor + contratación que potencia el sistema).
-  { key: "agentes",     label: "Agentes",  code: "Núcleo",   route: "/dashboard/agentes",  color: "var(--mod-agentes)",  icon: "sparkles",        tagline: "La IA que potencia tu sistema", group: "operacion" },
   { key: "resumen",     label: "Resumen",  code: "Pulso",    route: "/dashboard/resumen",  color: "var(--mod-resumen)",  icon: "activity",        tagline: "El latido de tu operación",   group: "operacion" },
   { key: "clientes",    label: "Clientes", code: "Cartera",  route: "/dashboard/proyectos", color: "var(--mod-clientes)", icon: "folder-kanban",  tagline: "Tus cuentas, en órbita",      group: "operacion",
     tabs: [
