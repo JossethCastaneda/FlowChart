@@ -498,12 +498,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Always redirect to /connect/done — it handles popup close OR fallback navigation
-    return NextResponse.redirect(`${baseUrl}/connect/done?integrationModule=${integrationModule}`);
+    return NextResponse.redirect(`${baseUrl}/connect/done?module=${integrationModule}`);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     logger.error("[CONNECT CALLBACK] Error:", err);
-    return NextResponse.redirect(`${baseUrl}/connect/done?integrationModule=&error=server_error`);
+    return NextResponse.redirect(`${baseUrl}/connect/done?module=${integrationModule}&error=server_error`);
   }
 }
 
@@ -818,10 +818,10 @@ async function handleInstagramDirectCallback({
       },
     }).catch((err) => logger.warn("[IG DIRECT CALLBACK] AuditLog failed:", err));
 
-    return NextResponse.redirect(`${baseUrl}/connect/done?integrationModule=instagram`);
+    return NextResponse.redirect(`${baseUrl}/connect/done?module=instagram`);
 
   } catch (err) {
     logger.error("[IG DIRECT CALLBACK] Unhandled error:", err);
-    return NextResponse.redirect(`${baseUrl}/connect/done?integrationModule=instagram&error=server_error`);
+    return NextResponse.redirect(`${baseUrl}/connect/done?module=instagram&error=server_error`);
   }
 }
