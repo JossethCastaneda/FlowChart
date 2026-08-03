@@ -127,7 +127,10 @@ export function GoogleHubCenter() {
       
       try {
         const adsRes = await fetch("/api/integrations/google/resources/ads").then(r => r.json());
-        if (adsRes.error) throw new Error(adsRes.error);
+        if (adsRes.error) {
+          const detail = adsRes.errorCode ? `(${adsRes.errorCode}) ${adsRes.error}` : adsRes.error;
+          throw new Error(detail);
+        }
         setAdsCustomers(adsRes.customers || []);
       } catch (err: any) {
         setErrorMsg(err.message || "Error al cargar cuentas de Google Ads.");

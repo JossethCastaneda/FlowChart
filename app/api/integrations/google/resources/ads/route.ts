@@ -21,6 +21,9 @@ export const GET = withWorkspace(async (request, ctx) => {
     return NextResponse.json({ error: "GOOGLE_ADS_DEVELOPER_TOKEN no configurado en el servidor" }, { status: 500 });
   }
 
+  // Log token presence (masked) for debugging
+  logger.info(`[Google Ads API] Developer token present: ${developerToken.length} chars, starts with: ${developerToken.substring(0, 4)}...`);
+
   try {
     // 1. Fetch accessible customer accounts
     const res = await googleFetch(`https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}/customers:listAccessibleCustomers`, accessToken, {
@@ -31,8 +34,19 @@ export const GET = withWorkspace(async (request, ctx) => {
 
     const data = await res.json();
     if (!res.ok) {
-      logger.error("[Google Ads API] Failed to fetch customers", data);
-      return NextResponse.json({ error: data.error?.message || "Failed to fetch accessible Ads customers" }, { status: 502 });
+      logger.error("[Google Ads API] Failed to fetch customers", {
+        httpStatus: res.status,
+        error: data.error,
+        fullResponse: JSON.stringify(data).substring(0, 1000),
+      });
+      const errorDetail = data.error?.details?.[0]?.errors?.[0]?.message
+        || data.error?.message
+        || `Google Ads API error (HTTP ${res.status})`;
+      return NextResponse.json({
+        error: errorDetail,
+        errorCode: data.error?.status || data.error?.code,
+        httpStatus: res.status,
+      }, { status: 502 });
     }
 
     const resourceNames: string[] = data.resourceNames || [];
