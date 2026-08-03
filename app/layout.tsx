@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter_Tight, JetBrains_Mono, Orbitron, Space_Grotesk, Sora } from "next/font/google";
+import { Inter_Tight, JetBrains_Mono, Orbitron, Space_Grotesk, Sora, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import "@/styles/animations.css";
 import { ClientMainWrapper } from "@/components/layout/ClientMainWrapper";
@@ -30,6 +30,7 @@ const jbMono = JetBrains_Mono({ subsets: ["latin", "latin-ext"], weight: ["400",
 const orbitron = Orbitron({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-orbitron" });
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600", "700"], variable: "--font-space" });
 const sora = Sora({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600", "700"], variable: "--font-sora" });
+const instrumentSerif = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--font-instrument" });
 
 export const viewport: Viewport = {
   themeColor: "var(--background)",
@@ -55,20 +56,20 @@ const safeUrl = (url: string | undefined): URL => {
 export const metadata: Metadata = {
   metadataBase: safeUrl(process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL),
   title: {
-    default: "Zefirus — Plataforma de Marketing Multicanal para Agencias | LATAM",
+    default: "Zefirus — El centro de mando para agencias de marketing",
     template: "%s | Zefirus",
   },
   description:
-    "Gestiona campañas de Meta Ads, TikTok Ads y Google Ads, inbox de WhatsApp y reportes de ROI en una sola plataforma. Diseñada para agencias y anunciantes en México y LATAM. Empieza gratis.",
+    "Maneja la pauta, el WhatsApp y el contenido de todas tus cuentas desde una sola pantalla. Meta, TikTok y Google Ads, inbox unificado y contenido con IA para agencias. Empieza gratis, sin tarjeta.",
   keywords: [
     "plataforma marketing digital",
     "gestión campañas publicitarias",
     "ads manager multicanal",
     "inbox unificado WhatsApp",
     "reportes ROI agencia",
-    "herramienta marketing LATAM",
+    "herramienta marketing multicuenta",
     "Meta Ads TikTok Google Ads",
-    "software agencias marketing México",
+    "software para agencias de marketing",
     "automatización marketing digital",
     "dashboard anuncios",
   ],
@@ -84,9 +85,9 @@ export const metadata: Metadata = {
     locale: "es_MX",
     url: "https://zefirus.xyz",
     siteName: "Zefirus",
-    title: "Zefirus — Tu Centro de Mando de Marketing Multicanal",
+    title: "Zefirus — El centro de mando para agencias de marketing",
     description:
-      "Unifica campañas de Meta, TikTok y Google Ads, inbox de WhatsApp y reportes de ROI. Diseñada para agencias en LATAM. Empieza gratis, sin tarjeta.",
+      "Maneja tus 20 clientes desde una sola pantalla: pauta, WhatsApp y contenido de todas tus cuentas en un solo login. Empieza gratis, sin tarjeta.",
     images: [
       {
         url: "/zefirus-logo-1024.jpg",
@@ -98,9 +99,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Zefirus — Marketing Multicanal para Agencias | LATAM",
+    title: "Zefirus — El centro de mando para agencias de marketing",
     description:
-      "Gestiona Meta Ads, TikTok Ads, Google Ads, WhatsApp y reportes de ROI en una sola plataforma. Empieza gratis.",
+      "Pauta, WhatsApp y contenido de todas tus cuentas en una sola pantalla. Para agencias. Empieza gratis, sin tarjeta.",
     images: ["/zefirus-logo-1024.jpg"],
   },
   robots: {
@@ -127,7 +128,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${inter.variable} ${jbMono.variable} ${orbitron.variable} ${spaceGrotesk.variable} ${sora.variable}`} suppressHydrationWarning>
+    <html lang="es" className={`${inter.variable} ${jbMono.variable} ${orbitron.variable} ${spaceGrotesk.variable} ${sora.variable} ${instrumentSerif.variable}`} suppressHydrationWarning>
       <head>
       </head>
       <body
