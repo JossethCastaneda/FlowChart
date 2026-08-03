@@ -62,7 +62,6 @@ export const GOOGLE_MODULES: GoogleModule[] = [
     ],
     scopes: [
       "https://www.googleapis.com/auth/analytics.readonly",
-      "https://www.googleapis.com/auth/webmasters.readonly",
     ],
     capabilities: ["read"],
     resourceTypes: ["ga4_property", "gsc_site"],

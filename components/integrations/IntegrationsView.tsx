@@ -157,7 +157,7 @@ const ALL_CHANNELS: ChannelDef[] = [
     managePage: "/dashboard/integrations/google-ads",
   },
   {
-    provider: "google_analytics",
+    provider: "page_analytics",
     name: "Google Analytics 4",
     description: "Sesiones, conversiones y engagement en tiempo real.",
     Icon: GA4Icon, iconBg: "#ffffff", iconLight: true,
@@ -165,7 +165,7 @@ const ALL_CHANNELS: ChannelDef[] = [
     managePage: "/dashboard/integrations/google-analytics",
   },
   {
-    provider: "google_tag",
+    provider: "tag_tracking",
     name: "Tag Manager",
     description: "Contenedores, tags y triggers sin tocar el código.",
     Icon: GTMIcon, iconBg: "#ffffff", iconLight: true,
@@ -275,10 +275,10 @@ export function IntegrationsView() {
       case "google_ads":
         // eslint-disable-next-line react-hooks/immutability -- TODO: [React] Refactor de hooks anti-patrón
         window.location.href = "/api/oauth/google/start?modules=google_ads"; break;
-      case "google_analytics":
+      case "page_analytics":
         // eslint-disable-next-line react-hooks/immutability -- TODO: [React] Refactor de hooks anti-patrón
         window.location.href = "/api/oauth/google/start?modules=page_analytics"; break;
-      case "google_tag":
+      case "tag_tracking":
         // eslint-disable-next-line react-hooks/immutability -- TODO: [React] Refactor de hooks anti-patrón
         window.location.href = "/api/oauth/google/start?modules=tag_tracking"; break;
       case "tiktok_ads":
