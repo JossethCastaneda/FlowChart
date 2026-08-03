@@ -29,6 +29,11 @@ const TRANSLATIONS = {
     select: "Seleccionar",
     selected: "Seleccionada",
     saving: "Guardando...",
+    manualEntryTitle: "Ingresar ID Manualmente",
+    manualEntryDesc: "Si tu cuenta no aparece (ej. por configuración de MCC o token de prueba), ingresa el ID de cliente de 10 dígitos (sin guiones).",
+    manualEntryPlaceholder: "1234567890",
+    manualEntryBtn: "Guardar ID",
+    manualEntryInvalid: "El ID debe contener 10 dígitos.",
   },
   en: {
     title: "Google Ads",
@@ -51,6 +56,11 @@ const TRANSLATIONS = {
     select: "Select",
     selected: "Selected",
     saving: "Saving...",
+    manualEntryTitle: "Enter ID Manually",
+    manualEntryDesc: "If your account doesn't appear (e.g. MCC setup or test token), enter the 10-digit customer ID (no dashes).",
+    manualEntryPlaceholder: "1234567890",
+    manualEntryBtn: "Save ID",
+    manualEntryInvalid: "ID must contain 10 digits.",
   }
 };
 
@@ -78,6 +88,8 @@ export default function GoogleAdsPage() {
   const [connected, setConnected] = useState(false);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [currentSelectedId, setCurrentSelectedId] = useState<string | null>(null);
+  const [manualId, setManualId] = useState("");
+  const [manualError, setManualError] = useState("");
 
   const fetchAccounts = useCallback(async () => {
     setLoading(true);
@@ -108,15 +120,22 @@ export default function GoogleAdsPage() {
   };
 
   const handleSelect = async (accountId: string) => {
-    setSavingId(accountId);
+    const rawId = accountId.replace(/\D/g, "");
+    if (rawId.length !== 10) {
+      setManualError(t.manualEntryInvalid);
+      return;
+    }
+    setManualError("");
+    setSavingId(rawId);
     try {
       const res = await fetch("/api/integrations/google/resources/ads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customerId: accountId })
+        body: JSON.stringify({ customerId: rawId })
       });
       if (res.ok) {
-        setCurrentSelectedId(accountId);
+        setCurrentSelectedId(rawId);
+        setManualId("");
       } else {
         const data = await res.json();
         alert(data.error || "Error al seleccionar la cuenta");
@@ -290,6 +309,39 @@ export default function GoogleAdsPage() {
                   </button>
                 </div>
               ))}
+
+              <div style={{ marginTop: 32, padding: "20px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface-hover)" }}>
+                <h3 style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{t.manualEntryTitle}</h3>
+                <p style={{ margin: "0 0 16px", fontSize: 12, color: "var(--text-secondary)" }}>{t.manualEntryDesc}</p>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <input
+                    type="text"
+                    value={manualId}
+                    onChange={(e) => setManualId(e.target.value)}
+                    placeholder={t.manualEntryPlaceholder}
+                    style={{
+                      flex: 1, padding: "8px 12px", borderRadius: 8,
+                      border: "1px solid var(--border-strong)",
+                      background: "var(--surface)", color: "var(--foreground)",
+                      fontSize: 13, fontFamily: "inherit"
+                    }}
+                  />
+                  <button
+                    onClick={() => handleSelect(manualId)}
+                    disabled={!manualId || savingId === manualId.replace(/\D/g, "")}
+                    style={{
+                      padding: "8px 16px", borderRadius: 8,
+                      background: "var(--foreground)", color: "var(--background)",
+                      fontSize: 12, fontWeight: 600, border: "none", cursor: (!manualId || savingId === manualId.replace(/\D/g, "")) ? "not-allowed" : "pointer",
+                      opacity: (!manualId || savingId === manualId.replace(/\D/g, "")) ? 0.6 : 1,
+                    }}
+                  >
+                    {savingId === manualId.replace(/\D/g, "") ? <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} /> : t.manualEntryBtn}
+                  </button>
+                </div>
+                {manualError && <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--red)" }}>{manualError}</p>}
+              </div>
+
             </div>
           )}
         </div>
