@@ -29,6 +29,7 @@ const TRANSLATIONS = {
     select: "Seleccionar",
     selected: "Seleccionada",
     saving: "Guardando...",
+    saveSelections: "Guardar Selección",
   },
   en: {
     title: "Google Analytics 4",
@@ -51,6 +52,7 @@ const TRANSLATIONS = {
     select: "Select",
     selected: "Selected",
     saving: "Saving...",
+    saveSelections: "Save Selection",
   }
 };
 
@@ -76,8 +78,8 @@ export default function GoogleAnalyticsPage() {
   const [error, setError] = useState<string | null>(null);
   const [reconnecting, setReconnecting] = useState(false);
   const [connected, setConnected] = useState(false);
-  const [savingId, setSavingId] = useState<string | null>(null);
-  const [currentSelectedId, setCurrentSelectedId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const fetchProperties = useCallback(async () => {
     setLoading(true);
@@ -91,6 +93,9 @@ export default function GoogleAnalyticsPage() {
       } else {
         setConnected(true);
         setProperties(data.properties || []);
+        if (data.selectedIds) {
+          setSelectedIds(data.selectedIds);
+        }
       }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     } catch (e: any) {
@@ -107,25 +112,31 @@ export default function GoogleAnalyticsPage() {
     window.location.href = "/api/oauth/google/start?modules=page_analytics";
   };
 
-  const handleSelect = async (propertyId: string) => {
-    setSavingId(propertyId);
+  const handleSaveSelections = async () => {
+    setSaving(true);
     try {
       const res = await fetch("/api/integrations/google/resources/ga4", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ propertyId })
+        body: JSON.stringify({ propertyIds: selectedIds })
       });
-      if (res.ok) {
-        setCurrentSelectedId(propertyId);
-      } else {
+      if (!res.ok) {
         const data = await res.json();
-        alert(data.error || "Error al seleccionar la propiedad");
+        alert(data.error || "Error al guardar la selección");
+      } else {
+        alert(t.saveSelections + " OK");
       }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
     } catch (e) {
       alert("Error de red");
     }
-    setSavingId(null);
+    setSaving(false);
+  };
+
+  const toggleSelection = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
   };
 
   return (
@@ -133,7 +144,7 @@ export default function GoogleAnalyticsPage() {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
-        .adaccount-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--surface-hover); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; transition: border-color 0.2s; }
+        .adaccount-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--surface-hover); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; transition: border-color 0.2s; cursor: pointer; }
         .adaccount-row[data-selected="true"] { border-color: var(--amber); background: rgba(251,191,36,0.05); }
       `}</style>
 
@@ -265,7 +276,7 @@ export default function GoogleAnalyticsPage() {
               )}
 
               {properties.map(property => (
-                <div key={property.id} className="adaccount-row" data-selected={currentSelectedId === property.id}>
+                <div key={property.id} className="adaccount-row" data-selected={selectedIds.includes(property.id)} onClick={() => toggleSelection(property.id)}>
                   <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--amber)", flexShrink: 0 }}>
                     <Database size={14} />
                   </div>
@@ -273,23 +284,33 @@ export default function GoogleAnalyticsPage() {
                     <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{property.displayName}</p>
                     <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)" }}>ID: {property.name}</p>
                   </div>
-                  <button
-                    onClick={() => handleSelect(property.id)}
-                    disabled={savingId === property.id || currentSelectedId === property.id}
-                    style={{
-                      padding: "6px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: currentSelectedId === property.id ? "default" : "pointer",
-                      background: currentSelectedId === property.id ? "rgba(251,191,36,0.1)" : "var(--surface-hover)",
-                      border: `1px solid ${currentSelectedId === property.id ? "rgba(251,191,36,0.3)" : "var(--border)"}`,
-                      color: currentSelectedId === property.id ? "var(--amber)" : "var(--foreground)",
-                      display: "flex", alignItems: "center", gap: 6,
-                    }}
-                  >
-                    {savingId === property.id && <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />}
-                    {currentSelectedId === property.id && <CheckCircle2 size={12} />}
-                    {savingId === property.id ? t.saving : currentSelectedId === property.id ? t.selected : t.select}
-                  </button>
+                  <div style={{
+                    width: 20, height: 20, borderRadius: 4, border: `1px solid ${selectedIds.includes(property.id) ? "var(--amber)" : "var(--border-strong)"}`,
+                    background: selectedIds.includes(property.id) ? "var(--amber)" : "transparent",
+                    display: "flex", alignItems: "center", justifyContent: "center", color: "var(--background)",
+                    transition: "all 0.2s"
+                  }}>
+                    {selectedIds.includes(property.id) && <CheckCircle2 size={14} />}
+                  </div>
                 </div>
               ))}
+
+              {properties.length > 0 && (
+                <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
+                  <button
+                    onClick={handleSaveSelections}
+                    disabled={saving}
+                    style={{
+                      padding: "10px 20px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: saving ? "wait" : "pointer",
+                      background: "var(--amber)", color: "var(--background)", border: "none",
+                      display: "flex", alignItems: "center", gap: 8
+                    }}
+                  >
+                    {saving && <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />}
+                    {t.saveSelections}
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

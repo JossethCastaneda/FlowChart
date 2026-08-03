@@ -54,7 +54,7 @@ export const GET = withWorkspace(async (request, ctx) => {
     // We need the integration ID for the cache
     const integration = await prisma.integration.findUnique({
       where: { workspaceId_provider_userId: { workspaceId, provider: "google", userId: "workspace" } },
-      select: { id: true },
+      select: { id: true, credentials: true },
     });
 
     // 2. Fetch descriptive names in parallel (best-effort)
@@ -153,7 +153,11 @@ export const GET = withWorkspace(async (request, ctx) => {
       })
     );
 
-    return NextResponse.json({ customers });
+    const creds = (integration?.credentials as unknown) as GoogleCredentials;
+    const selectedIds = creds?.resources?.google_ads?.customerIds || 
+                        (creds?.resources?.google_ads?.customerId ? [creds.resources.google_ads.customerId] : []);
+
+    return NextResponse.json({ customers, selectedIds });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     logger.error("[Google Ads API] Exception", err);
@@ -165,8 +169,8 @@ export const GET = withWorkspace(async (request, ctx) => {
 export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (request, ctx) => {
   const workspaceId = ctx.workspaceId;
 
-  const { customerId } = await request.json();
-  if (!customerId) return NextResponse.json({ error: "Missing customerId" }, { status: 400 });
+  const { customerIds } = await request.json();
+  if (!customerIds || !Array.isArray(customerIds)) return NextResponse.json({ error: "Missing customerIds array" }, { status: 400 });
 
   const integration = await prisma.integration.findUnique({
     where: { workspaceId_provider_userId: { workspaceId, provider: "google", userId: "workspace" } },
@@ -183,7 +187,7 @@ export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (request, ctx) =
       ...creds.resources,
       google_ads: {
         ...(creds.resources?.google_ads || {}),
-        customerId,
+        customerIds,
       },
     },
   };

@@ -31,6 +31,7 @@ const TRANSLATIONS = {
     select: "Seleccionar",
     selected: "Seleccionada",
     saving: "Guardando...",
+    saveSelections: "Guardar Selección",
     viewContainers: "Ver contenedores",
     backToAccounts: "Volver a cuentas",
   },
@@ -57,6 +58,7 @@ const TRANSLATIONS = {
     select: "Select",
     selected: "Selected",
     saving: "Saving...",
+    saveSelections: "Save Selection",
     viewContainers: "View containers",
     backToAccounts: "Back to accounts",
   }
@@ -93,8 +95,8 @@ export default function TagManagerPage() {
   const [connected, setConnected] = useState(false);
   
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
-  const [savingId, setSavingId] = useState<string | null>(null);
-  const [currentContainerId, setCurrentContainerId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [selectedContainers, setSelectedContainers] = useState<{ accountId: string; containerId: string }[]>([]);
 
   const fetchAccounts = useCallback(async () => {
     setLoading(true);
@@ -131,6 +133,9 @@ export default function TagManagerPage() {
       const res = await fetch(`/api/integrations/google/resources/gtm?accountId=${accountId}`);
       const data = await res.json();
       setContainers(data.containers || []);
+      if (data.selectedContainers) {
+        setSelectedContainers(data.selectedContainers);
+      }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
     } catch (e) {
       alert("Error al cargar contenedores");
@@ -138,26 +143,37 @@ export default function TagManagerPage() {
     setLoadingContainers(false);
   };
 
-  const handleSelectContainer = async (containerId: string) => {
+  const handleSaveSelections = async () => {
     if (!selectedAccountId) return;
-    setSavingId(containerId);
+    setSaving(true);
     try {
       const res = await fetch("/api/integrations/google/resources/gtm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accountId: selectedAccountId, containerId })
+        body: JSON.stringify({ tagContainers: selectedContainers })
       });
-      if (res.ok) {
-        setCurrentContainerId(containerId);
-      } else {
+      if (!res.ok) {
         const data = await res.json();
-        alert(data.error || "Error al seleccionar el contenedor");
+        alert(data.error || "Error al guardar la selección");
+      } else {
+        alert(t.saveSelections + " OK");
       }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
     } catch (e) {
       alert("Error de red");
     }
-    setSavingId(null);
+    setSaving(false);
+  };
+
+  const toggleSelection = (accountId: string, containerId: string) => {
+    setSelectedContainers(prev => {
+      const exists = prev.some(c => c.containerId === containerId);
+      if (exists) {
+        return prev.filter(c => c.containerId !== containerId);
+      } else {
+        return [...prev, { accountId, containerId }];
+      }
+    });
   };
 
   return (
@@ -166,6 +182,7 @@ export default function TagManagerPage() {
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
         .adaccount-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--surface-hover); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; transition: border-color 0.2s; }
+        .adaccount-row.clickable { cursor: pointer; }
         .adaccount-row[data-selected="true"] { border-color: var(--cyan); background: rgba(59,130,246,0.05); }
       `}</style>
 
@@ -352,34 +369,47 @@ export default function TagManagerPage() {
                   <p style={{ color: "var(--text-secondary)", fontSize: 13, margin: 0 }}>{t.noContainers}</p>
                 </div>
               ) : (
-                containers.map(container => (
-                  <div key={container.containerId} className="adaccount-row" data-selected={currentContainerId === container.containerId}>
-                    <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--emerald)", opacity: 0.2, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--emerald)", flexShrink: 0, position: "relative" }}>
+                containers.map(container => {
+                  const isSelected = selectedContainers.some(c => c.containerId === container.containerId);
+                  return (
+                    <div key={container.containerId} className="adaccount-row clickable" data-selected={isSelected} onClick={() => toggleSelection(selectedAccountId, container.containerId)}>
+                      <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--emerald)", opacity: 0.2, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--emerald)", flexShrink: 0, position: "relative" }}>
+                      </div>
+                      <div style={{ position: "absolute", marginLeft: 8, color: "var(--emerald)" }}>
+                        <Box size={16} />
+                      </div>
+                      <div style={{ flex: 1, marginLeft: 20 }}>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{container.name}</p>
+                        <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)" }}>{container.publicId} (ID: {container.containerId})</p>
+                      </div>
+                      <div style={{
+                        width: 20, height: 20, borderRadius: 4, border: `1px solid ${isSelected ? "var(--emerald)" : "var(--border-strong)"}`,
+                        background: isSelected ? "var(--emerald)" : "transparent",
+                        display: "flex", alignItems: "center", justifyContent: "center", color: "var(--background)",
+                        transition: "all 0.2s"
+                      }}>
+                        {isSelected && <CheckCircle2 size={14} />}
+                      </div>
                     </div>
-                    <div style={{ position: "absolute", marginLeft: 8, color: "var(--emerald)" }}>
-                      <Box size={16} />
-                    </div>
-                    <div style={{ flex: 1, marginLeft: 20 }}>
-                      <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{container.name}</p>
-                      <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)" }}>{container.publicId} (ID: {container.containerId})</p>
-                    </div>
-                    <button
-                      onClick={() => handleSelectContainer(container.containerId)}
-                      disabled={savingId === container.containerId || currentContainerId === container.containerId}
-                      style={{
-                        padding: "6px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: currentContainerId === container.containerId ? "default" : "pointer",
-                        background: currentContainerId === container.containerId ? "rgba(16,185,129,0.1)" : "var(--surface-hover)",
-                        border: `1px solid ${currentContainerId === container.containerId ? "rgba(16,185,129,0.3)" : "var(--border)"}`,
-                        color: currentContainerId === container.containerId ? "var(--emerald)" : "var(--foreground)",
-                        display: "flex", alignItems: "center", gap: 6,
-                      }}
-                    >
-                      {savingId === container.containerId && <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />}
-                      {currentContainerId === container.containerId && <CheckCircle2 size={12} />}
-                      {savingId === container.containerId ? t.saving : currentContainerId === container.containerId ? t.selected : t.select}
-                    </button>
-                  </div>
-                ))
+                  );
+                })
+              )}
+              
+              {containers.length > 0 && !loadingContainers && (
+                <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
+                  <button
+                    onClick={handleSaveSelections}
+                    disabled={saving}
+                    style={{
+                      padding: "10px 20px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: saving ? "wait" : "pointer",
+                      background: "var(--cyan)", color: "var(--background)", border: "none",
+                      display: "flex", alignItems: "center", gap: 8
+                    }}
+                  >
+                    {saving && <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />}
+                    {t.saveSelections}
+                  </button>
+                </div>
               )}
             </div>
           )}

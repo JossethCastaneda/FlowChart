@@ -14,10 +14,11 @@ export async function getAdsCampaigns(workspaceId: string, since?: string, until
   }
 
   const creds = integration.credentials as unknown as GoogleCredentials;
-  const customerId = creds.resources?.google_ads?.customerId;
+  const customerIds = creds.resources?.google_ads?.customerIds || 
+                      (creds.resources?.google_ads?.customerId ? [creds.resources.google_ads.customerId] : []);
 
-  if (!customerId) {
-    throw new Error("Módulo Google Ads no configurado (falta customerId)");
+  if (!customerIds || customerIds.length === 0) {
+    throw new Error("Módulo Google Ads no configurado (falta customerIds)");
   }
 
   const accessToken = await refreshAccessToken(workspaceId);
@@ -29,9 +30,6 @@ export async function getAdsCampaigns(workspaceId: string, since?: string, until
   if (!developerToken) {
     throw new Error("GOOGLE_ADS_DEVELOPER_TOKEN no configurado en el servidor");
   }
-
-  // Remove dashes from customer ID (Google Ads format: 123-456-7890 → 1234567890)
-  const cleanCustomerId = customerId.replace(/-/g, "");
 
   // since/until vienen de query params: valida YYYY-MM-DD antes de interpolar en GAQL
   const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -57,49 +55,56 @@ export async function getAdsCampaigns(workspaceId: string, since?: string, until
     WHERE ${dateCondition}
   `;
 
-  const url = `https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}/customers/${cleanCustomerId}/googleAds:searchStream`;
-
-  const res = await googleFetch(url, accessToken, {
-    method: "POST",
-    headers: {
-      "developer-token": developerToken,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ query }),
-  });
-
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.error?.message || `Google Ads API error: ${res.status}`);
-  }
-
-  const data = await res.json();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const campaigns: any[] = [];
 
-  for (const batch of data) {
-    for (const result of batch.results || []) {
-      const c = result.campaign;
-      const m = result.metrics || {};
-      
-      const spend = Number(m.costMicros || 0) / 1_000_000;
-      const clicks = Number(m.clicks || 0);
-      const impressions = Number(m.impressions || 0);
-      
-      campaigns.push({
-        id: String(c.id),
-        name: c.name,
-        status: c.status,
-        impressions,
-        clicks,
-        spend,
-        conversions: Number(m.conversions || 0),
-        conversionsValue: Number(m.conversionsValue || 0),
-        ctr: impressions > 0 ? clicks / impressions : 0,
-        cpc: clicks > 0 ? spend / clicks : 0,
-      });
-    }
-  }
+  await Promise.all(
+    customerIds.map(async (cid) => {
+      const cleanCustomerId = cid.replace(/-/g, "");
+      const url = `https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}/customers/${cleanCustomerId}/googleAds:searchStream`;
+
+      try {
+        const res = await googleFetch(url, accessToken, {
+          method: "POST",
+          headers: {
+            "developer-token": developerToken,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ query }),
+        });
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        for (const batch of data) {
+          for (const result of batch.results || []) {
+            const c = result.campaign;
+            const m = result.metrics || {};
+            
+            const spend = Number(m.costMicros || 0) / 1_000_000;
+            const clicks = Number(m.clicks || 0);
+            const impressions = Number(m.impressions || 0);
+            
+            campaigns.push({
+              id: String(c.id),
+              name: c.name,
+              status: c.status,
+              impressions,
+              clicks,
+              spend,
+              conversions: Number(m.conversions || 0),
+              conversionsValue: Number(m.conversionsValue || 0),
+              ctr: impressions > 0 ? clicks / impressions : 0,
+              cpc: clicks > 0 ? spend / clicks : 0,
+              accountId: cid // Add accountId to identify the campaign's account
+            });
+          }
+        }
+      } catch (e) {
+        console.error(`Error fetching campaigns for Google Ads account ${cid}:`, e);
+      }
+    })
+  );
 
   return { campaigns };
 }
@@ -117,10 +122,11 @@ export async function updateCampaignStatus(workspaceId: string, campaignId: stri
   }
 
   const creds = integration.credentials as unknown as GoogleCredentials;
-  const customerId = creds.resources?.google_ads?.customerId;
+  const customerIds = creds.resources?.google_ads?.customerIds || 
+                      (creds.resources?.google_ads?.customerId ? [creds.resources.google_ads.customerId] : []);
 
-  if (!customerId) {
-    throw new Error("Módulo Google Ads no configurado (falta customerId)");
+  if (!customerIds || customerIds.length === 0) {
+    throw new Error("Módulo Google Ads no configurado (falta customerIds)");
   }
 
   const accessToken = await refreshAccessToken(workspaceId);
@@ -133,34 +139,49 @@ export async function updateCampaignStatus(workspaceId: string, campaignId: stri
     throw new Error("GOOGLE_ADS_DEVELOPER_TOKEN no configurado en el servidor");
   }
 
-  const cleanCustomerId = customerId.replace(/-/g, "");
+  // We don't know which customerId owns the campaignId from the request, 
+  // so we try mutating them all sequentially until one succeeds, 
+  // or we could require the frontend to pass the customerId. 
+  // Since Zefirus currently only passes campaignId, we try all mapped accounts.
+  
+  let lastError = null;
+  let success = false;
 
-  const url = `https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}/customers/${cleanCustomerId}/campaigns:mutate`;
+  for (const cid of customerIds) {
+    const cleanCustomerId = cid.replace(/-/g, "");
+    const url = `https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}/customers/${cleanCustomerId}/campaigns:mutate`;
 
-  const mutateOperation = {
-    operations: [
-      {
-        update: {
-          resourceName: `customers/${cleanCustomerId}/campaigns/${campaignId}`,
-          status: status
-        },
-        updateMask: "status"
-      }
-    ]
-  };
+    const mutateOperation = {
+      operations: [
+        {
+          update: {
+            resourceName: `customers/${cleanCustomerId}/campaigns/${campaignId}`,
+            status: status
+          },
+          updateMask: "status"
+        }
+      ]
+    };
 
-  const res = await googleFetch(url, accessToken, {
-    method: "POST",
-    headers: {
-      "developer-token": developerToken,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(mutateOperation),
-  });
+    const res = await googleFetch(url, accessToken, {
+      method: "POST",
+      headers: {
+        "developer-token": developerToken,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(mutateOperation),
+    });
 
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.error?.message || `Google Ads mutate error: ${res.status}`);
+    if (res.ok) {
+      success = true;
+      break;
+    } else {
+      lastError = await res.json().catch(() => ({}));
+    }
+  }
+
+  if (!success) {
+    throw new Error(lastError?.error?.message || `Google Ads mutate error`);
   }
 
   return { success: true };

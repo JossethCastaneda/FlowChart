@@ -29,10 +29,11 @@ const TRANSLATIONS = {
     select: "Seleccionar",
     selected: "Seleccionada",
     saving: "Guardando...",
+    saveSelections: "Guardar Selección",
     manualEntryTitle: "Ingresar ID Manualmente",
     manualEntryDesc: "Si tu cuenta no aparece (ej. por configuración de MCC o token de prueba), ingresa el ID de cliente de 10 dígitos (sin guiones).",
     manualEntryPlaceholder: "1234567890",
-    manualEntryBtn: "Guardar ID",
+    manualEntryBtn: "Agregar ID",
     manualEntryInvalid: "El ID debe contener 10 dígitos.",
   },
   en: {
@@ -56,10 +57,11 @@ const TRANSLATIONS = {
     select: "Select",
     selected: "Selected",
     saving: "Saving...",
+    saveSelections: "Save Selection",
     manualEntryTitle: "Enter ID Manually",
     manualEntryDesc: "If your account doesn't appear (e.g. MCC setup or test token), enter the 10-digit customer ID (no dashes).",
     manualEntryPlaceholder: "1234567890",
-    manualEntryBtn: "Save ID",
+    manualEntryBtn: "Add ID",
     manualEntryInvalid: "ID must contain 10 digits.",
   }
 };
@@ -86,8 +88,8 @@ export default function GoogleAdsPage() {
   const [error, setError] = useState<string | null>(null);
   const [reconnecting, setReconnecting] = useState(false);
   const [connected, setConnected] = useState(false);
-  const [savingId, setSavingId] = useState<string | null>(null);
-  const [currentSelectedId, setCurrentSelectedId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [manualId, setManualId] = useState("");
   const [manualError, setManualError] = useState("");
 
@@ -103,6 +105,9 @@ export default function GoogleAdsPage() {
       } else {
         setConnected(true);
         setAccounts(data.customers || []);
+        if (data.selectedIds) {
+          setSelectedIds(data.selectedIds);
+        }
       }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
     } catch (e: any) {
@@ -119,32 +124,47 @@ export default function GoogleAdsPage() {
     window.location.href = "/api/oauth/google/start?modules=google_ads";
   };
 
-  const handleSelect = async (accountId: string) => {
-    const rawId = accountId.replace(/\D/g, "");
+  const handleAddManualId = () => {
+    const rawId = manualId.replace(/\D/g, "");
     if (rawId.length !== 10) {
       setManualError(t.manualEntryInvalid);
       return;
     }
     setManualError("");
-    setSavingId(rawId);
+    if (!accounts.some(a => a.id === rawId)) {
+      setAccounts(prev => [...prev, { id: rawId, name: `Cuenta Manual (${rawId})`, displayName: `Cuenta Manual (${rawId})` }]);
+    }
+    if (!selectedIds.includes(rawId)) {
+      setSelectedIds(prev => [...prev, rawId]);
+    }
+    setManualId("");
+  };
+
+  const handleSaveSelections = async () => {
+    setSaving(true);
     try {
       const res = await fetch("/api/integrations/google/resources/ads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customerId: rawId })
+        body: JSON.stringify({ customerIds: selectedIds })
       });
-      if (res.ok) {
-        setCurrentSelectedId(rawId);
-        setManualId("");
-      } else {
+      if (!res.ok) {
         const data = await res.json();
-        alert(data.error || "Error al seleccionar la cuenta");
+        alert(data.error || "Error al guardar la selección");
+      } else {
+        alert(t.saveSelections + " OK");
       }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
     } catch (e) {
       alert("Error de red");
     }
-    setSavingId(null);
+    setSaving(false);
+  };
+
+  const toggleSelection = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
   };
 
   return (
@@ -152,7 +172,7 @@ export default function GoogleAdsPage() {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
-        .adaccount-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--surface-hover); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; transition: border-color 0.2s; }
+        .adaccount-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--surface-hover); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; transition: border-color 0.2s; cursor: pointer; }
         .adaccount-row[data-selected="true"] { border-color: var(--cyan); background: rgba(59,130,246,0.05); }
       `}</style>
 
@@ -284,7 +304,7 @@ export default function GoogleAdsPage() {
               )}
 
               {accounts.map(account => (
-                <div key={account.id} className="adaccount-row" data-selected={currentSelectedId === account.id}>
+                <div key={account.id} className="adaccount-row" data-selected={selectedIds.includes(account.id)} onClick={() => toggleSelection(account.id)}>
                   <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--cyan-dim)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--cyan)", flexShrink: 0 }}>
                     <Database size={14} />
                   </div>
@@ -292,23 +312,33 @@ export default function GoogleAdsPage() {
                     <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{account.name}</p>
                     <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)" }}>ID: {account.id}</p>
                   </div>
-                  <button
-                    onClick={() => handleSelect(account.id)}
-                    disabled={savingId === account.id || currentSelectedId === account.id}
-                    style={{
-                      padding: "6px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: currentSelectedId === account.id ? "default" : "pointer",
-                      background: currentSelectedId === account.id ? "rgba(16,185,129,0.1)" : "var(--surface-hover)",
-                      border: `1px solid ${currentSelectedId === account.id ? "rgba(16,185,129,0.3)" : "var(--border)"}`,
-                      color: currentSelectedId === account.id ? "var(--emerald)" : "var(--foreground)",
-                      display: "flex", alignItems: "center", gap: 6,
-                    }}
-                  >
-                    {savingId === account.id && <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />}
-                    {currentSelectedId === account.id && <CheckCircle2 size={12} />}
-                    {savingId === account.id ? t.saving : currentSelectedId === account.id ? t.selected : t.select}
-                  </button>
+                  <div style={{
+                    width: 20, height: 20, borderRadius: 4, border: `1px solid ${selectedIds.includes(account.id) ? "var(--cyan)" : "var(--border-strong)"}`,
+                    background: selectedIds.includes(account.id) ? "var(--cyan)" : "transparent",
+                    display: "flex", alignItems: "center", justifyContent: "center", color: "var(--background)",
+                    transition: "all 0.2s"
+                  }}>
+                    {selectedIds.includes(account.id) && <CheckCircle2 size={14} />}
+                  </div>
                 </div>
               ))}
+
+              {accounts.length > 0 && (
+                <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
+                  <button
+                    onClick={handleSaveSelections}
+                    disabled={saving}
+                    style={{
+                      padding: "10px 20px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: saving ? "wait" : "pointer",
+                      background: "var(--cyan)", color: "var(--background)", border: "none",
+                      display: "flex", alignItems: "center", gap: 8
+                    }}
+                  >
+                    {saving && <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />}
+                    {t.saveSelections}
+                  </button>
+                </div>
+              )}
 
               <div style={{ marginTop: 32, padding: "20px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface-hover)" }}>
                 <h3 style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{t.manualEntryTitle}</h3>
@@ -327,16 +357,16 @@ export default function GoogleAdsPage() {
                     }}
                   />
                   <button
-                    onClick={() => handleSelect(manualId)}
-                    disabled={!manualId || savingId === manualId.replace(/\D/g, "")}
+                    onClick={handleAddManualId}
+                    disabled={!manualId}
                     style={{
                       padding: "8px 16px", borderRadius: 8,
                       background: "var(--foreground)", color: "var(--background)",
-                      fontSize: 12, fontWeight: 600, border: "none", cursor: (!manualId || savingId === manualId.replace(/\D/g, "")) ? "not-allowed" : "pointer",
-                      opacity: (!manualId || savingId === manualId.replace(/\D/g, "")) ? 0.6 : 1,
+                      fontSize: 12, fontWeight: 600, border: "none", cursor: (!manualId) ? "not-allowed" : "pointer",
+                      opacity: (!manualId) ? 0.6 : 1,
                     }}
                   >
-                    {savingId === manualId.replace(/\D/g, "") ? <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} /> : t.manualEntryBtn}
+                    {t.manualEntryBtn}
                   </button>
                 </div>
                 {manualError && <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--red)" }}>{manualError}</p>}

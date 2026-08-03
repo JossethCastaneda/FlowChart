@@ -25,10 +25,9 @@ export const GET = withWorkspace(async (request, ctx) => {
 
     const properties: { id: string; name: string; displayName: string }[] = [];
     
-    // We need the integration ID for the cache
     const integration = await prisma.integration.findUnique({
       where: { workspaceId_provider_userId: { workspaceId, provider: "google", userId: "workspace" } },
-      select: { id: true },
+      select: { id: true, credentials: true },
     });
 
     if (data.accountSummaries) {
@@ -71,7 +70,11 @@ export const GET = withWorkspace(async (request, ctx) => {
       }
     }
 
-    return NextResponse.json({ properties });
+    const creds = (integration?.credentials as unknown) as GoogleCredentials;
+    const selectedIds = creds?.resources?.page_analytics?.ga4PropertyIds || 
+                        (creds?.resources?.page_analytics?.ga4PropertyId ? [creds.resources.page_analytics.ga4PropertyId] : []);
+
+    return NextResponse.json({ properties, selectedIds });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   } catch (err: any) {
     logger.error("[GA4 API] Exception", err);
@@ -83,8 +86,8 @@ export const GET = withWorkspace(async (request, ctx) => {
 export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (request, ctx) => {
   const workspaceId = ctx.workspaceId;
 
-  const { propertyId } = await request.json();
-  if (!propertyId) return NextResponse.json({ error: "Missing propertyId" }, { status: 400 });
+  const { propertyIds } = await request.json();
+  if (!propertyIds || !Array.isArray(propertyIds)) return NextResponse.json({ error: "Missing propertyIds array" }, { status: 400 });
 
   const integration = await prisma.integration.findUnique({
     where: { workspaceId_provider_userId: { workspaceId, provider: "google", userId: "workspace" } },
@@ -101,7 +104,7 @@ export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (request, ctx) =
       ...creds.resources,
       page_analytics: {
         ...(creds.resources?.page_analytics || {}),
-        ga4PropertyId: propertyId,
+        ga4PropertyIds: propertyIds,
       },
     },
   };

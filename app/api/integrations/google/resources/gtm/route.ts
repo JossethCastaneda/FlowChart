@@ -34,7 +34,7 @@ export const GET = withWorkspace(async (request, ctx) => {
     // We need the integration ID for the cache
     const integration = await prisma.integration.findUnique({
       where: { workspaceId_provider_userId: { workspaceId, provider: "google", userId: "workspace" } },
-      select: { id: true },
+      select: { id: true, credentials: true },
     });
 
     if (accountId) {
@@ -70,7 +70,11 @@ export const GET = withWorkspace(async (request, ctx) => {
         }
       }
 
-      return NextResponse.json({ containers });
+      const creds = (integration?.credentials as unknown) as GoogleCredentials;
+      const selectedContainers = creds?.resources?.tag_tracking?.tagContainers || 
+                                 (creds?.resources?.tag_tracking?.accountId && creds?.resources?.tag_tracking?.containerId ? [{ accountId: creds.resources.tag_tracking.accountId, containerId: creds.resources.tag_tracking.containerId }] : []);
+
+      return NextResponse.json({ containers, selectedContainers });
     }
 
     const accounts = data.account || [];
@@ -114,8 +118,8 @@ export const GET = withWorkspace(async (request, ctx) => {
 export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (request, ctx) => {
   const workspaceId = ctx.workspaceId;
 
-  const { accountId, containerId } = await request.json();
-  if (!accountId || !containerId) return NextResponse.json({ error: "Missing accountId or containerId" }, { status: 400 });
+  const { tagContainers } = await request.json();
+  if (!tagContainers || !Array.isArray(tagContainers)) return NextResponse.json({ error: "Missing tagContainers array" }, { status: 400 });
 
   const integration = await prisma.integration.findUnique({
     where: { workspaceId_provider_userId: { workspaceId, provider: "google", userId: "workspace" } },
@@ -132,8 +136,7 @@ export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (request, ctx) =
       ...creds.resources,
       tag_tracking: {
         ...(creds.resources?.tag_tracking || {}),
-        accountId,
-        containerId,
+        tagContainers,
       },
     },
   };

@@ -26,7 +26,24 @@ export interface GoogleCredentials {
   grantedScopes?: string[];
   expiresAt?: number;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
-  resources?: Record<string, any>;
+  resources?: {
+    google_ads?: {
+      customerId?: string; // Legacy
+      customerIds?: string[];
+    };
+    page_analytics?: {
+      ga4PropertyId?: string; // Legacy
+      ga4PropertyIds?: string[];
+      gscSiteUrl?: string; // Legacy
+      gscSiteUrls?: string[];
+    };
+    tag_tracking?: {
+      accountId?: string; // Legacy
+      containerId?: string; // Legacy
+      tagContainers?: { accountId: string; containerId: string }[];
+    };
+    [key: string]: any;
+  };
   lastRequestedModules?: string[];
 }
 

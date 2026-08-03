@@ -274,6 +274,22 @@ function ProyectosContent() {
     } catch (err) { console.error("Failed to fetch meta ad accounts", err); }
   }, []);
 
+  const fetchGoogleAdsAccounts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/integrations/google/resources/ads");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.customers && json.selectedIds) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const selectedCustomers = json.customers.filter((c: any) => json.selectedIds.includes(c.id));
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const formatted = selectedCustomers.map((c: any) => ({ id: c.id, name: c.name, portfolio: "Google Ads" }));
+          setAdAccounts(prev => ({ ...prev, google: formatted }));
+        }
+      }
+    } catch (err) { console.error("Failed to fetch google ads accounts", err); }
+  }, []);
+
   const fetchMetaPages = useCallback(async () => {
     try {
       const [resSocial, resAds] = await Promise.all([
@@ -340,15 +356,17 @@ function ProyectosContent() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
         loadProjects();
     fetchMetaAccounts();
+    fetchGoogleAdsAccounts();
     fetchMetaPages();
     fetchIntegrations();
     const interval = setInterval(() => {
       fetchMetaAccounts();
+      fetchGoogleAdsAccounts();
       fetchMetaPages();
       fetchIntegrations();
     }, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [loadProjects, fetchMetaAccounts, fetchMetaPages, fetchIntegrations]);
+  }, [loadProjects, fetchMetaAccounts, fetchGoogleAdsAccounts, fetchMetaPages, fetchIntegrations]);
 
   // Transform ChannelConfig[] to DB Channel format for API
   function channelsToApi(channels: ChannelConfig[]) {
