@@ -29,10 +29,20 @@ export const GET = withWorkspace(async (request, ctx) => {
     for (const mod of ["publisher_facebook", "publisher_instagram", "social", "ads", "analytics", "community", "instagram"]) {
 
       // Modo estricto: cada módulo reporta SOLO su propia Integration
-      // (meta_<mod>). Sin fallback al genérico "meta" — mostrar "conectado"
-      // heredado de otro botón engaña a la UI mientras getMetaAccessToken
-      // (también estricto) devuelve null.
-      const integration = integrations.find((i) => i.provider === `meta_${mod}`);
+      // (meta_<mod>). Si no se encuentra, fallback a meta_undefined (bug de
+      // campo 'module' vs 'integrationModule' en el callback) y luego al
+      // genérico "meta" para no mostrar "desconectado" incorrectamente.
+      let integration = integrations.find((i) => i.provider === `meta_${mod}`);
+      if (!integration?.connected) {
+        // Fallback 1: meta_undefined (tokens envenenados por el bug del callback)
+        const orphan = integrations.find((i) => i.provider === "meta_undefined" && i.connected);
+        if (orphan) integration = orphan;
+      }
+      if (!integration?.connected) {
+        // Fallback 2: token genérico "meta"
+        const generic = integrations.find((i) => i.provider === "meta" && i.connected);
+        if (generic) integration = generic;
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
       const creds = integration?.credentials as any;
 
