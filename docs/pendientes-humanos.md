@@ -80,3 +80,20 @@ y requieren que un humano las ejecute:
 - Verificar variables de entorno en Vercel dashboard (vercel.com/dashboard)
 - Verificar configuración OAuth en Google Cloud Console (console.cloud.google.com)
 - Verificar tokens de acceso en Meta Business (business.facebook.com)
+
+---
+
+## 7. Ejecutar E2E de aislamiento tenant en navegador
+
+**Prioridad:** ALTA
+
+El test unitario de aislamiento (`tests/tenant-isolation-functional.test.ts`) verifica la
+lógica de acceso con mocks. El test E2E de browser descrito en §5 (login como Tenant A,
+fetch con IDs de B, verificar 403/404) requiere:
+
+1. Una base de datos de test accesible
+2. Ejecutar las seeds: `npx tsx prisma/seed.e2e.ts`
+3. Levantar el dev server
+4. Correr el spec de E2E (archivo pendiente de escribir: `e2e/aislamiento-tenant.spec.ts`)
+
+Las seeds ya están creadas en `prisma/seed.e2e.ts` con IDs determinísticos.
