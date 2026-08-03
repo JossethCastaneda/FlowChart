@@ -89,11 +89,69 @@ export async function getMetaAccessToken(
           }
         }
 
-        // Modo estricto para TODOS los módulos: si el módulo no tiene su propia
-        // Integration conectada, NO caemos al genérico "meta" (sería usar la
-        // cuenta vinculada en OTRO botón). El caller debe pedir conectar la
-        // sección en Integraciones. Excepción natural: alias que mapean a
-        // "meta" explícitamente (p. ej. "webhook") ya se resolvieron arriba.
+        // ── SELF-HEALING: Migración de meta_undefined ──
+        // Un bug en el callback de conexión (decoded.integrationModule vs decoded.module)
+        // causó que tokens se guardaran bajo "meta_undefined". Si el provider correcto
+        // no existe pero sí existe meta_undefined, lo migramos in-place.
+        if (!moduleIntegration?.connected) {
+          const orphan = await prisma.integration.findUnique({
+            where: {
+              workspaceId_provider_userId: { workspaceId, provider: "meta_undefined", userId: "workspace" },
+            },
+          });
+          if (orphan?.connected && orphan.credentials) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
+            const creds = orphan.credentials as any;
+            const expiresAt = creds.expiresAt ? new Date(creds.expiresAt) : null;
+            const isExpired = !!expiresAt && expiresAt.getTime() < Date.now();
+            if (creds.accessToken && !isExpired) {
+              // Migrar: crear la integración correcta y eliminar la huérfana
+              logger.info(`[SERVER-AUTH] Migrating meta_undefined → ${provider}`, { workspaceId });
+              await prisma.integration.upsert({
+                where: { workspaceId_provider_userId: { workspaceId, provider, userId: "workspace" } },
+                create: {
+                  workspaceId,
+                  provider,
+                  userId: "workspace",
+                  connected: true,
+                  connectedAt: orphan.connectedAt,
+                  connectedBy: orphan.connectedBy,
+                  credentials: orphan.credentials as object,
+                },
+                update: {
+                  connected: true,
+                  connectedAt: orphan.connectedAt,
+                  connectedBy: orphan.connectedBy,
+                  credentials: orphan.credentials as object,
+                },
+              });
+              await prisma.integration.delete({ where: { id: orphan.id } }).catch(() => {});
+              return decryptToken(creds.accessToken);
+            }
+          }
+        }
+
+        // Fallback al token genérico "meta" cuando el módulo específico no existe.
+        // Esto cubre el caso donde la conexión se hizo con el bug del campo
+        // y el token genérico sí se guardó correctamente.
+        if (!moduleIntegration?.connected) {
+          const genericIntegration = await prisma.integration.findUnique({
+            where: {
+              workspaceId_provider_userId: { workspaceId, provider: "meta", userId: "workspace" },
+            },
+          });
+          if (genericIntegration?.connected && genericIntegration.credentials) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
+            const creds = genericIntegration.credentials as any;
+            const expiresAt = creds.expiresAt ? new Date(creds.expiresAt) : null;
+            const isExpired = !!expiresAt && expiresAt.getTime() < Date.now();
+            if (creds.accessToken && !isExpired) {
+              logger.info(`[SERVER-AUTH] Using generic "meta" token as fallback for module "${module}"`, { workspaceId });
+              return decryptToken(creds.accessToken);
+            }
+          }
+        }
+
         return null;
       }
 

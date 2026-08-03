@@ -78,7 +78,10 @@ export async function GET(request: NextRequest) {
     }
 
     const decoded = JSON.parse(payload);
-    integrationModule = decoded.integrationModule;
+    // FIX: el connect route genera el campo como "module" en el state,
+    // pero aquí se leía como "integrationModule" → resultaba en undefined
+    // → el provider se guardaba como "meta_undefined". Ahora soportamos ambos.
+    integrationModule = decoded.module || decoded.integrationModule || "unknown";
     userId = decoded.userId;
     workspaceId = decoded.workspaceId || "";
 
