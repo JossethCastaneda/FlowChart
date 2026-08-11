@@ -24,12 +24,13 @@ export function showToast(type: ToastType, message: string) {
 }
 
 import { AlertTriangle } from "lucide-react";
+import { SIcon } from "@/components/ui/SIcon";
 
 const icons = {
-  success: <CheckCircle size={16} style={{ color: "var(--emerald)", flexShrink: 0 }} />,
-  error: <XCircle size={16} style={{ color: "var(--red)", flexShrink: 0 }} />,
-  info: <Info size={16} style={{ color: "var(--cyan)", flexShrink: 0 }} />,
-  warning: <AlertTriangle size={16} style={{ color: "var(--amber)", flexShrink: 0 }} />,
+  success: <SIcon icon={CheckCircle} size={16} style={{ color: "var(--fc-success)", flexShrink: 0 }} />,
+  error: <SIcon icon={XCircle} size={16} style={{ color: "var(--fc-danger)", flexShrink: 0 }} />,
+  info: <SIcon icon={Info} size={16} style={{ color: "var(--fc-accent)", flexShrink: 0 }} />,
+  warning: <SIcon icon={AlertTriangle} size={16} style={{ color: "var(--fc-warning)", flexShrink: 0 }} />,
 };
 
 export function ToastContainer() {
@@ -66,9 +67,9 @@ export function ToastContainer() {
           <span style={{ flex: 1 }}>{t.message}</span>
           <button
             onClick={() => dismiss(t.id)}
-            style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 2 }}
+            style={{ background: "none", border: "none", color: "var(--fc-text-muted)", cursor: "pointer", padding: 2 }}
           >
-            <X size={14} />
+            <SIcon icon={X} size={14} />
           </button>
         </div>
       ))}

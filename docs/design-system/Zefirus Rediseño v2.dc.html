@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/broadsheet-033c04de-039e-4488-8a8d-ba15f52bd7e6/styles.css">
+<script src="_ds/broadsheet-033c04de-039e-4488-8a8d-ba15f52bd7e6/_ds_bundle.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; }
+  a:hover { color: var(--color-accent-700); }
+</style>
+</helmet>
+
+<article style="max-width: 1180px; margin: 0 auto; padding: 60px 40px 120px;">
+
+  <header style="display: flex; flex-direction: column; gap: 30px; margin-bottom: 40px;">
+    <div style="height: 5px; background: var(--color-text);"></div>
+    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 20px; flex-wrap: wrap; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-neutral-700);">
+      <div>Zefirus · Propuesta de rediseño</div>
+      <div>Nº 1 · 4 de agosto de 2026 · Grupo Concentra</div>
+    </div>
+    <div style="height: 1px; background: var(--color-text);"></div>
+  </header>
+
+  <section style="display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 40px; align-items: start; margin-bottom: 40px;">
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+      <h1 style="margin: 0; font-size: 68px; line-height: 1.02; letter-spacing: -0.025em;">Un acento, dos temas, ocho entradas</h1>
+      <p style="margin: 0; font-size: 20px; line-height: 1.5; font-style: italic; color: var(--color-neutral-800);">El sistema actual está bien construido y mal presupuestado: gasta color en identificar módulos y se queda sin color para identificar datos.</p>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 15px; padding-top: 10px;">
+      <p style="margin: 0; font-size: 15px; line-height: 1.6;">Esta propuesta recorta la superficie de decisión, no la funcionalidad. Está construida sobre los tokens que ya existen en <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--color-accent-700);">app/globals.css</span>, sin un solo hex nuevo salvo una excepción declarada.</p>
+      <p style="margin: 0; font-size: 15px; line-height: 1.6;">Cuatro cortes, cuatro fases. La primera es medio día de trabajo, un solo <em>pull request</em>, y ya se ve completa.</p>
+    </div>
+  </section>
+
+  <div style="height: 1px; background: var(--color-neutral-300); margin-bottom: 40px;"></div>
+
+  <section style="margin-bottom: 40px;">
+    <h6 style="margin: 0 0 30px; color: var(--color-neutral-700);">I · Diagnóstico</h6>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 40px 30px;">
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="cmyk-num" style="font-size: 62px; font-weight: 700;">
+          <span class="paper">21</span>
+          <span class="plate plate-y" aria-hidden="true">21</span>
+          <span class="plate plate-m" aria-hidden="true">21</span>
+          <span class="plate plate-c" aria-hidden="true">21</span>
+        </div>
+        <h3 style="margin: 0; font-size: 20px;">acentos compitiendo</h3>
+        <p style="margin: 0; font-size: 14px; line-height: 1.55; color: var(--color-neutral-800);">Quince tokens <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">--mod-*</span> de acento por módulo, más seis hex sueltos en <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">RESERVED_ACCENTS</span>. Cuando todo tiene color propio, el color deja de significar.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="cmyk-num" style="font-size: 62px; font-weight: 700;">
+          <span class="paper">14</span>
+          <span class="plate plate-y" aria-hidden="true">14</span>
+          <span class="plate plate-m" aria-hidden="true">14</span>
+          <span class="plate plate-c" aria-hidden="true">14</span>
+        </div>
+        <h3 style="margin: 0; font-size: 20px;">codenames sin función</h3>
+        <p style="margin: 0; font-size: 14px; line-height: 1.55; color: var(--color-neutral-800);">Pulso, Cartera, Señal, Misiones, Nova, Lanzadera, Impulso, Convergencia, Radar, Órbita, Oráculo, Bitácora, Enlaces, Consola. Nadie navega con ellos y cada uno arrastra un color y un lema.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="cmyk-num" style="font-size: 62px; font-weight: 700;">
+          <span class="paper">3</span>
+          <span class="plate plate-y" aria-hidden="true">3</span>
+          <span class="plate plate-m" aria-hidden="true">3</span>
+          <span class="plate plate-c" aria-hidden="true">3</span>
+        </div>
+        <h3 style="margin: 0; font-size: 20px;">temas que auditar</h3>
+        <p style="margin: 0; font-size: 14px; line-height: 1.55; color: var(--color-neutral-800);">Ink, Claro y Azul medianoche. Cada estilo nuevo debe verse bien en tres sets de tokens. El tercero no aporta una decisión de producto, solo triplica el costo de revisión.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="cmyk-num" style="font-size: 62px; font-weight: 700;">
+          <span class="paper">440</span>
+          <span class="plate plate-y" aria-hidden="true">440</span>
+          <span class="plate plate-m" aria-hidden="true">440</span>
+          <span class="plate plate-c" aria-hidden="true">440</span>
+        </div>
+        <h3 style="margin: 0; font-size: 20px;">literales inline</h3>
+        <p style="margin: 0; font-size: 14px; line-height: 1.55; color: var(--color-neutral-800);">290 <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">fontFamily</span> y 150 <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">boxShadow</span> en TSX, 66 SVG que duplican <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">AppIcons</span>, 33 emojis como iconos y <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">SIcon</span> prácticamente sin adoptar.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <section style="max-width: 640px; margin-bottom: 60px;">
+    <p style="margin: 0; font-size: 21px; line-height: 1.45; font-style: italic;">El diagnóstico no es «falta diseño». Es que el presupuesto de color y de navegación está gastado en decoración de módulo, y el dato del cliente —qué canal, qué estado, qué cifra— se queda sin señal. Todo lo que sigue mueve ese presupuesto.</p>
+  </section>
+
+  <section style="margin-bottom: 60px;">
+    <h6 style="margin: 0 0 30px; color: var(--color-neutral-700);">II · Los cuatro cortes</h6>
+    <table class="table">
+      <thead>
+        <tr>
+          <th style="width: 40px;">Nº</th>
+          <th>Corte</th>
+          <th style="width: 260px;">Qué se elimina</th>
+          <th style="width: 90px; text-align: right;">Impacto</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-size: 15px; color: var(--color-accent-700);">01</td>
+          <td>
+            <div style="font-size: 17px; font-weight: 600; margin-bottom: 5px;">El color deja de identificar módulos</div>
+            <div style="font-size: 14px; line-height: 1.55; color: var(--color-neutral-800);">Un solo acento azul en toda la app. El color pasa a significar dos cosas y solo dos: de qué canal viene el dato, y en qué estado está.</div>
+          </td>
+          <td style="font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.8; color: var(--color-neutral-700);">--mod-* (15)<br>RESERVED_ACCENTS (6)<br>prop color de KpiCard</td>
+          <td style="text-align: right;"><span class="tag tag-accent-2">alto</span></td>
+        </tr>
+        <tr>
+          <td style="font-size: 15px; color: var(--color-accent-700);">02</td>
+          <td>
+            <div style="font-size: 17px; font-weight: 600; margin-bottom: 5px;">Dos temas, no tres</div>
+            <div style="font-size: 14px; line-height: 1.55; color: var(--color-neutral-800);">Ink y Claro. Azul medianoche se retira: es un tercer set de tokens que nadie audita y que ningún usuario pidió.</div>
+          </td>
+          <td style="font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.8; color: var(--color-neutral-700);">:root.theme-azul-medianoche<br>su valor en localStorage<br>una rama del anti-FOUC</td>
+          <td style="text-align: right;"><span class="tag tag-neutral">bajo</span></td>
+        </tr>
+        <tr>
+          <td style="font-size: 15px; color: var(--color-accent-700);">03</td>
+          <td>
+            <div style="font-size: 17px; font-weight: 600; margin-bottom: 5px;">Los codenames salen del producto</div>
+            <div style="font-size: 14px; line-height: 1.55; color: var(--color-neutral-800);">La capa <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">code</span> y su <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">tagline</span> se quedan como lenguaje interno de equipo y de roadmap. En pantalla solo vive <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">label</span>.</div>
+          </td>
+          <td style="font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.8; color: var(--color-neutral-700);">code y tagline de la UI<br>lemas en headers y en Orbi<br>el modelo de dos capas</td>
+          <td style="text-align: right;"><span class="tag tag-outline">medio</span></td>
+        </tr>
+        <tr>
+          <td style="font-size: 15px; color: var(--color-accent-700);">04</td>
+          <td>
+            <div style="font-size: 17px; font-weight: 600; margin-bottom: 5px;">Ocho entradas de navegación</div>
+            <div style="font-size: 14px; line-height: 1.55; color: var(--color-neutral-800);">Los catorce módulos actuales se agrupan en ocho entradas visibles. Lo que hoy es módulo con sidebar propio y baja frecuencia de uso pasa a pestaña de su padre.</div>
+          </td>
+          <td style="font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.8; color: var(--color-neutral-700);">6 ítems del sidebar<br>los 4 grupos visibles<br>rutas muertas de CommandMenu</td>
+          <td style="text-align: right;"><span class="tag tag-outline">medio</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section style="margin-bottom: 60px;">
+    <h6 style="margin: 0 0 30px; color: var(--color-neutral-700);">III · Presupuesto de color</h6>
+    <div style="display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr); gap: 40px;">
+
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <h3 style="margin: 0; font-size: 22px;">Se conserva</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px 10px;">
+          <div style="display: flex; flex-direction: column; gap: 5px;"><div style="height: 54px; border-radius: var(--radius-md); background: #3b82f6;"></div><div style="font-size: 13px; font-weight: 600;">Acción</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--color-neutral-700);">--c-brand</div></div>
+          <div style="display: flex; flex-direction: column; gap: 5px;"><div style="height: 54px; border-radius: var(--radius-md); background: #5b9bff;"></div><div style="font-size: 13px; font-weight: 600;">Texto</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--color-neutral-700);">--cyan</div></div>
+          <div style="display: flex; flex-direction: column; gap: 5px;"><div style="height: 54px; border-radius: var(--radius-md); background: #34b77c;"></div><div style="font-size: 13px; font-weight: 600;">Éxito</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--color-neutral-700);">--c-success</div></div>
+          <div style="display: flex; flex-direction: column; gap: 5px;"><div style="height: 54px; border-radius: var(--radius-md); background: #e0a83c;"></div><div style="font-size: 13px; font-weight: 600;">Aviso</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--color-neutral-700);">--c-warning</div></div>
+          <div style="display: flex; flex-direction: column; gap: 5px;"><div style="height: 54px; border-radius: var(--radius-md); background: #e5484d;"></div><div style="font-size: 13px; font-weight: 600;">Peligro</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--color-neutral-700);">--c-danger</div></div>
+          <div style="display: flex; flex-direction: column; gap: 5px;"><div style="height: 54px; border-radius: var(--radius-md); background: #8b8df2;"></div><div style="font-size: 13px; font-weight: 600;">Info</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--color-neutral-700);">--c-info</div></div>
+        </div>
+        <p style="margin: 0; font-size: 14px; line-height: 1.55; color: var(--color-neutral-800);">Seis tokens para toda la app. El violeta baja a un solo uso: acento secundario de gráficas.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <h3 style="margin: 0; font-size: 22px;">Se elimina</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+          <div style="width: 30px; height: 30px; border-radius: var(--radius-md); background: #3898ac; opacity: .3;"></div>
+          <div style="width: 30px; height: 30px; border-radius: var(--radius-md); background: #45aec2; opacity: .3;"></div>
+          <div style="width: 30px; height: 30px; border-radius: var(--radius-md); background: #d9822b; opacity: .3;"></div>
+          <div style="width: 30px; height: 30px; border-radius: var(--radius-md); background: #bc5fb2; opacity: .3;"></div>
+          <div style="width: 30px; height: 30px; border-radius: var(--radius-md); background: #d98843; opacity: .3;"></div>
+          <div style="width: 30px; height: 30px; border-radius: var(--radius-md); background: #2b9a67; opacity: .3;"></div>
+          <div style="width: 30px; height: 30px; border-radius: var(--radius-md); background: #2563eb; opacity: .3;"></div>
+          <div style="width: 30px; height: 30px; border-radius: var(--radius-md); background: var(--color-neutral-300);"></div>
+          <div style="width: 30px; height: 30px; border-radius: var(--radius-md); background: var(--color-neutral-300);"></div>
+          <div style="width: 30px; height: 30px; border-radius: var(--radius-md); background: var(--color-neutral-300);"></div>
+          <div style="width: 30px; height: 30px; border-radius: var(--radius-md); background: var(--color-neutral-300);"></div>
+          <div style="width: 30px; height: 30px; border-radius: var(--radius-md); background: var(--color-neutral-300);"></div>
+        </div>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-800);">Los quince <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">--mod-*</span> y los seis de <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">RESERVED_ACCENTS</span>.</p>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-800);">Los cuatro degradados de <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">ZefirusBrandDefs</span>: un degradado de dos tonos del mismo azul no aporta información y ya no hay marca holográfica que sostener.</p>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-800);">La prop <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">color</span> de <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">KpiCard</span> y su <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">COLOR_MAP</span>.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <h3 style="margin: 0; font-size: 22px;">Se añade</h3>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;"><div style="width: 8px; height: 8px; border-radius: 50%; background: #4285F4;"></div><div style="flex: 1; font-size: 14px;">Google Ads</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--color-neutral-700);">--ch-google</div></div>
+          <div style="display: flex; align-items: center; gap: 10px;"><div style="width: 8px; height: 8px; border-radius: 50%; background: #0866FF;"></div><div style="flex: 1; font-size: 14px;">Meta Ads</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--color-neutral-700);">--ch-meta</div></div>
+          <div style="display: flex; align-items: center; gap: 10px;"><div style="width: 8px; height: 8px; border-radius: 50%; background: #FE2C55;"></div><div style="flex: 1; font-size: 14px;">TikTok Ads</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--color-neutral-700);">--ch-tiktok</div></div>
+          <div style="display: flex; align-items: center; gap: 10px;"><div style="width: 8px; height: 8px; border-radius: 50%; background: #25D366;"></div><div style="flex: 1; font-size: 14px;">WhatsApp</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--color-neutral-700);">--ch-whatsapp</div></div>
+        </div>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-800);">Solo punto de 7px o riel de 3px. Nunca fondo, nunca botón. Es la excepción declarada a «cero hex nuevos»: son colores de terceros, no de marca.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <section style="margin-bottom: 60px;">
+    <h6 style="margin: 0 0 30px; color: var(--color-neutral-700);">IV · Navegación · antes y después</h6>
+    <div style="display: grid; grid-template-columns: 250px 250px minmax(0, 1fr); gap: 40px 30px; align-items: start;">
+
+      <figure style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="border-radius: var(--radius-md); background: #12151c; padding: 15px 12px; font-family: 'Inter Tight', sans-serif; color: #e8ebf0; display: flex; flex-direction: column; gap: 2px;">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: #667082; padding: 7px 10px 4px;">Operación</div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 6px 10px;"><div style="width: 13px; height: 13px; border-radius: 4px; background: #5b9bff; flex: none;"></div><div style="flex: 1; font-size: 12px;">Resumen</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #667082;">Pulso</div></div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 6px 10px;"><div style="width: 13px; height: 13px; border-radius: 4px; background: #45aec2; flex: none;"></div><div style="flex: 1; font-size: 12px;">Clientes</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #667082;">Cartera</div></div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 6px 10px;"><div style="width: 13px; height: 13px; border-radius: 4px; background: #34b77c; flex: none;"></div><div style="flex: 1; font-size: 12px;">Inbox</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #667082;">Señal</div></div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 6px 10px;"><div style="width: 13px; height: 13px; border-radius: 4px; background: #e0a83c; flex: none;"></div><div style="flex: 1; font-size: 12px;">Tareas</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #667082;">Misiones</div></div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: #667082; padding: 8px 10px 4px;">Contenido</div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 6px 10px;"><div style="width: 13px; height: 13px; border-radius: 4px; background: #8b8df2; flex: none;"></div><div style="flex: 1; font-size: 12px;">Briefs IA</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #667082;">Nova</div></div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 6px 10px;"><div style="width: 13px; height: 13px; border-radius: 4px; background: #bc5fb2; flex: none;"></div><div style="flex: 1; font-size: 12px;">Publicación</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #667082;">Lanzadera</div></div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: #667082; padding: 8px 10px 4px;">Crecimiento</div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 6px 10px;"><div style="width: 13px; height: 13px; border-radius: 4px; background: #d98843; flex: none;"></div><div style="flex: 1; font-size: 12px;">Anuncios</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #667082;">Impulso</div></div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 6px 10px;"><div style="width: 13px; height: 13px; border-radius: 4px; background: #3898ac; flex: none;"></div><div style="flex: 1; font-size: 12px;">Centurion MMM</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #667082;">Conv.</div></div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 6px 10px;"><div style="width: 13px; height: 13px; border-radius: 4px; background: #d9822b; flex: none;"></div><div style="flex: 1; font-size: 12px;">Escucha</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #667082;">Radar</div></div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 6px 10px;"><div style="width: 13px; height: 13px; border-radius: 4px; background: #2b9a67; flex: none;"></div><div style="flex: 1; font-size: 12px;">En vivo</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #667082;">Órbita</div></div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 6px 10px;"><div style="width: 13px; height: 13px; border-radius: 4px; background: #2563eb; flex: none;"></div><div style="flex: 1; font-size: 12px;">Aria IA</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #667082;">Oráculo</div></div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 6px 10px;"><div style="width: 13px; height: 13px; border-radius: 4px; background: #45aec2; flex: none;"></div><div style="flex: 1; font-size: 12px;">Reportes</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #667082;">Bitácora</div></div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: #667082; padding: 8px 10px 4px;">Sistema</div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 6px 10px;"><div style="width: 13px; height: 13px; border-radius: 4px; background: #667082; flex: none;"></div><div style="flex: 1; font-size: 12px; color: #9aa4b2;">Integraciones</div></div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 6px 10px;"><div style="width: 13px; height: 13px; border-radius: 4px; background: #667082; flex: none;"></div><div style="flex: 1; font-size: 12px; color: #9aa4b2;">Configuración</div></div>
+        </div>
+        <figcaption>Antes · 14 ítems, 15 acentos, 4 encabezados de grupo.</figcaption>
+      </figure>
+
+      <figure style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="border-radius: var(--radius-md); background: #12151c; padding: 15px 12px; font-family: 'Inter Tight', sans-serif; color: #e8ebf0; display: flex; flex-direction: column; gap: 18px;">
+          <div style="display: flex; align-items: center; gap: 10px; padding: 4px 10px;">
+            <div style="width: 22px; height: 22px; border-radius: 7px; background: #3b82f6; flex: none;"></div>
+            <div style="font-size: 15px; font-weight: 700; letter-spacing: -.02em;">Zefirus</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <div style="display: flex; align-items: center; gap: 11px; padding: 8px 11px; border-radius: 7px; background: rgba(59,130,246,.12);">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5b9bff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="M3 12h4l3-7 4 14 3-7h4"></path></svg>
+              <div style="flex: 1; font-size: 12px; font-weight: 600; color: #5b9bff;">Resumen</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 11px; padding: 8px 11px; border-radius: 7px;">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#9aa4b2" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M9 8v12"></path></svg>
+              <div style="flex: 1; font-size: 12px; color: #9aa4b2;">Clientes</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 11px; padding: 8px 11px; border-radius: 7px;">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#9aa4b2" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="M4 5h16v10H8l-4 4z"></path></svg>
+              <div style="flex: 1; font-size: 12px; color: #9aa4b2;">Inbox</div>
+              <div style="padding: 1px 7px; border-radius: 999px; background: rgba(59,130,246,.16); color: #5b9bff; font-family: 'JetBrains Mono', monospace; font-size: 10px;">12</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 11px; padding: 8px 11px; border-radius: 7px;">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#9aa4b2" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="M4 5h13l3 4-3 4H4z"></path><path d="M4 15h9"></path><path d="M4 19h5"></path></svg>
+              <div style="flex: 1; font-size: 12px; color: #9aa4b2;">Publicación</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 11px; padding: 8px 11px; border-radius: 7px;">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#9aa4b2" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><rect x="3" y="14" width="4" height="7" rx="1"></rect><rect x="10" y="9" width="4" height="12" rx="1"></rect><rect x="17" y="3" width="4" height="18" rx="1"></rect></svg>
+              <div style="flex: 1; font-size: 12px; color: #9aa4b2;">Anuncios</div>
+              <div style="width: 6px; height: 6px; border-radius: 50%; background: #e5484d;"></div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 11px; padding: 8px 11px; border-radius: 7px;">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#9aa4b2" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle></svg>
+              <div style="flex: 1; font-size: 12px; color: #9aa4b2;">Inteligencia</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 11px; padding: 8px 11px; border-radius: 7px;">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#9aa4b2" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 8h6"></path><path d="M9 12h6"></path><path d="M9 16h3"></path></svg>
+              <div style="flex: 1; font-size: 12px; color: #9aa4b2;">Reportes</div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <div style="display: flex; align-items: center; gap: 11px; padding: 8px 11px; border-radius: 7px;">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#667082" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="M9 3v6"></path><path d="M15 3v6"></path><rect x="7" y="9" width="10" height="6" rx="2"></rect><path d="M12 15v6"></path></svg>
+              <div style="flex: 1; font-size: 12px; color: #667082;">Integraciones</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 11px; padding: 8px 11px; border-radius: 7px;">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#667082" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex: none;"><path d="M4 7h16"></path><path d="M4 17h16"></path><circle cx="10" cy="7" r="2.4"></circle><circle cx="15" cy="17" r="2.4"></circle></svg>
+              <div style="flex: 1; font-size: 12px; color: #667082;">Configuración</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 8px 11px; border-radius: 8px; background: #0b0d12;">
+            <div style="width: 22px; height: 22px; border-radius: 7px; background: rgba(59,130,246,.16); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: #5b9bff; flex: none;">AR</div>
+            <div style="flex: 1; font-size: 11px;">Ana Ríos</div>
+          </div>
+        </div>
+        <figcaption>Después · 8 ítems, 1 acento, sin encabezados de grupo.</figcaption>
+      </figure>
+
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <h3 style="margin: 0; font-size: 22px;">A dónde va cada módulo</h3>
+        <table class="table">
+          <tbody>
+            <tr><td>Tareas</td><td style="color: var(--color-neutral-800);">pestaña de Clientes</td></tr>
+            <tr><td>Briefs IA</td><td style="color: var(--color-neutral-800);">pestaña de Publicación</td></tr>
+            <tr><td>Centurion MMM</td><td style="color: var(--color-neutral-800);">pestaña de Inteligencia</td></tr>
+            <tr><td>Aria IA</td><td style="color: var(--color-neutral-800);">pestaña de Inteligencia</td></tr>
+            <tr><td>Escucha</td><td style="color: var(--color-neutral-800);">pestaña de Inteligencia</td></tr>
+            <tr><td>En vivo</td><td style="color: var(--color-neutral-800);">pestaña de Inbox</td></tr>
+          </tbody>
+        </table>
+        <p style="margin: 0; font-size: 15px; line-height: 1.6;">Ninguna funcionalidad se elimina y ninguna ruta se rompe: <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">modules.ts</span> ya soporta <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">tabs</span> y <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">tabOf</span>. Es un cambio de jerarquía, no de producto.</p>
+        <p style="margin: 0; font-size: 15px; line-height: 1.6; font-style: italic; color: var(--color-accent-2-800);">«Inteligencia» agrupa MMM, Aria y Escucha. Es el nombre más discutible de la propuesta: si tu usuario piensa en esas tres como cosas distintas, se quedan separadas y el sidebar sube a diez.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <section style="margin-bottom: 60px;">
+    <h6 style="margin: 0 0 30px; color: var(--color-neutral-700);">V · Página canónica · Resumen</h6>
+    <figure style="display: flex; flex-direction: column; gap: 15px;">
+      <div style="border-radius: var(--radius-md); overflow: hidden; background: #0b0d12; font-family: 'Inter Tight', sans-serif; color: #e8ebf0; display: flex;">
+        <div style="width: 60px; flex: none; padding: 16px 0; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+          <div style="width: 22px; height: 22px; border-radius: 7px; background: #3b82f6;"></div>
+          <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(59,130,246,.12); display: flex; align-items: center; justify-content: center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5b9bff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-7 4 14 3-7h4"></path></svg></div>
+          <div style="width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#667082" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M9 8v12"></path></svg></div>
+          <div style="width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#667082" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="14" width="4" height="7" rx="1"></rect><rect x="10" y="9" width="4" height="12" rx="1"></rect><rect x="17" y="3" width="4" height="18" rx="1"></rect></svg></div>
+        </div>
+
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+          <div style="display: flex; align-items: center; gap: 14px; padding: 13px 26px;">
+            <div style="display: flex; align-items: center; gap: 9px; padding: 6px 11px; border-radius: 7px; background: #12151c;">
+              <div style="width: 17px; height: 17px; border-radius: 5px; background: rgba(59,130,246,.16); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 600; color: #5b9bff;">GC</div>
+              <div style="font-size: 12px;">Grupo Concentra</div>
+            </div>
+            <div style="flex: 1;"></div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 6px 11px; border-radius: 7px; background: #12151c; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9aa4b2;">20 jul – 2 ago</div>
+            <div style="padding: 6px 11px; border-radius: 7px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #667082;">⌘K</div>
+          </div>
+
+          <div style="padding: 20px 26px 28px; display: flex; flex-direction: column; gap: 20px;">
+            <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;">
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                <div style="font-size: 24px; font-weight: 700; letter-spacing: -.028em;">Resumen</div>
+                <div style="font-size: 13px; color: #9aa4b2;">6 canales conectados · última sincronización hace 4 minutos</div>
+              </div>
+              <div style="padding: 8px 14px; border-radius: 7px; background: #3b82f6; color: #ffffff; font-size: 12px; font-weight: 600;">Nuevo reporte</div>
+            </div>
+
+            <div style="display: flex; align-items: flex-start; gap: 10px; padding: 12px 15px; border-radius: 9px; background: rgba(229,72,77,.1);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e5484d" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 1px;"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5"></path><path d="M12 16.5v.01"></path></svg>
+              <div style="flex: 1; font-size: 12px; line-height: 1.5;">Meta Ads dejó de sincronizar hace 3 horas. El token expiró: vuelve a autorizar para recuperar los datos.</div>
+              <div style="font-size: 11px; font-weight: 600; color: #e5484d; flex: none;">Autorizar</div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+              <div style="padding: 16px; border-radius: 10px; background: #12151c; display: flex; flex-direction: column; gap: 8px;">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: #667082;">Inversión</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 21px;">$48,210</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #34b77c;">▲ 8.2%</div>
+              </div>
+              <div style="padding: 16px; border-radius: 10px; background: #12151c; display: flex; flex-direction: column; gap: 8px;">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: #667082;">Conversiones</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 21px;">2,046</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #34b77c;">▲ 4.1%</div>
+              </div>
+              <div style="padding: 16px; border-radius: 10px; background: #12151c; display: flex; flex-direction: column; gap: 8px;">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: #667082;">CPA</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 21px;">$23</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #e5484d;">▼ 2.4%</div>
+              </div>
+              <div style="padding: 16px; border-radius: 10px; background: #12151c; display: flex; flex-direction: column; gap: 8px;">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: #667082;">ROAS</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 21px; color: #5b9bff;">4.82×</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #e5484d;">▼ 3.1%</div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+              <div style="flex: 1 1 60%; padding: 20px; border-radius: 10px; background: #12151c; display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                  <div style="font-size: 14px; font-weight: 600;">Inversión por día</div>
+                  <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #667082;">14 días</div>
+                </div>
+                <div style="display: flex; align-items: flex-end; gap: 5px; height: 100px;">
+                  <div style="flex: 1; height: 42%; border-radius: 3px 3px 0 0; background: rgba(59,130,246,.45);"></div>
+                  <div style="flex: 1; height: 58%; border-radius: 3px 3px 0 0; background: rgba(59,130,246,.45);"></div>
+                  <div style="flex: 1; height: 51%; border-radius: 3px 3px 0 0; background: rgba(59,130,246,.45);"></div>
+                  <div style="flex: 1; height: 72%; border-radius: 3px 3px 0 0; background: rgba(59,130,246,.45);"></div>
+                  <div style="flex: 1; height: 64%; border-radius: 3px 3px 0 0; background: rgba(59,130,246,.45);"></div>
+                  <div style="flex: 1; height: 38%; border-radius: 3px 3px 0 0; background: rgba(59,130,246,.45);"></div>
+                  <div style="flex: 1; height: 30%; border-radius: 3px 3px 0 0; background: rgba(59,130,246,.45);"></div>
+                  <div style="flex: 1; height: 55%; border-radius: 3px 3px 0 0; background: rgba(59,130,246,.45);"></div>
+                  <div style="flex: 1; height: 68%; border-radius: 3px 3px 0 0; background: rgba(59,130,246,.45);"></div>
+                  <div style="flex: 1; height: 79%; border-radius: 3px 3px 0 0; background: rgba(59,130,246,.45);"></div>
+                  <div style="flex: 1; height: 86%; border-radius: 3px 3px 0 0; background: #3b82f6;"></div>
+                  <div style="flex: 1; height: 74%; border-radius: 3px 3px 0 0; background: rgba(59,130,246,.45);"></div>
+                  <div style="flex: 1; height: 61%; border-radius: 3px 3px 0 0; background: rgba(59,130,246,.45);"></div>
+                  <div style="flex: 1; height: 100%; border-radius: 3px 3px 0 0; background: #5b9bff;"></div>
+                </div>
+              </div>
+              <div style="flex: 1 1 40%; padding: 20px; border-radius: 10px; background: #12151c; display: flex; flex-direction: column; gap: 14px;">
+                <div style="font-size: 14px; font-weight: 600;">Reparto por canal</div>
+                <div style="display: flex; height: 11px; border-radius: 6px; overflow: hidden;">
+                  <div style="width: 42%; background: #4285F4;"></div>
+                  <div style="width: 31%; background: #0866FF;"></div>
+                  <div style="width: 19%; background: #FE2C55;"></div>
+                  <div style="width: 8%; background: #25D366;"></div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                  <div style="display: flex; align-items: center; gap: 9px;"><div style="width: 7px; height: 7px; border-radius: 50%; background: #4285F4;"></div><div style="flex: 1; font-size: 12px; color: #9aa4b2;">Google Ads</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 11px;">42%</div></div>
+                  <div style="display: flex; align-items: center; gap: 9px;"><div style="width: 7px; height: 7px; border-radius: 50%; background: #0866FF;"></div><div style="flex: 1; font-size: 12px; color: #9aa4b2;">Meta Ads</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 11px;">31%</div></div>
+                  <div style="display: flex; align-items: center; gap: 9px;"><div style="width: 7px; height: 7px; border-radius: 50%; background: #FE2C55;"></div><div style="flex: 1; font-size: 12px; color: #9aa4b2;">TikTok Ads</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 11px;">19%</div></div>
+                  <div style="display: flex; align-items: center; gap: 9px;"><div style="width: 7px; height: 7px; border-radius: 50%; background: #25D366;"></div><div style="flex: 1; font-size: 12px; color: #9aa4b2;">WhatsApp</div><div style="font-family: 'JetBrains Mono', monospace; font-size: 11px;">8%</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="padding: 20px; border-radius: 10px; background: #12151c; display: flex; flex-direction: column; gap: 12px;">
+              <div style="font-size: 14px; font-weight: 600;">Campañas</div>
+              <div style="display: flex; flex-direction: column;">
+                <div style="display: flex; align-items: center; gap: 14px; padding: 8px 0; font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: #667082;">
+                  <div style="flex: 1;">Campaña</div><div style="width: 80px; text-align: right;">Gasto</div><div style="width: 64px; text-align: right;">Conv.</div><div style="width: 56px; text-align: right;">ROAS</div><div style="width: 80px; text-align: right;">Actualizado</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 14px; padding: 11px 0;">
+                  <div style="flex: 1; display: flex; align-items: center; gap: 9px; min-width: 0;"><div style="width: 7px; height: 7px; border-radius: 50%; background: #4285F4; flex: none;"></div><div style="font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Search · Marca</div></div>
+                  <div style="width: 80px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9aa4b2;">$12,400</div>
+                  <div style="width: 64px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9aa4b2;">842</div>
+                  <div style="width: 56px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #5b9bff;">6.10×</div>
+                  <div style="width: 80px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #667082;">hace 4 min</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 14px; padding: 11px 9px; border-radius: 7px; background: #1a1e27;">
+                  <div style="flex: 1; display: flex; align-items: center; gap: 9px; min-width: 0;"><div style="width: 7px; height: 7px; border-radius: 50%; background: #0866FF; flex: none;"></div><div style="font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Advantage+ · Retargeting 30d</div></div>
+                  <div style="width: 80px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9aa4b2;">$21,860</div>
+                  <div style="width: 64px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9aa4b2;">1,204</div>
+                  <div style="width: 56px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #5b9bff;">4.02×</div>
+                  <div style="width: 80px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #e5484d;">hace 3 h</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 14px; padding: 11px 0;">
+                  <div style="flex: 1; display: flex; align-items: center; gap: 9px; min-width: 0;"><div style="width: 7px; height: 7px; border-radius: 50%; background: #FE2C55; flex: none;"></div><div style="font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Spark Ads · Prospecting</div></div>
+                  <div style="width: 80px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9aa4b2;">$13,950</div>
+                  <div style="width: 64px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9aa4b2;">—</div>
+                  <div style="width: 56px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #e0a83c;">1.94×</div>
+                  <div style="width: 80px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #667082;">hace 12 min</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <figcaption style="font-size: 13px; line-height: 1.6; max-width: 700px;">La tarjeta KPI pierde la barra de color superior, el sparkline y el icono en cuadro tintado: queda etiqueta, cifra y variación. El único color de acento en la pantalla es el ROAS y la barra del último día; el resto del color pertenece a los canales.</figcaption>
+    </figure>
+  </section>
+
+  <section style="margin-bottom: 60px;">
+    <h6 style="margin: 0 0 30px; color: var(--color-neutral-700);">VI · Reglas nuevas para el design system</h6>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px 30px;">
+
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        <h3 style="margin: 0; font-size: 22px;">Escala de opacidad</h3>
+        <div style="display: flex; gap: 5px;">
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 5px;"><div style="height: 40px; border-radius: var(--radius-md); background: #3b82f6; opacity: .04;"></div><div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--color-neutral-700); text-align: center;">4</div></div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 5px;"><div style="height: 40px; border-radius: var(--radius-md); background: #3b82f6; opacity: .08;"></div><div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--color-neutral-700); text-align: center;">8</div></div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 5px;"><div style="height: 40px; border-radius: var(--radius-md); background: #3b82f6; opacity: .12;"></div><div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--color-neutral-700); text-align: center;">12</div></div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 5px;"><div style="height: 40px; border-radius: var(--radius-md); background: #3b82f6; opacity: .16;"></div><div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--color-neutral-700); text-align: center;">16</div></div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 5px;"><div style="height: 40px; border-radius: var(--radius-md); background: #3b82f6; opacity: .24;"></div><div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--color-neutral-700); text-align: center;">24</div></div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 5px;"><div style="height: 40px; border-radius: var(--radius-md); background: #3b82f6; opacity: .45;"></div><div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--color-neutral-700); text-align: center;">45</div></div>
+        </div>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-800);">Seis valores, uso fijo: 4 fila alterna · 8 hover · 12 fondo de badge · 16 halo y contador · 24 borde teñido · 45 serie base de gráfica. Sustituye a los <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">rgba()</span> ad-hoc entre 9% y 22% que hoy conviven en <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">KpiCard</span>.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        <h3 style="margin: 0; font-size: 22px;">Foco sin glow</h3>
+        <div style="border-radius: var(--radius-md); background: #12151c; padding: 20px; display: flex; flex-direction: column; gap: 14px; font-family: 'Inter Tight', sans-serif;">
+          <div style="padding: 9px 12px; border-radius: 7px; background: #0b0d12; border: 1px solid #3b82f6; outline: 2px solid rgba(59,130,246,.4); outline-offset: 1px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #e8ebf0;">Campo con foco</div>
+          <div style="padding: 8px 15px; border-radius: 7px; background: #3b82f6; color: #ffffff; font-size: 12px; font-weight: 600; outline: 2px solid #e8ebf0; outline-offset: 2px; align-self: flex-start;">Botón con foco</div>
+        </div>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-800);">La regla actual prohíbe <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">box-shadow</span> de color y no ofrece alternativa, así que el foco quedó inconsistente. Se resuelve con <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">outline</span> de 2px con offset: no es sombra, no es glow, y el navegador lo respeta en alto contraste.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        <h3 style="margin: 0; font-size: 22px;">Elevación y capas</h3>
+        <div style="border-radius: var(--radius-md); background: #0b0d12; padding: 20px; display: flex; flex-direction: column; gap: 7px; font-family: 'Inter Tight', sans-serif; color: #e8ebf0;">
+          <div style="padding: 10px 13px; border-radius: 8px; background: #0b0d12; font-size: 12px; color: #9aa4b2;">0 · fondo</div>
+          <div style="padding: 10px 13px; border-radius: 8px; background: #12151c; font-size: 12px;">1 · tarjeta</div>
+          <div style="padding: 10px 13px; border-radius: 8px; background: #1a1e27; font-size: 12px;">2 · hover, popover</div>
+          <div style="padding: 10px 13px; border-radius: 8px; background: #1a1e27; box-shadow: 0 12px 32px rgba(0,0,0,.45); font-size: 12px;">3 · menú y modal</div>
+        </div>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-800);">Única sombra permitida: <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">0 12px 32px rgba(0,0,0,.45)</span>. Y una tabla de <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">z-index</span>: 100 topbar · 200 sidebar · 300 drawer · 400 velo · 410 modal · 500 desplegable · 600 aviso · 700 tooltip.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        <h3 style="margin: 0; font-size: 22px;">Formato de dato</h3>
+        <table class="table">
+          <tbody>
+            <tr><td style="color: var(--color-neutral-800);">Moneda</td><td style="text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px;">$48,210 · $1.24 M</td></tr>
+            <tr><td style="color: var(--color-neutral-800);">Porcentaje</td><td style="text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px;">8.2%</td></tr>
+            <tr><td style="color: var(--color-neutral-800);">Múltiplo</td><td style="text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px;">4.82×</td></tr>
+            <tr><td style="color: var(--color-neutral-800);">Fecha y rango</td><td style="text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px;">2 ago · 20 jul – 2 ago</td></tr>
+            <tr><td style="color: var(--color-neutral-800);">Sin dato</td><td style="text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--color-neutral-600);">—</td></tr>
+          </tbody>
+        </table>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-800);">Cifras a la derecha en mono tabular, texto a la izquierda, nada justificado. Sin dato es una raya, nunca cero ni «N/A».</p>
+      </div>
+
+    </div>
+  </section>
+
+  <section style="margin-bottom: 60px;">
+    <h6 style="margin: 0 0 30px; color: var(--color-neutral-700);">VII · Voz y tono</h6>
+
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 40px; align-items: start; margin-bottom: 40px;">
+
+      <div style="display: flex; flex-direction: column; gap: 25px;">
+        <p style="margin: 0; font-size: 19px; line-height: 1.5; font-style: italic;">Quien usa Zefirus está a media junta con un cliente. Cada palabra en pantalla se mide contra eso.</p>
+
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <h3 style="margin: 0; font-size: 20px;">Directo antes que ingenioso</h3>
+          <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-800);">Di lo que pasó y qué hacer. El producto no tiene personalidad propia que defender.</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <h3 style="margin: 0; font-size: 20px;">Concreto con números</h3>
+          <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-800);">«12 campañas sincronizadas», no «tus datos están listos». Si hay una cifra disponible, va en el mensaje.</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <h3 style="margin: 0; font-size: 20px;">Cercano sin ser informal</h3>
+          <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-800);">Tuteo en toda la interfaz. Sin jerga corporativa, sin emoji, sin signos de admiración.</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <h3 style="margin: 0; font-size: 20px;">El error nunca culpa</h3>
+          <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-800);">Explica la causa y ofrece la acción siguiente en el mismo mensaje. Nunca «algo salió mal».</p>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 30px;">
+        <div>
+          <div style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-accent-700); margin-bottom: 12px;">Así sí</div>
+          <p style="margin: 0 0 15px; font-size: 16px; line-height: 1.55;">Meta Ads dejó de sincronizar hace 3 horas. El token expiró: vuelve a autorizar para recuperar los datos.</p>
+          <div style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-accent-2-800); margin-bottom: 12px;">Así no</div>
+          <p style="margin: 0; font-size: 16px; line-height: 1.55; color: var(--color-neutral-700);">Ups, algo salió mal con tu conexión.</p>
+        </div>
+
+        <div>
+          <div style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-accent-700); margin-bottom: 12px;">Así sí</div>
+          <p style="margin: 0 0 15px; font-size: 16px; line-height: 1.55;">Conecta tu primera cuenta y verás datos en 2 minutos.</p>
+          <div style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-accent-2-800); margin-bottom: 12px;">Así no</div>
+          <p style="margin: 0; font-size: 16px; line-height: 1.55; color: var(--color-neutral-700);">Desbloquea el poder de tus datos multicanal.</p>
+        </div>
+
+        <div>
+          <div style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-accent-700); margin-bottom: 12px;">Así sí</div>
+          <p style="margin: 0 0 15px; font-size: 16px; line-height: 1.55;">Aún no hay campañas activas en este rango. Cambia las fechas o revisa el estado en Google Ads.</p>
+          <div style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-accent-2-800); margin-bottom: 12px;">Así no</div>
+          <p style="margin: 0; font-size: 16px; line-height: 1.55; color: var(--color-neutral-700);">No hay datos disponibles.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start;">
+
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        <h3 style="margin: 0; font-size: 22px;">Vocabulario fijo</h3>
+        <table class="table">
+          <thead>
+            <tr><th>Se dice</th><th>No se dice</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>conexión</td><td style="color: var(--color-neutral-700);">integración</td></tr>
+            <tr><td>canal</td><td style="color: var(--color-neutral-700);">plataforma</td></tr>
+            <tr><td>sincronizar</td><td style="color: var(--color-neutral-700);">importar</td></tr>
+            <tr><td>panel</td><td style="color: var(--color-neutral-700);">dashboard</td></tr>
+            <tr><td>cuenta publicitaria</td><td style="color: var(--color-neutral-700);">ad account</td></tr>
+            <tr><td>reporte</td><td style="color: var(--color-neutral-700);">informe, report</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        <h3 style="margin: 0; font-size: 22px;">Lo que el corte 03 le exige a la voz</h3>
+        <p style="margin: 0; font-size: 15px; line-height: 1.6;">Retirar los codenames deja huecos de texto que hoy llenaban los lemas. La regla de reemplazo no es escribir un lema nuevo: es no escribir nada. Un encabezado de módulo es <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">label</span> más el estado real del dato — «6 canales conectados, última sincronización hace 4 minutos» — o nada.</p>
+        <p style="margin: 0; font-size: 15px; line-height: 1.6; font-style: italic; color: var(--color-accent-2-800);">Los catorce lemas existentes no se reescriben ni se reubican. Se borran. Si un módulo necesita explicarse con una frase, el problema es el nombre del módulo.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <section style="margin-bottom: 60px;">
+    <h6 style="margin: 0 0 30px; color: var(--color-neutral-700);">VIII · Plan de migración</h6>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 40px 30px;">
+
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px;">
+          <h3 style="margin: 0; font-size: 21px;">Fase 1 · sin riesgo</h3>
+          <span class="tag tag-accent">1 PR</span>
+        </div>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-800);">Apuntar los quince <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">--mod-*</span> al mismo valor de <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">--cyan</span> en <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">globals.css</span>. Cero cambios en TSX: la app entera queda monocroma de golpe y se puede revertir con un commit.</p>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-800);">Añadir los cuatro <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">--ch-*</span> de canal y la escala de opacidad. Retirar <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">theme-azul-medianoche</span> y su rama del anti-FOUC.</p>
+        <p style="margin: 0; font-size: 15px; line-height: 1.6; font-style: italic;">Aquí se decide si la propuesta convence. Es medio día de trabajo y se ve completa.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px;">
+          <h3 style="margin: 0; font-size: 21px;">Fase 2 · primitivos</h3>
+          <span class="tag tag-neutral">3 PR</span>
+        </div>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-800);">Reescribir <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">KpiCard</span> sin prop <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">color</span>, sin <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">COLOR_MAP</span> y sin sparkline. La prop se acepta y se ignora un ciclo para no romper los llamados.</p>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-800);">Añadir un primitivo <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">ChannelDot</span> que lea <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">--ch-*</span>: es el único lugar donde vive el color de canal. Sustituir el foco por <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">outline</span> y borrar <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">ZefirusBrandDefs</span>.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px;">
+          <h3 style="margin: 0; font-size: 21px;">Fase 3 · navegación</h3>
+          <span class="tag tag-neutral">2 PR</span>
+        </div>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-800);">Mover seis módulos a <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">tabOf</span> en <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">modules.ts</span>. Las rutas siguen vivas, solo cambia dónde aparecen. Quitar <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">code</span> y <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">tagline</span> de headers, breadcrumbs y Orbi, y arreglar las rutas muertas de <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">CommandMenu</span>.</p>
+        <p style="margin: 0; font-size: 15px; line-height: 1.6; font-style: italic; color: var(--color-accent-2-800);">Esta fase sí se nota en la memoria muscular del usuario. Vale avisar dentro del producto.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 15px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px;">
+          <h3 style="margin: 0; font-size: 21px;">Fase 4 · deuda</h3>
+          <span class="tag tag-neutral">continuo</span>
+        </div>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-800);">Los 440 literales inline, los 66 SVG duplicados y los 33 emojis: codemod donde se pueda, y al tocar cualquier archivo dejarlo limpio.</p>
+        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: var(--color-neutral-800);">Adoptar <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">SIcon</span> como regla de lint, no como recomendación. Unificar <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">components/projects</span> y <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px;">components/proyectos</span>.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <section style="max-width: 720px;">
+    <h3 style="margin: 0 0 15px; font-size: 26px;">Lo que esta propuesta no toca</h3>
+    <p style="margin: 0; font-size: 17px; line-height: 1.6;">La arquitectura, el stack, los tokens de superficie y borde, la tipografía, la librería de iconos, las tres prohibiciones duras del design system y el patrón de página canónico. Todo eso está bien resuelto y el rediseño se apoya en ello. Lo único que se discute es en qué se gasta el color y cuántas puertas tiene el sidebar.</p>
+  </section>
+
+</article>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {}
+</script>
+</body>
+</html>

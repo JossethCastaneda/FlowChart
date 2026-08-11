@@ -19,10 +19,17 @@
   --fc-text-tertiary:    #9AA5A6;
   --fc-text-disabled:    #6E7B7D;
 
+  /* Alias de compatibilidad: consumidores existentes durante la migración. */
+  --fc-text-muted:       var(--fc-text-tertiary);
+
   /* Bordes */
   --fc-border:           #24363A;
   --fc-border-subtle:    #1B282B;
   --fc-border-strong:    #3A4E52;
+  --fc-border-hover:     var(--fc-border-strong);
+
+  /* Hover de superficies: conserva contraste en componentes ya migrados. */
+  --fc-surface-hover:    var(--fc-surface-raised);
 
   /* Acento */
   --fc-accent:           #35D3D9;
@@ -53,10 +60,13 @@
   --fc-text-secondary:   #3A4446;
   --fc-text-tertiary:    #5B6769;
   --fc-text-disabled:    #8E9899;
+  --fc-text-muted:       var(--fc-text-tertiary);
 
   --fc-border:           #E8E4DC;
   --fc-border-subtle:    #F0EDE7;
   --fc-border-strong:    #D4CFC5;
+  --fc-border-hover:     var(--fc-border-strong);
+  --fc-surface-hover:    var(--fc-surface-raised);
 
   --fc-accent:           #0A6E73;
   --fc-accent-hover:     #085A5E;
@@ -72,6 +82,48 @@
   --fc-danger-wash:      #FAECEC;
 
   --fc-shadow-overlay:   0 16px 40px rgba(32, 30, 29, .14);
+}
+
+/* Tokens de compatibilidad ya migrados desde globals.css.
+ * Conservan nombres fc-* para que la retirada del sistema legacy sea mecánica. */
+:root,
+[data-theme="dark"] {
+  --fc-success-dim:       var(--fc-success-wash);
+  --fc-warning-dim:       var(--fc-warning-wash);
+  --fc-danger-dim:        var(--fc-danger-wash);
+  --fc-accent-dim:        var(--fc-accent-wash);
+  --fc-sidebar-border:    var(--fc-border);
+  --fc-sidebar-shadow:    0 8px 40px rgba(0, 0, 0, .5), 0 0 0 1px rgba(255, 255, 255, .03);
+  --fc-glass-border:      var(--fc-border);
+  --fc-shadow-soft:       0 12px 35px rgba(0, 0, 0, .45);
+  --fc-shadow-hard:       0 24px 60px rgba(0, 0, 0, .8);
+  --fc-overlay-dark:      rgba(0, 0, 0, .72);
+  --fc-row-hover:         rgba(255, 255, 255, .03);
+  --fc-module-resumen:    #5b9bff;
+  --fc-module-clientes:   #34b77c;
+  --fc-module-publicar:   #e0a83c;
+  --fc-module-inbox:      #8b8df2;
+  --fc-module-anuncios:   #3b82f6;
+  --fc-module-escucha:    #d98843;
+  --fc-module-envivo:     #45aec2;
+  --fc-module-briefs:     #9b7be8;
+  --fc-module-tareas:     #e5484d;
+  --fc-module-chatbots:   #7c6bd6;
+  --fc-module-metricas:   #bc5fb2;
+  --fc-module-agentes:    #8b8df2;
+  --fc-module-mmm:        #7c6bd6;
+  --fc-module-aria:       #e0607e;
+  --fc-module-reportes:   #45aec2;
+}
+
+[data-theme="light"] {
+  --fc-sidebar-border:    var(--fc-border);
+  --fc-sidebar-shadow:    0 8px 40px rgba(15, 23, 42, .10), 0 0 0 1px rgba(15, 23, 42, .02);
+  --fc-glass-border:      var(--fc-border);
+  --fc-shadow-soft:       0 12px 30px rgba(15, 23, 42, .15);
+  --fc-shadow-hard:       0 24px 50px rgba(15, 23, 42, .25);
+  --fc-overlay-dark:      rgba(15, 23, 42, .45);
+  --fc-row-hover:         rgba(17, 25, 39, .03);
 }
 
 /* Colores de canal. NO son tokens de marca: son las marcas de terceros.
@@ -110,6 +162,7 @@
 :root {
   --fc-font-sans: Manrope, system-ui, sans-serif;
   --fc-font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --fc-font-display: var(--font-display, var(--fc-font-sans));
 
   --fc-text-display: 700 48px/1.05 var(--fc-font-sans);
   --fc-text-title:   700 24px/1.2  var(--fc-font-sans);

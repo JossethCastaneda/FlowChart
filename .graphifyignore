@@ -1,0 +1,14 @@
+# Documentación UI masiva (solo lectura manual por agentes)
+docs/design-system/**/*.html
+docs/design-system/**/*.dc.html
+
+# Artefactos y reportes
+graphify-out/
+playwright-report/
+test-results/
+coverage/
+
+# Bundles minificados y mapas
+*.min.js
+*.min.css
+*.map
