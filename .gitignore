@@ -104,3 +104,8 @@ scripts/verify_pass.js
 scripts/verify_user.ts
 scripts/test_error*.js
 scripts/test_rate_limit.js
+
+# Obsidian — estado personal de la sesión (no compartir entre máquinas)
+docs/.obsidian/workspace.json
+docs/.obsidian/workspace-mobile.json
+docs/.obsidian/cache
