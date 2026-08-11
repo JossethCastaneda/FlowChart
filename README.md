@@ -92,6 +92,8 @@ npm run dev                  # http://localhost:3000
 | `META_API_VERSION` | – | Versión de Graph API (default `v25.0`) |
 | `META_WEBHOOK_VERIFY_TOKEN` | – | Verificación de webhooks de Meta |
 | `GOOGLE_APIKEY_CONNECT` / `_SECRET` | – | Login con Google |
+| `OPTIMIZATION_EXECUTION_ENABLED` | – | Habilita ejecución controlada (default `false`) |
+| `OPTIMIZATION_KILL_SWITCH` | – | Bloquea ejecuciones nuevas (default `false`) |
 | `RESEND_API_KEY` | – | Envío de emails |
 | `NEXT_PUBLIC_APP_URL` | – | URL pública usada en varios lugares |
 

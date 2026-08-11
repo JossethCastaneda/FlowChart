@@ -51,7 +51,7 @@ export const PolicyConstraintSchema = z.object({
 
 export const ApprovalPolicySchema = z.object({
   manualOnly: z.literal(true).default(true),
-  executionEnabled: z.literal(false).default(false),
+  executionEnabled: z.boolean().default(false),
   requiredRoles: z.array(z.enum(["OWNER", "ADMIN"])).min(1).default(["OWNER"]),
   minimumApprovals: z.number().int().min(1).max(5).default(1),
   highRiskMinimumApprovals: z.number().int().min(1).max(5).default(2),
@@ -205,6 +205,21 @@ export const CreateProposedActionSchema = z.object({
   state: z.enum(["draft", "requires_review", "blocked"]).default("requires_review"),
 });
 
+export const ActionApprovalSchema = z.object({
+  decision: z.enum(["approved", "rejected"]),
+  comment: z.string().trim().min(1).max(2_000).optional(),
+});
+
+export const ActionExecutionSchema = z.object({
+  mode: z.enum(["dry_run", "execute"]),
+  idempotencyKey: z.string().min(16).max(200),
+});
+
+export const ActionRollbackSchema = z.object({
+  confirm: z.literal(true),
+  idempotencyKey: z.string().min(16).max(200),
+});
+
 export const EvaluationMetricSchema = z.enum([
   "spend",
   "impressions",
@@ -281,6 +296,8 @@ export type SourceManifest = z.infer<typeof SourceManifestSchema>;
 export type CreateSnapshotInput = z.infer<typeof CreateSnapshotSchema>;
 export type CreateAnalysisResultInput = z.infer<typeof CreateAnalysisResultSchema>;
 export type CreateProposedActionInput = z.infer<typeof CreateProposedActionSchema>;
+export type ActionApprovalInput = z.infer<typeof ActionApprovalSchema>;
+export type ActionExecutionInput = z.infer<typeof ActionExecutionSchema>;
 export type EvaluationMetric = z.infer<typeof EvaluationMetricSchema>;
 export type EvaluationScope = z.infer<typeof EvaluationScopeSchema>;
 export type EvaluationPredictionRecord = z.infer<typeof EvaluationPredictionRecordSchema>;

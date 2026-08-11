@@ -121,6 +121,12 @@ const envSchema = z.object({
   // Google Ads
   GOOGLE_ADS_DEVELOPER_TOKEN: z.string().min(1).optional(),
 
+  // Centro de Optimización — la ejecución remota está apagada por defecto.
+  OPTIMIZATION_EXECUTION_ENABLED: z.enum(["true", "false"]).default("false"),
+  OPTIMIZATION_KILL_SWITCH: z.enum(["true", "false"]).default("false"),
+  OPTIMIZATION_MAX_DAILY_ACTIONS: z.coerce.number().int().min(1).max(100).default(10),
+  OPTIMIZATION_DRY_RUN_TTL_MINUTES: z.coerce.number().int().min(1).max(60).default(15),
+
   // Análisis de Resultados — sal para hashear PII (teléfono/email)
   ANALYTICS_PII_SALT: z.string().min(1).optional(),
 
@@ -157,7 +163,7 @@ function parseEnv(): Env {
     if (isBuild) {
       console.warn("️ Saltando validación estricta de entorno durante el build:", parsed.error.flatten().fieldErrors);
       // Cast localizado SOLO en el skip de build (las vars se validan en runtime).
-      return cleaned as Env;
+      return cleaned as unknown as Env;
     }
     console.error(" Faltan variables de entorno críticas o son inválidas:", parsed.error.flatten().fieldErrors);
     throw new Error("Invalid environment variables");

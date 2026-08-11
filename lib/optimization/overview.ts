@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { computeActionFingerprint, parseExecutionApprovalPolicy, summarizeApprovals } from "./execution/policy";
 
 export type OptimizationReadiness =
   | "mmm_ready"
@@ -35,7 +36,7 @@ export function parseQualitySummary(value: unknown): QualitySummary {
   return { score: Math.max(0, Math.min(100, rawScore)), readiness, issues };
 }
 
-export async function getOptimizationOverview(workspaceId: string) {
+export async function getOptimizationOverview(workspaceId: string, viewerRole = "MEMBER") {
   const now = new Date();
   const [clients, actions, evaluations] = await Promise.all([
     prisma.optimizationClient.findMany({
@@ -105,8 +106,19 @@ export async function getOptimizationOverview(workspaceId: string) {
         state: true,
         expiresAt: true,
         requiredApproverRole: true,
+        remoteStateFingerprint: true,
         createdAt: true,
         client: { select: { displayName: true } },
+        snapshot: { select: { activeObjective: true } },
+        approvals: {
+          orderBy: { createdAt: "desc" },
+          select: { approverId: true, approverRole: true, decision: true, actionFingerprint: true, createdAt: true },
+        },
+        executions: {
+          orderBy: { createdAt: "desc" },
+          take: 5,
+          select: { id: true, operation: true, status: true, errorCode: true, createdAt: true, completedAt: true },
+        },
       },
     }),
     prisma.optimizationEvaluation.findMany({
@@ -169,13 +181,26 @@ export async function getOptimizationOverview(workspaceId: string) {
     };
   });
 
-  const actionRows = actions.map(({ client, ...action }) => ({
-    ...action,
-    state: action.expiresAt <= now && action.state !== "blocked" ? "expired" : action.state,
-    expiresAt: action.expiresAt.toISOString(),
-    createdAt: action.createdAt.toISOString(),
-    clientName: client.displayName,
-  }));
+  const actionRows = actions.map(({ client, snapshot, approvals, executions, ...action }) => {
+    const actionView = { ...action, entity: action.entity, currentValue: action.currentValue, proposedValue: action.proposedValue };
+    const policy = parseExecutionApprovalPolicy(snapshot.activeObjective);
+    const approvalSummary = summarizeApprovals(actionView, approvals, policy);
+    return {
+      ...action,
+      state: action.expiresAt <= now && !["blocked", "executed", "rolled_back"].includes(action.state) ? "expired" : action.state,
+      expiresAt: action.expiresAt.toISOString(),
+      createdAt: action.createdAt.toISOString(),
+      clientName: client.displayName,
+      actionFingerprint: computeActionFingerprint(actionView),
+      approvalSummary,
+      executionPolicyEnabled: policy.executionEnabled,
+      executions: executions.map((execution) => ({
+        ...execution,
+        createdAt: execution.createdAt.toISOString(),
+        completedAt: execution.completedAt?.toISOString() ?? null,
+      })),
+    };
+  });
   const evaluationRows = evaluations.map(({ client, ...evaluation }) => ({
     ...evaluation,
     evaluatedAt: evaluation.evaluatedAt.toISOString(),
@@ -199,13 +224,21 @@ export async function getOptimizationOverview(workspaceId: string) {
 
   return {
     generatedAt: now.toISOString(),
-    mode: "read_only" as const,
+    mode: "controlled_execution" as const,
+    executionControl: {
+      viewerRole,
+      enabled: process.env.OPTIMIZATION_EXECUTION_ENABLED === "true",
+      killSwitch: process.env.OPTIMIZATION_KILL_SWITCH === "true",
+      supportedActions: ["campaign.status"] as const,
+    },
     summary: {
       activeClients: clientRows.length,
       clientsWithObjective: clientRows.filter((client) => client.objective).length,
       authorizedAccounts: clientRows.reduce((total, client) => total + client.authorizedAccounts, 0),
       requiresReview: actionRows.filter((action) => action.state === "requires_review").length,
       blocked: actionRows.filter((action) => action.state === "blocked").length,
+      approved: actionRows.filter((action) => action.state === "approved").length,
+      executed: actionRows.filter((action) => action.state === "executed").length,
       completedEvaluations: evaluationRows.filter((evaluation) => evaluation.status === "completed").length,
       inconclusiveEvaluations: evaluationRows.filter((evaluation) => evaluation.status === "inconclusive").length,
       meanAbsolutePercentageError: percentageErrors.length

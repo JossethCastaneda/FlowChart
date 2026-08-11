@@ -147,5 +147,12 @@ BLOB_READ_WRITE_TOKEN=<VERCEL_BLOB_TOKEN>
 # Sal para hashear PII en analítica
 ANALYTICS_PII_SALT=<CADENA_ALEATORIA>
 
+# Centro de Optimización — mantener apagado hasta completar shadow mode,
+# configurar la política executionEnabled=true y autorizar el rollout humano.
+OPTIMIZATION_EXECUTION_ENABLED=false
+OPTIMIZATION_KILL_SWITCH=false
+OPTIMIZATION_MAX_DAILY_ACTIONS=10
+OPTIMIZATION_DRY_RUN_TTL_MINUTES=15
+
 # URLs públicas (client-side)
 NEXT_PUBLIC_APP_URL=https://TU_DOMINIO

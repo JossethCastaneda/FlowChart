@@ -51,6 +51,12 @@ const STATE_LABELS: Record<string, string> = {
   requires_review: "Revisión humana",
   blocked: "Bloqueada",
   expired: "Vencida",
+  approved: "Aprobada",
+  rejected: "Rechazada",
+  executing: "Ejecutando",
+  executed: "Ejecutada",
+  rollback_pending: "Revirtiendo",
+  rolled_back: "Revertida",
 };
 
 function formatDate(value: string) {
@@ -91,6 +97,9 @@ export default function OptimizationCenterPage() {
   const [overview, setOverview] = useState<OptimizationOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [mutationError, setMutationError] = useState("");
+  const [busyAction, setBusyAction] = useState("");
 
   const loadOverview = useCallback(async () => {
     setLoading(true);
@@ -101,6 +110,45 @@ export default function OptimizationCenterPage() {
       setError(loadError instanceof Error ? loadError.message : "No fue posible cargar el centro");
     } finally {
       setLoading(false);
+    }
+  }, []);
+
+  const mutateAction = useCallback(async (
+    actionId: string,
+    operation: "approve" | "reject" | "dry_run" | "execute" | "rollback"
+  ) => {
+    let endpoint = `/api/optimization/actions/${actionId}/execute`;
+    let body: Record<string, unknown> = { mode: operation, idempotencyKey: crypto.randomUUID() };
+    if (operation === "approve" || operation === "reject") {
+      endpoint = `/api/optimization/actions/${actionId}/approval`;
+      const comment = operation === "reject" ? window.prompt("Motivo del rechazo") : undefined;
+      if (operation === "reject" && !comment) return;
+      body = { decision: operation === "approve" ? "approved" : "rejected", comment };
+    } else if (operation === "rollback") {
+      if (!window.confirm("¿Revertir al estado remoto anterior verificado?")) return;
+      endpoint = `/api/optimization/actions/${actionId}/rollback`;
+      body = { confirm: true, idempotencyKey: crypto.randomUUID() };
+    } else if (operation === "execute" && !window.confirm("Esta acción escribirá en la plataforma publicitaria. ¿Continuar?")) {
+      return;
+    }
+
+    setBusyAction(`${actionId}:${operation}`);
+    setMutationError("");
+    setNotice("");
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const payload = await response.json() as { success: boolean; error?: string; data?: { status?: string } };
+      if (!response.ok || !payload.success) throw new Error(payload.error || "La operación no pudo completarse");
+      setNotice(operation === "dry_run" ? `Preflight: ${payload.data?.status ?? "completado"}` : "Operación registrada correctamente");
+      setOverview(await fetchOverview());
+    } catch (mutationError) {
+      setMutationError(mutationError instanceof Error ? mutationError.message : "La operación no pudo completarse");
+    } finally {
+      setBusyAction("");
     }
   }, []);
 
@@ -127,7 +175,7 @@ export default function OptimizationCenterPage() {
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-[var(--fc-text)] m-0">Decisiones publicitarias gobernadas</h1>
           <p className="text-sm text-[var(--fc-text-secondary)] mt-2 mb-0 max-w-3xl">
-            Preparación de datos, metas y recomendaciones reconciliadas por cliente. Esta versión no puede ejecutar cambios en plataformas publicitarias.
+            Preparación de datos, aprobación humana y ejecución reversible controlada por cliente. No existe ejecución automática.
           </p>
         </div>
         <button
@@ -141,13 +189,16 @@ export default function OptimizationCenterPage() {
         </button>
       </header>
 
-      <div className="flex items-start gap-3 rounded-xl border border-[rgba(52,183,124,0.3)] bg-[rgba(52,183,124,0.08)] p-4">
+      <div className={`flex items-start gap-3 rounded-xl border p-4 ${overview?.executionControl.killSwitch || !overview?.executionControl.enabled ? "border-[rgba(245,158,11,0.35)] bg-[rgba(245,158,11,0.08)]" : "border-[rgba(52,183,124,0.3)] bg-[rgba(52,183,124,0.08)]"}`}>
         <ShieldCheck className="w-5 h-5 text-[var(--fc-success)] shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-bold text-[var(--fc-text)] m-0">Modo lectura activo</p>
-          <p className="text-xs text-[var(--fc-text-secondary)] mt-1 mb-0">Toda acción es una propuesta auditable. No existe ejecución automática ni escritura remota desde este centro.</p>
+          <p className="text-sm font-bold text-[var(--fc-text)] m-0">Ejecución controlada {overview?.executionControl.enabled && !overview.executionControl.killSwitch ? "disponible" : "bloqueada globalmente"}</p>
+          <p className="text-xs text-[var(--fc-text-secondary)] mt-1 mb-0">Solo estados de campaña reversibles, con aprobación humana, dry-run reciente, verificación remota, límites e idempotencia. El rollback permanece manual.</p>
         </div>
       </div>
+
+      {notice && <div className="rounded-lg border border-[rgba(52,183,124,0.3)] bg-[rgba(52,183,124,0.08)] px-4 py-3 text-xs text-[var(--fc-success)]">{notice}</div>}
+      {mutationError && <div className="rounded-lg border border-[rgba(239,68,68,0.35)] bg-[rgba(239,68,68,0.08)] px-4 py-3 text-xs text-[var(--fc-danger)]">{mutationError}</div>}
 
       {loading && !overview ? (
         <div className="min-h-72 flex items-center justify-center gap-3 text-sm text-[var(--fc-text-muted)]">
@@ -165,7 +216,7 @@ export default function OptimizationCenterPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-4">
             <KpiCard label="Clientes activos" value={overview.summary.activeClients} icon={<Target className="w-5 h-5" />} color="purple" context={`${overview.summary.clientsWithObjective} con meta activa`} />
             <KpiCard label="Cuentas autorizadas" value={overview.summary.authorizedAccounts} icon={<ShieldCheck className="w-5 h-5" />} color="cyan" context="Allow-list del workspace" />
-            <KpiCard label="Requieren revisión" value={overview.summary.requiresReview} icon={<Clock3 className="w-5 h-5" />} color="amber" context="Sin ejecución habilitada" />
+            <KpiCard label="Requieren revisión" value={overview.summary.requiresReview} icon={<Clock3 className="w-5 h-5" />} color="amber" context={`${overview.summary.approved} aprobadas`} />
             <KpiCard label="Acciones bloqueadas" value={overview.summary.blocked} icon={<Ban className="w-5 h-5" />} color="red" context="Guardrails o calidad" />
             <KpiCard label="Evaluaciones válidas" value={overview.summary.completedEvaluations} icon={<Microscope className="w-5 h-5" />} color="emerald" context={`${overview.summary.inconclusiveEvaluations} inconclusas`} />
             <KpiCard label="MAPE retrospectivo" value={overview.summary.meanAbsolutePercentageError === null ? "—" : `${(overview.summary.meanAbsolutePercentageError * 100).toFixed(1)}%`} icon={<Gauge className="w-5 h-5" />} color="purple" context="Solo evaluaciones concluyentes" />
@@ -240,13 +291,13 @@ export default function OptimizationCenterPage() {
             )}
           </Panel>
 
-          <Panel title="Cola de recomendaciones" description="Propuestas estructuradas con caducidad y aprobador requerido. Los valores se muestran sin habilitar controles de mutación.">
+          <Panel title="Cola de recomendaciones" description="Aprobación, preflight y ejecución son pasos separados. La primera versión solo habilita status de campaña ACTIVE/PAUSED.">
             {overview.actions.length === 0 ? (
               <div className="p-6"><EmptyState icon={<CheckCircle2 className="w-8 h-8" />} title="No hay recomendaciones pendientes" description="El sistema también puede concluir que no existe una recomendación segura con los datos disponibles." /></div>
             ) : (
               <div className="divide-y divide-[var(--fc-border-subtle)]">
                 {overview.actions.map((action) => (
-                  <article key={action.id} className="p-5 grid grid-cols-1 lg:grid-cols-[1.4fr_1fr_auto] gap-4 items-center">
+                  <article key={action.id} className="p-5 grid grid-cols-1 xl:grid-cols-[1.3fr_0.8fr_1.2fr] gap-4 items-center">
                     <div>
                       <div className="flex flex-wrap items-center gap-2 mb-2">
                         <span className="text-sm font-bold text-[var(--fc-text)]">{action.clientName}</span>
@@ -255,13 +306,31 @@ export default function OptimizationCenterPage() {
                       </div>
                       <p className="text-xs text-[var(--fc-text-secondary)] m-0"><span className="uppercase font-bold">{action.provider}</span> · {action.accountId}{action.campaignId ? ` · ${action.campaignId}` : ""}</p>
                       <p className="text-[10px] text-[var(--fc-text-muted)] mt-1 mb-0">Campo: {action.field} · requiere {action.requiredApproverRole}</p>
+                      <p className="text-[10px] text-[var(--fc-text-muted)] mt-1 mb-0">Aprobaciones: {action.approvalSummary.approvalCount}/{action.approvalSummary.requiredApprovalCount} · política {action.executionPolicyEnabled ? "habilitada" : "solo lectura"}</p>
                     </div>
                     <div className="flex items-center gap-3 text-xs">
                       <div><span className="block text-[10px] text-[var(--fc-text-muted)] mb-1">Actual</span><strong className="text-[var(--fc-text)]">{formatValue(action.currentValue, action.unit, action.currency)}</strong></div>
                       <span className="text-[var(--fc-text-muted)]">→</span>
                       <div><span className="block text-[10px] text-[var(--fc-text-muted)] mb-1">Propuesto</span><strong className="text-[var(--purple)]">{formatValue(action.proposedValue, action.unit, action.currency)}</strong></div>
                     </div>
-                    <div className="lg:text-right text-[10px] text-[var(--fc-text-muted)]"><span className="block">Caduca</span><span className="font-semibold text-[var(--fc-text-secondary)]">{formatDate(action.expiresAt)}</span></div>
+                    <div className="flex flex-wrap xl:justify-end items-center gap-2">
+                      {["requires_review", "rejected"].includes(action.state) && ["OWNER", "ADMIN"].includes(overview.executionControl.viewerRole) && (
+                        <>
+                          <button type="button" disabled={!!busyAction} onClick={() => void mutateAction(action.id, "approve")} className="rounded-lg bg-[var(--purple)] px-3 py-2 text-[10px] font-bold text-white disabled:opacity-50">Aprobar</button>
+                          <button type="button" disabled={!!busyAction} onClick={() => void mutateAction(action.id, "reject")} className="rounded-lg border border-[var(--fc-border)] px-3 py-2 text-[10px] font-bold text-[var(--fc-text-secondary)] disabled:opacity-50">Rechazar</button>
+                        </>
+                      )}
+                      {["requires_review", "approved"].includes(action.state) && ["OWNER", "ADMIN"].includes(overview.executionControl.viewerRole) && (
+                        <button type="button" disabled={!!busyAction} onClick={() => void mutateAction(action.id, "dry_run")} className="rounded-lg border border-[var(--fc-border)] px-3 py-2 text-[10px] font-bold text-[var(--fc-text)] disabled:opacity-50">Dry-run</button>
+                      )}
+                      {action.state === "approved" && ["OWNER", "ADMIN"].includes(overview.executionControl.viewerRole) && overview.executionControl.enabled && !overview.executionControl.killSwitch && (
+                        <button type="button" disabled={!!busyAction} onClick={() => void mutateAction(action.id, "execute")} className="rounded-lg bg-[var(--fc-success)] px-3 py-2 text-[10px] font-bold text-white disabled:opacity-50">Ejecutar</button>
+                      )}
+                      {action.state === "executed" && overview.executionControl.viewerRole === "OWNER" && overview.executionControl.enabled && (
+                        <button type="button" disabled={!!busyAction} onClick={() => void mutateAction(action.id, "rollback")} className="rounded-lg border border-[var(--fc-danger)] px-3 py-2 text-[10px] font-bold text-[var(--fc-danger)] disabled:opacity-50">Rollback</button>
+                      )}
+                      <div className="text-right text-[10px] text-[var(--fc-text-muted)]"><span className="block">Caduca</span><span className="font-semibold text-[var(--fc-text-secondary)]">{formatDate(action.expiresAt)}</span>{action.executions[0] && <span className="block mt-1">Último: {action.executions[0].operation} · {action.executions[0].status}</span>}</div>
+                    </div>
                   </article>
                 ))}
               </div>

@@ -119,6 +119,8 @@ model Workspace {
   optimizationResults     OptimizationAnalysisResult[]
   optimizationActions     OptimizationProposedAction[]
   optimizationEvaluations OptimizationEvaluation[]
+  optimizationApprovals   OptimizationActionApproval[]
+  optimizationExecutions  OptimizationActionExecution[]
   optimizationAuditEvents OptimizationAuditEvent[]
 }
 
@@ -1714,6 +1716,8 @@ model OptimizationClient {
   results     OptimizationAnalysisResult[]
   actions     OptimizationProposedAction[]
   evaluations OptimizationEvaluation[]
+  approvals   OptimizationActionApproval[]
+  executions  OptimizationActionExecution[]
   auditEvents OptimizationAuditEvent[]
 
   @@unique([workspaceId, key])
@@ -1858,8 +1862,8 @@ model OptimizationAnalysisResult {
   @@index([snapshotId, analysisType])
 }
 
-/// Persisted proposal only. Phase 1 deliberately has no executor and no
-/// transition endpoint to an executable/approved state.
+/// Persisted proposal. Phase 4 only executes explicitly approved, reversible
+/// actions after a fresh remote preflight.
 model OptimizationProposedAction {
   id                     String   @id @default(cuid())
   workspaceId            String
@@ -1883,7 +1887,7 @@ model OptimizationProposedAction {
   remoteStateFingerprint String
   expiresAt              DateTime
   requiredApproverRole   String
-  state                  String   @default("draft") // draft | requires_review | blocked | expired
+  state                  String   @default("draft") // draft | requires_review | approved | rejected | blocked | executing | executed | rollback_pending | rolled_back | expired
   createdById            String?
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
@@ -1892,11 +1896,67 @@ model OptimizationProposedAction {
   client      OptimizationClient       @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
   snapshot    OptimizationSnapshot     @relation(fields: [workspaceId, clientId, snapshotId], references: [workspaceId, clientId, id], onDelete: Cascade)
   evaluations OptimizationEvaluation[]
+  approvals   OptimizationActionApproval[]
+  executions  OptimizationActionExecution[]
   auditEvents OptimizationAuditEvent[]
 
   @@unique([workspaceId, clientId, id])
   @@index([workspaceId, clientId, state])
   @@index([snapshotId])
+}
+
+/// Append-only human decisions bound to a fingerprint of the proposed action.
+/// The latest decision per approver is used when evaluating the policy.
+model OptimizationActionApproval {
+  id                String   @id @default(cuid())
+  workspaceId       String
+  clientId          String
+  actionId          String
+  approverId        String
+  approverRole      String
+  decision          String // approved | rejected
+  comment           String?
+  actionFingerprint String
+  createdAt         DateTime @default(now())
+
+  workspace Workspace                   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client    OptimizationClient          @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
+  action    OptimizationProposedAction  @relation(fields: [workspaceId, clientId, actionId], references: [workspaceId, clientId, id], onDelete: Restrict)
+
+  @@index([workspaceId, clientId, actionId, createdAt])
+  @@index([actionId, approverId, createdAt])
+}
+
+/// Immutable execution attempts. Payloads contain sanitized remote state only;
+/// provider credentials and bearer tokens are never persisted here.
+model OptimizationActionExecution {
+  id                        String    @id @default(cuid())
+  workspaceId               String
+  clientId                  String
+  actionId                  String
+  operation                 String // dry_run | execute | rollback
+  status                    String // validating | validated | executing | succeeded | failed | blocked
+  idempotencyKey            String    @unique
+  requestedById             String
+  requestedByRole           String
+  actionFingerprint         String
+  expectedRemoteFingerprint String
+  observedRemoteFingerprint String?
+  remoteBefore              Json?
+  remoteAfter               Json?
+  providerRequestId         String?
+  errorCode                 String?
+  errorMessage              String?
+  createdAt                 DateTime  @default(now())
+  completedAt               DateTime?
+
+  workspace Workspace                   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client    OptimizationClient          @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
+  action    OptimizationProposedAction  @relation(fields: [workspaceId, clientId, actionId], references: [workspaceId, clientId, id], onDelete: Restrict)
+
+  @@index([workspaceId, createdAt])
+  @@index([workspaceId, clientId, actionId, createdAt])
+  @@index([actionId, operation, status])
 }
 
 /// Immutable retrospective comparison. The observed value is always derived

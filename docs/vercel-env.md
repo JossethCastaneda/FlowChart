@@ -56,11 +56,15 @@ valores en Vercel para confirmar que todos aparecen en `ok`.
 | IA | `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `ARIA_LLM_PROVIDER` | ≥1 proveedor |
 | Email | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | Sí (invitaciones/alertas) |
 | Infra (nombres fijos) | `DATABASE_URL`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `ENCRYPTION_KEY` (64 hex), `CRON_SECRET`, `PUBLISH_WORKER_SECRET`, `BLOB_READ_WRITE_TOKEN`, `ANALYTICS_PII_SALT`, `NEXT_PUBLIC_APP_URL` | Sí |
+| Optimización controlada | `OPTIMIZATION_EXECUTION_ENABLED`, `OPTIMIZATION_KILL_SWITCH`, `OPTIMIZATION_MAX_DAILY_ACTIONS`, `OPTIMIZATION_DRY_RUN_TTL_MINUTES` | No; ejecución apagada por defecto |
 
 ## Notas
 
 - `META_API_VERSION` y `INSTAGRAM_SCOPES`/`INSTAGRAM_TOKEN_URL` tienen default en
   `lib/env.ts`; solo defínelas si necesitas otro valor.
+- `OPTIMIZATION_EXECUTION_ENABLED` debe permanecer en `false` hasta aprobar el
+  rollout. `OPTIMIZATION_KILL_SWITCH=true` bloquea ejecuciones nuevas; el rollback
+  manual sigue disponible cuando la ejecución controlada está habilitada.
 - `ENCRYPTION_KEY` debe ser exactamente 64 caracteres hex (AES-256-GCM). Genera con:
   `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
 - La base de datos: la integración de Neon en Vercel inyecta `DATABASE_URL` y las
