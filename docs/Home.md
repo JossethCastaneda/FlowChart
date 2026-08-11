@@ -47,7 +47,7 @@ created: 2026-08-11
 
 ---
 
-## Regenerar el grafo
+## Regenerar el grafo (docs/generated/)
 
 ```bash
 npm run docs:graph
@@ -55,6 +55,38 @@ npm run docs:graph
 
 > Genera o actualiza `docs/generated/` a partir del código fuente.
 > Los archivos en esa carpeta son automáticos — no los edites manualmente.
+
+---
+
+## Grafo de conocimiento Graphify
+
+El grafo completo del repositorio (código + docs + relaciones) vive en `graphify-out/`.
+
+| Archivo | Descripción |
+|---------|-------------|
+| `graphify-out/GRAPH_REPORT.md` | Reporte del grafo — comunidades, nodos hub, conexiones |
+| `graphify-out/graph.html` | Visualización interactiva (abre en browser, generado localmente) |
+| `graphify-out/graph.json` | Datos raw del grafo (para queries con `graphify query`) |
+
+**Para regenerar el grafo completo** desde el asistente:
+
+```
+/graphify .
+```
+
+**Para actualización incremental** (solo archivos cambiados):
+
+```
+/graphify . --update
+```
+
+**Para consultar el grafo** desde terminal:
+
+```bash
+graphify query "cómo funciona el OAuth flow?"
+graphify path "MetaOAuth_Flow" "EncryptionAES256"
+graphify explain "MultiTenant_Architecture"
+```
 
 ---
 

@@ -109,3 +109,17 @@ scripts/test_rate_limit.js
 docs/.obsidian/workspace.json
 docs/.obsidian/workspace-mobile.json
 docs/.obsidian/cache
+
+# graphify-out — archivos generados por /graphify
+# Ignorar: archivos grandes regenerables (graph.json ~6MB, graph.html ~4.5MB)
+graphify-out/graph.html
+graphify-out/graph.json
+graphify-out/graph.svg
+graphify-out/graph.graphml
+graphify-out/cypher.txt
+graphify-out/obsidian/
+graphify-out/wiki/
+# Ignorar: archivos internos temporales de graphify
+graphify-out/.graphify_*
+# Versionar: GRAPH_REPORT.md (útil para review en PR), cost.json (tracking de tokens)
+# NO ignorar: graphify-out/GRAPH_REPORT.md, graphify-out/cost.json
