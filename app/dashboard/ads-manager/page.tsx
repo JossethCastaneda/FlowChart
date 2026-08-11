@@ -120,7 +120,7 @@ const ALL_COLUMNS = [
 export default function AdsManagerPage() {
   return (
     <PermissionGuard permKey="canAccessAds">
-      <Suspense fallback={<div style={{ padding: 40, textAlign: "center", color: "var(--text-muted)" }}>Cargando Ads Manager...</div>}>
+      <Suspense fallback={<div style={{ padding: 40, textAlign: "center", color: "var(--fc-text-muted)" }}>Cargando Ads Manager...</div>}>
         <AdsManagerContent />
       </Suspense>
     </PermissionGuard>
@@ -1085,16 +1085,16 @@ function AdsManagerContent() {
       <PageHeader
         title="Ads Manager"
         description={platform === "meta" ? "Monitorea y optimiza tus campañas de Meta." : "Monitorea y optimiza tus campañas de Google Ads."}
-        icon={<Megaphone className="w-6 h-6" style={{ color: platform === "meta" ? "#0081FB" : "var(--cyan)" }} />}
+        icon={<Megaphone className="w-6 h-6" style={{ color: platform === "meta" ? "#0081FB" : "var(--fc-accent)" }} />}
       />
       {/* Segmented Control for Platforms */}
       <div style={{
         display: "inline-flex",
         padding: "3px",
         borderRadius: "8px",
-        background: "var(--surface)",
+        background: "var(--fc-surface)",
         
-        border: "1px solid var(--hairline)",
+        border: "1px solid var(--fc-border-subtle)",
         gap: 4
       }}>
         <button
@@ -1107,7 +1107,7 @@ function AdsManagerContent() {
             fontSize: 11,
             fontWeight: 600,
             borderRadius: "6px",
-            color: platform === "meta" ? "#0081FB" : "var(--text-secondary)",
+            color: platform === "meta" ? "#0081FB" : "var(--fc-text-secondary)",
             background: platform === "meta" ? "rgba(0, 129, 251, 0.08)" : "transparent",
             border: `1px solid ${platform === "meta" ? "rgba(0, 129, 251, 0.2)" : "transparent"}`,
             cursor: "pointer",
@@ -1127,7 +1127,7 @@ function AdsManagerContent() {
             fontSize: 11,
             fontWeight: 600,
             borderRadius: "6px",
-            color: platform === "google" ? "var(--cyan)" : "var(--text-secondary)",
+            color: platform === "google" ? "var(--fc-accent)" : "var(--fc-text-secondary)",
             background: platform === "google" ? "rgba(66, 133, 244, 0.08)" : "transparent",
             border: `1px solid ${platform === "google" ? "rgba(66, 133, 244, 0.2)" : "transparent"}`,
             cursor: "pointer",
@@ -1146,12 +1146,12 @@ function AdsManagerContent() {
     return (
       <div className="space-y-6" style={{ padding: isEmbedded ? "0" : "24px 28px" }}>
         {renderHeader()}
-        <div className="glass-panel" style={{ padding: "48px 24px", textAlign: "center" }}>
-          <Radar className="w-10 h-10 mx-auto mb-4" style={{ color: "var(--text-secondary)" }} />
-          <p style={{ fontFamily: "var(--font-display)", fontSize: "11px", letterSpacing: "0.2em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "8px" }}>
+        <div className="fc-glass" style={{ padding: "48px 24px", textAlign: "center" }}>
+          <Radar className="w-10 h-10 mx-auto mb-4" style={{ color: "var(--fc-text-secondary)" }} />
+          <p style={{ fontFamily: "var(--font-display)", fontSize: "11px", letterSpacing: "0.2em", color: "var(--fc-text-muted)", textTransform: "uppercase", marginBottom: "8px" }}>
             Conexión Google Ads requerida
           </p>
-          <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "20px" }}>
+          <p style={{ fontSize: "13px", color: "var(--fc-text-secondary)", marginBottom: "20px" }}>
             Conecta tu cuenta de Google para acceder a campañas, grupos de anuncios y métricas en tiempo real.
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}>
@@ -1165,7 +1165,7 @@ function AdsManagerContent() {
             </button>
             <button
               onClick={() => window.location.href = "/dashboard/integrations"}
-              style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "var(--text-secondary)", fontFamily: "inherit" }}
+              style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "var(--fc-text-secondary)", fontFamily: "inherit" }}
             >
               Configurar Customer ID en Integraciones →
             </button>
@@ -1186,20 +1186,20 @@ function AdsManagerContent() {
           <div style={{
             display: "flex", alignItems: "center", gap: "10px",
             padding: "12px 16px",
-            background: "var(--surface)",
+            background: "var(--fc-surface)",
             border: "1px solid rgba(52,183,124,0.3)",
             borderRadius: "6px",
             marginBottom: "24px"
           }}>
-            <CheckCircle className="w-4 h-4" style={{ color: "var(--emerald)", flexShrink: 0 }} />
-            <span style={{ fontSize: "12px", color: "var(--emerald)", fontWeight: 600 }}>
+            <CheckCircle className="w-4 h-4" style={{ color: "var(--fc-success)", flexShrink: 0 }} />
+            <span style={{ fontSize: "12px", color: "var(--fc-success)", fontWeight: 600 }}>
                Meta Ads conectado — sincronizando cuentas publicitarias...
             </span>
           </div>
         )}
 
         <div 
-          className="glass-panel" 
+          className="fc-glass" 
           style={{ 
             padding: "80px 24px", 
             textAlign: "center",
@@ -1247,7 +1247,7 @@ function AdsManagerContent() {
           <h2 style={{ 
             fontSize: "24px", 
             fontWeight: 700, 
-            color: "var(--foreground)", 
+            color: "var(--fc-text)", 
             marginBottom: "12px",
             letterSpacing: "-0.02em",
             position: "relative",
@@ -1258,7 +1258,7 @@ function AdsManagerContent() {
           
           <p style={{ 
             fontSize: "15px", 
-            color: "var(--text-secondary)", 
+            color: "var(--fc-text-secondary)", 
             marginBottom: "32px",
             maxWidth: "460px",
             lineHeight: 1.6,
@@ -1309,7 +1309,7 @@ function AdsManagerContent() {
             display: "flex", 
             alignItems: "center", 
             gap: "8px", 
-            color: "var(--text-muted)", 
+            color: "var(--fc-text-muted)", 
             fontSize: "12px",
             position: "relative",
             zIndex: 1
@@ -1343,7 +1343,7 @@ function AdsManagerContent() {
       
       {/* ── TOP CONTROLS ── */}
       <div
-        className="glass-panel"
+        className="fc-glass"
         style={{
           padding: "6px 10px",
           display: "flex",
@@ -1359,14 +1359,14 @@ function AdsManagerContent() {
           <div style={{
             display: "flex", alignItems: "center", gap: 8,
             padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600,
-            background: "var(--surface)", border: "1px solid var(--border)",
-            color: "var(--foreground)"
+            background: "var(--fc-surface)", border: "1px solid var(--fc-border)",
+            color: "var(--fc-text)"
           }}>
             <GoogleIcon />
             <span>Cuenta Google Ads: {googleCustomerId || "Conectada"}</span>
           </div>
         ) : loadingAccounts ? (
-          <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>Cargando cuentas...</div>
+          <div style={{ fontSize: "11px", color: "var(--fc-text-muted)" }}>Cargando cuentas...</div>
         ) : (
           <>
             <AccountSelector
@@ -1381,8 +1381,8 @@ function AdsManagerContent() {
               style={{
                 display: "flex", alignItems: "center", gap: "6px",
                 padding: "8px 12px", borderRadius: "6px",
-                background: "var(--surface-hover)", border: "1px solid var(--border)",
-                color: "var(--foreground)", fontSize: "12px", cursor: isSyncing ? "wait" : "pointer",
+                background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border)",
+                color: "var(--fc-text)", fontSize: "12px", cursor: isSyncing ? "wait" : "pointer",
                 transition: "all 0.2s"
               }}
               onMouseEnter={e => { if(!isSyncing) e.currentTarget.style.background = "rgba(255,255,255,0.1)" }}
@@ -1398,7 +1398,7 @@ function AdsManagerContent() {
           <button
             onClick={() => setShowCreateCampaign(true)}
             title="Crear una campaña nueva (se crea en pausa)"
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "var(--surface)", border: "1px solid rgba(0,129,251,0.35)", color: "var(--cyan)", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "var(--fc-surface)", border: "1px solid rgba(0,129,251,0.35)", color: "var(--fc-accent)", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
           >
             <Plus style={{ width: 14, height: 14 }} /> Crear campaña
           </button>
@@ -1409,7 +1409,7 @@ function AdsManagerContent() {
           <button
             onClick={() => setShowCreateAdSet(true)}
             title="Crear un conjunto de anuncios (se crea en pausa)"
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "var(--surface)", border: "1px solid rgba(139,141,242,0.35)", color: "var(--purple)", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "var(--fc-surface)", border: "1px solid rgba(139,141,242,0.35)", color: "var(--purple)", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
           >
             <Plus style={{ width: 14, height: 14 }} /> Crear conjunto
           </button>
@@ -1420,7 +1420,7 @@ function AdsManagerContent() {
           <button
             onClick={() => setShowCreateAd(true)}
             title="Crear un anuncio nuevo (se crea en pausa)"
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "var(--surface)", border: "1px solid rgba(52,199,89,0.35)", color: "#34c759", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "var(--fc-surface)", border: "1px solid rgba(52,199,89,0.35)", color: "#34c759", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
           >
             <Plus style={{ width: 14, height: 14 }} /> Crear anuncio
           </button>
@@ -1433,14 +1433,14 @@ function AdsManagerContent() {
             alignItems: "center",
             gap: "6px",
             padding: "5px 10px",
-            background: "var(--surface-hover)",
-            border: "1px solid var(--border)",
+            background: "var(--fc-surface-hover)",
+            border: "1px solid var(--fc-border)",
             borderRadius: "4px",
             flex: 1,
             minWidth: "160px",
           }}
         >
-          <Search className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+          <Search className="w-3.5 h-3.5 text-[var(--fc-text-muted)]" />
           <input
             type="text"
             placeholder={platform === "google" ? "Buscar por nombre o ID de campaña Google Ads..." : "Buscar por nombre o ID de campaña..."}
@@ -1449,7 +1449,7 @@ function AdsManagerContent() {
             style={{
               background: "none",
               border: "none",
-              color: "var(--foreground)",
+              color: "var(--fc-text)",
               fontSize: "11px",
               outline: "none",
               width: "100%",
@@ -1465,10 +1465,10 @@ function AdsManagerContent() {
             style={{
               display: "flex", alignItems: "center", gap: "5px",
               padding: "5px 10px",
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
+              background: "var(--fc-surface)",
+              border: "1px solid var(--fc-border)",
               borderRadius: "4px",
-              color: "var(--foreground)", fontSize: "10px", fontWeight: 600, cursor: "pointer",
+              color: "var(--fc-text)", fontSize: "10px", fontWeight: 600, cursor: "pointer",
             }}
           >
             <RefreshCw className={`w-3 h-3 ${loadingData ? "animate-spin" : ""}`} />
@@ -1480,7 +1480,7 @@ function AdsManagerContent() {
               title={autoSync ? "Auto-sync cada 30 min (activo)" : "Auto-sync desactivado"}
               style={{
                 width: "7px", height: "7px", borderRadius: "50%",
-                background: autoSync ? "var(--emerald)" : "rgba(148,163,184,0.65)",
+                background: autoSync ? "var(--fc-success)" : "rgba(148,163,184,0.65)",
                 border: "none", cursor: "pointer",
                 boxShadow: autoSync ? "0 0 6px rgba(52,211,153,0.4)" : "none",
               }}
@@ -1508,7 +1508,7 @@ function AdsManagerContent() {
           gap: 10,
           padding: "2px 2px 0",
         }}>
-          <div style={{ display: "inline-flex", padding: 3, borderRadius: 8, background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <div style={{ display: "inline-flex", padding: 3, borderRadius: 8, background: "var(--fc-surface)", border: "1px solid var(--fc-border)" }}>
             {([
               ["health", "Salud ejecutiva"],
               ["expert", "Tabla experta"],
@@ -1523,7 +1523,7 @@ function AdsManagerContent() {
                     borderRadius: 6,
                     border: "none",
                     background: active ? "rgba(0,129,251,0.18)" : "transparent",
-                    color: active ? "var(--cyan)" : "var(--text-secondary)",
+                    color: active ? "var(--fc-accent)" : "var(--fc-text-secondary)",
                     fontSize: 12,
                     fontWeight: 700,
                     cursor: "pointer",
@@ -1534,7 +1534,7 @@ function AdsManagerContent() {
               );
             })}
           </div>
-          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+          <div style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>
             Revisa riesgos antes de aplicar cambios en Meta.
           </div>
         </div>
@@ -1549,7 +1549,7 @@ function AdsManagerContent() {
         level={activeLevel}
       />
       {error && (
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 10px", background: "var(--red-dim)", border: "1px solid var(--red-dim)", borderRadius: "4px", color: "var(--red)", fontSize: "10px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 10px", background: "var(--red-dim)", border: "1px solid var(--red-dim)", borderRadius: "4px", color: "var(--fc-danger)", fontSize: "10px" }}>
           <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
           <span>{error}</span>
         </div>
@@ -1561,7 +1561,7 @@ function AdsManagerContent() {
       {/* Info advisory removed for compactness */}
 
       {/* ── LEVEL TABS ── */}
-      <div style={{ display: "flex", alignItems: "center", gap: "4px", borderBottom: "1px solid var(--border)", paddingBottom: "4px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "4px", borderBottom: "1px solid var(--fc-border)", paddingBottom: "4px" }}>
         {(["campaigns", "adsets", "ads"] as const).map((lvl) => {
           const active = activeLevel === lvl;
           const label = lvl === "campaigns" ? "Campañas" : lvl === "adsets" ? "Conjuntos" : "Anuncios";
@@ -1573,15 +1573,15 @@ function AdsManagerContent() {
               style={{
                 padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "4px",
                 background: active ? "rgba(0,129,251,0.15)" : "transparent",
-                border: `1px solid ${active ? "var(--cyan)" : "transparent"}`,
-                color: active ? "var(--cyan)" : "var(--text-secondary)",
+                border: `1px solid ${active ? "var(--fc-accent)" : "transparent"}`,
+                color: active ? "var(--fc-accent)" : "var(--fc-text-secondary)",
                 cursor: "pointer", transition: "all 0.15s",
                 display: "flex", alignItems: "center", gap: "5px",
               }}
             >
               {label}
               {count > 0 && (
-                <span style={{ fontSize: "8px", fontWeight: 700, padding: "1px 5px", borderRadius: "8px", background: active ? "rgba(59,130,246,0.2)" : "rgba(148,163,184,0.18)", color: active ? "var(--cyan)" : "var(--text-muted)" }}>
+                <span style={{ fontSize: "8px", fontWeight: 700, padding: "1px 5px", borderRadius: "8px", background: active ? "rgba(59,130,246,0.2)" : "rgba(148,163,184,0.18)", color: active ? "var(--fc-accent)" : "var(--fc-text-muted)" }}>
                   {count}
                 </span>
               )}
@@ -1652,7 +1652,7 @@ function AdsManagerContent() {
             style={{
               position: "absolute",
               inset: 0,
-              background: "var(--surface)",
+              background: "var(--fc-surface)",
               
               zIndex: 10,
               display: "flex",
@@ -1666,7 +1666,7 @@ function AdsManagerContent() {
               <Skeleton key={i} style={{ height: "40px", width: "100%", borderRadius: "4px" }} />
             ))}
             <div style={{ textAlign: "center", marginTop: "16px" }}>
-              <span style={{ fontSize: "11px", color: "var(--cyan)", letterSpacing: "0.15em", textTransform: "uppercase", fontWeight: 600 }}>
+              <span style={{ fontSize: "11px", color: "var(--fc-accent)", letterSpacing: "0.15em", textTransform: "uppercase", fontWeight: 600 }}>
                 ACTUALIZANDO HOLOCRÓN...
               </span>
             </div>

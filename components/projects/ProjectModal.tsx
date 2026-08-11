@@ -212,7 +212,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
                     Alias del Proyecto {errors.includes("alias") && "*"}
                   </label>
                   <input type="text" value={form.alias} readOnly={ro} placeholder="Ej. Lanzamiento Q3"
-                    className={`f-input w-full bg-white/5 border ${errors.includes("alias") ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-blue-500/50"} rounded px-3 py-2 text-sm text-white outline-none transition-colors`}
+                    className={`fc-input w-full bg-white/5 border ${errors.includes("alias") ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-blue-500/50"} rounded px-3 py-2 text-sm text-white outline-none transition-colors`}
                     onChange={e => set("alias", e.target.value)} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -269,7 +269,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
               <div>
                 <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-gray-400">Página Web (URL)</label>
                 <input type="url" value={form.website} readOnly={ro} placeholder="https://sitio.com" 
-                  className="f-input w-full bg-white/5 border border-white/10 focus:border-blue-500/50 rounded px-3 py-2 text-sm text-white outline-none transition-colors" 
+                  className="fc-input w-full bg-white/5 border border-white/10 focus:border-blue-500/50 rounded px-3 py-2 text-sm text-white outline-none transition-colors" 
                   onChange={e => set("website", e.target.value)} />
               </div>
             </div>
@@ -347,19 +347,19 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
                         <div>
                           <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 block">Budget</label>
                           <input type="text" value={ch.budget} readOnly={ro} placeholder="$0.00"
-                            className="f-input w-full bg-white/5 border border-white/10 rounded px-2.5 py-1.5 text-xs text-white outline-none focus:border-blue-500/50 transition-colors"
+                            className="fc-input w-full bg-white/5 border border-white/10 rounded px-2.5 py-1.5 text-xs text-white outline-none focus:border-blue-500/50 transition-colors"
                             onChange={e => setChannel(ch.platformId, "budget", e.target.value)} />
                         </div>
                         <div>
                           <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 block">Período</label>
-                          <select className="f-select w-full bg-[#111827] border border-white/10 rounded px-2.5 py-1.5 text-xs text-white outline-none focus:border-blue-500/50 transition-colors" value={ch.period} disabled={ro}
+                          <select className="fc-select w-full bg-[#111827] border border-white/10 rounded px-2.5 py-1.5 text-xs text-white outline-none focus:border-blue-500/50 transition-colors" value={ch.period} disabled={ro}
                             onChange={e => setChannel(ch.platformId, "period", e.target.value)}>
                             {["Diario","Semanal","Mensual","Anual"].map(b => <option key={b}>{b}</option>)}
                           </select>
                         </div>
                         <div>
                           <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 block">Meta</label>
-                          <select className="f-select w-full bg-[#111827] border border-white/10 rounded px-2.5 py-1.5 text-xs text-white outline-none focus:border-blue-500/50 transition-colors" value={ch.goal} disabled={ro}
+                          <select className="fc-select w-full bg-[#111827] border border-white/10 rounded px-2.5 py-1.5 text-xs text-white outline-none focus:border-blue-500/50 transition-colors" value={ch.goal} disabled={ro}
                             onChange={e => setChannel(ch.platformId, "goal", e.target.value)}>
                             <option value="">—</option>{GOALS.map(g => <option key={g}>{g}</option>)}
                           </select>
@@ -367,7 +367,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
                         <div>
                           <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 block">{CPR_MAP[ch.goal] || "CPR"}</label>
                           <input type="text" value={ch.cpr} readOnly={ro} placeholder="$0.00"
-                            className="f-input w-full bg-white/5 border border-white/10 rounded px-2.5 py-1.5 text-xs text-white outline-none focus:border-blue-500/50 transition-colors"
+                            className="fc-input w-full bg-white/5 border border-white/10 rounded px-2.5 py-1.5 text-xs text-white outline-none focus:border-blue-500/50 transition-colors"
                             onChange={e => setChannel(ch.platformId, "cpr", e.target.value)} />
                         </div>
                       </div>
@@ -385,13 +385,13 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
                 <div>
                   <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-gray-400">Buyer Persona</label>
                   <input type="text" value={form.persona} readOnly={ro} placeholder="Mujeres 25-40, fitness" 
-                    className="f-input w-full bg-white/5 border border-white/10 focus:border-blue-500/50 rounded px-3 py-2 text-sm text-white outline-none transition-colors" 
+                    className="fc-input w-full bg-white/5 border border-white/10 focus:border-blue-500/50 rounded px-3 py-2 text-sm text-white outline-none transition-colors" 
                     onChange={e => set("persona", e.target.value)} />
                 </div>
                 <div>
                   <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-gray-400">Geo-Targeting</label>
                   <input type="text" value={form.geo} readOnly={ro} placeholder="País / Ciudad" 
-                    className="f-input w-full bg-white/5 border border-white/10 focus:border-blue-500/50 rounded px-3 py-2 text-sm text-white outline-none transition-colors" 
+                    className="fc-input w-full bg-white/5 border border-white/10 focus:border-blue-500/50 rounded px-3 py-2 text-sm text-white outline-none transition-colors" 
                     onChange={e => set("geo", e.target.value)} />
                 </div>
               </div>
@@ -399,13 +399,13 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
                 <div>
                   <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-gray-400">Fecha Inicio</label>
                   <input type="date" value={form.dateStart} readOnly={ro} 
-                    className="f-input w-full bg-white/5 border border-white/10 focus:border-blue-500/50 rounded px-3 py-2 text-sm text-white outline-none transition-colors [color-scheme:dark]" 
+                    className="fc-input w-full bg-white/5 border border-white/10 focus:border-blue-500/50 rounded px-3 py-2 text-sm text-white outline-none transition-colors [color-scheme:dark]" 
                     onChange={e => set("dateStart", e.target.value)} />
                 </div>
                 <div>
                   <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-gray-400">Fecha Fin</label>
                   <input type="date" value={form.dateEnd} readOnly={ro} 
-                    className="f-input w-full bg-white/5 border border-white/10 focus:border-blue-500/50 rounded px-3 py-2 text-sm text-white outline-none transition-colors [color-scheme:dark]" 
+                    className="fc-input w-full bg-white/5 border border-white/10 focus:border-blue-500/50 rounded px-3 py-2 text-sm text-white outline-none transition-colors [color-scheme:dark]" 
                     onChange={e => set("dateEnd", e.target.value)} />
                 </div>
               </div>

@@ -28,8 +28,8 @@ function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType
     <div style={{
       padding: "20px 22px",
       borderRadius: 14,
-      background: "var(--surface)",
-      border: "1px solid var(--border)",
+      background: "var(--fc-surface)",
+      border: "1px solid var(--fc-border)",
       display: "flex",
       alignItems: "center",
       gap: 14,
@@ -43,8 +43,8 @@ function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType
         <Icon size={20} style={{ color }} />
       </div>
       <div>
-        <p style={{ fontSize: 11, color: "var(--text-muted)", margin: "0 0 2px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</p>
-        <p style={{ fontSize: 20, fontWeight: 800, color: "var(--foreground)", margin: 0, fontFamily: "var(--font-display)" }}>{value}</p>
+        <p style={{ fontSize: 11, color: "var(--fc-text-muted)", margin: "0 0 2px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</p>
+        <p style={{ fontSize: 20, fontWeight: 800, color: "var(--fc-text)", margin: 0, fontFamily: "var(--font-display)" }}>{value}</p>
       </div>
     </div>
   );
@@ -95,7 +95,7 @@ export default function TikTokIntegrationPage() {
       />
 
       {/* Back */}
-      <Link href="/dashboard/integrations" style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "var(--text-muted)", fontSize: 13, textDecoration: "none" }}>
+      <Link href="/dashboard/integrations" style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "var(--fc-text-muted)", fontSize: 13, textDecoration: "none" }}>
         <ArrowLeft size={14} />
         {lang === "es" ? "Volver a Integraciones" : "Back to Integrations"}
       </Link>
@@ -104,7 +104,7 @@ export default function TikTokIntegrationPage() {
       <div style={{
         padding: "28px 32px",
         borderRadius: 18,
-        background: "var(--surface)",
+        background: "var(--fc-surface)",
         border: `1px solid ${status?.connected ? "rgba(105,201,208,0.25)" : "rgba(255,255,255,0.08)"}`,
         
         position: "relative",
@@ -127,11 +127,11 @@ export default function TikTokIntegrationPage() {
               <TikTokIcon size={32} />
             </div>
             <div>
-              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, color: "var(--foreground)", margin: "0 0 4px" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, color: "var(--fc-text)", margin: "0 0 4px" }}>
                 TikTok Ads
               </h2>
               {loading ? (
-                <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
+                <p style={{ fontSize: 13, color: "var(--fc-text-muted)", margin: 0 }}>
                   {lang === "es" ? "Verificando estado..." : "Checking status..."}
                 </p>
               ) : status?.connected ? (
@@ -140,7 +140,7 @@ export default function TikTokIntegrationPage() {
                   <p style={{ fontSize: 13, color: TK_CYAN, fontWeight: 700, margin: 0 }}>
                     {lang === "es" ? "Conectado" : "Connected"}
                     {status.connectedAt && (
-                      <span style={{ color: "var(--text-muted)", fontWeight: 400, marginLeft: 6 }}>
+                      <span style={{ color: "var(--fc-text-muted)", fontWeight: 400, marginLeft: 6 }}>
                         · {new Date(status.connectedAt).toLocaleDateString()}
                       </span>
                     )}
@@ -148,8 +148,8 @@ export default function TikTokIntegrationPage() {
                 </div>
               ) : (
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <AlertCircle size={14} style={{ color: "var(--text-muted)" }} />
-                  <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
+                  <AlertCircle size={14} style={{ color: "var(--fc-text-muted)" }} />
+                  <p style={{ fontSize: 13, color: "var(--fc-text-muted)", margin: 0 }}>
                     {lang === "es" ? "No conectado" : "Not connected"}
                   </p>
                 </div>
@@ -161,7 +161,7 @@ export default function TikTokIntegrationPage() {
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <button
               onClick={loadStatus}
-              style={{ padding: "9px 16px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--text-secondary)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontFamily: "inherit" }}
+              style={{ padding: "9px 16px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border-subtle)", color: "var(--fc-text-secondary)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontFamily: "inherit" }}
             >
               <RefreshCw size={12} />
               {lang === "es" ? "Refrescar" : "Refresh"}
@@ -170,14 +170,14 @@ export default function TikTokIntegrationPage() {
               <button
                 onClick={handleDisconnect}
                 disabled={disconnecting}
-                style={{ padding: "9px 20px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--red)", cursor: "pointer", fontFamily: "inherit", opacity: disconnecting ? 0.6 : 1 }}
+                style={{ padding: "9px 20px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--fc-danger)", cursor: "pointer", fontFamily: "inherit", opacity: disconnecting ? 0.6 : 1 }}
               >
                 {disconnecting ? "..." : (lang === "es" ? "Desconectar" : "Disconnect")}
               </button>
             ) : (
               <button
                 onClick={handleConnect}
-                style={{ padding: "9px 20px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: `linear-gradient(135deg,${TK_CYAN},${TK_RED})`, border: "none", color: "var(--foreground)", cursor: "pointer", fontFamily: "inherit", boxShadow: `0 4px 14px rgba(105,201,208,0.4)`, display: "flex", alignItems: "center", gap: 6 }}
+                style={{ padding: "9px 20px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: `linear-gradient(135deg,${TK_CYAN},${TK_RED})`, border: "none", color: "var(--fc-text)", cursor: "pointer", fontFamily: "inherit", boxShadow: `0 4px 14px rgba(105,201,208,0.4)`, display: "flex", alignItems: "center", gap: 6 }}
               >
                 <Zap size={12} />
                 {lang === "es" ? "Conectar TikTok Ads" : "Connect TikTok Ads"}
@@ -190,16 +190,16 @@ export default function TikTokIntegrationPage() {
       {/* Stats preview placeholders */}
       {status?.connected && (
         <>
-          <h3 style={{ fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "8px 0 0" }}>
+          <h3 style={{ fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700, color: "var(--fc-text-secondary)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "8px 0 0" }}>
             {lang === "es" ? "Resumen de rendimiento" : "Performance Summary"}
           </h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14 }}>
             <StatCard icon={DollarSign} label={lang === "es" ? "Gasto total" : "Total Spend"} value="—" color={TK_CYAN} />
             <StatCard icon={Eye} label={lang === "es" ? "Impresiones" : "Impressions"} value="—" color={TK_RED} />
-            <StatCard icon={MousePointerClick} label="CTR" value="—" color="var(--amber)" />
-            <StatCard icon={TrendingUp} label="ROAS" value="—" color="var(--emerald)" />
+            <StatCard icon={MousePointerClick} label="CTR" value="—" color="var(--fc-warning)" />
+            <StatCard icon={TrendingUp} label="ROAS" value="—" color="var(--fc-success)" />
           </div>
-          <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "4px 0 0" }}>
+          <p style={{ fontSize: 12, color: "var(--fc-text-muted)", margin: "4px 0 0" }}>
             <AlertCircle size={12} style={{ display: "inline", marginRight: 4, verticalAlign: "middle" }} />
             {lang === "es"
               ? "Los datos de campañas estarán disponibles una vez que la integración sea aprobada por TikTok."
@@ -212,8 +212,8 @@ export default function TikTokIntegrationPage() {
       <div style={{
         padding: "24px 28px",
         borderRadius: 14,
-        background: "var(--surface)",
-        border: "1px solid var(--hairline)",
+        background: "var(--fc-surface)",
+        border: "1px solid var(--fc-border-subtle)",
       }}>
         <h3 style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 700, color: TK_CYAN, letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 16px" }}>
           {lang === "es" ? "¿Cómo funciona?" : "How does it work?"}
@@ -229,7 +229,7 @@ export default function TikTokIntegrationPage() {
               <span style={{ fontSize: 10, fontWeight: 800, fontFamily: "var(--font-display)", color: TK_CYAN, background: `${TK_CYAN}14`, border: `1px solid ${TK_CYAN}25`, borderRadius: 6, padding: "3px 8px", flexShrink: 0 }}>
                 {step}
               </span>
-              <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0, lineHeight: 1.6 }}>{text}</p>
+              <p style={{ fontSize: 13, color: "var(--fc-text-secondary)", margin: 0, lineHeight: 1.6 }}>{text}</p>
             </div>
           ))}
         </div>

@@ -39,28 +39,28 @@ export function CalendarView({ tasks, members, lang, onTaskClick }: CalendarView
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", overflowY: "auto" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-        <h2 style={{ fontSize: 18, margin: 0, fontWeight: 700, color: "var(--foreground)", textTransform: "capitalize" }}>
+        <h2 style={{ fontSize: 18, margin: 0, fontWeight: 700, color: "var(--fc-text)", textTransform: "capitalize" }}>
           {format(currentDate, "MMMM yyyy")}
         </h2>
         <div style={{ display: "flex", gap: 8 }}>
           <button 
             onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-            style={{ padding: "6px", borderRadius: 6, background: "var(--surface)", border: "1px solid var(--border)", cursor: "pointer", color: "var(--text-secondary)" }}
+            style={{ padding: "6px", borderRadius: 6, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", cursor: "pointer", color: "var(--fc-text-secondary)" }}
           >
             <ChevronLeft size={16} />
           </button>
           <button 
             onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-            style={{ padding: "6px", borderRadius: 6, background: "var(--surface)", border: "1px solid var(--border)", cursor: "pointer", color: "var(--text-secondary)" }}
+            style={{ padding: "6px", borderRadius: 6, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", cursor: "pointer", color: "var(--fc-text-secondary)" }}
           >
             <ChevronRight size={16} />
           </button>
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 1, background: "var(--border)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", flex: 1, minHeight: 600 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 1, background: "var(--fc-border)", border: "1px solid var(--fc-border)", borderRadius: 8, overflow: "hidden", flex: 1, minHeight: 600 }}>
         {["L", "M", "X", "J", "V", "S", "D"].map(day => (
-          <div key={day} style={{ background: "var(--surface-hover)", padding: "10px", textAlign: "center", fontSize: 12, fontWeight: 700, color: "var(--text-secondary)" }}>
+          <div key={day} style={{ background: "var(--fc-surface-hover)", padding: "10px", textAlign: "center", fontSize: 12, fontWeight: 700, color: "var(--fc-text-secondary)" }}>
             {day}
           </div>
         ))}
@@ -79,12 +79,12 @@ export function CalendarView({ tasks, members, lang, onTaskClick }: CalendarView
 
           return (
             <div key={i} style={{ 
-              background: isToday ? "var(--surface-hover)" : "var(--surface)", 
+              background: isToday ? "var(--fc-surface-hover)" : "var(--fc-surface)", 
               padding: "8px", 
               minHeight: 100,
               opacity: isCurrentMonth ? 1 : 0.4
             }}>
-              <div style={{ fontSize: 12, fontWeight: isToday ? 700 : 500, color: isToday ? "var(--cyan)" : "var(--text-secondary)", marginBottom: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: isToday ? 700 : 500, color: isToday ? "var(--fc-accent)" : "var(--fc-text-secondary)", marginBottom: 8 }}>
                 {format(day, "d")}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -96,8 +96,8 @@ export function CalendarView({ tasks, members, lang, onTaskClick }: CalendarView
                       fontSize: 11, 
                       padding: "4px 6px", 
                       borderRadius: 4, 
-                      background: t.status === "Done" ? "var(--emerald-dim)" : "var(--cyan-dim)", 
-                      color: t.status === "Done" ? "var(--emerald)" : "var(--cyan)",
+                      background: t.status === "Done" ? "var(--emerald-dim)" : "rgba(0, 212, 255, 0.1)", 
+                      color: t.status === "Done" ? "var(--fc-success)" : "var(--fc-accent)",
                       cursor: "pointer",
                       whiteSpace: "nowrap",
                       overflow: "hidden",

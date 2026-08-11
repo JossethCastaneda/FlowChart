@@ -172,8 +172,8 @@ export default function GoogleAdsPage() {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
-        .adaccount-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--surface-hover); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; transition: border-color 0.2s; cursor: pointer; }
-        .adaccount-row[data-selected="true"] { border-color: var(--cyan); background: rgba(59,130,246,0.05); }
+        .adaccount-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--fc-surface-hover); border: 1px solid var(--fc-border); border-radius: 8px; margin-bottom: 8px; transition: border-color 0.2s; cursor: pointer; }
+        .adaccount-row[data-selected="true"] { border-color: var(--fc-accent); background: rgba(59,130,246,0.05); }
       `}</style>
 
       <div style={{
@@ -186,16 +186,16 @@ export default function GoogleAdsPage() {
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "20px 28px 16px",
-          borderBottom: "1px solid var(--border)",
-          background: "var(--surface)", 
+          borderBottom: "1px solid var(--fc-border)",
+          background: "var(--fc-surface)", 
           position: "sticky", top: 0, zIndex: 10,
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <button
               onClick={() => router.back()}
               style={{
-                background: "var(--surface-hover)", border: "1px solid var(--border)",
-                borderRadius: 8, padding: "5px 8px", cursor: "pointer", color: "var(--text-secondary)",
+                background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border)",
+                borderRadius: 8, padding: "5px 8px", cursor: "pointer", color: "var(--fc-text-secondary)",
                 display: "flex", alignItems: "center",
               }}
             >
@@ -206,12 +206,12 @@ export default function GoogleAdsPage() {
               background: "#4285F4",
               display: "flex", alignItems: "center", justifyContent: "center",
               boxShadow: "0 4px 12px rgba(66,133,244,0.3)",
-              color: "var(--foreground)",
+              color: "var(--fc-text)",
             }}>
               <GoogleAdsIcon />
             </div>
             <div>
-              <h1 style={{ fontSize: 18, fontWeight: 700, color: "var(--foreground)", margin: 0, letterSpacing: "-0.02em" }}>
+              <h1 style={{ fontSize: 18, fontWeight: 700, color: "var(--fc-text)", margin: 0, letterSpacing: "-0.02em" }}>
                 {t.title}
               </h1>
             </div>
@@ -222,9 +222,9 @@ export default function GoogleAdsPage() {
             style={{
               display: "flex", alignItems: "center", gap: 7,
               padding: "8px 16px", borderRadius: 8,
-              background: "var(--cyan-dim)",
-              border: "1px solid var(--border-strong)",
-              color: "var(--cyan)", fontSize: 12, fontWeight: 600,
+              background: "rgba(0, 212, 255, 0.1)",
+              border: "1px solid var(--fc-border-hover)",
+              color: "var(--fc-accent)", fontSize: 12, fontWeight: 600,
               cursor: reconnecting ? "wait" : "pointer",
               fontFamily: "inherit",
             }}
@@ -239,8 +239,8 @@ export default function GoogleAdsPage() {
         </div>
 
         {/* Subtitle */}
-        <div style={{ padding: "12px 28px", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
-          <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>
+        <div style={{ padding: "12px 28px", borderBottom: "1px solid var(--fc-border)", background: "var(--fc-surface)" }}>
+          <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", margin: 0 }}>
             {t.subtitle}
           </p>
         </div>
@@ -251,12 +251,12 @@ export default function GoogleAdsPage() {
             <div style={{
               display: "flex", alignItems: "center", gap: 10,
               padding: "12px 16px", borderRadius: 10,
-              background: "var(--red-dim)", border: "1px solid var(--red)",
-              color: "var(--red)", fontSize: 12, marginBottom: 20,
+              background: "var(--red-dim)", border: "1px solid var(--fc-danger)",
+              color: "var(--fc-danger)", fontSize: 12, marginBottom: 20,
             }}>
               <AlertCircle size={14} />
               {error}
-              <button onClick={fetchAccounts} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "var(--red)", display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontFamily: "inherit" }}>
+              <button onClick={fetchAccounts} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "var(--fc-danger)", display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontFamily: "inherit" }}>
                 <RefreshCw size={11} /> {t.retry}
               </button>
             </div>
@@ -265,21 +265,21 @@ export default function GoogleAdsPage() {
           {loading && (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {[...Array(2)].map((_, i) => (
-                <div key={i} style={{ height: 68, borderRadius: 10, background: "var(--surface-hover)", animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.15}s` }} />
+                <div key={i} style={{ height: 68, borderRadius: 10, background: "var(--fc-surface-hover)", animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.15}s` }} />
               ))}
             </div>
           )}
 
           {!loading && !connected && !error && (
             <div style={{ textAlign: "center", padding: "60px 20px" }}>
-              <div style={{ width: 52, height: 52, borderRadius: 14, background: "var(--cyan-dim)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "var(--cyan)" }}>
+              <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(0, 212, 255, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "var(--fc-accent)" }}>
                 <GoogleAdsIcon />
               </div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", margin: "0 0 6px" }}>{t.notConnected}</p>
-              <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: "0 0 20px" }}>{t.connectPrompt}</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: "var(--fc-text)", margin: "0 0 6px" }}>{t.notConnected}</p>
+              <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", margin: "0 0 20px" }}>{t.connectPrompt}</p>
               <button
                 onClick={handleReconnect}
-                style={{ padding: "10px 20px", borderRadius: 8, background: "var(--cyan-dim)", border: "1px solid var(--border-strong)", color: "var(--cyan)", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}
+                style={{ padding: "10px 20px", borderRadius: 8, background: "rgba(0, 212, 255, 0.1)", border: "1px solid var(--fc-border-hover)", color: "var(--fc-accent)", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}
               >
                 <Plus size={13} /> {t.connectBtn}
               </button>
@@ -290,31 +290,31 @@ export default function GoogleAdsPage() {
             <div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
                 <div>
-                  <h2 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>{t.enabledAccounts}</h2>
-                  <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: "2px 0 0" }}>
+                  <h2 style={{ fontSize: 14, fontWeight: 700, color: "var(--fc-text)", margin: 0 }}>{t.enabledAccounts}</h2>
+                  <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", margin: "2px 0 0" }}>
                     {accounts.length === 0 ? t.noAccountsConnected : `${accounts.length} ${accounts.length !== 1 ? t.accountsLinked : t.accountLinked}`}
                   </p>
                 </div>
               </div>
 
               {accounts.length === 0 && (
-                <div style={{ padding: "40px 20px", textAlign: "center", borderRadius: 12, border: "1px dashed var(--border)", background: "var(--surface)" }}>
-                  <p style={{ color: "var(--text-secondary)", fontSize: 13, margin: 0 }}>{t.noAccounts}</p>
+                <div style={{ padding: "40px 20px", textAlign: "center", borderRadius: 12, border: "1px dashed var(--fc-border)", background: "var(--fc-surface)" }}>
+                  <p style={{ color: "var(--fc-text-secondary)", fontSize: 13, margin: 0 }}>{t.noAccounts}</p>
                 </div>
               )}
 
               {accounts.map(account => (
                 <div key={account.id} className="adaccount-row" data-selected={selectedIds.includes(account.id)} onClick={() => toggleSelection(account.id)}>
-                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--cyan-dim)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--cyan)", flexShrink: 0 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(0, 212, 255, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fc-accent)", flexShrink: 0 }}>
                     <Database size={14} />
                   </div>
                   <div style={{ flex: 1 }}>
                     <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{account.name}</p>
-                    <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)" }}>ID: {account.id}</p>
+                    <p style={{ margin: 0, fontSize: 11, color: "var(--fc-text-secondary)" }}>ID: {account.id}</p>
                   </div>
                   <div style={{
-                    width: 20, height: 20, borderRadius: 4, border: `1px solid ${selectedIds.includes(account.id) ? "var(--cyan)" : "var(--border-strong)"}`,
-                    background: selectedIds.includes(account.id) ? "var(--cyan)" : "transparent",
+                    width: 20, height: 20, borderRadius: 4, border: `1px solid ${selectedIds.includes(account.id) ? "var(--fc-accent)" : "var(--fc-border-hover)"}`,
+                    background: selectedIds.includes(account.id) ? "var(--fc-accent)" : "transparent",
                     display: "flex", alignItems: "center", justifyContent: "center", color: "var(--background)",
                     transition: "all 0.2s"
                   }}>
@@ -330,7 +330,7 @@ export default function GoogleAdsPage() {
                     disabled={saving}
                     style={{
                       padding: "10px 20px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: saving ? "wait" : "pointer",
-                      background: "var(--cyan)", color: "var(--background)", border: "none",
+                      background: "var(--fc-accent)", color: "var(--background)", border: "none",
                       display: "flex", alignItems: "center", gap: 8
                     }}
                   >
@@ -340,9 +340,9 @@ export default function GoogleAdsPage() {
                 </div>
               )}
 
-              <div style={{ marginTop: 32, padding: "20px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface-hover)" }}>
-                <h3 style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{t.manualEntryTitle}</h3>
-                <p style={{ margin: "0 0 16px", fontSize: 12, color: "var(--text-secondary)" }}>{t.manualEntryDesc}</p>
+              <div style={{ marginTop: 32, padding: "20px", borderRadius: 12, border: "1px solid var(--fc-border)", background: "var(--fc-surface-hover)" }}>
+                <h3 style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, color: "var(--fc-text)" }}>{t.manualEntryTitle}</h3>
+                <p style={{ margin: "0 0 16px", fontSize: 12, color: "var(--fc-text-secondary)" }}>{t.manualEntryDesc}</p>
                 <div style={{ display: "flex", gap: 10 }}>
                   <input
                     type="text"
@@ -351,8 +351,8 @@ export default function GoogleAdsPage() {
                     placeholder={t.manualEntryPlaceholder}
                     style={{
                       flex: 1, padding: "8px 12px", borderRadius: 8,
-                      border: "1px solid var(--border-strong)",
-                      background: "var(--surface)", color: "var(--foreground)",
+                      border: "1px solid var(--fc-border-hover)",
+                      background: "var(--fc-surface)", color: "var(--fc-text)",
                       fontSize: 13, fontFamily: "inherit"
                     }}
                   />
@@ -361,7 +361,7 @@ export default function GoogleAdsPage() {
                     disabled={!manualId}
                     style={{
                       padding: "8px 16px", borderRadius: 8,
-                      background: "var(--foreground)", color: "var(--background)",
+                      background: "var(--fc-text)", color: "var(--background)",
                       fontSize: 12, fontWeight: 600, border: "none", cursor: (!manualId) ? "not-allowed" : "pointer",
                       opacity: (!manualId) ? 0.6 : 1,
                     }}
@@ -369,7 +369,7 @@ export default function GoogleAdsPage() {
                     {t.manualEntryBtn}
                   </button>
                 </div>
-                {manualError && <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--red)" }}>{manualError}</p>}
+                {manualError && <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--fc-danger)" }}>{manualError}</p>}
               </div>
 
             </div>

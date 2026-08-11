@@ -51,7 +51,7 @@ function HeroMetric({ label, value, prevValue, prefix = "", suffix = "", isCurre
   const pct = prevValue > 0 ? (diff / prevValue) * 100 : 0;
   const isPositive = diff >= 0;
   const isGood = invertTrend ? !isPositive : isPositive;
-  const color = isGood ? "var(--emerald)" : "var(--red)";
+  const color = isGood ? "var(--fc-success)" : "var(--fc-danger)";
 
   return (
     <div className="flex flex-col bg-card border rounded-2xl p-5 relative overflow-hidden transition-all hover:-translate-y-1 hover:shadow-lg">

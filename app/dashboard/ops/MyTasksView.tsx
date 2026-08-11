@@ -79,15 +79,15 @@ export function MyTasksView({ tasks, members, lang, onTaskClick, currentUser }: 
               onClick={() => onTaskClick(t)}
               style={{
                 display: "flex", alignItems: "center", justifyContent: "space-between",
-                padding: "12px 16px", borderRadius: 8, background: "var(--surface)", border: "1px solid var(--border)",
+                padding: "12px 16px", borderRadius: 8, background: "var(--fc-surface)", border: "1px solid var(--fc-border)",
                 cursor: "pointer", transition: "all 0.2s ease"
               }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = "var(--border-strong)"}
-              onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}
+              onMouseEnter={e => e.currentTarget.style.borderColor = "var(--fc-border-hover)"}
+              onMouseLeave={e => e.currentTarget.style.borderColor = "var(--fc-border)"}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <CheckCircle2 size={18} style={{ color: "var(--text-muted)" }} />
-                <span style={{ fontSize: 14, fontWeight: 500, color: "var(--foreground)" }}>{t.title}</span>
+                <CheckCircle2 size={18} style={{ color: "var(--fc-text-muted)" }} />
+                <span style={{ fontSize: 14, fontWeight: 500, color: "var(--fc-text)" }}>{t.title}</span>
               </div>
               
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -98,7 +98,7 @@ export function MyTasksView({ tasks, members, lang, onTaskClick, currentUser }: 
                   {PRIO_CFG[t.priority]?.label}
                 </span>
                 {t.dueDate && (
-                  <span style={{ fontSize: 12, color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: 4 }}>
+                  <span style={{ fontSize: 12, color: "var(--fc-text-secondary)", display: "flex", alignItems: "center", gap: 4 }}>
                     <Clock size={12} />
                     {format(new Date(t.dueDate), "dd MMM")}
                   </span>
@@ -112,14 +112,14 @@ export function MyTasksView({ tasks, members, lang, onTaskClick, currentUser }: 
   };
 
   if (!currentUser?.name) {
-    return <div style={{ padding: 24, textAlign: "center", color: "var(--text-secondary)" }}>{lang === "es" ? "Cargando usuario..." : "Loading user..."}</div>;
+    return <div style={{ padding: 24, textAlign: "center", color: "var(--fc-text-secondary)" }}>{lang === "es" ? "Cargando usuario..." : "Loading user..."}</div>;
   }
 
   if (myTasks.length === 0) {
     return (
       <div style={{ padding: 48, textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-        <CheckCircle2 size={48} style={{ color: "var(--emerald)", opacity: 0.5 }} />
-        <p style={{ fontSize: 16, color: "var(--text-secondary)", margin: 0 }}>
+        <CheckCircle2 size={48} style={{ color: "var(--fc-success)", opacity: 0.5 }} />
+        <p style={{ fontSize: 16, color: "var(--fc-text-secondary)", margin: 0 }}>
           {lang === "es" ? "¡Todo al día! No tienes tareas pendientes." : "All caught up! No pending tasks."}
         </p>
       </div>
@@ -128,15 +128,15 @@ export function MyTasksView({ tasks, members, lang, onTaskClick, currentUser }: 
 
   return (
     <div style={{ maxWidth: 800, margin: "0 auto", width: "100%", padding: "24px 0", height: "100%", overflowY: "auto" }}>
-      <h2 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 24px", color: "var(--foreground)" }}>
+      <h2 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 24px", color: "var(--fc-text)" }}>
         {lang === "es" ? "Mis Tareas" : "My Tasks"}
       </h2>
       
-            <Section title={lang === "es" ? "Vencidas" : "Overdue"} tasks={overdue} icon={AlertTriangle} color="var(--red)" />
-            <Section title={lang === "es" ? "Hoy" : "Today"} tasks={today} icon={Clock} color="var(--amber)" />
-            <Section title={lang === "es" ? "Próximos 7 días" : "Upcoming (7 days)"} tasks={upcoming} icon={Clock} color="var(--cyan)" />
-            <Section title={lang === "es" ? "Más adelante" : "Later"} tasks={later} icon={Clock} color="var(--text-secondary)" />
-            <Section title={lang === "es" ? "Sin fecha" : "No Due Date"} tasks={noDate} icon={Clock} color="var(--text-muted)" />
+            <Section title={lang === "es" ? "Vencidas" : "Overdue"} tasks={overdue} icon={AlertTriangle} color="var(--fc-danger)" />
+            <Section title={lang === "es" ? "Hoy" : "Today"} tasks={today} icon={Clock} color="var(--fc-warning)" />
+            <Section title={lang === "es" ? "Próximos 7 días" : "Upcoming (7 days)"} tasks={upcoming} icon={Clock} color="var(--fc-accent)" />
+            <Section title={lang === "es" ? "Más adelante" : "Later"} tasks={later} icon={Clock} color="var(--fc-text-secondary)" />
+            <Section title={lang === "es" ? "Sin fecha" : "No Due Date"} tasks={noDate} icon={Clock} color="var(--fc-text-muted)" />
     </div>
   );
 }

@@ -66,14 +66,14 @@ function OAuthToast() {
     }}>
       <style>{`@keyframes slideUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }`}</style>
       {isSuccess
-        ? <CheckCircle2 size={20} style={{ color: "var(--emerald)", flexShrink: 0 }} />
-        : <XCircle size={20} style={{ color: "var(--red)", flexShrink: 0 }} />
+        ? <CheckCircle2 size={20} style={{ color: "var(--fc-success)", flexShrink: 0 }} />
+        : <XCircle size={20} style={{ color: "var(--fc-danger)", flexShrink: 0 }} />
       }
       <div>
-        <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", margin: "0 0 2px" }}>
+        <p style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-text)", margin: "0 0 2px" }}>
           {isSuccess ? ` ${label} conectado` : "Error de conexión"}
         </p>
-        <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>
+        <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", margin: 0 }}>
           {isSuccess
             ? "La integración está activa en tu workspace."
             : (errorMap[connectError ?? ""] ?? `Error: ${connectError}`)}
@@ -92,7 +92,7 @@ export default function IntegrationsPage() {
         description={lang === "es"
           ? "Conecta plataformas, revisa permisos y valida que cada módulo pueda operar."
           : "Connect platforms, review permissions and validate that each module is operational."}
-        icon={<Settings size={20} style={{ color: "var(--cyan)" }} />}
+        icon={<Settings size={20} style={{ color: "var(--fc-accent)" }} />}
       />
       <IntegrationsView />
       <Suspense>

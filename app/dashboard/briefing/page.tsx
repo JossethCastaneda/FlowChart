@@ -24,11 +24,11 @@ const DAYS_IN_MONTH: Record<string, number> = {
 const S = {
   input: {
     width: "100%",
-    background: "var(--surface-hover)",
-    border: "1px solid var(--border)",
+    background: "var(--fc-surface-hover)",
+    border: "1px solid var(--fc-border)",
     borderRadius: 6,
     padding: "7px 10px",
-    color: "var(--foreground)",
+    color: "var(--fc-text)",
     fontSize: 12,
     outline: "none",
     transition: "border-color 0.15s",
@@ -37,7 +37,7 @@ const S = {
   label: {
     fontSize: 9,
     fontWeight: 700,
-    color: "var(--text-muted)",
+    color: "var(--fc-text-muted)",
     textTransform: "uppercase",
     letterSpacing: "0.12em",
     marginBottom: 5,
@@ -46,7 +46,7 @@ const S = {
   sectionTitle: {
     fontSize: 9,
     fontWeight: 700,
-    color: "var(--cyan)",
+    color: "var(--fc-accent)",
     textTransform: "uppercase",
     letterSpacing: "0.2em",
     marginBottom: 12,
@@ -95,7 +95,7 @@ function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) =>
     <form onSubmit={e => { e.preventDefault(); onGenerate(formData); }}>
       {/* Sección: Proyecto */}
       <div style={S.sectionTitle as React.CSSProperties}>
-        <span style={{ width: 3, height: 10, background: "var(--cyan)", borderRadius: 2, display: "inline-block" }} />
+        <span style={{ width: 3, height: 10, background: "var(--fc-accent)", borderRadius: 2, display: "inline-block" }} />
         Proyecto
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 10, marginBottom: 18 }}>
@@ -107,7 +107,7 @@ function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) =>
 
       {/* Sección: Estrategia */}
       <div style={S.sectionTitle as React.CSSProperties}>
-        <span style={{ width: 3, height: 10, background: "var(--cyan)", borderRadius: 2, display: "inline-block" }} />
+        <span style={{ width: 3, height: 10, background: "var(--fc-accent)", borderRadius: 2, display: "inline-block" }} />
         Estrategia
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
@@ -123,9 +123,9 @@ function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) =>
             {FOCUS_OPTIONS.map(opt => (
               <button key={opt} type="button" onClick={() => handleFocusChange(opt)} style={{
                 padding: "5px 11px", fontSize: 10, fontWeight: 600, borderRadius: 6, cursor: "pointer",
-                border: `1px solid ${formData.focus.includes(opt) ? "var(--cyan)" : "var(--border)"}`,
-                background: formData.focus.includes(opt) ? "var(--cyan-dim)" : "var(--surface-hover)",
-                color: formData.focus.includes(opt) ? "var(--cyan)" : "var(--text-muted)",
+                border: `1px solid ${formData.focus.includes(opt) ? "var(--fc-accent)" : "var(--fc-border)"}`,
+                background: formData.focus.includes(opt) ? "rgba(0, 212, 255, 0.1)" : "var(--fc-surface-hover)",
+                color: formData.focus.includes(opt) ? "var(--fc-accent)" : "var(--fc-text-muted)",
                 transition: "all 0.15s",
               }}>{opt}</button>
             ))}
@@ -140,8 +140,8 @@ function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) =>
             display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             cursor: formData.brandFiles.length >= 5 ? "not-allowed" : "pointer",
             opacity: formData.brandFiles.length >= 5 ? 0.4 : 1,
-            border: "1px dashed var(--border-strong)",
-            color: "var(--text-muted)",
+            border: "1px dashed var(--fc-border-hover)",
+            color: "var(--fc-text-muted)",
             padding: "8px 10px",
           }}>
             <FileText style={{ width: 13, height: 13 }} />
@@ -151,9 +151,9 @@ function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) =>
           {fileNames.length > 0 && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 6 }}>
               {fileNames.map((name, i) => (
-                <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", padding: "2px 8px", borderRadius: 4, fontSize: 10, color: "var(--cyan)" }}>
+                <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "rgba(0, 212, 255, 0.1)", border: "1px solid rgba(59,130,246,0.2)", padding: "2px 8px", borderRadius: 4, fontSize: 10, color: "var(--fc-accent)" }}>
                   <span style={{ maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
-                  <button type="button" onClick={() => handleRemoveFile(i)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 12, padding: 0, lineHeight: 1, display: "flex" }}><X style={{ width: 10, height: 10 }} /></button>
+                  <button type="button" onClick={() => handleRemoveFile(i)} style={{ background: "none", border: "none", color: "var(--fc-text-muted)", cursor: "pointer", fontSize: 12, padding: 0, lineHeight: 1, display: "flex" }}><X style={{ width: 10, height: 10 }} /></button>
                 </div>
               ))}
             </div>
@@ -162,13 +162,13 @@ function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) =>
       </div>
 
       {/* CTA */}
-      <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 4, borderTop: "1px solid var(--hairline)" }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 4, borderTop: "1px solid var(--fc-border-subtle)" }}>
         <button type="submit" disabled={isLoading || !formData.client.trim()} style={{
           display: "flex", alignItems: "center", gap: 8, padding: "9px 24px",
           fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
-          background: isLoading ? "var(--surface-hover)" : "var(--cyan-dim)",
-          color: isLoading ? "var(--text-muted)" : "var(--cyan)",
-          border: `1px solid ${isLoading ? "var(--border)" : "rgba(59,130,246,0.4)"}`,
+          background: isLoading ? "var(--fc-surface-hover)" : "rgba(0, 212, 255, 0.1)",
+          color: isLoading ? "var(--fc-text-muted)" : "var(--fc-accent)",
+          border: `1px solid ${isLoading ? "var(--fc-border)" : "rgba(59,130,246,0.4)"}`,
           borderRadius: 6, cursor: isLoading ? "not-allowed" : "pointer", transition: "all 0.2s",
           boxShadow: isLoading ? "none" : "0 0 20px rgba(59,130,246,0.1)",
           opacity: !formData.client.trim() ? 0.35 : 1,
@@ -215,8 +215,8 @@ export default function BriefingPage() {
 
         {/* ── Page Header ── */}
         {gridData && !isLoading && (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid var(--hairline)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 12px", background: "var(--surface)", border: "1px solid rgba(139,141,242,0.2)", borderRadius: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid var(--fc-border-subtle)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 12px", background: "var(--fc-surface)", border: "1px solid rgba(139,141,242,0.2)", borderRadius: 6 }}>
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--purple)", display: "inline-block", animation: "pulse 2s ease-in-out infinite" }} />
               <span style={{ fontSize: 9, fontWeight: 700, color: "var(--purple)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Brief generado</span>
             </div>
@@ -224,7 +224,7 @@ export default function BriefingPage() {
         )}
 
         {/* ── Setup Form ── */}
-        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: 18, marginBottom: 16 }}>
+        <div style={{ background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 12, padding: 18, marginBottom: 16 }}>
           <SetupForm onGenerate={handleGenerate} isLoading={isLoading} />
         </div>
 
@@ -245,7 +245,7 @@ export default function BriefingPage() {
 
         {/* ── Error ── */}
         {error && (
-          <div style={{ marginTop: 8, padding: "10px 14px", background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.25)", borderRadius: 8, color: "var(--red)", fontSize: 12 }}>
+          <div style={{ marginTop: 8, padding: "10px 14px", background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.25)", borderRadius: 8, color: "var(--fc-danger)", fontSize: 12 }}>
             <strong>Error:</strong> {error}
           </div>
         )}
@@ -255,14 +255,14 @@ export default function BriefingPage() {
 
         {/* ── Empty state ── */}
         {!gridData && !isLoading && !error && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", gap: 14, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12 }}>
-            <div style={{ width: 52, height: 52, borderRadius: 14, background: "var(--surface)", border: "1px solid rgba(139,141,242,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", gap: 14, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 12 }}>
+            <div style={{ width: 52, height: 52, borderRadius: 14, background: "var(--fc-surface)", border: "1px solid rgba(139,141,242,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <BrainCircuit style={{ width: 24, height: 24, color: "var(--purple)" }} />
             </div>
             <div style={{ textAlign: "center" }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", margin: "0 0 6px" }}>Sin brief activo</p>
-              <p style={{ fontSize: 11, color: "var(--text-muted)", maxWidth: 320, margin: 0, lineHeight: 1.5 }}>
-                Configura los parámetros del proyecto y presiona <strong style={{ color: "var(--cyan)" }}>Generar Parrilla</strong> para iniciar.
+              <p style={{ fontSize: 13, fontWeight: 600, color: "var(--fc-text)", margin: "0 0 6px" }}>Sin brief activo</p>
+              <p style={{ fontSize: 11, color: "var(--fc-text-muted)", maxWidth: 320, margin: 0, lineHeight: 1.5 }}>
+                Configura los parámetros del proyecto y presiona <strong style={{ color: "var(--fc-accent)" }}>Generar Parrilla</strong> para iniciar.
               </p>
             </div>
           </div>
@@ -294,18 +294,18 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
   }, [gridData]);
 
   const thS: React.CSSProperties = {
-    fontSize: 8, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase",
+    fontSize: 8, fontWeight: 700, color: "var(--fc-text-muted)", textTransform: "uppercase",
     letterSpacing: "0.1em", padding: "7px 8px", textAlign: "left",
-    borderBottom: "1px solid var(--hairline)", whiteSpace: "nowrap",
-    background: "var(--surface)", position: "sticky", top: 0, zIndex: 5,
+    borderBottom: "1px solid var(--fc-border-subtle)", whiteSpace: "nowrap",
+    background: "var(--fc-surface)", position: "sticky", top: 0, zIndex: 5,
   };
   const tdS: React.CSSProperties = {
     fontSize: 10, padding: "4px 6px", textAlign: "left",
-    borderBottom: "1px solid var(--hairline)", color: "var(--foreground)", verticalAlign: "top",
+    borderBottom: "1px solid var(--fc-border-subtle)", color: "var(--fc-text)", verticalAlign: "top",
   };
   const editInput: React.CSSProperties = {
     width: "100%", background: "transparent", border: "1px solid transparent",
-    borderRadius: 4, padding: "3px 5px", color: "var(--foreground)",
+    borderRadius: 4, padding: "3px 5px", color: "var(--fc-text)",
     fontSize: 9, outline: "none", resize: "vertical", minHeight: 22,
     transition: "border-color 0.15s", fontFamily: "inherit",
   };
@@ -313,9 +313,9 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
   return (
     <div style={{ marginTop: 4 }}>
       {/* Grid Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, padding: "10px 14px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "10px 10px 0 0", borderBottom: "1px solid var(--hairline)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, padding: "10px 14px", background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: "10px 10px 0 0", borderBottom: "1px solid var(--fc-border-subtle)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: "var(--foreground)", textTransform: "uppercase", letterSpacing: "0.1em", fontFamily: "var(--font-display)" }}>Parrilla</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: "var(--fc-text)", textTransform: "uppercase", letterSpacing: "0.1em", fontFamily: "var(--font-display)" }}>Parrilla</span>
           <span className="badge badge-muted">{gridData.posts.length} posts</span>
           {gridData.creditos?.summary && (
             <span style={{ fontSize: 9, color: "var(--purple)", fontStyle: "italic" }}>{gridData.creditos.summary}</span>
@@ -326,8 +326,8 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
           style={{
             display: "flex", alignItems: "center", gap: 6, padding: "6px 12px",
             fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
-            background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.3)",
-            color: "var(--cyan)", borderRadius: 6, cursor: "pointer",
+            background: "rgba(0, 212, 255, 0.1)", border: "1px solid rgba(59,130,246,0.3)",
+            color: "var(--fc-accent)", borderRadius: 6, cursor: "pointer",
           }}
         >
           <Download style={{ width: 11, height: 11 }} />
@@ -336,7 +336,7 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
       </div>
 
       {/* Table */}
-      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderTop: "none", borderRadius: "0 0 10px 10px", overflow: "hidden" }}>
+      <div style={{ background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderTop: "none", borderRadius: "0 0 10px 10px", overflow: "hidden" }}>
         <div style={{ overflow: "auto", maxHeight: "calc(100vh - 340px)" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1100 }}>
             <thead>
@@ -358,59 +358,59 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
                 <tr
                   key={i}
                   style={{ transition: "background 0.1s" }}
-                  onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
+                  onMouseEnter={e => e.currentTarget.style.background = "var(--fc-surface-hover)"}
                   onMouseLeave={e => e.currentTarget.style.background = ""}
                 >
                   {/* Día */}
-                  <td style={{ ...tdS, fontWeight: 700, color: "var(--cyan)", textAlign: "center", fontSize: 12, fontFamily: "var(--font-mono)" }}>{post.dia}</td>
+                  <td style={{ ...tdS, fontWeight: 700, color: "var(--fc-accent)", textAlign: "center", fontSize: 12, fontFamily: "var(--font-mono)" }}>{post.dia}</td>
                   {/* Idea */}
-                  <td style={tdS}><textarea style={editInput} value={post.ideaPrincipal} onChange={e => updatePost(i, "ideaPrincipal", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--border-strong)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Idea..." /></td>
+                  <td style={tdS}><textarea style={editInput} value={post.ideaPrincipal} onChange={e => updatePost(i, "ideaPrincipal", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--fc-border-hover)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Idea..." /></td>
                   {/* Etapa */}
-                  <td style={tdS}><span style={{ fontSize: 7, fontWeight: 700, padding: "2px 5px", borderRadius: 3, background: "var(--cyan-dim)", color: "var(--cyan)", whiteSpace: "nowrap", border: "1px solid rgba(59,130,246,0.2)" }}>{post.enfoquePublicacion}</span></td>
+                  <td style={tdS}><span style={{ fontSize: 7, fontWeight: 700, padding: "2px 5px", borderRadius: 3, background: "rgba(0, 212, 255, 0.1)", color: "var(--fc-accent)", whiteSpace: "nowrap", border: "1px solid rgba(59,130,246,0.2)" }}>{post.enfoquePublicacion}</span></td>
                   {/* Copy In */}
-                  <td style={tdS}><textarea style={{ ...editInput, fontWeight: 600, color: "var(--foreground)" }} value={post.copyIn} onChange={e => updatePost(i, "copyIn", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--border-strong)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Headline..." /></td>
+                  <td style={tdS}><textarea style={{ ...editInput, fontWeight: 600, color: "var(--fc-text)" }} value={post.copyIn} onChange={e => updatePost(i, "copyIn", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--fc-border-hover)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Headline..." /></td>
                   {/* Copy Out */}
-                  <td style={tdS}><textarea style={editInput} value={post.copyOut} onChange={e => updatePost(i, "copyOut", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--border-strong)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Body copy..." rows={2} /></td>
+                  <td style={tdS}><textarea style={editInput} value={post.copyOut} onChange={e => updatePost(i, "copyOut", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--fc-border-hover)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Body copy..." rows={2} /></td>
                   {/* Arte */}
-                  <td style={tdS}><textarea style={editInput} value={post.explicacionArte} onChange={e => updatePost(i, "explicacionArte", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--border-strong)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Dirección de arte..." /></td>
+                  <td style={tdS}><textarea style={editInput} value={post.explicacionArte} onChange={e => updatePost(i, "explicacionArte", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--fc-border-hover)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Dirección de arte..." /></td>
                   {/* Formato */}
                   <td style={tdS}>
                     <span style={{
                       fontSize: 7, fontWeight: 700, padding: "2px 5px", borderRadius: 3,
-                      background: post.formatoArte === "Video" ? "rgba(139,141,242,0.1)" : "var(--surface-hover)",
-                      color: post.formatoArte === "Video" ? "var(--purple)" : "var(--text-muted)",
-                      border: `1px solid ${post.formatoArte === "Video" ? "rgba(139,141,242,0.25)" : "var(--hairline)"}`,
+                      background: post.formatoArte === "Video" ? "rgba(139,141,242,0.1)" : "var(--fc-surface-hover)",
+                      color: post.formatoArte === "Video" ? "var(--purple)" : "var(--fc-text-muted)",
+                      border: `1px solid ${post.formatoArte === "Video" ? "rgba(139,141,242,0.25)" : "var(--fc-border-subtle)"}`,
                     }}>{post.formatoArte}</span>
                   </td>
                   {/* Prompt MJ */}
-                  <td style={tdS}><textarea style={{ ...editInput, color: "var(--text-secondary)", fontFamily: "var(--font-mono)", fontSize: 8 }} value={post.masterPromptMidjourney} onChange={e => updatePost(i, "masterPromptMidjourney", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--border-strong)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Prompt MJ..." /></td>
+                  <td style={tdS}><textarea style={{ ...editInput, color: "var(--fc-text-secondary)", fontFamily: "var(--font-mono)", fontSize: 8 }} value={post.masterPromptMidjourney} onChange={e => updatePost(i, "masterPromptMidjourney", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--fc-border-hover)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Prompt MJ..." /></td>
                   {/* Video Details */}
                   <td style={tdS}>
                     {post.videoDetails ? (
-                      <div style={{ fontSize: 9, color: "var(--text-secondary)" }}>
-                        <div style={{ marginBottom: 4 }}><strong style={{ color: "var(--foreground)" }}>Herramienta:</strong> {post.videoDetails.videoAITool}</div>
-                        <div style={{ marginBottom: 4 }}><strong style={{ color: "var(--foreground)" }}>Escenas:</strong> {post.videoDetails.numEscenas}</div>
+                      <div style={{ fontSize: 9, color: "var(--fc-text-secondary)" }}>
+                        <div style={{ marginBottom: 4 }}><strong style={{ color: "var(--fc-text)" }}>Herramienta:</strong> {post.videoDetails.videoAITool}</div>
+                        <div style={{ marginBottom: 4 }}><strong style={{ color: "var(--fc-text)" }}>Escenas:</strong> {post.videoDetails.numEscenas}</div>
                         {post.videoDetails.promptsEscenasMidjourney?.length > 0 && (
                           <div style={{ marginBottom: 4 }}>
-                            <strong style={{ color: "var(--foreground)" }}>Prompts Imagen:</strong>
+                            <strong style={{ color: "var(--fc-text)" }}>Prompts Imagen:</strong>
                             <ul style={{ paddingLeft: 12, margin: "2px 0 0" }}>
-                              {post.videoDetails.promptsEscenasMidjourney.map((p, idx) => <li key={idx}><code style={{ color: "var(--cyan)", fontSize: 8 }}>{p}</code></li>)}
+                              {post.videoDetails.promptsEscenasMidjourney.map((p, idx) => <li key={idx}><code style={{ color: "var(--fc-accent)", fontSize: 8 }}>{p}</code></li>)}
                             </ul>
                           </div>
                         )}
                         {post.videoDetails.promptsVideoAI?.length > 0 && (
                           <div>
-                            <strong style={{ color: "var(--foreground)" }}>Prompts Video:</strong>
+                            <strong style={{ color: "var(--fc-text)" }}>Prompts Video:</strong>
                             <ul style={{ paddingLeft: 12, margin: "2px 0 0" }}>
                               {post.videoDetails.promptsVideoAI.map((p, idx) => <li key={idx}><code style={{ color: "var(--purple)", fontSize: 8 }}>{p}</code></li>)}
                             </ul>
                           </div>
                         )}
                       </div>
-                    ) : <span style={{ color: "var(--text-muted)", fontSize: 9 }}>N/A</span>}
+                    ) : <span style={{ color: "var(--fc-text-muted)", fontSize: 9 }}>N/A</span>}
                   </td>
                   {/* Ejecución */}
-                  <td style={tdS}><textarea style={editInput} value={post.pasoAPaso} onChange={e => updatePost(i, "pasoAPaso", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--border-strong)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Pasos..." /></td>
+                  <td style={tdS}><textarea style={editInput} value={post.pasoAPaso} onChange={e => updatePost(i, "pasoAPaso", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--fc-border-hover)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Pasos..." /></td>
                 </tr>
               ))}
             </tbody>

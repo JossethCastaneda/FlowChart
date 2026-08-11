@@ -51,7 +51,7 @@ function PacingBar({ pct, color }: { pct: number; color: string }) {
   const [w, setW] = useState(0);
   useEffect(() => { const t = setTimeout(() => setW(Math.min(100, pct)), 80); return () => clearTimeout(t); }, [pct]);
   return (
-    <div style={{ height: 3, background: "var(--surface-hover)", borderRadius: 99, overflow: "hidden" }}>
+    <div style={{ height: 3, background: "var(--fc-surface-hover)", borderRadius: 99, overflow: "hidden" }}>
       <div style={{ height: "100%", width: `${w}%`, background: color, borderRadius: 99, transition: "width 1.1s cubic-bezier(0.16, 1, 0.3, 1)", boxShadow: `0 0 6px ${color}80` }} />
     </div>
   );
@@ -64,8 +64,8 @@ function KpiCard({ icon: Icon, label, value, sub, color, href }: {
   return (
     <Link href={href} style={{ textDecoration: "none" }}>
       <div style={{
-        background: "var(--surface)",
-        border: "1px solid var(--border)",
+        background: "var(--fc-surface)",
+        border: "1px solid var(--fc-border)",
         borderRadius: 16,
         padding: "20px 22px",
         cursor: "pointer",
@@ -74,7 +74,7 @@ function KpiCard({ icon: Icon, label, value, sub, color, href }: {
         transition: "border-color 0.2s, transform 0.2s, box-shadow 0.2s",
       }}
         onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = color + "50"; (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)"; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 8px 32px rgba(0,0,0,0.5), 0 0 20px ${color}15`; }}
-        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border)"; (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "var(--fc-border)"; (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; }}
       >
         {/* top accent line */}
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${color}, transparent)`, borderRadius: "16px 16px 0 0" }} />
@@ -85,14 +85,14 @@ function KpiCard({ icon: Icon, label, value, sub, color, href }: {
           <div style={{ width: 36, height: 36, borderRadius: 10, background: `${color}15`, border: `1px solid ${color}25`, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Icon style={{ width: 16, height: 16, color }} />
           </div>
-          <ChevronRight style={{ width: 14, height: 14, color: "var(--text-muted)", marginTop: 2 }} />
+          <ChevronRight style={{ width: 14, height: 14, color: "var(--fc-text-muted)", marginTop: 2 }} />
         </div>
 
         <p style={{ fontFamily: "var(--font-display)", fontSize: 30, fontWeight: 800, color, lineHeight: 1, margin: "0 0 4px" }}>
           <AnimatedNumber value={value} />
         </p>
-        <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--text-muted)", margin: "0 0 2px" }}>{label}</p>
-        <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0 }}>{sub}</p>
+        <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--fc-text-muted)", margin: "0 0 2px" }}>{label}</p>
+        <p style={{ fontSize: 11, color: "var(--fc-text-secondary)", margin: 0 }}>{sub}</p>
       </div>
     </Link>
   );
@@ -115,23 +115,23 @@ function ProjectCard({ pc }: { pc: any }) {
 
   type HealthKey = "healthy" | "warning" | "danger";
     const configs: Record<HealthKey, { color: string; text: string; bg: string; Icon: any }> = {
-    healthy: { color: "var(--emerald)", text: "SALUDABLE", bg: "rgba(52,183,124,0.06)", Icon: ShieldCheck },
-    warning: { color: "var(--amber)", text: "PRECAUCIÓN", bg: "rgba(224,168,60,0.06)", Icon: Clock },
-    danger: { color: "var(--red)", text: "EN RIESGO", bg: "rgba(229,72,77,0.06)", Icon: AlertCircle },
+    healthy: { color: "var(--fc-success)", text: "SALUDABLE", bg: "rgba(52,183,124,0.06)", Icon: ShieldCheck },
+    warning: { color: "var(--fc-warning)", text: "PRECAUCIÓN", bg: "rgba(224,168,60,0.06)", Icon: Clock },
+    danger: { color: "var(--fc-danger)", text: "EN RIESGO", bg: "rgba(229,72,77,0.06)", Icon: AlertCircle },
   };
   const key: HealthKey = isHealthy ? "healthy" : isWarning ? "warning" : "danger";
   const cfg = configs[key];
   const HealthIcon = cfg.Icon;
 
   const cprColor = pc.cprActual > 0
-    ? (pc.cprActual <= pc.cprProjected ? "var(--emerald)" : pc.cprActual <= pc.cprProjected * 1.2 ? "var(--amber)" : "var(--red)")
-    : "var(--foreground)";
+    ? (pc.cprActual <= pc.cprProjected ? "var(--fc-success)" : pc.cprActual <= pc.cprProjected * 1.2 ? "var(--fc-warning)" : "var(--fc-danger)")
+    : "var(--fc-text)";
 
   return (
     <Link href={`/dashboard/proyectos/${pc.id}`} style={{ textDecoration: "none" }}>
       <div style={{
-        background: `radial-gradient(120% 120% at 50% -10%, ${cfg.bg} 0%, var(--surface) 70%)`,
-        border: "1px solid var(--border)",
+        background: `radial-gradient(120% 120% at 50% -10%, ${cfg.bg} 0%, var(--fc-surface) 70%)`,
+        border: "1px solid var(--fc-border)",
         borderRadius: 16,
         padding: 0,
         overflow: "hidden",
@@ -140,7 +140,7 @@ function ProjectCard({ pc }: { pc: any }) {
         cursor: "pointer",
       }}
         onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = cfg.color + "40"; el.style.boxShadow = `0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px ${cfg.color}20`; el.style.transform = "translateY(-2px)"; }}
-        onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = "var(--border)"; el.style.boxShadow = "none"; el.style.transform = "translateY(0)"; }}
+        onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = "var(--fc-border)"; el.style.boxShadow = "none"; el.style.transform = "translateY(0)"; }}
       >
         {/* Top accent */}
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${cfg.color}80, transparent)` }} />
@@ -148,10 +148,10 @@ function ProjectCard({ pc }: { pc: any }) {
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 18px 12px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-            <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <Activity style={{ width: 11, height: 11, color: "var(--cyan)" }} />
+            <div style={{ width: 22, height: 22, borderRadius: 6, background: "rgba(0, 212, 255, 0.1)", border: "1px solid rgba(59,130,246,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Activity style={{ width: 11, height: 11, color: "var(--fc-accent)" }} />
             </div>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pc.alias}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "var(--fc-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pc.alias}</span>
           </div>
           {pc.hasData && (
             <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "3px 9px", borderRadius: 99, background: `${cfg.color}12`, border: `1px solid ${cfg.color}28`, flexShrink: 0 }}>
@@ -165,27 +165,27 @@ function ProjectCard({ pc }: { pc: any }) {
         <div style={{ padding: "0 18px 18px" }}>
           {!pc.hasData ? (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "24px 0", opacity: 0.45 }}>
-              <AlertTriangle style={{ width: 14, height: 14, color: "var(--text-muted)" }} />
-              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Sin datos de Meta</span>
+              <AlertTriangle style={{ width: 14, height: 14, color: "var(--fc-text-muted)" }} />
+              <span style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>Sin datos de Meta</span>
             </div>
           ) : (
             <>
               {/* CPR Hero */}
-              <div style={{ textAlign: "center", padding: "10px 0 18px", borderBottom: "1px solid var(--hairline)" }}>
-                <p style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", margin: "0 0 6px" }}>Costo Por Resultado</p>
+              <div style={{ textAlign: "center", padding: "10px 0 18px", borderBottom: "1px solid var(--fc-border-subtle)" }}>
+                <p style={{ fontSize: 9, color: "var(--fc-text-muted)", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", margin: "0 0 6px" }}>Costo Por Resultado</p>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                   <span style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 800, color: cprColor, lineHeight: 1 }}>
                     {pc.cprActual > 0 ? fmtMXN(pc.cprActual) : "—"}
                   </span>
                   {pc.cprActual > 0 && pc.cprProjected > 0 && (
                     pc.cprActual <= pc.cprProjected
-                      ? <TrendingDown style={{ width: 16, height: 16, color: "var(--emerald)" }} />
-                      : <TrendingUp style={{ width: 16, height: 16, color: "var(--red)" }} />
+                      ? <TrendingDown style={{ width: 16, height: 16, color: "var(--fc-success)" }} />
+                      : <TrendingUp style={{ width: 16, height: 16, color: "var(--fc-danger)" }} />
                   )}
                 </div>
                 {pc.cprProjected > 0 && (
-                  <p style={{ fontSize: 10, color: "var(--text-muted)", margin: "4px 0 0" }}>
-                    Meta: <span style={{ color: "var(--foreground)", fontWeight: 600 }}>{fmtMXN(pc.cprProjected)}</span>
+                  <p style={{ fontSize: 10, color: "var(--fc-text-muted)", margin: "4px 0 0" }}>
+                    Meta: <span style={{ color: "var(--fc-text)", fontWeight: 600 }}>{fmtMXN(pc.cprProjected)}</span>
                   </p>
                 )}
               </div>
@@ -194,21 +194,21 @@ function ProjectCard({ pc }: { pc: any }) {
               <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingTop: 14 }}>
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                    <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--text-muted)" }}>Resultados</span>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: "var(--foreground)" }}>
-                      {pc.results.toLocaleString()} <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>/ {Math.round(pc.goalToDate).toLocaleString()}</span>
+                    <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--fc-text-muted)" }}>Resultados</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "var(--fc-text)" }}>
+                      {pc.results.toLocaleString()} <span style={{ color: "var(--fc-text-muted)", fontWeight: 400 }}>/ {Math.round(pc.goalToDate).toLocaleString()}</span>
                     </span>
                   </div>
-                  <PacingBar pct={pc.resultsPct} color={pc.resultsPct >= 90 ? "var(--emerald)" : pc.resultsPct >= 60 ? "var(--amber)" : "var(--red)"} />
+                  <PacingBar pct={pc.resultsPct} color={pc.resultsPct >= 90 ? "var(--fc-success)" : pc.resultsPct >= 60 ? "var(--fc-warning)" : "var(--fc-danger)"} />
                 </div>
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                    <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--text-muted)" }}>Inversión (Gasto)</span>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: "var(--foreground)" }}>
-                      {fmtMXN0(pc.spendToDate)} <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>/ {fmtMXN0(pc.budgetToDate)}</span>
+                    <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--fc-text-muted)" }}>Inversión (Gasto)</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "var(--fc-text)" }}>
+                      {fmtMXN0(pc.spendToDate)} <span style={{ color: "var(--fc-text-muted)", fontWeight: 400 }}>/ {fmtMXN0(pc.budgetToDate)}</span>
                     </span>
                   </div>
-                  <PacingBar pct={pc.spendPct} color={pc.spendPct > 110 ? "var(--red)" : pc.spendPct > 100 ? "var(--amber)" : "var(--emerald)"} />
+                  <PacingBar pct={pc.spendPct} color={pc.spendPct > 110 ? "var(--fc-danger)" : pc.spendPct > 100 ? "var(--fc-warning)" : "var(--fc-success)"} />
                 </div>
               </div>
             </>
@@ -225,12 +225,12 @@ function QuickPill({ label, href, icon: Icon, color }: { label: string; href: st
     <Link href={href} style={{ textDecoration: "none" }}>
       <div style={{
         display: "flex", alignItems: "center", gap: 7, padding: "8px 14px",
-        background: "var(--surface-hover)", border: "1px solid var(--border)",
+        background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border)",
         borderRadius: 10, cursor: "pointer", transition: "all 0.18s",
-        fontSize: 12, fontWeight: 600, color: "var(--text-secondary)",
+        fontSize: 12, fontWeight: 600, color: "var(--fc-text-secondary)",
       }}
         onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = color + "50"; el.style.color = color; el.style.background = color + "12"; }}
-        onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = "var(--border)"; el.style.color = "var(--text-secondary)"; el.style.background = "var(--surface-hover)"; }}
+        onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = "var(--fc-border)"; el.style.color = "var(--fc-text-secondary)"; el.style.background = "var(--fc-surface-hover)"; }}
       >
         <Icon style={{ width: 13, height: 13, color }} />
         {label}
@@ -292,10 +292,10 @@ export default function ResumenPage() {
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", gap: 20 }}>
         <div style={{ position: "relative" }}>
-          <Loader2 style={{ width: 32, height: 32, color: "var(--cyan)", animation: "spin 1s linear infinite" }} />
+          <Loader2 style={{ width: 32, height: 32, color: "var(--fc-accent)", animation: "spin 1s linear infinite" }} />
           <div style={{ position: "absolute", inset: -8, borderRadius: "50%", border: "1px solid rgba(59,130,246,0.2)", animation: "pulse 2s ease-in-out infinite" }} />
         </div>
-        <p style={{ fontFamily: "var(--font-display)", fontSize: 11, letterSpacing: "0.2em", color: "var(--cyan)", textTransform: "uppercase" }}>Sintonizando datos...</p>
+        <p style={{ fontFamily: "var(--font-display)", fontSize: 11, letterSpacing: "0.2em", color: "var(--fc-accent)", textTransform: "uppercase" }}>Sintonizando datos...</p>
       </div>
     );
   }
@@ -303,7 +303,7 @@ export default function ResumenPage() {
   if (!data) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
-        <p style={{ color: "var(--red)", fontSize: 13 }}>No se pudieron cargar los datos del resumen. Verifica tu conexión.</p>
+        <p style={{ color: "var(--fc-danger)", fontSize: 13 }}>No se pudieron cargar los datos del resumen. Verifica tu conexión.</p>
       </div>
     );
   }
@@ -373,13 +373,13 @@ export default function ResumenPage() {
       {/* ── KPI GRID ── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14 }}>
         <KpiCard icon={FolderKanban} label="Proyectos" value={d.projects.total}
-          sub={`${d.projects.active} activos`} color="var(--emerald)" href="/dashboard/proyectos" />
+          sub={`${d.projects.active} activos`} color="var(--fc-success)" href="/dashboard/proyectos" />
         <KpiCard icon={Users} label="Equipo" value={d.members.total}
           sub="miembros" color="var(--purple)" href="/dashboard/settings" />
         <KpiCard icon={Zap} label="Tasks" value={d.tasks.total}
-          sub={`${d.tasks.wip} en progreso`} color="var(--cyan)" href="/dashboard/ops" />
+          sub={`${d.tasks.wip} en progreso`} color="var(--fc-accent)" href="/dashboard/ops" />
         <KpiCard icon={Target} label="Briefs" value={d.briefs.total}
-          sub={`${d.briefs.approved} aprobados`} color="var(--amber)" href="/dashboard/briefing" />
+          sub={`${d.briefs.approved} aprobados`} color="var(--fc-warning)" href="/dashboard/briefing" />
       </div>
 
       {/* ── PROJECT HEALTH CARDS ── */}
@@ -387,13 +387,13 @@ export default function ResumenPage() {
         <div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontFamily: "var(--font-display)", fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--text-secondary)" }}>
+              <span style={{ fontFamily: "var(--font-display)", fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--fc-text-secondary)" }}>
                 Salud de Proyectos Activos
               </span>
               {insightsLoading && (
-                <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "2px 8px", background: "var(--cyan-dim)", borderRadius: 99, border: "1px solid rgba(59,130,246,0.2)" }}>
-                  <Loader2 style={{ width: 10, height: 10, color: "var(--cyan)", animation: "spin 1s linear infinite" }} />
-                  <span style={{ fontSize: 9, color: "var(--cyan)", fontWeight: 600 }}>Cargando</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "2px 8px", background: "rgba(0, 212, 255, 0.1)", borderRadius: 99, border: "1px solid rgba(59,130,246,0.2)" }}>
+                  <Loader2 style={{ width: 10, height: 10, color: "var(--fc-accent)", animation: "spin 1s linear infinite" }} />
+                  <span style={{ fontSize: 9, color: "var(--fc-accent)", fontWeight: 600 }}>Cargando</span>
                 </div>
               )}
             </div>
@@ -411,11 +411,11 @@ export default function ResumenPage() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
 
         {/* Operations Pipeline */}
-        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: 22, position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, var(--cyan), transparent)" }} />
+        <div style={{ background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 16, padding: 22, position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, var(--fc-accent), transparent)" }} />
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-            <span style={{ fontFamily: "var(--font-display)", fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--text-secondary)" }}>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--fc-text-secondary)" }}>
               Operations Pipeline
             </span>
             <Link href="/dashboard/ops" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "rgba(59,130,246,0.5)", fontFamily: "var(--font-display)", letterSpacing: "0.1em", textDecoration: "none" }}>
@@ -424,60 +424,60 @@ export default function ResumenPage() {
           </div>
 
           {d.tasks.total === 0 ? (
-            <p style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center", padding: "20px 0" }}>No hay tasks. Crea tu primera en Ops.</p>
+            <p style={{ fontSize: 12, color: "var(--fc-text-muted)", textAlign: "center", padding: "20px 0" }}>No hay tasks. Crea tu primera en Ops.</p>
           ) : (
             <>
               {/* Completion rate */}
               <div style={{ marginBottom: 20 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
-                  <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--text-muted)" }}>Completion Rate</span>
-                  <span style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, color: "var(--emerald)" }}>{taskDoneRate}%</span>
+                  <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--fc-text-muted)" }}>Completion Rate</span>
+                  <span style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, color: "var(--fc-success)" }}>{taskDoneRate}%</span>
                 </div>
-                <div style={{ height: 6, background: "var(--surface-hover)", borderRadius: 99, overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: `${taskDoneRate}%`, borderRadius: 99, background: "linear-gradient(90deg, var(--cyan), var(--emerald))", transition: "width 0.8s ease", boxShadow: "0 0 8px rgba(52,183,124,0.4)" }} />
+                <div style={{ height: 6, background: "var(--fc-surface-hover)", borderRadius: 99, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${taskDoneRate}%`, borderRadius: 99, background: "linear-gradient(90deg, var(--fc-accent), var(--fc-success))", transition: "width 0.8s ease", boxShadow: "0 0 8px rgba(52,183,124,0.4)" }} />
                 </div>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-                <StatusBlock label="Backlog" value={d.tasks.backlog} color="var(--text-muted)" bg="rgba(255,255,255,0.03)" />
-                <StatusBlock label="WIP" value={d.tasks.wip} color="var(--cyan)" bg="rgba(59,130,246,0.05)" />
-                <StatusBlock label="Done" value={d.tasks.done} color="var(--emerald)" bg="rgba(52,183,124,0.05)" />
+                <StatusBlock label="Backlog" value={d.tasks.backlog} color="var(--fc-text-muted)" bg="rgba(255,255,255,0.03)" />
+                <StatusBlock label="WIP" value={d.tasks.wip} color="var(--fc-accent)" bg="rgba(59,130,246,0.05)" />
+                <StatusBlock label="Done" value={d.tasks.done} color="var(--fc-success)" bg="rgba(52,183,124,0.05)" />
               </div>
             </>
           )}
         </div>
 
         {/* Quick Actions */}
-        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: 22, position: "relative", overflow: "hidden" }}>
+        <div style={{ background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 16, padding: 22, position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, var(--purple), transparent)" }} />
 
           <div style={{ marginBottom: 18 }}>
-            <span style={{ fontFamily: "var(--font-display)", fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--text-secondary)" }}>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--fc-text-secondary)" }}>
               Quick Actions
             </span>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {[
-              { label: "Nuevo Proyecto", href: "/dashboard/proyectos", icon: FolderKanban, color: "var(--emerald)" },
-              { label: "Crear Task", href: "/dashboard/ops", icon: Zap, color: "var(--cyan)" },
-              { label: "Nuevo Brief IA", href: "/dashboard/briefing", icon: Target, color: "var(--amber)" },
+              { label: "Nuevo Proyecto", href: "/dashboard/proyectos", icon: FolderKanban, color: "var(--fc-success)" },
+              { label: "Crear Task", href: "/dashboard/ops", icon: Zap, color: "var(--fc-accent)" },
+              { label: "Nuevo Brief IA", href: "/dashboard/briefing", icon: Target, color: "var(--fc-warning)" },
               { label: "Invitar Miembro", href: "/dashboard/settings", icon: Users, color: "var(--purple)" },
             ].map((action) => (
               <Link key={action.label} href={action.href} style={{ textDecoration: "none" }}>
                 <div style={{
                   display: "flex", alignItems: "center", gap: 10, padding: "10px 14px",
-                  background: "var(--surface-hover)", border: "1px solid var(--border)",
+                  background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border)",
                   borderRadius: 10, cursor: "pointer", transition: "all 0.18s",
                 }}
                   onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = action.color + "40"; el.style.background = action.color + "08"; }}
-                  onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = "var(--border)"; el.style.background = "var(--surface-hover)"; }}
+                  onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = "var(--fc-border)"; el.style.background = "var(--fc-surface-hover)"; }}
                 >
                   <div style={{ width: 28, height: 28, borderRadius: 8, background: `${action.color}12`, border: `1px solid ${action.color}20`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     <action.icon style={{ width: 13, height: 13, color: action.color }} />
                   </div>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", flex: 1 }}>{action.label}</span>
-                  <ArrowRight style={{ width: 11, height: 11, color: "var(--text-muted)" }} />
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--fc-text-secondary)", flex: 1 }}>{action.label}</span>
+                  <ArrowRight style={{ width: 11, height: 11, color: "var(--fc-text-muted)" }} />
                 </div>
               </Link>
             ))}
@@ -489,12 +489,12 @@ export default function ResumenPage() {
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "12px 20px",
-        background: "var(--surface)", border: "1px solid var(--border)",
+        background: "var(--fc-surface)", border: "1px solid var(--fc-border)",
         borderRadius: 12,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ width: 7, height: 7, borderRadius: "50%", background: d.integrations.connected > 0 ? "var(--emerald)" : "var(--text-muted)", boxShadow: d.integrations.connected > 0 ? "0 0 6px var(--emerald)" : "none" }} />
-          <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+          <div style={{ width: 7, height: 7, borderRadius: "50%", background: d.integrations.connected > 0 ? "var(--fc-success)" : "var(--fc-text-muted)", boxShadow: d.integrations.connected > 0 ? "0 0 6px var(--fc-success)" : "none" }} />
+          <span style={{ fontSize: 12, color: "var(--fc-text-secondary)" }}>
             {d.integrations.connected > 0
               ? `${d.integrations.connected} integración${d.integrations.connected > 1 ? "es" : ""} activa${d.integrations.connected > 1 ? "s" : ""}`
               : "Sin integraciones conectadas"}

@@ -24,7 +24,7 @@ export default function DashboardError({
     }}>
       <div style={{
         width: "100%", maxWidth: "440px",
-        background: "var(--surface)", 
+        background: "var(--fc-surface)", 
         border: "1px solid rgba(229,72,77,0.25)",
         borderRadius: "20px", padding: "36px 32px",
         position: "relative", overflow: "hidden",
@@ -33,7 +33,7 @@ export default function DashboardError({
         {/* Top neon accent bar */}
         <div style={{
           position: "absolute", top: 0, left: 0, right: 0, height: "2px",
-          background: "linear-gradient(90deg, transparent, var(--red), transparent)",
+          background: "linear-gradient(90deg, transparent, var(--fc-danger), transparent)",
         }} />
 
         {/* Ambient glow top-left */}
@@ -53,27 +53,27 @@ export default function DashboardError({
           margin: "0 auto 20px",
           boxShadow: "0 0 30px rgba(229,72,77,0.2)",
         }}>
-          <AlertTriangle style={{ width: 28, height: 28, color: "var(--red)" }} />
+          <AlertTriangle style={{ width: 28, height: 28, color: "var(--fc-danger)" }} />
         </div>
 
         <h2 style={{
           fontFamily: "var(--font-display)",
           fontSize: "16px", fontWeight: 700,
           letterSpacing: "0.1em", textTransform: "uppercase",
-          color: "var(--foreground)", marginBottom: "10px",
+          color: "var(--fc-text)", marginBottom: "10px",
         }}>
           Error Crítico Detectado
         </h2>
 
-        <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "20px", lineHeight: 1.6 }}>
+        <p style={{ fontSize: "13px", color: "var(--fc-text-secondary)", marginBottom: "20px", lineHeight: 1.6 }}>
           Algo salió mal al cargar esta sección. Hemos registrado el error para investigarlo.
           Puedes intentar recargar la página o volver al inicio.
         </p>
 
         <div style={{
           padding: "12px 14px",
-          background: "var(--surface-hover)", 
-          border: "1px solid var(--hairline)",
+          background: "var(--fc-surface-hover)", 
+          border: "1px solid var(--fc-border-subtle)",
           borderRadius: "8px", marginBottom: "24px",
           textAlign: "left", overflow: "hidden",
         }}>
@@ -93,9 +93,9 @@ export default function DashboardError({
             style={{
               flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
               gap: "8px", padding: "11px 16px", borderRadius: "10px",
-              background: "var(--surface-hover)",
-              border: "1px solid var(--border)",
-              color: "var(--foreground)", fontSize: "13px", fontWeight: 500,
+              background: "var(--fc-surface-hover)",
+              border: "1px solid var(--fc-border)",
+              color: "var(--fc-text)", fontSize: "13px", fontWeight: 500,
               cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s",
             }}
           >
@@ -107,9 +107,9 @@ export default function DashboardError({
             style={{
               flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
               gap: "8px", padding: "11px 16px", borderRadius: "10px",
-              background: "linear-gradient(135deg, var(--cyan), #2563eb)",
+              background: "linear-gradient(135deg, var(--fc-accent), #2563eb)",
               border: "none",
-              color: "var(--foreground)", fontSize: "13px", fontWeight: 600,
+              color: "var(--fc-text)", fontSize: "13px", fontWeight: 600,
               textDecoration: "none", transition: "all 0.2s",
               boxShadow: "0 4px 16px rgba(59,130,246,0.35)",
             }}

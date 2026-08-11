@@ -160,7 +160,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
     <span style={{
       display: "inline-flex", alignItems: "center", justifyContent: "center",
       width: 8, height: 8, borderRadius: "50%",
-      background: configured ? "var(--emerald)" : "rgba(255,255,255,0.15)",
+      background: configured ? "var(--fc-success)" : "rgba(255,255,255,0.15)",
       boxShadow: configured ? "0 0 8px rgba(52,183,124,0.6)" : "none",
       flexShrink: 0,
     }} />
@@ -168,7 +168,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "20px 0", color: "var(--text-secondary)", fontSize: 13 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "20px 0", color: "var(--fc-text-secondary)", fontSize: 13 }}>
         <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
         Cargando configuración de Google...
       </div>
@@ -179,24 +179,24 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
     return (
       <div style={{
         padding: "20px 24px", borderRadius: 10,
-        background: "var(--surface)", border: "1px solid rgba(251,191,36,0.2)",
+        background: "var(--fc-surface)", border: "1px solid rgba(251,191,36,0.2)",
         display: "flex", gap: 14, alignItems: "flex-start",
       }}>
-        <AlertCircle size={18} style={{ color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
+        <AlertCircle size={18} style={{ color: "var(--fc-warning)", flexShrink: 0, marginTop: 1 }} />
         <div>
-          <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", margin: "0 0 4px" }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: "var(--fc-text)", margin: "0 0 4px" }}>
             Google no está conectado
           </p>
-          <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: "0 0 12px", lineHeight: 1.6 }}>
+          <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", margin: "0 0 12px", lineHeight: 1.6 }}>
             Para vincular recursos de Google a este proyecto, primero debes conectar Google en el panel de Integraciones del workspace.
           </p>
           <a
             href="/dashboard/integrations"
             style={{
               display: "inline-flex", alignItems: "center", gap: 6,
-              fontSize: 11, fontWeight: 600, color: "var(--cyan)",
+              fontSize: 11, fontWeight: 600, color: "var(--fc-accent)",
               padding: "6px 14px", borderRadius: 6,
-              background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)",
+              background: "rgba(0, 212, 255, 0.1)", border: "1px solid rgba(59,130,246,0.2)",
               textDecoration: "none",
             }}
           >
@@ -217,11 +217,11 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
           <button
             onClick={() => { setActiveSection(null); setErrorMsg(null); setSelectedGtmAccount(null); setGtmContainers([]); }}
-            style={{ background: "var(--surface-hover)", border: "1px solid var(--border)", borderRadius: 6, padding: "4px 8px", cursor: "pointer", color: "var(--text-secondary)", display: "flex", alignItems: "center" }}
+            style={{ background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border)", borderRadius: 6, padding: "4px 8px", cursor: "pointer", color: "var(--fc-text-secondary)", display: "flex", alignItems: "center" }}
           >
             <ChevronLeft size={14} />
           </button>
-          <h4 style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>
+          <h4 style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-text)", margin: 0 }}>
             {activeSection === "ads" && "Vincular cuenta de Google Ads"}
             {activeSection === "ga4" && "Vincular propiedad de Google Analytics 4"}
             {activeSection === "gtm" && "Vincular contenedor de Tag Manager"}
@@ -241,15 +241,15 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
             return (
               <div style={{
                 padding: "16px 18px", borderRadius: 10, marginBottom: 16,
-                background: "var(--surface)", border: "1px solid rgba(251,191,36,0.25)",
+                background: "var(--fc-surface)", border: "1px solid rgba(251,191,36,0.25)",
                 display: "flex", gap: 14, alignItems: "flex-start",
               }}>
-                <AlertCircle size={16} style={{ color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
+                <AlertCircle size={16} style={{ color: "var(--fc-warning)", flexShrink: 0, marginTop: 1 }} />
                 <div style={{ flex: 1 }}>
-                  <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>
+                  <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 600, color: "var(--fc-text)" }}>
                     {scopeInfo.icon} Permisos insuficientes para {scopeInfo.label}
                   </p>
-                  <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                  <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--fc-text-secondary)", lineHeight: 1.6 }}>
                     Google no otorgó los permisos necesarios. Reconecta Google desde Integraciones para conceder acceso a <strong>{scopeInfo.label}</strong>.
                   </p>
                   <a
@@ -258,7 +258,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
                       display: "inline-flex", alignItems: "center", gap: 6,
                       fontSize: 11, fontWeight: 600, color: "#4285F4",
                       padding: "6px 14px", borderRadius: 6, textDecoration: "none",
-                      background: "var(--surface)", border: "1px solid rgba(66,133,244,0.25)",
+                      background: "var(--fc-surface)", border: "1px solid rgba(66,133,244,0.25)",
                     }}
                   >
                     <ExternalLink size={11} /> Reconectar {scopeInfo.label}
@@ -269,7 +269,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
           }
 
           return (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 8, background: "var(--red-dim)", border: "1px solid var(--red)", color: "var(--red)", fontSize: 12, marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 8, background: "var(--red-dim)", border: "1px solid var(--fc-danger)", color: "var(--fc-danger)", fontSize: 12, marginBottom: 16 }}>
               <AlertCircle size={13} /> {errorMsg}
             </div>
           );
@@ -278,7 +278,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
         {loadingResources ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {[...Array(3)].map((_, i) => (
-              <div key={i} style={{ height: 60, borderRadius: 8, background: "var(--surface)", animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.1}s` }} />
+              <div key={i} style={{ height: 60, borderRadius: 8, background: "var(--fc-surface)", animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.1}s` }} />
             ))}
           </div>
         ) : (
@@ -286,7 +286,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
             {/* ── Google Ads Accounts ── */}
             {activeSection === "ads" && (
               adsAccounts.length === 0 ? (
-                <p style={{ color: "var(--text-secondary)", fontSize: 13 }}>No hay cuentas de Google Ads accesibles. Verifica los permisos de tu cuenta de Google.</p>
+                <p style={{ color: "var(--fc-text-secondary)", fontSize: 13 }}>No hay cuentas de Google Ads accesibles. Verifica los permisos de tu cuenta de Google.</p>
               ) : (
                 adsAccounts.map(account => {
                   const isCurrent = sources.adsCustomerId === account.id;
@@ -297,12 +297,12 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
                       background: isCurrent ? "rgba(52,183,124,0.05)" : "rgba(255,255,255,0.02)",
                       border: `1px solid ${isCurrent ? "rgba(52,183,124,0.3)" : "rgba(255,255,255,0.06)"}`,
                     }}>
-                      <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "#4285F4", flexShrink: 0 }}>
+                      <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--fc-surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "#4285F4", flexShrink: 0 }}>
                         <Database size={13} />
                       </div>
                       <div style={{ flex: 1 }}>
-                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{account.name}</p>
-                        <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>ID: {account.id}</p>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--fc-text)" }}>{account.name}</p>
+                        <p style={{ margin: 0, fontSize: 11, color: "var(--fc-text-secondary)", fontFamily: "var(--font-mono)" }}>ID: {account.id}</p>
                       </div>
                       <button
                         onClick={() => saveSource({ adsCustomerId: account.id }, `Cuenta de Ads vinculada: ${account.name}`)}
@@ -312,7 +312,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
                           cursor: isCurrent ? "default" : "pointer",
                           background: isCurrent ? "rgba(52,183,124,0.1)" : "rgba(59,130,246,0.08)",
                           border: `1px solid ${isCurrent ? "rgba(52,183,124,0.3)" : "rgba(59,130,246,0.2)"}`,
-                          color: isCurrent ? "var(--emerald)" : "var(--cyan)",
+                          color: isCurrent ? "var(--fc-success)" : "var(--fc-accent)",
                           display: "flex", alignItems: "center", gap: 6,
                         }}
                       >
@@ -328,7 +328,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
             {/* ── GA4 Properties ── */}
             {activeSection === "ga4" && (
               ga4Properties.length === 0 ? (
-                <p style={{ color: "var(--text-secondary)", fontSize: 13 }}>No hay propiedades de GA4 accesibles. Verifica los permisos de tu cuenta de Google.</p>
+                <p style={{ color: "var(--fc-text-secondary)", fontSize: 13 }}>No hay propiedades de GA4 accesibles. Verifica los permisos de tu cuenta de Google.</p>
               ) : (
                 ga4Properties.map(prop => {
                   const isCurrent = sources.ga4PropertyId === prop.id;
@@ -339,12 +339,12 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
                       background: isCurrent ? "rgba(52,183,124,0.05)" : "rgba(255,255,255,0.02)",
                       border: `1px solid ${isCurrent ? "rgba(52,183,124,0.3)" : "rgba(255,255,255,0.06)"}`,
                     }}>
-                      <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--amber)", flexShrink: 0 }}>
+                      <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--fc-surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fc-warning)", flexShrink: 0 }}>
                         <BarChart2 size={13} />
                       </div>
                       <div style={{ flex: 1 }}>
-                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{prop.displayName}</p>
-                        <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>{prop.name}</p>
+                        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--fc-text)" }}>{prop.displayName}</p>
+                        <p style={{ margin: 0, fontSize: 11, color: "var(--fc-text-secondary)", fontFamily: "var(--font-mono)" }}>{prop.name}</p>
                       </div>
                       <button
                         onClick={() => saveSource({ ga4PropertyId: prop.id }, `Propiedad de GA4 vinculada: ${prop.displayName}`)}
@@ -354,7 +354,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
                           cursor: isCurrent ? "default" : "pointer",
                           background: isCurrent ? "rgba(52,183,124,0.1)" : "rgba(251,191,36,0.08)",
                           border: `1px solid ${isCurrent ? "rgba(52,183,124,0.3)" : "rgba(251,191,36,0.2)"}`,
-                          color: isCurrent ? "var(--emerald)" : "var(--amber)",
+                          color: isCurrent ? "var(--fc-success)" : "var(--fc-warning)",
                           display: "flex", alignItems: "center", gap: 6,
                         }}
                       >
@@ -370,25 +370,25 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
             {/* ── GTM Accounts → Containers ── */}
             {activeSection === "gtm" && !selectedGtmAccount && (
               gtmAccounts.length === 0 ? (
-                <p style={{ color: "var(--text-secondary)", fontSize: 13 }}>No hay cuentas de Tag Manager accesibles. Verifica los permisos.</p>
+                <p style={{ color: "var(--fc-text-secondary)", fontSize: 13 }}>No hay cuentas de Tag Manager accesibles. Verifica los permisos.</p>
               ) : (
                 gtmAccounts.map(acct => (
                   <div key={acct.accountId} style={{
                     display: "flex", alignItems: "center", gap: 12,
                     padding: "12px 14px", borderRadius: 8, marginBottom: 8,
-                    background: "var(--surface)", border: "1px solid var(--hairline)",
+                    background: "var(--fc-surface)", border: "1px solid var(--fc-border-subtle)",
                     cursor: "pointer",
                   }}
                     onClick={() => loadGtmContainers(acct.accountId)}
                   >
-                    <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--emerald)", flexShrink: 0 }}>
+                    <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--fc-surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fc-success)", flexShrink: 0 }}>
                       <Settings size={13} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{acct.name}</p>
-                      <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>ID: {acct.accountId}</p>
+                      <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--fc-text)" }}>{acct.name}</p>
+                      <p style={{ margin: 0, fontSize: 11, color: "var(--fc-text-secondary)", fontFamily: "var(--font-mono)" }}>ID: {acct.accountId}</p>
                     </div>
-                    <ChevronRight size={14} style={{ color: "var(--text-muted)" }} />
+                    <ChevronRight size={14} style={{ color: "var(--fc-text-muted)" }} />
                   </div>
                 ))
               )
@@ -398,12 +398,12 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
               <>
                 <button
                   onClick={() => { setSelectedGtmAccount(null); setGtmContainers([]); }}
-                  style={{ background: "none", border: "none", padding: 0, color: "var(--text-secondary)", fontSize: 12, cursor: "pointer", marginBottom: 14, display: "flex", alignItems: "center", gap: 4 }}
+                  style={{ background: "none", border: "none", padding: 0, color: "var(--fc-text-secondary)", fontSize: 12, cursor: "pointer", marginBottom: 14, display: "flex", alignItems: "center", gap: 4 }}
                 >
                   <ChevronLeft size={13} /> {gtmAccounts.find(a => a.accountId === selectedGtmAccount)?.name}
                 </button>
                 {gtmContainers.length === 0 ? (
-                  <p style={{ color: "var(--text-secondary)", fontSize: 13 }}>No hay contenedores en esta cuenta.</p>
+                  <p style={{ color: "var(--fc-text-secondary)", fontSize: 13 }}>No hay contenedores en esta cuenta.</p>
                 ) : (
                   gtmContainers.map(cont => {
                     const isCurrent = sources.gtmContainerId === cont.containerId && sources.gtmAccountId === selectedGtmAccount;
@@ -414,12 +414,12 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
                         background: isCurrent ? "rgba(52,183,124,0.05)" : "rgba(255,255,255,0.02)",
                         border: `1px solid ${isCurrent ? "rgba(52,183,124,0.3)" : "rgba(255,255,255,0.06)"}`,
                       }}>
-                        <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--emerald)", flexShrink: 0 }}>
+                        <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--fc-surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fc-success)", flexShrink: 0 }}>
                           <Box size={13} />
                         </div>
                         <div style={{ flex: 1 }}>
-                          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{cont.name}</p>
-                          <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>{cont.publicId} (ID: {cont.containerId})</p>
+                          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--fc-text)" }}>{cont.name}</p>
+                          <p style={{ margin: 0, fontSize: 11, color: "var(--fc-text-secondary)", fontFamily: "var(--font-mono)" }}>{cont.publicId} (ID: {cont.containerId})</p>
                         </div>
                         <button
                           onClick={() => saveSource(
@@ -432,7 +432,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
                             cursor: isCurrent ? "default" : "pointer",
                             background: isCurrent ? "rgba(52,183,124,0.1)" : "rgba(16,185,129,0.08)",
                             border: `1px solid ${isCurrent ? "rgba(52,183,124,0.3)" : "rgba(16,185,129,0.2)"}`,
-                            color: isCurrent ? "var(--emerald)" : "var(--emerald)",
+                            color: isCurrent ? "var(--fc-success)" : "var(--fc-success)",
                             display: "flex", alignItems: "center", gap: 6,
                           }}
                         >
@@ -457,12 +457,12 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
       <style>{`@keyframes spin { to { transform: rotate(360deg); } } @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }`}</style>
 
       {successMsg && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(52,183,124,0.3)", color: "var(--emerald)", fontSize: 12, marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 8, background: "var(--fc-surface)", border: "1px solid rgba(52,183,124,0.3)", color: "var(--fc-success)", fontSize: 12, marginBottom: 16 }}>
           <CheckCircle2 size={13} /> {successMsg}
         </div>
       )}
       {errorMsg && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 8, background: "var(--red-dim)", border: "1px solid var(--red)", color: "var(--red)", fontSize: 12, marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 8, background: "var(--red-dim)", border: "1px solid var(--fc-danger)", color: "var(--fc-danger)", fontSize: 12, marginBottom: 16 }}>
           <AlertCircle size={13} /> {errorMsg}
         </div>
       )}
@@ -484,7 +484,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
         <ResourceRow
           icon={<BarChart2 size={14} />}
           iconBg="rgba(251,191,36,0.1)"
-          iconColor="var(--amber)"
+          iconColor="var(--fc-warning)"
           label="Google Analytics 4"
           configured={!!sources.ga4PropertyId}
           configuredValue={sources.ga4PropertyId ? `Property: ${sources.ga4PropertyId}` : undefined}
@@ -496,7 +496,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
         <ResourceRow
           icon={<Box size={14} />}
           iconBg="rgba(16,185,129,0.1)"
-          iconColor="var(--emerald)"
+          iconColor="var(--fc-success)"
           label="Tag Manager"
           configured={!!sources.gtmContainerId}
           configuredValue={sources.gtmContainerId ? `Container ID: ${sources.gtmContainerId}` : undefined}
@@ -508,12 +508,12 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
       <div style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 6 }}>
         <button
           onClick={fetchSources}
-          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", fontSize: 11, display: "flex", alignItems: "center", gap: 4, padding: "4px 0" }}
+          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--fc-text-secondary)", fontSize: 11, display: "flex", alignItems: "center", gap: 4, padding: "4px 0" }}
         >
           <RefreshCw size={11} /> Actualizar
         </button>
-        <span style={{ color: "var(--text-muted)", fontSize: 10 }}>·</span>
-        <a href="/dashboard/integrations" style={{ fontSize: 11, color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: 4, textDecoration: "none" }}>
+        <span style={{ color: "var(--fc-text-muted)", fontSize: 10 }}>·</span>
+        <a href="/dashboard/integrations" style={{ fontSize: 11, color: "var(--fc-text-secondary)", display: "flex", alignItems: "center", gap: 4, textDecoration: "none" }}>
           <ExternalLink size={10} /> Gestionar integración de Google
         </a>
       </div>
@@ -551,28 +551,28 @@ function ResourceRow({
         <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 2 }}>
           <span style={{
             display: "inline-block", width: 7, height: 7, borderRadius: "50%",
-            background: configured ? "var(--emerald)" : "rgba(255,255,255,0.2)",
+            background: configured ? "var(--fc-success)" : "rgba(255,255,255,0.2)",
             boxShadow: configured ? "0 0 6px rgba(52,183,124,0.7)" : "none",
             flexShrink: 0,
           }} />
-          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{label}</p>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--fc-text)" }}>{label}</p>
           {configured && (
-            <span style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--emerald)", background: "var(--emerald-dim)", padding: "1px 6px", borderRadius: 4 }}>
+            <span style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--fc-success)", background: "var(--emerald-dim)", padding: "1px 6px", borderRadius: 4 }}>
               VINCULADO
             </span>
           )}
         </div>
         {configuredValue ? (
-          <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{configuredValue}</p>
+          <p style={{ margin: 0, fontSize: 11, color: "var(--fc-text-secondary)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{configuredValue}</p>
         ) : (
-          <p style={{ margin: 0, fontSize: 11, color: "var(--text-muted)" }}>Sin configurar — Click para vincular</p>
+          <p style={{ margin: 0, fontSize: 11, color: "var(--fc-text-muted)" }}>Sin configurar — Click para vincular</p>
         )}
       </div>
       <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
         {configured && (
           <button
             onClick={onClear}
-            style={{ background: "none", border: "1px solid var(--border)", borderRadius: 6, padding: "5px 10px", cursor: "pointer", color: "var(--text-muted)", fontSize: 11 }}
+            style={{ background: "none", border: "1px solid var(--fc-border)", borderRadius: 6, padding: "5px 10px", cursor: "pointer", color: "var(--fc-text-muted)", fontSize: 11 }}
           >
             Quitar
           </button>
@@ -580,8 +580,8 @@ function ResourceRow({
         <button
           onClick={onConfigure}
           style={{
-            background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)",
-            borderRadius: 6, padding: "5px 12px", cursor: "pointer", color: "var(--cyan)",
+            background: "rgba(0, 212, 255, 0.1)", border: "1px solid rgba(59,130,246,0.2)",
+            borderRadius: 6, padding: "5px 12px", cursor: "pointer", color: "var(--fc-accent)",
             fontSize: 11, fontWeight: 600, display: "flex", alignItems: "center", gap: 5,
           }}
         >

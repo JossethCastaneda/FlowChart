@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter_Tight, JetBrains_Mono, Orbitron, Space_Grotesk, Sora, Instrument_Serif } from "next/font/google";
+import { Manrope, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import "@/styles/animations.css";
 import { ClientMainWrapper } from "@/components/layout/ClientMainWrapper";
@@ -28,12 +28,8 @@ const GTM_ID = rawGtmId?.startsWith("GTM-") ? rawGtmId : undefined;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 const GA4_ID = rawGa4Id?.startsWith("G-") ? rawGa4Id : undefined;
 
-const inter = Inter_Tight({ subsets: ["latin", "latin-ext"], variable: "--font-inter" });
-const jbMono = JetBrains_Mono({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600"], variable: "--font-jbmono" });
-const orbitron = Orbitron({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-orbitron" });
-const spaceGrotesk = Space_Grotesk({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600", "700"], variable: "--font-space" });
-const sora = Sora({ subsets: ["latin", "latin-ext"], weight: ["400", "500", "600", "700"], variable: "--font-sora" });
-const instrumentSerif = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--font-instrument" });
+const manrope = Manrope({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], display: "swap", variable: "--font-manrope" });
+const jbMono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500"], display: "swap", variable: "--font-jbmono" });
 
 export const viewport: Viewport = {
   themeColor: "var(--background)",
@@ -131,14 +127,30 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${inter.variable} ${jbMono.variable} ${orbitron.variable} ${spaceGrotesk.variable} ${sora.variable} ${instrumentSerif.variable}`} suppressHydrationWarning>
+    <html lang="es" className={`${manrope.variable} ${jbMono.variable}`} suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var t = localStorage.getItem('fc-theme') || 'dark';
+                  var resolved = t === 'system'
+                    ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                    : t;
+                  document.documentElement.setAttribute('data-theme', resolved);
+                  localStorage.setItem('fc-theme', t);
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
       </head>
       <body
         className="antialiased"
         suppressHydrationWarning
       >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem themes={["light", "dark", "azul"]}>
+        <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem themes={["light", "dark"]}>
         <FlowChartBrandDefs />
         <AuthProvider>
           <LanguageProvider>

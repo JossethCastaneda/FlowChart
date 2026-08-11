@@ -14,10 +14,10 @@ function sla(due: string | null, status: string, lang: "es" | "en") {
   if (!due || status === "Done") return { i: "none", bg: "transparent", c: "transparent", l: "" };
   const d = new Date(due).getTime() - new Date().getTime();
   const days = Math.ceil(d / (1000 * 3600 * 24));
-  if (days < 0) return { i: "danger", bg: "var(--red-dim)", c: "var(--red)", l: lang === "es" ? "Vencida" : "Overdue" };
-  if (days === 0) return { i: "warning", bg: "var(--amber-dim)", c: "var(--amber)", l: lang === "es" ? "Hoy" : "Today" };
-  if (days <= 2) return { i: "warning", bg: "var(--amber-dim)", c: "var(--amber)", l: lang === "es" ? `En ${days}d` : `In ${days}d` };
-  return { i: "ok", bg: "var(--surface-hover)", c: "var(--text-secondary)", l: lang === "es" ? `En ${days}d` : `In ${days}d` };
+  if (days < 0) return { i: "danger", bg: "var(--red-dim)", c: "var(--fc-danger)", l: lang === "es" ? "Vencida" : "Overdue" };
+  if (days === 0) return { i: "warning", bg: "var(--amber-dim)", c: "var(--fc-warning)", l: lang === "es" ? "Hoy" : "Today" };
+  if (days <= 2) return { i: "warning", bg: "var(--amber-dim)", c: "var(--fc-warning)", l: lang === "es" ? `En ${days}d` : `In ${days}d` };
+  return { i: "ok", bg: "var(--fc-surface-hover)", c: "var(--fc-text-secondary)", l: lang === "es" ? `En ${days}d` : `In ${days}d` };
 }
 
 // ─── SORTABLE CARD ───
@@ -41,7 +41,7 @@ function SortableKanbanCard({ task, onEdit, lang }: { task: Task; onEdit: (t: Ta
       ref={setNodeRef}
       style={{
         ...style,
-        background: "var(--surface)", border: "1px solid var(--border)",
+        background: "var(--fc-surface)", border: "1px solid var(--fc-border)",
         borderRadius: 8, padding: "12px 14px", cursor: "grab",
         borderLeft: `4px solid ${pri.c}`,
         boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
@@ -50,28 +50,28 @@ function SortableKanbanCard({ task, onEdit, lang }: { task: Task; onEdit: (t: Ta
       {...attributes}
       {...listeners}
       onClick={() => onEdit(task)}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--border-strong)"; e.currentTarget.style.background = "var(--surface-hover)"; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--surface)"; }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--fc-border-hover)"; e.currentTarget.style.background = "var(--fc-surface-hover)"; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--fc-border)"; e.currentTarget.style.background = "var(--fc-surface)"; }}
     >
-      <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", marginBottom: 8, lineHeight: 1.4 }}>{task.title}</p>
+      <p style={{ fontSize: 13, fontWeight: 600, color: "var(--fc-text)", marginBottom: 8, lineHeight: 1.4 }}>{task.title}</p>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6, flexWrap: "wrap" }}>
         <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: pri.bg, color: pri.c, fontWeight: 700 }}>{pri.label}</span>
-        {task.assignee && <span style={{ fontSize: 10, color: "var(--text-secondary)", fontWeight: 500 }}>{task.assignee}</span>}
+        {task.assignee && <span style={{ fontSize: 10, color: "var(--fc-text-secondary)", fontWeight: 500 }}>{task.assignee}</span>}
         {sl.i !== "none" && <span style={{ fontSize: 9, color: sl.c, fontWeight: 700, padding: "2px 6px", borderRadius: 4, background: sl.bg }}>{sl.l}</span>}
       </div>
       {task.tags?.length > 0 && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 3, marginTop: 8 }}>
-          {task.tags.map((tg, i) => <span key={i} style={{ fontSize: 8, padding: "1px 6px", background: "var(--cyan-dim)", color: "var(--cyan)", border: "1px solid var(--border)", borderRadius: 4 }}>{tg}</span>)}
+          {task.tags.map((tg, i) => <span key={i} style={{ fontSize: 8, padding: "1px 6px", background: "rgba(0, 212, 255, 0.1)", color: "var(--fc-accent)", border: "1px solid var(--fc-border)", borderRadius: 4 }}>{tg}</span>)}
         </div>
       )}
       {childTotal > 0 && (
         <div style={{ marginTop: 10 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "var(--text-secondary)", marginBottom: 4 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "var(--fc-text-secondary)", marginBottom: 4 }}>
             <span>Subtareas</span>
             <span style={{ fontWeight: 600 }}>{childDone}/{childTotal}</span>
           </div>
-          <div style={{ height: 4, background: "var(--border)", borderRadius: 2, overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${(childDone / childTotal) * 100}%`, background: "var(--emerald)", borderRadius: 2, transition: "width 0.3s" }} />
+          <div style={{ height: 4, background: "var(--fc-border)", borderRadius: 2, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${(childDone / childTotal) * 100}%`, background: "var(--fc-success)", borderRadius: 2, transition: "width 0.3s" }} />
           </div>
         </div>
       )}
@@ -166,16 +166,16 @@ export function KanbanBoard({ tasks, dynamicGroups, myPerms, lang, onTaskClick, 
         {dynamicGroups.map(g => {
           const gt = rootTasks.filter(g.match);
           return (
-            <div key={g.key} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, borderTop: `4px solid ${g.color}`, display: "flex", flexDirection: "column", minWidth: 280, padding: 6 }}>
+            <div key={g.key} style={{ background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 12, borderTop: `4px solid ${g.color}`, display: "flex", flexDirection: "column", minWidth: 280, padding: 6 }}>
               <div style={{ padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: g.color }}>{g.label}</span>
-                  <span style={{ fontSize: 10, color: g.wipLimit && gt.length > g.wipLimit ? "var(--red)" : "var(--text-muted)", background: g.wipLimit && gt.length > g.wipLimit ? "var(--red-dim)" : "var(--border)", padding: "1px 6px", borderRadius: 8 }}>
+                  <span style={{ fontSize: 10, color: g.wipLimit && gt.length > g.wipLimit ? "var(--fc-danger)" : "var(--fc-text-muted)", background: g.wipLimit && gt.length > g.wipLimit ? "var(--red-dim)" : "var(--fc-border)", padding: "1px 6px", borderRadius: 8 }}>
                     {gt.length} {g.wipLimit ? `/ ${g.wipLimit}` : ""}
                   </span>
                 </div>
                 {myPerms.canAccessOps && (
-                  <button onClick={() => { setAddingIn(g.key); setNewTitle(""); }} aria-label="Agregar tarea" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 2 }} onMouseEnter={e => e.currentTarget.style.color = g.color} onMouseLeave={e => e.currentTarget.style.color = "var(--text-muted)"}>
+                  <button onClick={() => { setAddingIn(g.key); setNewTitle(""); }} aria-label="Agregar tarea" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--fc-text-muted)", padding: 2 }} onMouseEnter={e => e.currentTarget.style.color = g.color} onMouseLeave={e => e.currentTarget.style.color = "var(--fc-text-muted)"}>
                     <Plus style={{ width: 14, height: 14 }} />
                   </button>
                 )}
@@ -203,7 +203,7 @@ export function KanbanBoard({ tasks, dynamicGroups, myPerms, lang, onTaskClick, 
                         setAddingIn(null); setNewTitle(""); 
                       }}
                       placeholder={lang === "es" ? "Nombre..." : "Name..."}
-                      style={{ background: "var(--surface-hover)", border: "1px solid var(--border)", borderRadius: 6, padding: "8px 10px", color: "var(--foreground)", fontSize: 12, outline: "none" }}
+                      style={{ background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border)", borderRadius: 6, padding: "8px 10px", color: "var(--fc-text)", fontSize: 12, outline: "none" }}
                     />
                   )}
                 </div>

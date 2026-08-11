@@ -11,6 +11,7 @@ import { NotificationBell } from "@/components/ui/NotificationBell";
 import { AlertBellButton } from "@/components/alerts/AlertToast";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { WhatsAppPhonePrompt } from "@/components/ui/WhatsAppPhonePrompt";
+import { Sheet } from "@/components/ui/Sheet";
 import { useBrowserNotifications } from "@/hooks/useBrowserNotifications";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
@@ -516,7 +517,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   // When embedded in an iframe, skip the full layout (sidebar, topbar, background)
   if (isEmbedded) {
     return (
-      <div className="h-screen overflow-hidden flex flex-col" style={{ background: "var(--background)" }}>
+      <div className="h-screen overflow-hidden flex flex-col" style={{ background: "var(--fc-bg)" }}>
         {children}
       </div>
     );
@@ -526,7 +527,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   const sidebarVisible = sidebarOpen || sidebarPinned;
 
   return (
-    <div className="h-screen overflow-hidden flex" style={{ background: "var(--background)" }}>
+    <div className="h-screen overflow-hidden flex" style={{ background: "var(--fc-bg)" }}>
 
       {/* Hover trigger zone — always active on desktop */}
       <div
@@ -544,44 +545,99 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         }}
       />
 
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-[var(--panel-bg)]   lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {/* Mobile Sidebar via Sheet */}
+      <Sheet
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        position="left"
+        className="lg:hidden"
+      >
+        <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+          <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: "1px solid var(--fc-border)" }}>
+            <Link href="/dashboard/resumen" className="flex items-center gap-3" aria-label="Inicio">
+              <FlowChartLogo size="sm" showText={true} />
+            </Link>
+          </div>
+          <div style={{ padding: "12px 0 0" }}>
+            <WorkspaceSwitcher />
+          </div>
+          <nav className="flex-1 px-3 pb-4 space-y-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
+            {NAV_GROUPS.map((group) => {
+              const isCollapsed = collapsedGroups[group.key];
+              return (
+                <div key={group.key} className={group.key === "sistema" ? "mt-4 pt-4 border-t border-[var(--fc-border)]" : "mt-2"}>
+                  <div 
+                    className="px-2 pb-2 flex items-center justify-between cursor-pointer group/nav"
+                    onClick={() => setCollapsedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
+                  >
+                    <span style={{
+                      fontFamily: "var(--fc-font-mono)",
+                      fontSize: "9px",
+                      fontWeight: 600,
+                      letterSpacing: "0.3em",
+                      textTransform: "uppercase",
+                      color: "var(--fc-text-muted)",
+                      transition: "color 0.2s"
+                    }} className="group-hover/nav:text-[var(--fc-text)]">
+                      {group.title}
+                    </span>
+                    <ChevronDown className={`w-3 h-3 text-[var(--fc-text-muted)] transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} />
+                  </div>
+                  
+                  <div style={{
+                    display: "grid",
+                    gridTemplateRows: isCollapsed ? "0fr" : "1fr",
+                    transition: "grid-template-rows 0.2s ease-out",
+                  }}>
+                    <div style={{ overflow: "hidden" }}>
+                      {group.items.map((m) => {
+                        const isActive = pathname === m.route || pathname?.startsWith(m.route + "/");
+                        const Icon = ICON_MAP[m.icon] || LayoutDashboard;
 
-      {/* ─── Floating Sidebar ─── */}
+                        return (
+                          <Link
+                            key={m.key}
+                            href={m.route}
+                            title={`✦ ${m.code} — ${m.tagline}`}
+                            className={`nav-item ${isActive ? "active" : ""}`}
+                            data-mod={m.key}
+                            onClick={() => {
+                              setSidebarOpen(false);
+                            }}
+                            style={isActive ? { "--nav-color": m.color, borderLeftColor: m.color } as React.CSSProperties : {}}
+                          >
+                            <HoloIcon
+                              icon={Icon}
+                              isActive={isActive}
+                              className="w-[18px] h-[18px]"
+                              style={isActive ? { color: m.color } : undefined}
+                            />
+                            <span className="flex-1" style={{ color: isActive ? m.color : undefined }}>{m.label}</span>
+                            {isActive && (
+                              <HoloIcon icon={ChevronRight} isActive={true} className="w-3 h-3" style={{ opacity: 0.5, color: m.color }} />
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </nav>
+        </div>
+      </Sheet>
+
+      {/* ─── Floating Sidebar (Desktop) / Sheet (Mobile) ─── */}
       <aside
         ref={sidebarRef}
-        className="sidebar-floating"
+        className={`fc-sidebar ${sidebarVisible ? 'fc-sidebar--open' : ''} hidden lg:flex`}
         onMouseEnter={handleMouseEnterSidebar}
         onMouseLeave={handleMouseLeaveSidebar}
-        style={{
-          position: "fixed",
-          top: 12,
-          left: 12,
-          bottom: 12,
-          width: 256,
-          zIndex: 55,
-          display: "flex",
-          flexDirection: "column",
-          borderRadius: 20,
-          background: "var(--surface)",
-          border: "1px solid var(--sidebar-border)",
-          boxShadow: "var(--sidebar-shadow)",
-          // Slide in/out transition
-          transform: sidebarVisible ? "translateX(0)" : "translateX(calc(-100% - 24px))",
-          opacity: sidebarVisible ? 1 : 0,
-          transition: "transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease",
-          pointerEvents: sidebarVisible ? "auto" : "none",
-          overflow: "hidden",
-        }}
       >
 
         {/* Logo */}
-        <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: "1px solid var(--hairline)" }}>
+        <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: "1px solid var(--fc-border)" }}>
           <Link href="/dashboard/resumen" className="flex items-center gap-3" aria-label="Inicio">
             <FlowChartLogo size="sm" showText={true} />
           </Link>
@@ -616,7 +672,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           {NAV_GROUPS.map((group) => {
             const isCollapsed = collapsedGroups[group.key];
             return (
-              <div key={group.key} className={group.key === "sistema" ? "mt-4 pt-4 border-t border-[var(--hairline)]" : "mt-2"}>
+              <div key={group.key} className={group.key === "sistema" ? "mt-4 pt-4 border-t border-[var(--fc-border-subtle)]" : "mt-2"}>
                 <div 
                   className="px-2 pb-2 flex items-center justify-between cursor-pointer group/nav"
                   onClick={() => setCollapsedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
@@ -685,8 +741,8 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         {/* Mobile header */}
         <header className="lg:hidden flex items-center justify-between px-5 py-4 z-10"
           style={{
-            background: "var(--topbar-bg)",
-            borderBottom: "1px solid var(--border)",
+            background: "var(--fc-surface-overlay)",
+            borderBottom: "1px solid var(--fc-border)",
             
             
           }}
@@ -711,8 +767,8 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
 
         {/* Desktop top bar */}
         <div className="hidden lg:flex items-center justify-between px-4 py-2 gap-5" style={{
-          borderBottom: "1px solid var(--border)",
-          background: "var(--topbar-bg)",
+          borderBottom: "1px solid var(--fc-border)",
+          background: "var(--fc-surface-overlay)",
           height: "56px",
           position: "relative",
           zIndex: 50,
@@ -839,7 +895,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
               style={{ background: "transparent", border: "none" }}
             >
               <div style={{ position: "relative" }}>
-                <div className="w-[32px] h-[32px] rounded-full overflow-hidden border border-[var(--border)]" style={{ background: "linear-gradient(135deg,var(--cyan),#2563eb)" }}>
+                <div className="w-[32px] h-[32px] rounded-full overflow-hidden border border-[var(--fc-border)]" style={{ background: "linear-gradient(135deg,var(--fc-accent),#2563eb)" }}>
                   {session?.user?.image && !avatarError ? (
                     // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
                     <img
@@ -863,7 +919,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                   height: 10,
                   borderRadius: "50%",
                   background: currentStatusCfg.color,
-                  border: "1.5px solid var(--background)",
+                  border: "1.5px solid var(--fc-bg)",
                 }} />
               </div>
 
@@ -887,7 +943,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                   width: 280,
                   background: "var(--panel-bg)",
                   
-                  border: "1px solid var(--border)",
+                  border: "1px solid var(--fc-border)",
                   borderRadius: 12,
                   boxShadow: "0 10px 40px var(--overlay-dark)",
                   padding: "16px 0 8px",
@@ -900,7 +956,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                   <>
                     {/* User Header */}
                     <div className="px-5 pb-4 flex items-center gap-3">
-                      <div className="w-[48px] h-[48px] rounded-full overflow-hidden border-2 border-[var(--border)]" style={{ background: "linear-gradient(135deg,#2563eb,var(--purple))", flexShrink: 0 }}>
+                      <div className="w-[48px] h-[48px] rounded-full overflow-hidden border-2 border-[var(--fc-border)]" style={{ background: "linear-gradient(135deg,#2563eb,var(--purple))", flexShrink: 0 }}>
                           {session?.user?.image && !avatarError ? (
                             // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
                             <img
@@ -929,7 +985,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                       </div>
                     </div>
 
-                    <div style={{ height: "1px", background: "var(--hairline)", margin: "0 0 12px" }} />
+                    <div style={{ height: "1px", background: "var(--fc-border-subtle)", margin: "0 0 12px" }} />
 
                     {/* Estado Section */}
                     <div className="px-5">
@@ -992,7 +1048,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                       </div>
                     </div>
 
-                    <div style={{ height: "1px", background: "var(--hairline)", margin: "8px 0" }} />
+                    <div style={{ height: "1px", background: "var(--fc-border-subtle)", margin: "8px 0" }} />
 
                     {/* Actions Section */}
                     <div className="px-2" style={{ display: "flex", flexDirection: "column" }}>

@@ -144,8 +144,8 @@ export default function GoogleAnalyticsPage() {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
-        .adaccount-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--surface-hover); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; transition: border-color 0.2s; cursor: pointer; }
-        .adaccount-row[data-selected="true"] { border-color: var(--amber); background: rgba(251,191,36,0.05); }
+        .adaccount-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--fc-surface-hover); border: 1px solid var(--fc-border); border-radius: 8px; margin-bottom: 8px; transition: border-color 0.2s; cursor: pointer; }
+        .adaccount-row[data-selected="true"] { border-color: var(--fc-warning); background: rgba(251,191,36,0.05); }
       `}</style>
 
       <div style={{
@@ -158,16 +158,16 @@ export default function GoogleAnalyticsPage() {
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "20px 28px 16px",
-          borderBottom: "1px solid var(--border)",
-          background: "var(--surface)", 
+          borderBottom: "1px solid var(--fc-border)",
+          background: "var(--fc-surface)", 
           position: "sticky", top: 0, zIndex: 10,
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <button
               onClick={() => router.back()}
               style={{
-                background: "var(--surface-hover)", border: "1px solid var(--border)",
-                borderRadius: 8, padding: "5px 8px", cursor: "pointer", color: "var(--text-secondary)",
+                background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border)",
+                borderRadius: 8, padding: "5px 8px", cursor: "pointer", color: "var(--fc-text-secondary)",
                 display: "flex", alignItems: "center",
               }}
             >
@@ -175,15 +175,15 @@ export default function GoogleAnalyticsPage() {
             </button>
             <div style={{
               width: 36, height: 36, borderRadius: 10,
-              background: "var(--amber)",
+              background: "var(--fc-warning)",
               display: "flex", alignItems: "center", justifyContent: "center",
               boxShadow: "0 4px 12px rgba(251,191,36,0.3)",
-              color: "var(--foreground)",
+              color: "var(--fc-text)",
             }}>
               <GA4Icon />
             </div>
             <div>
-              <h1 style={{ fontSize: 18, fontWeight: 700, color: "var(--foreground)", margin: 0, letterSpacing: "-0.02em" }}>
+              <h1 style={{ fontSize: 18, fontWeight: 700, color: "var(--fc-text)", margin: 0, letterSpacing: "-0.02em" }}>
                 {t.title}
               </h1>
             </div>
@@ -196,7 +196,7 @@ export default function GoogleAnalyticsPage() {
               padding: "8px 16px", borderRadius: 8,
               background: "var(--amber-dim)",
               border: "1px solid rgba(251,191,36,0.3)",
-              color: "var(--amber)", fontSize: 12, fontWeight: 600,
+              color: "var(--fc-warning)", fontSize: 12, fontWeight: 600,
               cursor: reconnecting ? "wait" : "pointer",
               fontFamily: "inherit",
             }}
@@ -211,8 +211,8 @@ export default function GoogleAnalyticsPage() {
         </div>
 
         {/* Subtitle */}
-        <div style={{ padding: "12px 28px", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
-          <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>
+        <div style={{ padding: "12px 28px", borderBottom: "1px solid var(--fc-border)", background: "var(--fc-surface)" }}>
+          <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", margin: 0 }}>
             {t.subtitle}
           </p>
         </div>
@@ -223,12 +223,12 @@ export default function GoogleAnalyticsPage() {
             <div style={{
               display: "flex", alignItems: "center", gap: 10,
               padding: "12px 16px", borderRadius: 10,
-              background: "var(--red-dim)", border: "1px solid var(--red)",
-              color: "var(--red)", fontSize: 12, marginBottom: 20,
+              background: "var(--red-dim)", border: "1px solid var(--fc-danger)",
+              color: "var(--fc-danger)", fontSize: 12, marginBottom: 20,
             }}>
               <AlertCircle size={14} />
               {error}
-              <button onClick={fetchProperties} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "var(--red)", display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontFamily: "inherit" }}>
+              <button onClick={fetchProperties} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "var(--fc-danger)", display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontFamily: "inherit" }}>
                 <RefreshCw size={11} /> {t.retry}
               </button>
             </div>
@@ -237,21 +237,21 @@ export default function GoogleAnalyticsPage() {
           {loading && (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {[...Array(2)].map((_, i) => (
-                <div key={i} style={{ height: 68, borderRadius: 10, background: "var(--surface-hover)", animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.15}s` }} />
+                <div key={i} style={{ height: 68, borderRadius: 10, background: "var(--fc-surface-hover)", animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.15}s` }} />
               ))}
             </div>
           )}
 
           {!loading && !connected && !error && (
             <div style={{ textAlign: "center", padding: "60px 20px" }}>
-              <div style={{ width: 52, height: 52, borderRadius: 14, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "var(--amber)" }}>
+              <div style={{ width: 52, height: 52, borderRadius: 14, background: "var(--fc-surface)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "var(--fc-warning)" }}>
                 <GA4Icon />
               </div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", margin: "0 0 6px" }}>{t.notConnected}</p>
-              <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: "0 0 20px" }}>{t.connectPrompt}</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: "var(--fc-text)", margin: "0 0 6px" }}>{t.notConnected}</p>
+              <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", margin: "0 0 20px" }}>{t.connectPrompt}</p>
               <button
                 onClick={handleReconnect}
-                style={{ padding: "10px 20px", borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(251,191,36,0.3)", color: "var(--amber)", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}
+                style={{ padding: "10px 20px", borderRadius: 8, background: "var(--fc-surface)", border: "1px solid rgba(251,191,36,0.3)", color: "var(--fc-warning)", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}
               >
                 <Plus size={13} /> {t.connectBtn}
               </button>
@@ -262,31 +262,31 @@ export default function GoogleAnalyticsPage() {
             <div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
                 <div>
-                  <h2 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>{t.enabledAccounts}</h2>
-                  <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: "2px 0 0" }}>
+                  <h2 style={{ fontSize: 14, fontWeight: 700, color: "var(--fc-text)", margin: 0 }}>{t.enabledAccounts}</h2>
+                  <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", margin: "2px 0 0" }}>
                     {properties.length === 0 ? t.noAccountsConnected : `${properties.length} ${properties.length !== 1 ? t.accountsLinked : t.accountLinked}`}
                   </p>
                 </div>
               </div>
 
               {properties.length === 0 && (
-                <div style={{ padding: "40px 20px", textAlign: "center", borderRadius: 12, border: "1px dashed var(--border)", background: "var(--surface)" }}>
-                  <p style={{ color: "var(--text-secondary)", fontSize: 13, margin: 0 }}>{t.noAccounts}</p>
+                <div style={{ padding: "40px 20px", textAlign: "center", borderRadius: 12, border: "1px dashed var(--fc-border)", background: "var(--fc-surface)" }}>
+                  <p style={{ color: "var(--fc-text-secondary)", fontSize: 13, margin: 0 }}>{t.noAccounts}</p>
                 </div>
               )}
 
               {properties.map(property => (
                 <div key={property.id} className="adaccount-row" data-selected={selectedIds.includes(property.id)} onClick={() => toggleSelection(property.id)}>
-                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--amber)", flexShrink: 0 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--fc-surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fc-warning)", flexShrink: 0 }}>
                     <Database size={14} />
                   </div>
                   <div style={{ flex: 1 }}>
                     <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{property.displayName}</p>
-                    <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)" }}>ID: {property.name}</p>
+                    <p style={{ margin: 0, fontSize: 11, color: "var(--fc-text-secondary)" }}>ID: {property.name}</p>
                   </div>
                   <div style={{
-                    width: 20, height: 20, borderRadius: 4, border: `1px solid ${selectedIds.includes(property.id) ? "var(--amber)" : "var(--border-strong)"}`,
-                    background: selectedIds.includes(property.id) ? "var(--amber)" : "transparent",
+                    width: 20, height: 20, borderRadius: 4, border: `1px solid ${selectedIds.includes(property.id) ? "var(--fc-warning)" : "var(--fc-border-hover)"}`,
+                    background: selectedIds.includes(property.id) ? "var(--fc-warning)" : "transparent",
                     display: "flex", alignItems: "center", justifyContent: "center", color: "var(--background)",
                     transition: "all 0.2s"
                   }}>
@@ -302,7 +302,7 @@ export default function GoogleAnalyticsPage() {
                     disabled={saving}
                     style={{
                       padding: "10px 20px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: saving ? "wait" : "pointer",
-                      background: "var(--amber)", color: "var(--background)", border: "none",
+                      background: "var(--fc-warning)", color: "var(--background)", border: "none",
                       display: "flex", alignItems: "center", gap: 8
                     }}
                   >

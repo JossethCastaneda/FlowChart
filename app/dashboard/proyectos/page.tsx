@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element, @typescript-eslint/no-explicit-any */
 "use client";
+import { Button } from "@/components/ui/Button";
 import { ProjectModal } from "@/components/projects/ProjectModal";
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { createPortal } from "react-dom";
@@ -127,7 +128,7 @@ async function fetchProjectsFromAPI(retries = 2): Promise<FetchResult> {
    STYLES
    ═══════════════════════════════════════ */
 
-/* Using f-input and f-select from forms.css */
+/* Using fc-input and fc-select from forms.css */
 
 /* ═══════════════════════════════════════
    CUSTOM UI COMPONENTS
@@ -163,36 +164,36 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
     <div ref={ref} style={{ position: "relative", width: "100%" }}>
       <div 
         onClick={() => !ro && !disabled && setOpen(!open)}
-        className="f-input" style={{ cursor: ro || disabled ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", opacity: disabled ? 0.5 : 1 }}
+        className="fc-input" style={{ cursor: ro || disabled ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", opacity: disabled ? 0.5 : 1 }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px", overflow: "hidden" }}>
                     {selected?.picture && <img src={selected.picture} alt="" style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "cover" }} />}
-          <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: selected ? "var(--foreground)" : "var(--text-muted)" }}>
+          <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: selected ? "var(--fc-text)" : "var(--fc-text-muted)" }}>
             {selected ? selected.label : placeholder}
           </span>
         </div>
         {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5 }} />}
       </div>
       {open && !ro && !disabled && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)",  maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
-          <div style={{ padding: "8px", position: "sticky", top: 0, background: "var(--panel-bg)", zIndex: 10 }}>
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--fc-surface-overlay)", border: "1px solid rgba(59,130,246,0.2)",  maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
+          <div style={{ padding: "8px", position: "sticky", top: 0, background: "var(--fc-surface-overlay)", zIndex: 10 }}>
             <input 
               type="text" 
               placeholder="Buscar..." 
               value={search} 
               onChange={e => setSearch(e.target.value)}
               onClick={e => e.stopPropagation()}
-              className="f-input" style={{ padding: "6px 8px", fontSize: "11px", background: "var(--surface-hover)" }} 
+              className="fc-input" style={{ padding: "6px 8px", fontSize: "11px", background: "var(--fc-surface-hover)" }} 
             />
           </div>
           {Object.entries(grouped).map(([portfolio, items]) => (
             <div key={portfolio}>
-              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "var(--cyan-dim)", borderTop: "1px solid rgba(59,130,246,0.1)", borderBottom: "1px solid rgba(59,130,246,0.1)" }}>
+              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--fc-accent)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(0, 212, 255, 0.1)", borderTop: "1px solid rgba(59,130,246,0.1)", borderBottom: "1px solid rgba(59,130,246,0.1)" }}>
                 {portfolio}
               </div>
                             {items.map((o: any) => (
                 <div key={o.value} onClick={() => { onChange(o.value); setOpen(false); setSearch(""); }} 
-                     style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: "var(--foreground)" }} 
+                     style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: "var(--fc-text)" }} 
                      onMouseEnter={e => e.currentTarget.style.background = "rgba(59,130,246,0.1)"} 
                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                                     {o.picture && <img src={o.picture} alt="" style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "cover" }} />}
@@ -201,7 +202,7 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
               ))}
             </div>
           ))}
-          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "var(--text-muted)", textAlign: "center" }}>Sin opciones disponibles</div>}
+          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "var(--fc-text-muted)", textAlign: "center" }}>Sin opciones disponibles</div>}
         </div>
       )}
     </div>
@@ -210,7 +211,7 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
 
 export default function ProyectosPage() {
   return (
-    <Suspense fallback={<div style={{ padding: 40, textAlign: "center", color: "var(--text-muted)" }}>Cargando Proyectos...</div>}>
+    <Suspense fallback={<div style={{ padding: 40, textAlign: "center", color: "var(--fc-text-muted)" }}>Cargando Proyectos...</div>}>
       <ProyectosContent />
     </Suspense>
   );
@@ -504,13 +505,13 @@ function ProyectosContent() {
       <PageHeader
         title="Proyectos"
         description="Gestiona tus proyectos de clientes, campañas y presupuestos."
-        icon={<FolderKanban className="w-6 h-6" style={{ color: "var(--emerald)" }} />}
+        icon={<FolderKanban className="w-6 h-6" style={{ color: "var(--fc-success)" }} />}
         action={
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <ConnectPlatformDropdown />
-            <button className="btn-primary" onClick={() => { setEditingId(null); setModalMode("create"); }} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <Button variant="primary" onClick={() => { setEditingId(null); setModalMode("create"); }} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <Plus className="w-4 h-4" /> Nuevo Proyecto
-            </button>
+            </Button>
           </div>
         }
       />
@@ -524,7 +525,7 @@ function ProyectosContent() {
         <div style={{
           padding: "12px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
           background: banner.type === "success" ? "rgba(52,183,124,0.15)" : "rgba(226,68,92,0.15)",
-          color: banner.type === "success" ? "var(--emerald)" : "var(--red)",
+          color: banner.type === "success" ? "var(--fc-success)" : "var(--fc-danger)",
           border: `1px solid ${banner.type === "success" ? "rgba(52,183,124,0.4)" : "rgba(226,68,92,0.4)"}`,
           display: "flex", alignItems: "center", justifyContent: "space-between"
         }}>
@@ -536,13 +537,13 @@ function ProyectosContent() {
       {fetchError && (
         <div style={{
           padding: "12px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
-          background: "var(--surface)", color: "var(--amber)",
+          background: "var(--fc-surface)", color: "var(--fc-warning)",
           border: "1px solid rgba(251,191,36,0.35)",
           display: "flex", alignItems: "center", gap: "10px"
         }}>
           <AlertTriangle className="w-4 h-4" style={{ flexShrink: 0 }} />
           <span style={{ flex: 1 }}>{fetchError}</span>
-          <button onClick={() => { setFetchError(null); loadProjects(); }} style={{ background: "var(--surface)", border: "1px solid rgba(251,191,36,0.4)", color: "inherit", cursor: "pointer", padding: "4px 12px", borderRadius: "4px", fontSize: "12px", fontWeight: 600 }}>Reintentar</button>
+          <button onClick={() => { setFetchError(null); loadProjects(); }} style={{ background: "var(--fc-surface)", border: "1px solid rgba(251,191,36,0.4)", color: "inherit", cursor: "pointer", padding: "4px 12px", borderRadius: "4px", fontSize: "12px", fontWeight: 600 }}>Reintentar</button>
           <button onClick={() => setFetchError(null)} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", opacity: 0.8 }}><X className="w-4 h-4" /></button>
         </div>
       )}
@@ -560,7 +561,7 @@ function ProyectosContent() {
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--text-muted)" }}>Proyectos Activos</span>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--fc-text-muted)" }}>Proyectos Activos</span>
             <span className="badge badge-emerald">{projects.filter(p => p.status === "EN VUELO" || p.status === "Activo").length}</span>
             <span className="badge badge-muted" style={{ marginLeft: 4 }}>
               {isFiltering ? `${visibleProjects.length} de ${projects.length}` : `${projects.length} total`}
@@ -572,10 +573,10 @@ function ProyectosContent() {
         {projects.length > 0 && (
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
             <div style={{ position: "relative", flex: "1 1 220px", minWidth: 180, maxWidth: 360 }}>
-              <Search className="w-3.5 h-3.5" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }} />
+              <Search className="w-3.5 h-3.5" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--fc-text-muted)", pointerEvents: "none" }} />
               <input
                 type="search"
-                className="f-input"
+                className="fc-input"
                 style={{ paddingLeft: 32 }}
                 placeholder="Buscar por proyecto, cliente o vertical…"
                 value={query}
@@ -584,7 +585,7 @@ function ProyectosContent() {
               />
             </div>
             <select
-              className="f-select"
+              className="fc-select"
               style={{ flex: "0 1 180px", minWidth: 140, width: "auto" }}
               value={clientFilter}
               onChange={e => setClientFilter(e.target.value)}
@@ -594,7 +595,7 @@ function ProyectosContent() {
               {clients.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
             <select
-              className="f-select"
+              className="fc-select"
               style={{ flex: "0 1 160px", minWidth: 130, width: "auto" }}
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
@@ -606,7 +607,7 @@ function ProyectosContent() {
             {isFiltering && (
               <button
                 onClick={() => { setQuery(""); setClientFilter(""); setStatusFilter(""); }}
-                style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", fontSize: 12, padding: "4px 6px" }}
+                style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", color: "var(--fc-text-secondary)", fontSize: 12, padding: "4px 6px" }}
               >
                 <X className="w-3.5 h-3.5" /> Limpiar
               </button>
@@ -619,7 +620,7 @@ function ProyectosContent() {
             {[1, 2, 3, 4].map(i => <Skeleton key={i} style={{ height: "160px", width: "100%", borderRadius: "16px" }} />)}
           </div>
         ) : projects.length === 0 ? (
-          <div className="glass-panel" style={{ padding: "40px 24px" }}>
+          <div className="fc-glass" style={{ padding: "40px 24px" }}>
             <EmptyState
               icon={<Orbi state="idle" scale={0.65} />}
               title="Ningún proyecto en radar"
@@ -630,13 +631,13 @@ function ProyectosContent() {
             />
           </div>
         ) : visibleProjects.length === 0 ? (
-          <div className="glass-panel" style={{ padding: "32px 24px", textAlign: "center" }}>
-            <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>
+          <div className="fc-glass" style={{ padding: "32px 24px", textAlign: "center" }}>
+            <p style={{ fontSize: 13, color: "var(--fc-text-secondary)", margin: 0 }}>
               Ningún proyecto coincide con la búsqueda o los filtros.
             </p>
             <button
               onClick={() => { setQuery(""); setClientFilter(""); setStatusFilter(""); }}
-              style={{ marginTop: 10, background: "none", border: "1px solid var(--border)", borderRadius: 8, cursor: "pointer", color: "var(--text-secondary)", fontSize: 12, padding: "6px 14px" }}
+              style={{ marginTop: 10, background: "none", border: "1px solid var(--fc-border)", borderRadius: 8, cursor: "pointer", color: "var(--fc-text-secondary)", fontSize: 12, padding: "6px 14px" }}
             >
               Limpiar filtros
             </button>
@@ -660,15 +661,15 @@ function ProyectosContent() {
       {menuOpen && createPortal(
         <>
           <div style={{ position: "fixed", inset: 0, zIndex: 9990 }} onClick={() => setMenuOpen(null)} />
-          <div style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9991, background: "var(--surface)", border: "1px solid rgba(59,130,246,0.12)", borderRadius: "6px", minWidth: "180px", padding: "4px 0",  boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+          <div style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9991, background: "var(--fc-surface)", border: "1px solid rgba(59,130,246,0.12)", borderRadius: "6px", minWidth: "180px", padding: "4px 0",  boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
             <MenuBtn icon={<Eye className="w-3.5 h-3.5" />} text="Abrir Dashboard" onClick={() => { router.push(`/dashboard/proyectos/${menuOpen}`); setMenuOpen(null); }} />
             <MenuBtn icon={<Edit3 className="w-3.5 h-3.5" />} text="Editar Proyecto" onClick={() => { setEditingId(menuOpen); setModalMode("edit"); setMenuOpen(null); }} />
-            <div style={{ height: "1px", background: "var(--surface-hover)", margin: "4px 0" }} />
+            <div style={{ height: "1px", background: "var(--fc-surface-hover)", margin: "4px 0" }} />
             {STATUSES.filter(s => s !== projects.find(pp => pp.id === menuOpen)?.status).map(s => (
-              <MenuBtn key={s} icon={<div style={{ width: 6, height: 6, borderRadius: "50%", background: s === "EN VUELO" ? "var(--emerald)" : s === "EN ÓRBITA" ? "var(--amber)" : s === "Completado" ? "var(--cyan)" : "var(--text-muted)" }} />}
+              <MenuBtn key={s} icon={<div style={{ width: 6, height: 6, borderRadius: "50%", background: s === "EN VUELO" ? "var(--fc-success)" : s === "EN ÓRBITA" ? "var(--fc-warning)" : s === "Completado" ? "var(--fc-accent)" : "var(--fc-text-muted)" }} />}
                 text={`Cambiar a ${s}`} onClick={() => handleStatusChange(menuOpen, s)} />
             ))}
-            <div style={{ height: "1px", background: "var(--surface-hover)", margin: "4px 0" }} />
+            <div style={{ height: "1px", background: "var(--fc-surface-hover)", margin: "4px 0" }} />
             <MenuBtn icon={<Trash2 className="w-3.5 h-3.5" />} text="Eliminar" onClick={() => { setDeleteConfirm(menuOpen); setMenuOpen(null); }} danger />
           </div>
         </>,
@@ -677,20 +678,20 @@ function ProyectosContent() {
 
       {/* Delete Confirmation Dialog */}
       {deleteConfirm && createPortal(
-        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "var(--panel-bg)",  }}
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "var(--fc-surface-overlay)",  }}
           onClick={() => setDeleteConfirm(null)}
         >
-          <div onClick={e => e.stopPropagation()} style={{ background: "var(--surface)", border: "1px solid rgba(226,68,92,0.25)", borderRadius: 8, padding: 24, maxWidth: 400, width: "90%" }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: "var(--fc-surface)", border: "1px solid rgba(226,68,92,0.25)", borderRadius: 8, padding: 24, maxWidth: 400, width: "90%" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <AlertTriangle style={{ width: 20, height: 20, color: "var(--red)" }} />
-              <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>Eliminar Proyecto</h3>
+              <AlertTriangle style={{ width: 20, height: 20, color: "var(--fc-danger)" }} />
+              <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--fc-text)" }}>Eliminar Proyecto</h3>
             </div>
-            <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 20, lineHeight: 1.6 }}>
-              ¿Estás seguro de que deseas eliminar <strong style={{ color: "var(--foreground)" }}>{projects.find(p => p.id === deleteConfirm)?.alias || "este proyecto"}</strong>? Esta acción no se puede deshacer. Se eliminarán todos los canales, configuraciones y datos asociados.
+            <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", marginBottom: 20, lineHeight: 1.6 }}>
+              ¿Estás seguro de que deseas eliminar <strong style={{ color: "var(--fc-text)" }}>{projects.find(p => p.id === deleteConfirm)?.alias || "este proyecto"}</strong>? Esta acción no se puede deshacer. Se eliminarán todos los canales, configuraciones y datos asociados.
             </p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-              <button onClick={() => setDeleteConfirm(null)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid var(--border)", color: "var(--text-secondary)", background: "transparent", cursor: "pointer", borderRadius: 4 }}>Cancelar</button>
-              <button onClick={() => handleDelete(deleteConfirm)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid rgba(226,68,92,0.4)", color: "var(--red)", background: "var(--surface)", cursor: "pointer", borderRadius: 4 }}>Sí, eliminar</button>
+              <button onClick={() => setDeleteConfirm(null)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid var(--fc-border)", color: "var(--fc-text-secondary)", background: "transparent", cursor: "pointer", borderRadius: 4 }}>Cancelar</button>
+              <button onClick={() => handleDelete(deleteConfirm)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid rgba(226,68,92,0.4)", color: "var(--fc-danger)", background: "var(--fc-surface)", cursor: "pointer", borderRadius: 4 }}>Sí, eliminar</button>
             </div>
           </div>
         </div>,
@@ -732,7 +733,7 @@ function MenuBtn({ icon, text, onClick, danger }: { icon: React.ReactNode; text:
     <button onClick={onClick} style={{
       display: "flex", alignItems: "center", gap: "8px", width: "100%",
       padding: "7px 14px", fontSize: "11px", border: "none", background: "none",
-      color: danger ? "var(--red)" : "rgba(200,214,229,0.7)", cursor: "pointer", textAlign: "left",
+      color: danger ? "var(--fc-danger)" : "rgba(200,214,229,0.7)", cursor: "pointer", textAlign: "left",
     }}
       onMouseEnter={e => (e.currentTarget.style.background = "rgba(59,130,246,0.05)")}
       onMouseLeave={e => (e.currentTarget.style.background = "none")}

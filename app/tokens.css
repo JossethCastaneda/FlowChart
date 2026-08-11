@@ -1,0 +1,171 @@
+/* FlowChart · tokens.css
+ * Única fuente de verdad de color, espacio, tipografía y movimiento.
+ * Ningún archivo de componente debe contener un color literal.
+ * Tema oscuro por defecto; el claro se activa con [data-theme="light"].
+ * Edición 1 · 11 de agosto de 2026
+ */
+
+:root,
+[data-theme="dark"] {
+  /* Superficies, del fondo al frente */
+  --fc-bg:               #0B1214;
+  --fc-surface:          #131E20;
+  --fc-surface-raised:   #1B282B;
+  --fc-surface-overlay:  #223134;
+
+  /* Texto, de más a menos importante */
+  --fc-text:             #FDFCFA;
+  --fc-text-secondary:   #C4CCCD;
+  --fc-text-tertiary:    #9AA5A6;
+  --fc-text-disabled:    #6E7B7D;
+
+  /* Bordes */
+  --fc-border:           #24363A;
+  --fc-border-subtle:    #1B282B;
+  --fc-border-strong:    #3A4E52;
+
+  /* Acento */
+  --fc-accent:           #35D3D9;
+  --fc-accent-hover:     #6FE6EA;
+  --fc-accent-deep:      #0E7A80;
+  --fc-accent-wash:      #142F32;
+  --fc-on-accent:        #0B1214;
+
+  /* Semánticos */
+  --fc-success:          #3DD68C;
+  --fc-success-wash:     #16302A;
+  --fc-warning:          #F2A93B;
+  --fc-warning-wash:     #33290F;
+  --fc-danger:           #FF6B6B;
+  --fc-danger-wash:      #331F22;
+
+  /* Sombra: una sola, para flotantes */
+  --fc-shadow-overlay:   0 16px 40px rgba(0, 0, 0, .55);
+}
+
+[data-theme="light"] {
+  --fc-bg:               #F1EFEA;
+  --fc-surface:          #FDFCFA;
+  --fc-surface-raised:   #F5F3EE;
+  --fc-surface-overlay:  #FDFCFA;
+
+  --fc-text:             #0B1214;
+  --fc-text-secondary:   #3A4446;
+  --fc-text-tertiary:    #5B6769;
+  --fc-text-disabled:    #8E9899;
+
+  --fc-border:           #E8E4DC;
+  --fc-border-subtle:    #F0EDE7;
+  --fc-border-strong:    #D4CFC5;
+
+  --fc-accent:           #0A6E73;
+  --fc-accent-hover:     #085A5E;
+  --fc-accent-deep:      #12A2A8;
+  --fc-accent-wash:      #E3F0F0;
+  --fc-on-accent:        #FDFCFA;
+
+  --fc-success:          #0E8A5F;
+  --fc-success-wash:     #E6F2EC;
+  --fc-warning:          #A66A00;
+  --fc-warning-wash:     #FAF0DC;
+  --fc-danger:           #C93B3B;
+  --fc-danger-wash:      #FAECEC;
+
+  --fc-shadow-overlay:   0 16px 40px rgba(32, 30, 29, .14);
+}
+
+/* Colores de canal. NO son tokens de marca: son las marcas de terceros.
+ * Se usan solo como punto de identificación, nunca como fondo ni como texto. */
+:root {
+  --fc-ch-google:   #4285F4;
+  --fc-ch-meta:     #0866FF;
+  --fc-ch-tiktok:   #FE2C55;
+  --fc-ch-linkedin: #0A66C2;
+  --fc-ch-ga4:      #E8710A;
+  --fc-ch-gtm:      #246FDB;
+}
+
+/* Escala de espacio, base 4. No existe ningún otro valor. */
+:root {
+  --fc-space-1:  4px;
+  --fc-space-2:  8px;
+  --fc-space-3:  12px;
+  --fc-space-4:  16px;
+  --fc-space-5:  20px;
+  --fc-space-6:  24px;
+  --fc-space-8:  32px;
+  --fc-space-10: 40px;
+}
+
+/* Radio */
+:root {
+  --fc-radius-sm:   8px;
+  --fc-radius-md:   10px;
+  --fc-radius-lg:   14px;
+  --fc-radius-xl:   18px;
+  --fc-radius-full: 999px;
+}
+
+/* Tipografía */
+:root {
+  --fc-font-sans: Manrope, system-ui, sans-serif;
+  --fc-font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --fc-text-display: 700 48px/1.05 var(--fc-font-sans);
+  --fc-text-title:   700 24px/1.2  var(--fc-font-sans);
+  --fc-text-body:    400 15px/1.6  var(--fc-font-sans);
+  --fc-text-small:   400 13px/1.5  var(--fc-font-sans);
+  --fc-text-label:   500 11px/1.4  var(--fc-font-mono);
+
+  --fc-tracking-display: -0.035em;
+  --fc-tracking-title:   -0.03em;
+  --fc-tracking-label:    0.12em;
+}
+
+/* Movimiento */
+:root {
+  --fc-ease:      cubic-bezier(.2, .8, .2, 1);
+  --fc-dur-fast:  120ms;
+  --fc-dur-base:  200ms;
+}
+
+/* Disposición: los cortes del sistema */
+:root {
+  --fc-sidebar:      260px;
+  --fc-sidebar-icon: 72px;
+  --fc-content-max:  1440px;
+  --fc-detail-panel: 420px;
+}
+
+/* Utilidades que se repiten en todo el producto */
+.fc-num {
+  font-family: var(--fc-font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.fc-label {
+  font: var(--fc-text-label);
+  letter-spacing: var(--fc-tracking-label);
+  text-transform: uppercase;
+  color: var(--fc-text-tertiary);
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--fc-accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--fc-accent-wash);
+  color: var(--fc-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-duration: 1ms !important;
+  }
+}

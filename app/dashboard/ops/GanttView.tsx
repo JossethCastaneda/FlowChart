@@ -41,12 +41,12 @@ export function GanttView({ tasks, onEditTask }: { tasks: Task[]; onEditTask: (t
   const days = Array.from({ length: daysDiff }, (_, i) => addDays(minDate, i));
 
   return (
-    <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, overflowX: "auto" }}>
+    <div style={{ background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 12, overflowX: "auto" }}>
       <div style={{ display: "flex", minWidth: 300 + daysDiff * DAY_WIDTH }}>
         
         {/* Left Column (Task List) */}
-        <div style={{ width: 300, borderRight: "1px solid var(--border)", flexShrink: 0 }}>
-          <div style={{ height: 40, borderBottom: "1px solid var(--border)", padding: "0 16px", display: "flex", alignItems: "center", fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", background: "var(--surface-hover)" }}>
+        <div style={{ width: 300, borderRight: "1px solid var(--fc-border)", flexShrink: 0 }}>
+          <div style={{ height: 40, borderBottom: "1px solid var(--fc-border)", padding: "0 16px", display: "flex", alignItems: "center", fontSize: 11, fontWeight: 700, color: "var(--fc-text-secondary)", background: "var(--fc-surface-hover)" }}>
             {lang === "es" ? "Tarea" : "Task"}
           </div>
           {taskTimeline.map(({ task }) => (
@@ -54,11 +54,11 @@ export function GanttView({ tasks, onEditTask }: { tasks: Task[]; onEditTask: (t
               key={task.id}
               onClick={() => onEditTask(task)}
               style={{
-                height: ROW_HEIGHT, borderBottom: "1px solid var(--border)", padding: "0 16px",
-                display: "flex", alignItems: "center", fontSize: 12, color: "var(--foreground)",
+                height: ROW_HEIGHT, borderBottom: "1px solid var(--fc-border)", padding: "0 16px",
+                display: "flex", alignItems: "center", fontSize: 12, color: "var(--fc-text)",
                 cursor: "pointer", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis"
               }}
-              onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
+              onMouseEnter={e => e.currentTarget.style.background = "var(--fc-surface-hover)"}
               onMouseLeave={e => e.currentTarget.style.background = "transparent"}
             >
               {task.title}
@@ -68,17 +68,17 @@ export function GanttView({ tasks, onEditTask }: { tasks: Task[]; onEditTask: (t
 
         {/* Right Column (Timeline Grid) */}
         <div style={{ flex: 1, position: "relative" }}>
-          <div style={{ display: "flex", height: 40, borderBottom: "1px solid var(--border)", background: "var(--surface-hover)" }}>
+          <div style={{ display: "flex", height: 40, borderBottom: "1px solid var(--fc-border)", background: "var(--fc-surface-hover)" }}>
             {days.map((d, i) => {
               const isToday = d.toDateString() === new Date().toDateString();
               return (
                 <div key={i} style={{
-                  width: DAY_WIDTH, flexShrink: 0, borderRight: "1px solid var(--border)",
+                  width: DAY_WIDTH, flexShrink: 0, borderRight: "1px solid var(--fc-border)",
                   display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                  background: isToday ? "var(--cyan-dim)" : "transparent"
+                  background: isToday ? "rgba(0, 212, 255, 0.1)" : "transparent"
                 }}>
-                  <span style={{ fontSize: 9, color: "var(--text-muted)" }}>{d.toLocaleDateString(lang === "es" ? "es-MX" : "en-US", { weekday: "short" })}</span>
-                  <span style={{ fontSize: 11, fontWeight: isToday ? 700 : 500, color: isToday ? "var(--cyan)" : "var(--foreground)" }}>{d.getDate()}</span>
+                  <span style={{ fontSize: 9, color: "var(--fc-text-muted)" }}>{d.toLocaleDateString(lang === "es" ? "es-MX" : "en-US", { weekday: "short" })}</span>
+                  <span style={{ fontSize: 11, fontWeight: isToday ? 700 : 500, color: isToday ? "var(--fc-accent)" : "var(--fc-text)" }}>{d.getDate()}</span>
                 </div>
               )
             })}
@@ -88,7 +88,7 @@ export function GanttView({ tasks, onEditTask }: { tasks: Task[]; onEditTask: (t
             {/* Grid lines */}
             <div style={{ position: "absolute", inset: 0, display: "flex", pointerEvents: "none" }}>
                {days.map((d, i) => (
-                 <div key={i} style={{ width: DAY_WIDTH, flexShrink: 0, borderRight: "1px solid var(--border)", background: d.toDateString() === new Date().toDateString() ? "rgba(var(--cyan-rgb), 0.05)" : "transparent" }} />
+                 <div key={i} style={{ width: DAY_WIDTH, flexShrink: 0, borderRight: "1px solid var(--fc-border)", background: d.toDateString() === new Date().toDateString() ? "rgba(var(--cyan-rgb), 0.05)" : "transparent" }} />
                ))}
             </div>
 
@@ -102,13 +102,13 @@ export function GanttView({ tasks, onEditTask }: { tasks: Task[]; onEditTask: (t
               const isBlocked = task.blockedBy && task.blockedBy.length > 0;
 
               return (
-                <div key={task.id} style={{ height: ROW_HEIGHT, borderBottom: "1px solid var(--border)", position: "relative" }}>
+                <div key={task.id} style={{ height: ROW_HEIGHT, borderBottom: "1px solid var(--fc-border)", position: "relative" }}>
                   <div
                     style={{
                       position: "absolute", top: 8, height: 24, left: Math.max(0, left), width,
-                      background: isBlocked ? "var(--amber)" : "var(--cyan)",
+                      background: isBlocked ? "var(--fc-warning)" : "var(--fc-accent)",
                       borderRadius: 4, display: "flex", alignItems: "center", padding: "0 8px",
-                      color: "var(--foreground)", fontSize: 10, fontWeight: 700, overflow: "hidden",
+                      color: "var(--fc-text)", fontSize: 10, fontWeight: 700, overflow: "hidden",
                       boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                       opacity: task.status === "Done" ? 0.5 : 1
                     }}

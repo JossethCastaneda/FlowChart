@@ -133,7 +133,7 @@ export default function MetaAdsPage() {
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
         .portfolio-row { margin-bottom: 24px; }
-        .adaccount-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--surface-hover); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; }
+        .adaccount-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--fc-surface-hover); border: 1px solid var(--fc-border); border-radius: 8px; margin-bottom: 8px; }
       `}</style>
 
       <div style={{
@@ -147,16 +147,16 @@ export default function MetaAdsPage() {
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "20px 28px 16px",
-          borderBottom: "1px solid var(--border)",
-          background: "var(--surface)", 
+          borderBottom: "1px solid var(--fc-border)",
+          background: "var(--fc-surface)", 
           position: "sticky", top: 0, zIndex: 10,
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <button
               onClick={() => router.back()}
               style={{
-                background: "var(--surface-hover)", border: "1px solid var(--border)",
-                borderRadius: 8, padding: "5px 8px", cursor: "pointer", color: "var(--text-secondary)",
+                background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border)",
+                borderRadius: 8, padding: "5px 8px", cursor: "pointer", color: "var(--fc-text-secondary)",
                 display: "flex", alignItems: "center",
               }}
             >
@@ -168,13 +168,13 @@ export default function MetaAdsPage() {
               background: "#0081FB",
               display: "flex", alignItems: "center", justifyContent: "center",
               boxShadow: "0 4px 12px rgba(0,129,251,0.3)",
-              color: "var(--foreground)",
+              color: "var(--fc-text)",
             }}>
               <MetaIcon />
             </div>
 
             <div>
-              <h1 style={{ fontSize: 18, fontWeight: 700, color: "var(--foreground)", margin: 0, letterSpacing: "-0.02em" }}>
+              <h1 style={{ fontSize: 18, fontWeight: 700, color: "var(--fc-text)", margin: 0, letterSpacing: "-0.02em" }}>
                 {t.title}
               </h1>
             </div>
@@ -186,9 +186,9 @@ export default function MetaAdsPage() {
             style={{
               display: "flex", alignItems: "center", gap: 7,
               padding: "8px 16px", borderRadius: 8,
-              background: "var(--cyan-dim)",
-              border: "1px solid var(--border-strong)",
-              color: "var(--cyan)", fontSize: 12, fontWeight: 600,
+              background: "rgba(0, 212, 255, 0.1)",
+              border: "1px solid var(--fc-border-hover)",
+              color: "var(--fc-accent)", fontSize: 12, fontWeight: 600,
               cursor: reconnecting ? "wait" : "pointer",
               fontFamily: "inherit",
             }}
@@ -203,8 +203,8 @@ export default function MetaAdsPage() {
         </div>
 
         {/* ── Subtitle ───────────────────────────────────────────── */}
-        <div style={{ padding: "12px 28px", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
-          <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>
+        <div style={{ padding: "12px 28px", borderBottom: "1px solid var(--fc-border)", background: "var(--fc-surface)" }}>
+          <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", margin: 0 }}>
             {t.subtitle}
           </p>
         </div>
@@ -217,12 +217,12 @@ export default function MetaAdsPage() {
             <div style={{
               display: "flex", alignItems: "center", gap: 10,
               padding: "12px 16px", borderRadius: 10,
-              background: "var(--red-dim)", border: "1px solid var(--red)",
-              color: "var(--red)", fontSize: 12, marginBottom: 20,
+              background: "var(--red-dim)", border: "1px solid var(--fc-danger)",
+              color: "var(--fc-danger)", fontSize: 12, marginBottom: 20,
             }}>
               <AlertCircle size={14} />
               {error}
-              <button onClick={fetchAccounts} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "var(--red)", display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontFamily: "inherit" }}>
+              <button onClick={fetchAccounts} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "var(--fc-danger)", display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontFamily: "inherit" }}>
                 <RefreshCw size={11} /> {t.retry}
               </button>
             </div>
@@ -232,7 +232,7 @@ export default function MetaAdsPage() {
           {loading && (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {[...Array(2)].map((_, i) => (
-                <div key={i} style={{ height: 68, borderRadius: 10, background: "var(--surface-hover)", animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.15}s` }} />
+                <div key={i} style={{ height: 68, borderRadius: 10, background: "var(--fc-surface-hover)", animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.15}s` }} />
               ))}
             </div>
           )}
@@ -240,14 +240,14 @@ export default function MetaAdsPage() {
           {/* Not connected */}
           {!loading && !connected && !error && (
             <div style={{ textAlign: "center", padding: "60px 20px" }}>
-              <div style={{ width: 52, height: 52, borderRadius: 14, background: "var(--cyan-dim)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "var(--cyan)" }}>
+              <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(0, 212, 255, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "var(--fc-accent)" }}>
                 <MetaIcon />
               </div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", margin: "0 0 6px" }}>{t.notConnected}</p>
-              <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: "0 0 20px" }}>{t.connectPrompt}</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: "var(--fc-text)", margin: "0 0 6px" }}>{t.notConnected}</p>
+              <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", margin: "0 0 20px" }}>{t.connectPrompt}</p>
               <button
                 onClick={handleReconnect}
-                style={{ padding: "10px 20px", borderRadius: 8, background: "var(--cyan-dim)", border: "1px solid var(--border-strong)", color: "var(--cyan)", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: 6 }}
+                style={{ padding: "10px 20px", borderRadius: 8, background: "rgba(0, 212, 255, 0.1)", border: "1px solid var(--fc-border-hover)", color: "var(--fc-accent)", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: 6 }}
               >
                 <Plus size={13} /> {t.connectBtn}
               </button>
@@ -259,8 +259,8 @@ export default function MetaAdsPage() {
             <div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
                 <div>
-                  <h2 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>{t.enabledAccounts}</h2>
-                  <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: "2px 0 0" }}>
+                  <h2 style={{ fontSize: 14, fontWeight: 700, color: "var(--fc-text)", margin: 0 }}>{t.enabledAccounts}</h2>
+                  <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", margin: "2px 0 0" }}>
                     {accounts.length === 0 ? t.noPagesConnected : `${accounts.length} ${accounts.length !== 1 ? t.pagesLinked : t.pageLinked}`}
                   </p>
                 </div>
@@ -270,7 +270,7 @@ export default function MetaAdsPage() {
                   style={{
                     display: "flex", alignItems: "center", gap: 6,
                     background: "none", border: "none", cursor: reconnecting ? "wait" : "pointer",
-                    color: "var(--cyan)", fontSize: 12, fontWeight: 600, fontFamily: "inherit",
+                    color: "var(--fc-accent)", fontSize: 12, fontWeight: 600, fontFamily: "inherit",
                   }}
                 >
                   <RefreshCw size={12} style={{ animation: reconnecting ? "spin 1s linear infinite" : "none" }} />
@@ -279,8 +279,8 @@ export default function MetaAdsPage() {
               </div>
 
               {accounts.length === 0 && (
-                <div style={{ padding: "40px 20px", textAlign: "center", borderRadius: 12, border: "1px dashed var(--border)", background: "var(--surface)" }}>
-                  <p style={{ color: "var(--text-secondary)", fontSize: 13, margin: 0 }}>
+                <div style={{ padding: "40px 20px", textAlign: "center", borderRadius: 12, border: "1px dashed var(--fc-border)", background: "var(--fc-surface)" }}>
+                  <p style={{ color: "var(--fc-text-secondary)", fontSize: 13, margin: 0 }}>
                     {t.noPages}
                   </p>
                 </div>
@@ -289,23 +289,23 @@ export default function MetaAdsPage() {
               {portfolios.map(portfolio => (
                 <div key={portfolio} className="portfolio-row">
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                    <div style={{ width: 24, height: 24, borderRadius: 6, background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)" }}>
+                    <div style={{ width: 24, height: 24, borderRadius: 6, background: "var(--fc-surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fc-text-muted)" }}>
                       <Building size={14} />
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.02em" }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-text)", letterSpacing: "0.02em" }}>
                       {portfolio}
                     </span>
                   </div>
                   
-                  <div style={{ paddingLeft: 12, borderLeft: "2px solid var(--border)", marginLeft: 11 }}>
+                  <div style={{ paddingLeft: 12, borderLeft: "2px solid var(--fc-border)", marginLeft: 11 }}>
                     {groupedAccounts[portfolio].map(account => (
                       <div key={account.id} className="adaccount-row">
-                        <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--cyan-dim)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--cyan)", flexShrink: 0 }}>
+                        <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(0, 212, 255, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fc-accent)", flexShrink: 0 }}>
                           <Database size={14} />
                         </div>
                         <div style={{ flex: 1 }}>
                           <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{account.name}</p>
-                          <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)" }}>ID: {account.id.replace('act_', '')}</p>
+                          <p style={{ margin: 0, fontSize: 11, color: "var(--fc-text-secondary)" }}>ID: {account.id.replace('act_', '')}</p>
                         </div>
                       </div>
                     ))}

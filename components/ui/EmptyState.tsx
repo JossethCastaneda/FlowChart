@@ -1,35 +1,56 @@
-import React from "react";
+import React, { ReactNode } from "react";
+import { Icon } from "./Icon";
+import { Button } from "./Button";
 
-interface EmptyStateProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
+export interface EmptyStateProps {
+  reason?: string;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
+  className?: string;
+  
+  // Legacy props support
+  icon?: ReactNode;
+  title?: string;
+  description?: string;
   actionLabel?: string;
+  actionIcon?: ReactNode;
   onAction?: () => void;
-  actionIcon?: React.ReactNode;
 }
 
-export function EmptyState({ icon, title, description, actionLabel, onAction, actionIcon }: EmptyStateProps) {
+export const EmptyState: React.FC<EmptyStateProps> = ({ 
+  reason, 
+  action, 
+  className = "",
+  icon,
+  title,
+  description,
+  actionLabel,
+  actionIcon,
+  onAction
+}) => {
+  const displayTitle = title || reason;
+  const displayDesc = description;
+  const displayAction = action || (onAction && actionLabel ? { label: actionLabel, onClick: onAction } : undefined);
+
   return (
-    <div style={{ padding: "56px 24px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <div style={{ color: "var(--text-muted)", marginBottom: "16px" }}>
-        {icon}
+    <div className={`fc-empty-state ${className}`}>
+      <div className="fc-empty-state-icon">
+        {icon ? icon : <Icon name="filtro" size={32} />}
       </div>
-      <p style={{ fontFamily: "var(--font-display)", fontSize: "14px", letterSpacing: "0.2em", color: "var(--text-secondary)", textTransform: "uppercase" }}>
-        {title}
-      </p>
-      <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "8px", maxWidth: "400px", lineHeight: "1.5" }}>
-        {description}
-      </p>
-      {actionLabel && onAction && (
-        <button
-          className="btn-primary"
-          onClick={onAction}
-          style={{ marginTop: "24px", display: "inline-flex", alignItems: "center", gap: "8px" }}
-        >
-          {actionIcon} {actionLabel}
-        </button>
+      <div className="fc-empty-state-reason">{displayTitle}</div>
+      {displayDesc && (
+        <div style={{ color: 'var(--fc-text-muted)', fontSize: 13, marginBottom: 16 }}>
+          {displayDesc}
+        </div>
+      )}
+      {displayAction && (
+        <Button variant="secondary" onClick={displayAction.onClick} className="fc-empty-state-action">
+          {actionIcon && <span style={{ marginRight: 6 }}>{actionIcon}</span>}
+          {displayAction.label}
+        </Button>
       )}
     </div>
   );
-}
+};

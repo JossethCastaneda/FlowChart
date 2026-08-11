@@ -8,7 +8,7 @@ import { PermissionGuard } from "@/components/layout/PermissionsContext";
 export default function InboxPage() {
   return (
     <PermissionGuard permKey="canAccessInbox">
-      <div className="glass-panel" style={{ height: "calc(100vh - 84px)", display: "flex", flexDirection: "column", margin: "14px", borderRadius: "16px" }}>
+      <div className="fc-glass" style={{ height: "calc(100vh - 84px)", display: "flex", flexDirection: "column", margin: "14px", borderRadius: "16px" }}>
         <InboxLayout />
       </div>
     </PermissionGuard>

@@ -1,0 +1,165 @@
+{
+  "_meta": {
+    "locale": "es-MX",
+    "edicion": 1,
+    "fecha": "2026-08-11",
+    "reglas": [
+      "Tuteo. Sin emoji, sin signos de admiración.",
+      "Si hay una cifra disponible, va en el mensaje.",
+      "El error da causa y acción en la misma frase.",
+      "Sin dato es una raya, nunca 0 ni N/A.",
+      "{n} y {nombre} son interpolaciones; no se traducen."
+    ]
+  },
+  "accion": {
+    "conectarCanal": "Conectar canal",
+    "guardarCambios": "Guardar cambios",
+    "descartar": "Descartar",
+    "enviarReporte": "Enviar reporte",
+    "invitar": "Invitar",
+    "volverAutorizar": "Volver a autorizar",
+    "eliminarEspacio": "Eliminar espacio",
+    "cerrarSesion": "Cerrar sesión",
+    "cerrarTodasLasDemas": "Cerrar todas las demás",
+    "cambiarFoto": "Cambiar foto",
+    "aplicar": "Aplicar",
+    "cancelar": "Cancelar",
+    "loHagoDespues": "Lo hago después",
+    "usarOtraCuenta": "Usar otra cuenta"
+  },
+  "estado": {
+    "sincronizado": "Sincronizado hace {tiempo}",
+    "sincronizando": "Sincronizando {canal} · {hechas} de {total} cuentas",
+    "conectado": "Conectado",
+    "desconectado": "Desconectado",
+    "verificado": "Verificado",
+    "sinDato": "—"
+  },
+  "vacio": {
+    "sinCampanas": {
+      "titulo": "Aún no hay campañas activas en este rango",
+      "cuerpo": "Cambia las fechas o revisa el estado en {canal}."
+    },
+    "sinCanales": {
+      "titulo": "Conecta tu primera cuenta y verás datos en 2 minutos",
+      "cuerpo": "Google Ads, Meta, TikTok y LinkedIn en la misma vista."
+    },
+    "sinReportes": {
+      "titulo": "Aún no has creado ningún reporte",
+      "cuerpo": "Empieza de una plantilla o arma el tuyo desde cero."
+    },
+    "sinResultados": {
+      "titulo": "Nada coincide con «{consulta}»",
+      "cuerpo": "Revisa la escritura o quita algún filtro."
+    }
+  },
+  "error": {
+    "tokenExpirado": "El token de {canal} expiró. Vuelve a autorizar para recuperar los datos.",
+    "sincronizacionDetenida": "{canal} dejó de sincronizar hace {tiempo}. {motivo}",
+    "fallaNuestra": "No pudimos completar la sincronización. Lo estamos revisando; tus datos anteriores siguen intactos.",
+    "sinPermiso": "Tu cuenta de {canal} no tiene permiso de lectura en esta cuenta publicitaria. Pídelo al administrador de {canal}.",
+    "correoInvalido": "Ese correo no tiene un formato válido.",
+    "correoEnUso": "{correo} ya está en este espacio de trabajo.",
+    "contrasenaCorta": "La contraseña necesita al menos 10 caracteres.",
+    "credenciales": "El correo o la contraseña no coinciden.",
+    "sinConexion": "Sin conexión. Los datos que ves son de hace {tiempo}."
+  },
+  "exito": {
+    "reporteEnviado": "Reporte enviado a {n} destinatarios",
+    "canalConectado": "{canal} conectado · {n} cuentas disponibles",
+    "cambiosGuardados": "Cambios guardados",
+    "invitacionEnviada": "Invitación enviada a {correo}"
+  },
+  "confirmar": {
+    "eliminarEspacio": {
+      "titulo": "Eliminar {nombre}",
+      "cuerpo": "Se eliminarán {reportes} reportes y el histórico de {canales} canales. No se puede deshacer.",
+      "accion": "Eliminar espacio"
+    },
+    "desconectarCanal": {
+      "titulo": "Desconectar {canal}",
+      "cuerpo": "Los reportes que lo usan dejarán de actualizarse. El histórico se conserva.",
+      "accion": "Desconectar"
+    },
+    "quitarMiembro": {
+      "titulo": "Quitar a {nombre}",
+      "cuerpo": "Perderá acceso a {espacios} espacios de trabajo. Sus reportes se conservan.",
+      "accion": "Quitar del equipo"
+    }
+  },
+  "plan": {
+    "limiteCanales": "Llegaste a {usados} de {total} canales del plan {plan}. El plan {siguiente} permite {maximo}.",
+    "limiteEspacios": "Llegaste a {usados} de {total} espacios de trabajo del plan {plan}.",
+    "requiereAgencia": "Requiere plan Agencia",
+    "pagoFallido": "No se pudo cobrar la suscripción. Actualiza el método de pago antes del {fecha} para no perder acceso."
+  },
+  "campo": {
+    "nombreEspacio": {
+      "etiqueta": "Nombre del espacio",
+      "ayuda": "Aparece en los reportes que envías."
+    },
+    "monedaReporte": {
+      "etiqueta": "Moneda de reporte",
+      "ayuda": "Los canales en otra moneda se convierten al tipo de cambio del día."
+    },
+    "zonaHoraria": {
+      "etiqueta": "Zona horaria",
+      "ayuda": "Define el corte diario de los datos."
+    },
+    "inicioSemana": {
+      "etiqueta": "Inicio de semana",
+      "ayuda": "Afecta los reportes semanales y el calendario."
+    },
+    "tema": {
+      "etiqueta": "Tema",
+      "ayuda": "Al elegir uno se ignora la preferencia del sistema."
+    },
+    "correo": {
+      "etiqueta": "Correo",
+      "ayuda": ""
+    },
+    "contrasena": {
+      "etiqueta": "Contraseña",
+      "ayuda": "Al menos 10 caracteres."
+    }
+  },
+  "notificacion": {
+    "canalDesconectado": {
+      "asunto": "{canal} dejó de sincronizar",
+      "resumen": "Vuelve a autorizar para recuperar los datos."
+    },
+    "reporteListo": {
+      "asunto": "Tu reporte semanal está listo",
+      "resumen": "{canales} canales, {campanas} campañas activas."
+    },
+    "invitacion": {
+      "asunto": "{nombre} te invitó a {espacio}",
+      "resumen": "Acepta para ver los canales del espacio."
+    },
+    "verificacion": {
+      "asunto": "Verifica tu correo",
+      "resumen": "El enlace vence en 24 horas."
+    }
+  },
+  "metrica": {
+    "gasto": "Gasto",
+    "conversiones": "Conversiones",
+    "cpa": "CPA",
+    "roas": "ROAS",
+    "cpm": "CPM",
+    "ctr": "CTR",
+    "impresiones": "Impresiones",
+    "clics": "Clics",
+    "vsAnterior": "vs periodo anterior"
+  },
+  "navegacion": {
+    "resumen": "Resumen",
+    "canales": "Canales",
+    "reportes": "Reportes",
+    "campanas": "Campañas",
+    "equipo": "Equipo",
+    "configuracion": "Configuración",
+    "perfil": "Perfil",
+    "facturacion": "Facturación"
+  }
+}

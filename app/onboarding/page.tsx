@@ -3,20 +3,17 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
-import { Loader2, ArrowRight, Building2, User, Briefcase, Plus, X } from "lucide-react";
 import { FlowChartLogo } from "@/components/ui/FlowChartLogo";
-import { Orbi } from "@/components/ui/Orbi";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { Icon } from "@/components/ui/Icon";
 
 export default function OnboardingPage() {
   return (
     <Suspense fallback={
-      <div style={{
-        minHeight: "100vh", background: "var(--background)",
-        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "24px"
-      }}>
-        <Orbi state="working" scale={0.8} />
-        <p style={{ color: "var(--cyan)", fontFamily: "var(--font-display)", letterSpacing: "0.1em", fontSize: "14px" }}>INICIALIZANDO...</p>
+      <div className="fc-onboarding-loading">
+        <Icon name="programado" size={32} />
+        <p className="fc-onboarding-loading-text">INICIALIZANDO...</p>
       </div>
     }>
       <OnboardingContent />
@@ -36,20 +33,14 @@ function OnboardingContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Step 1: Workspace Name
   const [name, setName] = useState("");
   const [workspaceId, setWorkspaceId] = useState("");
 
-  // Step 2: Team Type
   const [teamType, setTeamType] = useState<"agency" | "brand" | "freelance" | "">("");
-
-  // Step 3: Invites
   const [emails, setEmails] = useState<string[]>([""]);
 
-  // Verificar si el usuario YA tiene workspace (y no está pidiendo uno nuevo explícitamente)
   useEffect(() => {
     if (isNewWorkspace) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
       setChecking(false);
       return;
     }
@@ -66,8 +57,7 @@ function OnboardingContent() {
       .catch(() => {
         setChecking(false);
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isNewWorkspace, update]);
 
   async function handleCreateWorkspace() {
     if (name.trim().length < 2) {
@@ -93,7 +83,6 @@ function OnboardingContent() {
 
       setWorkspaceId(createData.data.id);
 
-      // Setear como workspace activo (cookie)
       await fetch("/api/workspace/switch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -111,7 +100,6 @@ function OnboardingContent() {
   async function handleFinish() {
     setLoading(true);
     
-    // Enviar invitaciones
     const validEmails = emails.filter(e => e.trim().includes("@"));
     for (const email of validEmails) {
       try {
@@ -125,140 +113,122 @@ function OnboardingContent() {
       }
     }
 
-    // Forzar reload completo para regenerar JWT y cookie
     window.location.href = "/dashboard/resumen";
   }
 
   if (checking) {
     return (
-      <div style={{
-        minHeight: "100vh", background: "var(--background)",
-        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "24px"
-      }}>
-        <Orbi state="working" scale={0.8} />
-        <p style={{ color: "var(--cyan)", fontFamily: "var(--font-display)", letterSpacing: "0.1em", fontSize: "14px" }}>VERIFICANDO ACCESOS...</p>
+      <div className="fc-onboarding-loading">
+        <Icon name="programado" size={32} />
+        <p className="fc-onboarding-loading-text">VERIFICANDO ACCESOS...</p>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--background)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-sans)", padding: "20px" }}>
-      <div className="glass-panel" style={{ width: "100%", maxWidth: "480px", padding: "40px", position: "relative" }}>
+    <div className="fc-onboarding-root">
+      <div className="fc-onboarding-card">
         
-        {/* Step indicator */}
-        <div style={{ display: "flex", gap: "8px", marginBottom: "32px" }}>
+        <div className="fc-onboarding-progress">
           {[1, 2, 3].map((s) => (
-            <div key={s} style={{
-              flex: 1, height: "4px", borderRadius: "2px",
-              background: s === step ? "var(--cyan)" : s < step ? "rgba(59,130,246,0.4)" : "rgba(255,255,255,0.1)",
-              transition: "all 0.3s"
-            }} />
+            <div key={s} className={`fc-onboarding-step ${s === step ? 'is-active' : s < step ? 'is-completed' : ''}`} />
           ))}
         </div>
 
-        <div style={{ marginBottom: "32px" }}>
+        <div className="fc-onboarding-logo">
           <FlowChartLogo size="md" />
         </div>
 
-        {/* STEP 1: WORKSPACE NAME */}
         {step === 1 && (
-          <div className="page-enter">
-            <h1 style={{ fontFamily: "var(--font-display)", fontSize: "16px", fontWeight: 700, color: "var(--cyan)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "8px" }}>
+          <div className="fc-onboarding-content">
+            <h1 className="fc-onboarding-title">
               {isNewWorkspace ? "Nuevo Workspace" : "Inicializar Command Center"}
             </h1>
-            <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "32px", lineHeight: 1.5 }}>
+            <p className="fc-onboarding-subtitle">
               {isNewWorkspace
                 ? "Crea un workspace aislado para gestionar otro cliente, marca o equipo de forma independiente."
                 : "Dale un nombre a tu entorno de trabajo. Este será el centro de control para tus proyectos de analítica y pauta."}
             </p>
 
             <div style={{ marginBottom: "24px" }}>
-              <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "var(--text-muted)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "8px" }}>
-                Nombre del workspace
-              </label>
-              <input
+              <label className="fc-onboarding-label">Nombre del workspace</label>
+              <Input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleCreateWorkspace()}
                 placeholder="Ej: Agencia Matrix / Mi Empresa"
-                style={{ width: "100%", padding: "12px 16px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--foreground)", fontSize: "15px", outline: "none", boxSizing: "border-box", borderRadius: "6px" }}
-                autoFocus
+                error={!!error}
               />
-              {error && <p style={{ fontSize: "12px", color: "var(--red)", marginTop: "8px" }}>{error}</p>}
+              {error && <p className="fc-onboarding-error">{error}</p>}
             </div>
 
-            <button onClick={handleCreateWorkspace} disabled={loading} className="btn-primary" style={{ width: "100%", justifyContent: "center", padding: "12px", fontSize: "14px", opacity: loading ? 0.7 : 1 }}>
-              {loading ? "Creando entorno..." : "Continuar"} <ArrowRight className="w-4 h-4 ml-2" />
-            </button>
+            <Button onClick={handleCreateWorkspace} loading={loading} variant="primary" style={{ width: "100%" }}>
+              {loading ? "Creando entorno..." : "Continuar"}
+            </Button>
             
             {isNewWorkspace && (
-              <button onClick={() => router.back()} style={{ width: "100%", marginTop: "16px", padding: "10px", background: "transparent", border: "1px solid var(--border)", color: "var(--text-muted)", cursor: "pointer", fontSize: "13px", borderRadius: "6px" }}>
+              <Button onClick={() => router.back()} variant="ghost" style={{ width: "100%", marginTop: "16px" }}>
                 Cancelar
-              </button>
+              </Button>
             )}
           </div>
         )}
 
-        {/* STEP 2: PROFILE */}
         {step === 2 && (
-          <div className="page-enter">
-            <h1 style={{ fontFamily: "var(--font-display)", fontSize: "16px", fontWeight: 700, color: "var(--cyan)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "8px" }}>
-              Perfil de Uso
-            </h1>
-            <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "32px", lineHeight: 1.5 }}>
+          <div className="fc-onboarding-content">
+            <h1 className="fc-onboarding-title">Perfil de Uso</h1>
+            <p className="fc-onboarding-subtitle">
               ¿Qué describe mejor a tu equipo? Esto nos ayuda a optimizar tu experiencia en el dashboard.
             </p>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "32px" }}>
+            <div className="fc-onboarding-options">
               <OptionCard 
-                icon={<Building2 className="w-5 h-5" />} title="Agencia" desc="Gestiono campañas para múltiples clientes." 
+                icon={<Icon name="equipo" size={20} />} title="Agencia" desc="Gestiono campañas para múltiples clientes." 
                 selected={teamType === "agency"} onClick={() => setTeamType("agency")} 
               />
               <OptionCard 
-                icon={<Briefcase className="w-5 h-5" />} title="Marca Directa" desc="Mido resultados y pauta para mi propia empresa." 
+                icon={<Icon name="canales" size={20} />} title="Marca Directa" desc="Mido resultados y pauta para mi propia empresa." 
                 selected={teamType === "brand"} onClick={() => setTeamType("brand")} 
               />
               <OptionCard 
-                icon={<User className="w-5 h-5" />} title="Freelancer / Creador" desc="Trabajo independiente analizando cuentas." 
+                icon={<Icon name="usuario" size={20} />} title="Freelancer / Creador" desc="Trabajo independiente analizando cuentas." 
                 selected={teamType === "freelance"} onClick={() => setTeamType("freelance")} 
               />
             </div>
 
-            <button onClick={() => setStep(3)} disabled={!teamType} className="btn-primary" style={{ width: "100%", justifyContent: "center", padding: "12px", fontSize: "14px", opacity: !teamType ? 0.5 : 1 }}>
-              Siguiente paso <ArrowRight className="w-4 h-4 ml-2" />
-            </button>
+            <Button onClick={() => setStep(3)} disabled={!teamType} variant="primary" style={{ width: "100%" }}>
+              Siguiente paso
+            </Button>
           </div>
         )}
 
-        {/* STEP 3: INVITES */}
         {step === 3 && (
-          <div className="page-enter">
-            <h1 style={{ fontFamily: "var(--font-display)", fontSize: "16px", fontWeight: 700, color: "var(--cyan)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "8px" }}>
-              Invita a tu equipo
-            </h1>
-            <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "32px", lineHeight: 1.5 }}>
+          <div className="fc-onboarding-content">
+            <h1 className="fc-onboarding-title">Invita a tu equipo</h1>
+            <p className="fc-onboarding-subtitle">
               Añade a tus colaboradores para que puedan ver los dashboards y configurar campañas. (Opcional)
             </p>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "24px" }}>
+            <div className="fc-onboarding-invites">
               {emails.map((em, idx) => (
-                <div key={idx} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <input
-                    type="email"
-                    value={em}
-                    onChange={(e) => {
-                      const newEmails = [...emails];
-                      newEmails[idx] = e.target.value;
-                      setEmails(newEmails);
-                    }}
-                    placeholder="email@empresa.com"
-                    className="f-input"
-                    style={{ flex: 1 }}
-                  />
+                <div key={idx} className="fc-onboarding-invite-row">
+                  <div style={{ flex: 1 }}>
+                    <Input
+                      type="email"
+                      value={em}
+                      onChange={(e) => {
+                        const newEmails = [...emails];
+                        newEmails[idx] = e.target.value;
+                        setEmails(newEmails);
+                      }}
+                      placeholder="email@empresa.com"
+                    />
+                  </div>
                   {emails.length > 1 && (
-                    <button onClick={() => setEmails(emails.filter((_, i) => i !== idx))} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "8px" }}>
-                      <X className="w-4 h-4" />
+                    <button onClick={() => setEmails(emails.filter((_, i) => i !== idx))} className="fc-onboarding-remove-btn">
+                      <Icon name="alerta" size={16} /> {/* We use alerta or mas rotated? The sprite doesn't have an X. So text X */}
+                      X
                     </button>
                   )}
                 </div>
@@ -267,15 +237,15 @@ function OnboardingContent() {
             
             <button 
               onClick={() => setEmails([...emails, ""])} 
-              style={{ display: "flex", alignItems: "center", gap: "6px", background: "none", border: "none", color: "var(--cyan)", fontSize: "13px", cursor: "pointer", marginBottom: "32px", fontWeight: 600 }}
+              className="fc-onboarding-add-btn"
             >
-              <Plus className="w-4 h-4" /> Añadir otro email
+              <Icon name="mas" size={14} /> Añadir otro email
             </button>
 
-            <button onClick={handleFinish} disabled={loading} className="btn-primary" style={{ width: "100%", justifyContent: "center", padding: "12px", fontSize: "14px", opacity: loading ? 0.7 : 1 }}>
-              {loading ? "Finalizando..." : "Ir al Dashboard"} <ArrowRight className="w-4 h-4 ml-2" />
-            </button>
-            <button onClick={handleFinish} disabled={loading} style={{ width: "100%", marginTop: "12px", background: "none", border: "none", color: "var(--text-muted)", fontSize: "13px", cursor: "pointer", textDecoration: "underline" }}>
+            <Button onClick={handleFinish} loading={loading} variant="primary" style={{ width: "100%" }}>
+              {loading ? "Finalizando..." : "Ir al Dashboard"}
+            </Button>
+            <button onClick={handleFinish} disabled={loading} className="fc-onboarding-skip-btn">
               Saltar este paso por ahora
             </button>
           </div>
@@ -287,18 +257,13 @@ function OnboardingContent() {
 
 function OptionCard({ icon, title, desc, selected, onClick }: { icon: React.ReactNode, title: string, desc: string, selected: boolean, onClick: () => void }) {
   return (
-    <div onClick={onClick} style={{
-      display: "flex", alignItems: "center", gap: "16px", padding: "16px",
-      background: selected ? "rgba(59,130,246,0.08)" : "rgba(255,255,255,0.03)",
-      border: `1px solid ${selected ? "var(--cyan)" : "rgba(255,255,255,0.1)"}`,
-      borderRadius: "8px", cursor: "pointer", transition: "all 0.2s"
-    }}>
-      <div style={{ color: selected ? "var(--cyan)" : "var(--text-muted)" }}>
+    <div onClick={onClick} className={`fc-onboarding-option ${selected ? 'is-selected' : ''}`}>
+      <div className="fc-onboarding-option-icon">
         {icon}
       </div>
       <div>
-        <h3 style={{ fontSize: "14px", fontWeight: 600, color: selected ? "white" : "var(--foreground)", marginBottom: "4px" }}>{title}</h3>
-        <p style={{ fontSize: "12px", color: "var(--text-muted)" }}>{desc}</p>
+        <h3 className="fc-onboarding-option-title">{title}</h3>
+        <p className="fc-onboarding-option-desc">{desc}</p>
       </div>
     </div>
   );

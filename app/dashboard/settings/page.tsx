@@ -65,9 +65,9 @@ type Prefs = typeof DEFAULT_PREFS;
 
 const inp: React.CSSProperties = {
   padding: "8px 12px",
-  background: "var(--cyan-dim)",
+  background: "rgba(0, 212, 255, 0.1)",
   border: "1px solid rgba(59,130,246,0.1)",
-  color: "var(--foreground)",
+  color: "var(--fc-text)",
   fontSize: "13px",
   outline: "none",
   width: "100%",
@@ -224,7 +224,7 @@ export default function SettingsPage() {
     fetchData(workspaceId);
   }
 
-  const roleBadgeColor: Record<string, string> = { OWNER: "var(--cyan)", ADMIN: "var(--amber)", MEMBER: "var(--text-muted)" };
+  const roleBadgeColor: Record<string, string> = { OWNER: "var(--fc-accent)", ADMIN: "var(--fc-warning)", MEMBER: "var(--fc-text-muted)" };
 
   async function handleRoleChange(userId: string, newRole: string) {
     const res = await fetch(`/api/workspace/${workspaceId}/members/role`, {
@@ -356,26 +356,26 @@ export default function SettingsPage() {
     return (
       <div className="space-y-6">
         <PageHeader title="Admin" description="Configuración de tu cuenta y workspace."
-          icon={<Settings className="w-6 h-6" style={{ color: "var(--cyan)" }} />} />
+          icon={<Settings className="w-6 h-6" style={{ color: "var(--fc-accent)" }} />} />
         
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start animate-pulse">
           <div className="w-full lg:w-56 shrink-0 flex flex-col gap-6">
             <div>
-              <div className="h-2 w-16 bg-[var(--surface-hover)] rounded mb-4 ml-4"></div>
-              <div className="h-10 w-full bg-[var(--surface-hover)]/50 rounded-lg mb-2"></div>
-              <div className="h-10 w-full bg-[var(--surface-hover)]/50 rounded-lg mb-2"></div>
+              <div className="h-2 w-16 bg-[var(--fc-surface-hover)] rounded mb-4 ml-4"></div>
+              <div className="h-10 w-full bg-[var(--fc-surface-hover)]/50 rounded-lg mb-2"></div>
+              <div className="h-10 w-full bg-[var(--fc-surface-hover)]/50 rounded-lg mb-2"></div>
             </div>
             <div>
-              <div className="h-2 w-20 bg-[var(--surface-hover)] rounded mb-4 ml-4"></div>
-              <div className="h-10 w-full bg-[var(--surface-hover)]/50 rounded-lg mb-2"></div>
+              <div className="h-2 w-20 bg-[var(--fc-surface-hover)] rounded mb-4 ml-4"></div>
+              <div className="h-10 w-full bg-[var(--fc-surface-hover)]/50 rounded-lg mb-2"></div>
             </div>
           </div>
-          <div className="flex-1 w-full glass-panel p-6">
-            <div className="h-5 w-32 bg-[var(--surface-hover)] rounded mb-6"></div>
+          <div className="flex-1 w-full fc-glass p-6">
+            <div className="h-5 w-32 bg-[var(--fc-surface-hover)] rounded mb-6"></div>
             <div className="space-y-4">
-              <div className="h-10 w-full bg-[var(--surface-hover)]/40 rounded"></div>
-              <div className="h-10 w-full bg-[var(--surface-hover)]/40 rounded"></div>
-              <div className="h-10 w-full bg-[var(--surface-hover)]/40 rounded"></div>
+              <div className="h-10 w-full bg-[var(--fc-surface-hover)]/40 rounded"></div>
+              <div className="h-10 w-full bg-[var(--fc-surface-hover)]/40 rounded"></div>
+              <div className="h-10 w-full bg-[var(--fc-surface-hover)]/40 rounded"></div>
             </div>
           </div>
         </div>
@@ -389,7 +389,7 @@ export default function SettingsPage() {
         <PageHeader
           title="Admin"
           description="Configuración de tu cuenta, equipo y workspace."
-          icon={<Settings className="w-6 h-6" style={{ color: "var(--cyan)" }} />}
+          icon={<Settings className="w-6 h-6" style={{ color: "var(--fc-accent)" }} />}
         />
       </div>
 
@@ -399,10 +399,10 @@ export default function SettingsPage() {
           {visibleGroups.map((g, gi) => (
             <div key={g.group} style={{ display: "flex", flexDirection: "column" }}>
               <div>
-                {gi > 0 && <div style={{ height: 1, background: "var(--surface-hover)", margin: "4px 10px 8px" }} />}
+                {gi > 0 && <div style={{ height: 1, background: "var(--fc-surface-hover)", margin: "4px 10px 8px" }} />}
                 <div style={{
                   fontSize: 9, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase",
-                  color: "var(--text-secondary)", padding: "4px 12px 8px",
+                  color: "var(--fc-text-secondary)", padding: "4px 12px 8px",
                   borderLeft: "2px solid rgba(59,130,246,0.15)", marginLeft: 4,
                 }}>
                   {g.group}
@@ -418,16 +418,16 @@ export default function SettingsPage() {
                       onClick={() => selectSection(it.key)}
                       className={`flex items-center gap-2 lg:gap-3 px-3 py-2 lg:py-2.5 rounded-lg border transition-all text-sm lg:text-[13px] whitespace-nowrap lg:whitespace-normal
                         ${active 
-                          ? "bg-[var(--surface)] border-[rgba(59,130,246,0.18)] text-[var(--text-secondary)] font-semibold" 
-                          : "bg-transparent border-transparent text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-secondary)]"}`}
+                          ? "bg-[var(--fc-surface)] border-[rgba(59,130,246,0.18)] text-[var(--fc-text-secondary)] font-semibold" 
+                          : "bg-transparent border-transparent text-[var(--fc-text-secondary)] hover:bg-[var(--fc-surface-hover)] hover:text-[var(--fc-text-secondary)]"}`}
                       style={{ textAlign: "left" }}
                     >
-                      <Icon className={`w-4 h-4 lg:w-[15px] lg:h-[15px] shrink-0 ${active ? "text-[var(--cyan)]" : "text-[var(--text-muted)]"}`} />
+                      <Icon className={`w-4 h-4 lg:w-[15px] lg:h-[15px] shrink-0 ${active ? "text-[var(--fc-accent)]" : "text-[var(--fc-text-muted)]"}`} />
                       <div className="flex-1">
                         <span>{it.label}</span>
-                                                {(it as any).desc && <div className="hidden lg:block text-[10px] text-[var(--text-muted)] font-normal mt-0.5">{(it as any).desc}</div>}
+                                                {(it as any).desc && <div className="hidden lg:block text-[10px] text-[var(--fc-text-muted)] font-normal mt-0.5">{(it as any).desc}</div>}
                       </div>
-                      {active && <ChevronRight className="hidden lg:block w-3 h-3 text-[var(--cyan)] opacity-60" />}
+                      {active && <ChevronRight className="hidden lg:block w-3 h-3 text-[var(--fc-accent)] opacity-60" />}
                     </button>
                   );
                 })}
@@ -443,34 +443,34 @@ export default function SettingsPage() {
           {/* PERFIL */}
           {activeSection === "profile" && (
             <div className="flex flex-col gap-6">
-              <div className="glass-panel p-4 md:p-6">
+              <div className="fc-glass p-4 md:p-6">
                 <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
                   <span className="section-title flex items-center gap-2">
-                    <User className="w-4 h-4 text-[var(--cyan)]" /> Perfil
+                    <User className="w-4 h-4 text-[var(--fc-accent)]" /> Perfil
                   </span>
                 </div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-6">
                   {session?.user?.image ? (
                                         <img src={session.user.image} alt="" className="w-14 h-14 rounded-full border border-[rgba(59,130,246,0.2)]" />
                   ) : (
-                    <div className="w-14 h-14 rounded-full bg-[var(--surface)] flex items-center justify-center font-display text-lg text-[var(--cyan)]">
+                    <div className="w-14 h-14 rounded-full bg-[var(--fc-surface)] flex items-center justify-center font-display text-lg text-[var(--fc-accent)]">
                       {(session?.user?.name || "U")[0].toUpperCase()}
                     </div>
                   )}
                   <div>
-                    <div className="text-[15px] font-semibold text-[var(--text-secondary)]">{session?.user?.name || "Sin nombre"}</div>
-                    <div className="text-xs text-[var(--text-muted)]">{session?.user?.email}</div>
-                    <div className="text-[11px] text-[var(--text-secondary)] mt-1">Rol en este workspace: <strong style={{ color: roleBadgeColor[userRole] || "var(--foreground)" }}>{userRole || "—"}</strong></div>
+                    <div className="text-[15px] font-semibold text-[var(--fc-text-secondary)]">{session?.user?.name || "Sin nombre"}</div>
+                    <div className="text-xs text-[var(--fc-text-muted)]">{session?.user?.email}</div>
+                    <div className="text-[11px] text-[var(--fc-text-secondary)] mt-1">Rol en este workspace: <strong style={{ color: roleBadgeColor[userRole] || "var(--fc-text)" }}>{userRole || "—"}</strong></div>
                   </div>
                 </div>
 
-                <label className="text-[11px] text-[var(--text-muted)] block mb-1.5">Nombre de visualización</label>
+                <label className="text-[11px] text-[var(--fc-text-muted)] block mb-1.5">Nombre de visualización</label>
                 <div className="flex flex-col sm:flex-row gap-3 mb-5">
                   <input type="text" value={profileName} onChange={(e) => setProfileName(e.target.value)} className="flex-1 w-full" style={inp} placeholder="Tu nombre" />
                 </div>
 
                 {/* WhatsApp for notifications */}
-                <label className="text-[11px] text-[var(--text-muted)] block mb-1.5 flex items-center gap-1.5">
+                <label className="text-[11px] text-[var(--fc-text-muted)] block mb-1.5 flex items-center gap-1.5">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                   WhatsApp personal (para notificaciones de tareas)
                 </label>
@@ -484,7 +484,7 @@ export default function SettingsPage() {
                     placeholder="ej. 5215512345678 (sin +, espacios ni guiones)"
                   />
                 </div>
-                <p className="text-[10px] text-[var(--text-secondary)] mb-5">Si configuras tu número, FlowChart te enviará notificaciones por WhatsApp cuando te asignen tareas o cambien su estado.</p>
+                <p className="text-[10px] text-[var(--fc-text-secondary)] mb-5">Si configuras tu número, FlowChart te enviará notificaciones por WhatsApp cuando te asignen tareas o cambien su estado.</p>
 
                 <button onClick={handleSaveProfile} disabled={savingProfile} className="btn-primary" style={{ opacity: savingProfile ? 0.6 : 1 }}>
                   {savingProfile ? "Guardando..." : "Guardar cambios"}
@@ -493,38 +493,38 @@ export default function SettingsPage() {
 
               {/* CUENTAS VINCULADAS */}
               {profileData && (
-                <div className="glass-panel p-4 md:p-6">
+                <div className="fc-glass p-4 md:p-6">
                   <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
                     <span className="section-title flex items-center gap-2">
-                      <Plug className="w-4 h-4 text-[var(--cyan)]" /> Cuentas vinculadas para inicio de sesión
+                      <Plug className="w-4 h-4 text-[var(--fc-accent)]" /> Cuentas vinculadas para inicio de sesión
                     </span>
                   </div>
-                  <p className="text-xs text-[var(--text-muted)] mb-4">Vincular tus cuentas te permitirá iniciar sesión rápidamente con cualquiera de ellas.</p>
+                  <p className="text-xs text-[var(--fc-text-muted)] mb-4">Vincular tus cuentas te permitirá iniciar sesión rápidamente con cualquiera de ellas.</p>
                   
                   <div className="flex flex-col gap-3">
                     {/* Email */}
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-[var(--surface-hover)] border border-[var(--hairline)]">
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-[var(--fc-surface-hover)] border border-[var(--fc-border-subtle)]">
                       <div className="flex items-center gap-3">
-                        <Mail className="w-5 h-5 text-[var(--text-secondary)]" />
+                        <Mail className="w-5 h-5 text-[var(--fc-text-secondary)]" />
                         <div>
-                          <p className="text-[13px] text-[var(--text-secondary)] font-medium">Correo Electrónico</p>
-                          <p className="text-[11px] text-[var(--text-muted)]">{session?.user?.email}</p>
+                          <p className="text-[13px] text-[var(--fc-text-secondary)] font-medium">Correo Electrónico</p>
+                          <p className="text-[11px] text-[var(--fc-text-muted)]">{session?.user?.email}</p>
                         </div>
                       </div>
                       {profileData.providers.includes("email") ? (
                         <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded">Conectado</span>
                       ) : (
-                        <span className="text-[11px] font-semibold text-[var(--text-secondary)] bg-slate-400/10 px-2 py-1 rounded">Sin contraseña</span>
+                        <span className="text-[11px] font-semibold text-[var(--fc-text-secondary)] bg-slate-400/10 px-2 py-1 rounded">Sin contraseña</span>
                       )}
                     </div>
 
                     {/* Google */}
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-[var(--surface-hover)] border border-[var(--hairline)]">
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-[var(--fc-surface-hover)] border border-[var(--fc-border-subtle)]">
                       <div className="flex items-center gap-3">
                         <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                         <div>
-                          <p className="text-[13px] text-[var(--text-secondary)] font-medium">Google</p>
-                          <p className="text-[11px] text-[var(--text-muted)]">Inicia sesión con Google</p>
+                          <p className="text-[13px] text-[var(--fc-text-secondary)] font-medium">Google</p>
+                          <p className="text-[11px] text-[var(--fc-text-muted)]">Inicia sesión con Google</p>
                         </div>
                       </div>
                       {profileData.providers.includes("google") ? (
@@ -535,12 +535,12 @@ export default function SettingsPage() {
                     </div>
 
                     {/* Facebook */}
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-[var(--surface-hover)] border border-[var(--hairline)]">
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-[var(--fc-surface-hover)] border border-[var(--fc-border-subtle)]">
                       <div className="flex items-center gap-3">
                         <svg className="w-5 h-5" fill="#1877F2" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                         <div>
-                          <p className="text-[13px] text-[var(--text-secondary)] font-medium">Facebook</p>
-                          <p className="text-[11px] text-[var(--text-muted)]">Inicia sesión con Facebook</p>
+                          <p className="text-[13px] text-[var(--fc-text-secondary)] font-medium">Facebook</p>
+                          <p className="text-[11px] text-[var(--fc-text-muted)]">Inicia sesión con Facebook</p>
                         </div>
                       </div>
                       {profileData.providers.includes("facebook") ? (
@@ -555,15 +555,15 @@ export default function SettingsPage() {
 
               {/* CAMBIO DE CONTRASEÑA */}
               {profileData && profileData.providers.includes("email") && (
-                <div className="glass-panel p-4 md:p-6">
+                <div className="fc-glass p-4 md:p-6">
                   <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
                     <span className="section-title flex items-center gap-2">
-                      <Lock className="w-4 h-4 text-[var(--cyan)]" /> Cambiar contraseña
+                      <Lock className="w-4 h-4 text-[var(--fc-accent)]" /> Cambiar contraseña
                     </span>
                   </div>
                   <div className="flex flex-col gap-3 max-w-md">
                     <div>
-                      <label className="text-[11px] text-[var(--text-muted)] block mb-1.5">Contraseña actual</label>
+                      <label className="text-[11px] text-[var(--fc-text-muted)] block mb-1.5">Contraseña actual</label>
                       <input
                         type="password"
                         value={currentPassword}
@@ -574,7 +574,7 @@ export default function SettingsPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-[var(--text-muted)] block mb-1.5">Nueva contraseña</label>
+                      <label className="text-[11px] text-[var(--fc-text-muted)] block mb-1.5">Nueva contraseña</label>
                       <input
                         type="password"
                         value={newPassword}
@@ -585,7 +585,7 @@ export default function SettingsPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-[var(--text-muted)] block mb-1.5">Confirmar nueva contraseña</label>
+                      <label className="text-[11px] text-[var(--fc-text-muted)] block mb-1.5">Confirmar nueva contraseña</label>
                       <input
                         type="password"
                         value={confirmPassword}
@@ -621,16 +621,16 @@ export default function SettingsPage() {
 
           {/* PREFERENCIAS */}
           {activeSection === "preferences" && (
-            <div className="glass-panel p-4 md:p-6">
+            <div className="fc-glass p-4 md:p-6">
               <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-2">
                 <span className="section-title flex items-center gap-2">
-                  <Settings className="w-4 h-4 text-[var(--cyan)]" /> Preferencias
+                  <Settings className="w-4 h-4 text-[var(--fc-accent)]" /> Preferencias
                 </span>
               </div>
-              <p className="text-xs text-[var(--text-muted)] mb-4">Estas preferencias se guardan en este navegador.</p>
+              <p className="text-xs text-[var(--fc-text-muted)] mb-4">Estas preferencias se guardan en este navegador.</p>
               
-              <div className="mb-6 pb-6 border-b border-[var(--hairline)]">
-                <label className="text-[11px] text-[var(--text-secondary)] font-bold uppercase tracking-widest block mb-3">Tema de la Interfaz</label>
+              <div className="mb-6 pb-6 border-b border-[var(--fc-border-subtle)]">
+                <label className="text-[11px] text-[var(--fc-text-secondary)] font-bold uppercase tracking-widest block mb-3">Tema de la Interfaz</label>
                 <ThemeSwitcher />
               </div>
 
@@ -645,7 +645,7 @@ export default function SettingsPage() {
           {activeSection === "workspace" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {/* ── Tab bar ── */}
-              <div style={{ display: "flex", gap: 0, borderRadius: 10, background: "var(--row-hover)", border: "1px solid var(--border)", padding: 4 }}>
+              <div style={{ display: "flex", gap: 0, borderRadius: 10, background: "var(--row-hover)", border: "1px solid var(--fc-border)", padding: 4 }}>
                 {([
                   { id: "general" as const, label: "General", icon: Globe },
                   { id: "team" as const, label: "Equipo y roles", icon: Users },
@@ -660,7 +660,7 @@ export default function SettingsPage() {
                         flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                         padding: "7px 10px", borderRadius: 7, border: "none", cursor: "pointer",
                         background: active ? "rgba(59,130,246,0.1)" : "transparent",
-                        color: active ? "var(--cyan)" : "var(--text-secondary)",
+                        color: active ? "var(--fc-accent)" : "var(--fc-text-secondary)",
                         fontSize: 12, fontWeight: active ? 700 : 400, fontFamily: "inherit",
                         transition: "all 0.15s",
                         boxShadow: active ? "inset 0 0 0 1px rgba(59,130,246,0.2)" : "none",
@@ -678,25 +678,25 @@ export default function SettingsPage() {
               {/* General */}
               {workspaceTab === "general" && (
                 <>
-                <div className="glass-panel p-4 md:p-6">
+                <div className="fc-glass p-4 md:p-6">
                   <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
                     <span className="section-title flex items-center gap-2">
-                      <Globe className="w-4 h-4 text-[var(--cyan)]" /> General
+                      <Globe className="w-4 h-4 text-[var(--fc-accent)]" /> General
                     </span>
                   </div>
-                  <label className="text-[11px] text-[var(--text-muted)] block mb-1.5">Nombre del workspace</label>
+                  <label className="text-[11px] text-[var(--fc-text-muted)] block mb-1.5">Nombre del workspace</label>
                   <div className="flex flex-col sm:flex-row gap-3 mb-4">
                     <input type="text" value={workspaceName} onChange={(e) => setWorkspaceName(e.target.value)} disabled={!isAdmin} className="flex-1 w-full" style={{ ...inp, opacity: isAdmin ? 1 : 0.6 }} />
                     {isAdmin && <button onClick={handleRenameWorkspace} className="btn-primary w-full sm:w-auto">Guardar</button>}
                   </div>
                   <div className="flex flex-col sm:flex-row gap-6">
                     <div>
-                      <div className="text-[11px] text-[var(--text-muted)]">Slug</div>
-                      <div className="text-[13px] text-[var(--text-secondary)] font-mono mt-1 bg-[var(--surface-hover)] px-3 py-1.5 rounded">{workspaceSlug || "—"}</div>
+                      <div className="text-[11px] text-[var(--fc-text-muted)]">Slug</div>
+                      <div className="text-[13px] text-[var(--fc-text-secondary)] font-mono mt-1 bg-[var(--fc-surface-hover)] px-3 py-1.5 rounded">{workspaceSlug || "—"}</div>
                     </div>
                     <div>
-                      <div className="text-[11px] text-[var(--text-muted)]">Plan</div>
-                      <div className="text-[13px] text-[var(--text-secondary)] capitalize mt-1 bg-[var(--surface-hover)] px-3 py-1.5 rounded">{workspacePlan}</div>
+                      <div className="text-[11px] text-[var(--fc-text-muted)]">Plan</div>
+                      <div className="text-[13px] text-[var(--fc-text-secondary)] capitalize mt-1 bg-[var(--fc-surface-hover)] px-3 py-1.5 rounded">{workspacePlan}</div>
                     </div>
                   </div>
                 </div>
@@ -707,10 +707,10 @@ export default function SettingsPage() {
               {/* Equipo y roles */}
               {workspaceTab === "team" && isAdmin && (
                 <>
-                  <div className="glass-panel p-4 md:p-6">
+                  <div className="fc-glass p-4 md:p-6">
                     <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
                       <span className="section-title flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-[var(--cyan)]" /> Invitar al equipo
+                        <Mail className="w-4 h-4 text-[var(--fc-accent)]" /> Invitar al equipo
                       </span>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-3">
@@ -738,7 +738,7 @@ export default function SettingsPage() {
                     )}
                     {!emailSent && lastInviteUrl && (
                       <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded overflow-hidden">
-                        <p className="text-[11px] text-[var(--text-muted)] mb-1.5 font-display tracking-widest">ENLACE DE INVITACIÓN GENERADO</p>
+                        <p className="text-[11px] text-[var(--fc-text-muted)] mb-1.5 font-display tracking-widest">ENLACE DE INVITACIÓN GENERADO</p>
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                           <code className="w-full sm:flex-1 text-[11px] text-emerald-400 break-all bg-emerald-500/5 px-2 py-1.5 rounded">{lastInviteUrl}</code>
                           <button onClick={handleCopyUrl} className="px-3 py-1.5 bg-transparent border border-emerald-500/30 text-emerald-400 rounded cursor-pointer text-[11px] whitespace-nowrap flex items-center gap-1 w-full sm:w-auto justify-center">
@@ -749,7 +749,7 @@ export default function SettingsPage() {
                     )}
                   </div>
                   {invites.length > 0 && (
-                    <div className="glass-panel p-4 md:p-6">
+                    <div className="fc-glass p-4 md:p-6">
                       <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 flex justify-between items-center">
                         <span className="section-title flex items-center gap-2">
                           <Clock className="w-4 h-4 text-amber-500" /> Invitaciones pendientes
@@ -758,10 +758,10 @@ export default function SettingsPage() {
                       </div>
                       <div className="flex flex-col gap-2">
                                                 {invites.map((inv: any) => (
-                          <div key={inv.id} className="data-row !flex-col sm:!flex-row !items-start sm:!items-center gap-3 sm:gap-0 !px-3 !py-3 rounded-lg bg-[var(--surface-hover)] border border-[var(--hairline)]">
+                          <div key={inv.id} className="data-row !flex-col sm:!flex-row !items-start sm:!items-center gap-3 sm:gap-0 !px-3 !py-3 rounded-lg bg-[var(--fc-surface-hover)] border border-[var(--fc-border-subtle)]">
                             <div>
-                              <p className="text-[13px] text-[var(--text-secondary)] truncate max-w-[200px] sm:max-w-none">{inv.email}</p>
-                              <p className="text-[11px] text-[var(--text-muted)]">Rol: {inv.role} · Expira: {new Date(inv.expires).toLocaleDateString("es-MX")}</p>
+                              <p className="text-[13px] text-[var(--fc-text-secondary)] truncate max-w-[200px] sm:max-w-none">{inv.email}</p>
+                              <p className="text-[11px] text-[var(--fc-text-muted)]">Rol: {inv.role} · Expira: {new Date(inv.expires).toLocaleDateString("es-MX")}</p>
                             </div>
                             <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
                               <span className="badge badge-amber">Pendiente</span>
@@ -772,31 +772,31 @@ export default function SettingsPage() {
                       </div>
                     </div>
                   )}
-                  <div className="glass-panel p-4 md:p-6">
+                  <div className="fc-glass p-4 md:p-6">
                     <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 flex justify-between items-center">
                       <span className="section-title flex items-center gap-2">
-                        <Users className="w-4 h-4 text-[var(--cyan)]" /> Equipo actual
+                        <Users className="w-4 h-4 text-[var(--fc-accent)]" /> Equipo actual
                       </span>
                       <span className="badge badge-cyan">{members.length}</span>
                     </div>
                     <div className="flex flex-col gap-2">
                                             {members.map((m: any) => (
-                        <div key={m.id} className="data-row !flex-col sm:!flex-row !items-start sm:!items-center gap-3 sm:gap-0 !px-3 !py-3 rounded-lg bg-[var(--surface-hover)] border border-[var(--hairline)]">
+                        <div key={m.id} className="data-row !flex-col sm:!flex-row !items-start sm:!items-center gap-3 sm:gap-0 !px-3 !py-3 rounded-lg bg-[var(--fc-surface-hover)] border border-[var(--fc-border-subtle)]">
                           <div className="flex items-center gap-3 w-full sm:w-auto overflow-hidden">
                             {m.user.image ? (
-                                                            <img src={m.user.image} alt="" className="w-8 h-8 rounded-full border border-[var(--border)]" />
+                                                            <img src={m.user.image} alt="" className="w-8 h-8 rounded-full border border-[var(--fc-border)]" />
                             ) : (
-                              <div className="w-8 h-8 rounded-full bg-[var(--surface)] flex items-center justify-center text-[var(--cyan)] text-xs font-semibold">
+                              <div className="w-8 h-8 rounded-full bg-[var(--fc-surface)] flex items-center justify-center text-[var(--fc-accent)] text-xs font-semibold">
                                 {(m.user.name || "?")[0].toUpperCase()}
                               </div>
                             )}
                             <div className="min-w-0">
-                              <p className="text-[13px] text-[var(--text-secondary)] truncate">{m.user.name || "Sin nombre"}</p>
-                              <p className="text-[11px] text-[var(--text-muted)] truncate">{m.user.email}</p>
+                              <p className="text-[13px] text-[var(--fc-text-secondary)] truncate">{m.user.name || "Sin nombre"}</p>
+                              <p className="text-[11px] text-[var(--fc-text-muted)] truncate">{m.user.email}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
-                            <span style={{ color: roleBadgeColor[m.role] || "var(--text-muted)", fontSize: 11, fontWeight: 600 }}>
+                            <span style={{ color: roleBadgeColor[m.role] || "var(--fc-text-muted)", fontSize: 11, fontWeight: 600 }}>
                               {m.role}
                             </span>
                             {userRole === "OWNER" && m.role !== "OWNER" && (
@@ -808,7 +808,7 @@ export default function SettingsPage() {
                             )}
                             {isAdmin && m.role !== "OWNER" && (
                               <button onClick={() => setEditingPermsFor({ id: m.user.id, name: m.user.name || "", perms: m.permissions ?? null })}
-                                title="Permisos granulares" className="p-1.5 rounded hover:bg-[var(--surface-hover)] text-[var(--text-secondary)]">
+                                title="Permisos granulares" className="p-1.5 rounded hover:bg-[var(--fc-surface-hover)] text-[var(--fc-text-secondary)]">
                                 <Eye className="w-3.5 h-3.5" />
                               </button>
                             )}
@@ -825,7 +825,7 @@ export default function SettingsPage() {
                 </>
               )}
               {workspaceTab === "team" && !isAdmin && (
-                <div className="glass-panel p-6 text-center text-[var(--text-muted)] text-sm">Solo admins y owners pueden ver el equipo.</div>
+                <div className="fc-glass p-6 text-center text-[var(--fc-text-muted)] text-sm">Solo admins y owners pueden ver el equipo.</div>
               )}
 
               {/* Áreas y flujos */}
@@ -837,10 +837,10 @@ export default function SettingsPage() {
 
               {/* Permisos */}
               {workspaceTab === "permisos" && (
-                <div className="glass-panel p-4 md:p-6 flex flex-col gap-4">
+                <div className="fc-glass p-4 md:p-6 flex flex-col gap-4">
                   <div className="section-header !px-0 !pt-0 !border-none !bg-transparent">
                     <span className="section-title flex items-center gap-2">
-                      <Shield className="w-4 h-4 text-[var(--cyan)]" /> Permisos por área
+                      <Shield className="w-4 h-4 text-[var(--fc-accent)]" /> Permisos por área
                     </span>
                   </div>
                   <PermissionsManager />
@@ -850,10 +850,10 @@ export default function SettingsPage() {
           )}
 
           {activeSection === "integrations" && (
-            <div className="glass-panel p-4 md:p-6 flex flex-col gap-4">
+            <div className="fc-glass p-4 md:p-6 flex flex-col gap-4">
               <div className="section-header !px-0 !pt-0 !border-none !bg-transparent">
                 <span className="section-title flex items-center gap-2">
-                  <Plug className="w-4 h-4 text-[var(--cyan)]" /> Integraciones
+                  <Plug className="w-4 h-4 text-[var(--fc-accent)]" /> Integraciones
                 </span>
               </div>
               <IntegrationsView />
@@ -862,10 +862,10 @@ export default function SettingsPage() {
 
           {/* PLAN */}
           {activeSection === "plan" && (
-            <div className="glass-panel p-4 md:p-6">
+            <div className="fc-glass p-4 md:p-6">
               <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
                 <span className="section-title flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-[var(--cyan)]" /> Plan y Uso
+                  <CreditCard className="w-4 h-4 text-[var(--fc-accent)]" /> Plan y Uso
                 </span>
               </div>
 
@@ -875,16 +875,16 @@ export default function SettingsPage() {
                 }}
               />
 
-              <p className="text-[11px] text-[var(--text-muted)] mt-4">
+              <p className="text-[11px] text-[var(--fc-text-muted)] mt-4">
                 Para cambiar de plan o gestionar la facturación, contacta a
-                {" "}<a href="mailto:soporte@flowchart.com" className="text-[var(--cyan)] hover:underline">soporte@flowchart.com</a>.
+                {" "}<a href="mailto:soporte@flowchart.com" className="text-[var(--fc-accent)] hover:underline">soporte@flowchart.com</a>.
               </p>
             </div>
           )}
 
           {/* ZONA PELIGROSA */}
           {activeSection === "danger" && userRole === "OWNER" && (
-            <div className="glass-panel p-4 md:p-6 border-[rgba(229,72,77,0.15)]">
+            <div className="fc-glass p-4 md:p-6 border-[rgba(229,72,77,0.15)]">
               <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4">
                 <span className="section-title flex items-center gap-2 text-red-500">
                   <Shield className="w-4 h-4 text-red-500" /> Zona peligrosa
@@ -895,7 +895,7 @@ export default function SettingsPage() {
                   <AlertTriangle className="w-4 h-4 text-red-500" />
                   <span className="text-[11px] text-red-500 font-display tracking-widest">ELIMINAR WORKSPACE</span>
                 </div>
-                <p className="text-xs text-[var(--text-muted)] mb-4">Borra todos los proyectos, miembros e invitaciones. Esta acción no se puede deshacer.</p>
+                <p className="text-xs text-[var(--fc-text-muted)] mb-4">Borra todos los proyectos, miembros e invitaciones. Esta acción no se puede deshacer.</p>
                 <button onClick={handleDeleteWorkspace} className="w-full sm:w-auto px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-500 cursor-pointer text-[11px] font-display tracking-widest rounded hover:bg-red-500/20 transition-colors">
                   ELIMINAR WORKSPACE
                 </button>
@@ -929,8 +929,8 @@ function PrefToggle({ label, desc, checked, onChange, last }: {
       padding: "12px 0", borderBottom: last ? "none" : "1px solid rgba(255,255,255,0.05)",
     }}>
       <div>
-        <div style={{ fontSize: 13, color: "var(--foreground)", fontWeight: 500 }}>{label}</div>
-        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{desc}</div>
+        <div style={{ fontSize: 13, color: "var(--fc-text)", fontWeight: 500 }}>{label}</div>
+        <div style={{ fontSize: 11, color: "var(--fc-text-muted)", marginTop: 2 }}>{desc}</div>
       </div>
       <button
         onClick={() => onChange(!checked)}
@@ -938,13 +938,13 @@ function PrefToggle({ label, desc, checked, onChange, last }: {
         aria-checked={checked}
         style={{
           width: 40, height: 22, borderRadius: 11, flexShrink: 0, position: "relative",
-          background: checked ? "var(--cyan)" : "rgba(255,255,255,0.1)",
+          background: checked ? "var(--fc-accent)" : "rgba(255,255,255,0.1)",
           border: "none", cursor: "pointer", transition: "background 0.2s",
         }}
       >
         <span style={{
           position: "absolute", top: 2, left: checked ? 20 : 2,
-          width: 18, height: 18, borderRadius: "50%", background: "var(--surface)",
+          width: 18, height: 18, borderRadius: "50%", background: "var(--fc-surface)",
           transition: "left 0.2s",
         }} />
       </button>

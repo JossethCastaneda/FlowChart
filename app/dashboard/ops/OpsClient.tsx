@@ -29,21 +29,21 @@ interface Activity { id: string; userName: string; action: string; field: string
 
 /* ═══ CONFIG ═══ */
 const STATUS_CFG: Record<string, { label: string; bg: string; c: string }> = {
-  Backlog: { label: "Backlog", bg: "var(--text-muted)", c: "#fff" },
-  WIP:     { label: "En Progreso", bg: "var(--amber)", c: "#fff" },
-  Review:  { label: "En Review", bg: "var(--red)", c: "#fff" },
-  Done:    { label: "Completado", bg: "var(--emerald)", c: "#fff" },
+  Backlog: { label: "Backlog", bg: "var(--fc-text-muted)", c: "#fff" },
+  WIP:     { label: "En Progreso", bg: "var(--fc-warning)", c: "#fff" },
+  Review:  { label: "En Review", bg: "var(--fc-danger)", c: "#fff" },
+  Done:    { label: "Completado", bg: "var(--fc-success)", c: "#fff" },
 };
 const GROUPS = [
-  { key: "Backlog", label: "Backlog", color: "var(--text-secondary)" },
-  { key: "WIP", label: "En Progreso", color: "var(--amber)", wipLimit: 5 },
-  { key: "Review", label: "En Review", color: "var(--red)" },
-  { key: "Done", label: "Completado", color: "var(--emerald)" },
+  { key: "Backlog", label: "Backlog", color: "var(--fc-text-secondary)" },
+  { key: "WIP", label: "En Progreso", color: "var(--fc-warning)", wipLimit: 5 },
+  { key: "Review", label: "En Review", color: "var(--fc-danger)" },
+  { key: "Done", label: "Completado", color: "var(--fc-success)" },
 ];
 const STATUSES = Object.keys(STATUS_CFG);
 const TAG_PRESETS = ["Contenido", "Diseño", "Pauta", "Reportes", "Estrategia", "SEO", "CRM", "Social Media"];
 const GROUP_LABELS: Record<string, string> = { status: "Estado", assignee: "Responsable", priority: "Prioridad" };
-const ch: React.CSSProperties = { padding: "10px 12px", fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.05em", textTransform: "uppercase" };
+const ch: React.CSSProperties = { padding: "10px 12px", fontSize: 11, fontWeight: 700, color: "var(--fc-text-secondary)", letterSpacing: "0.05em", textTransform: "uppercase" };
 
 const TRANSLATIONS = {
   es: {
@@ -138,13 +138,13 @@ const TRANSLATIONS = {
 
 /* ═══ HELPERS ═══ */
 function sla(due: string | null, st: string, lang: "es" | "en") {
-  if (!due || st === "Done") return { l: "—", c: "var(--text-muted)", bg: "transparent", i: "none" as const };
+  if (!due || st === "Done") return { l: "—", c: "var(--fc-text-muted)", bg: "transparent", i: "none" as const };
   const d = (new Date(due).getTime() - Date.now()) / 36e5;
   const days = Math.ceil(d / 24);
-  if (d < 0) return { l: lang === "es" ? `${Math.abs(days)}d vencido` : `${Math.abs(days)}d overdue`, c: "var(--red)", bg: "var(--red-dim)", i: "late" as const };
-  if (d <= 24) return { l: lang === "es" ? "Vence hoy" : "Due today", c: "var(--amber)", bg: "rgba(253,171,61,0.1)", i: "warn" as const };
-  if (days <= 3) return { l: `${days}d`, c: "var(--amber)", bg: "rgba(253,171,61,0.08)", i: "warn" as const };
-  return { l: `${days}d`, c: "var(--emerald)", bg: "rgba(52,183,124,0.08)", i: "ok" as const };
+  if (d < 0) return { l: lang === "es" ? `${Math.abs(days)}d vencido` : `${Math.abs(days)}d overdue`, c: "var(--fc-danger)", bg: "var(--red-dim)", i: "late" as const };
+  if (d <= 24) return { l: lang === "es" ? "Vence hoy" : "Due today", c: "var(--fc-warning)", bg: "rgba(253,171,61,0.1)", i: "warn" as const };
+  if (days <= 3) return { l: `${days}d`, c: "var(--fc-warning)", bg: "rgba(253,171,61,0.08)", i: "warn" as const };
+  return { l: `${days}d`, c: "var(--fc-success)", bg: "rgba(52,183,124,0.08)", i: "ok" as const };
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 const fmt = (d: string, lang: "es" | "en") => new Date(d).toLocaleDateString(lang === "es" ? "es-MX" : "en-US", { day: "2-digit", month: "short" });
@@ -172,8 +172,8 @@ function Dropdown({ trigger, children }: { trigger: React.ReactNode; children: (
       {open && (
         <div style={{
           position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)",
-          marginTop: 4, zIndex: 150, background: "var(--surface)",
-          border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden",
+          marginTop: 4, zIndex: 150, background: "var(--fc-surface)",
+          border: "1px solid var(--fc-border)", borderRadius: 8, overflow: "hidden",
           boxShadow: "0 10px 40px rgba(0,0,0,0.3)", minWidth: 150, maxHeight: 240, overflowY: "auto"
         }}>
           {children(() => setOpen(false))}
@@ -187,8 +187,8 @@ function Pill({ label, bg, color }: { label: string; bg: string; color: string }
 }
 function DropdownOption({ label, active, color, onClick }: { label: string; active: boolean; color?: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} style={{ display: "block", width: "100%", padding: "8px 12px", border: "none", cursor: "pointer", textAlign: "left", background: active ? "var(--surface-hover)" : "transparent", fontSize: 12, color: "var(--foreground)" }}
-      onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"} onMouseLeave={e => e.currentTarget.style.background = active ? "var(--surface-hover)" : "transparent"}>
+    <button onClick={onClick} style={{ display: "block", width: "100%", padding: "8px 12px", border: "none", cursor: "pointer", textAlign: "left", background: active ? "var(--fc-surface-hover)" : "transparent", fontSize: 12, color: "var(--fc-text)" }}
+      onMouseEnter={e => e.currentTarget.style.background = "var(--fc-surface-hover)"} onMouseLeave={e => e.currentTarget.style.background = active ? "var(--fc-surface-hover)" : "transparent"}>
       {color && <span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: color, marginRight: 8, verticalAlign: "middle" }} />}{label}
     </button>
   );
@@ -201,13 +201,13 @@ function EditableCell({ value, onSave, placeholder }: { value: string; onSave: (
   useEffect(() => { setText(value); }, [value]);
   useEffect(() => { if (editing) ref.current?.focus(); }, [editing]);
   const save = () => { setEditing(false); if (text.trim() !== value) onSave(text.trim()); };
-  if (editing) return <input ref={ref} value={text} onChange={e => setText(e.target.value)} onBlur={save} onKeyDown={e => { if (e.key === "Enter") save(); if (e.key === "Escape") { setText(value); setEditing(false); } }} style={{ background: "var(--cyan-dim)", border: "1px solid var(--cyan)", color: "var(--foreground)", fontSize: 12, padding: "4px 8px", outline: "none", width: "100%", borderRadius: 4 }} />;
-  return <div onClick={() => setEditing(true)} style={{ cursor: "text", padding: "4px 8px", borderRadius: 4, minHeight: 28, display: "flex", alignItems: "center", fontSize: 12, color: value ? "var(--foreground)" : "var(--text-muted)" }} onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>{value || placeholder || "—"}</div>;
+  if (editing) return <input ref={ref} value={text} onChange={e => setText(e.target.value)} onBlur={save} onKeyDown={e => { if (e.key === "Enter") save(); if (e.key === "Escape") { setText(value); setEditing(false); } }} style={{ background: "rgba(0, 212, 255, 0.1)", border: "1px solid var(--fc-accent)", color: "var(--fc-text)", fontSize: 12, padding: "4px 8px", outline: "none", width: "100%", borderRadius: 4 }} />;
+  return <div onClick={() => setEditing(true)} style={{ cursor: "text", padding: "4px 8px", borderRadius: 4, minHeight: 28, display: "flex", alignItems: "center", fontSize: 12, color: value ? "var(--fc-text)" : "var(--fc-text-muted)" }} onMouseEnter={e => e.currentTarget.style.background = "var(--fc-surface-hover)"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>{value || placeholder || "—"}</div>;
 }
 
 /* ═══ TASK DETAIL MODAL (with Comments, Attachments, Activity, Subtasks checklist) ═══ */
-const inp: React.CSSProperties = { width: "100%", padding: "8px 12px", fontSize: 12, background: "var(--surface-hover)", border: "1px solid var(--border)", color: "var(--foreground)", outline: "none", borderRadius: 4 };
-const lbl: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6, display: "block" };
+const inp: React.CSSProperties = { width: "100%", padding: "8px 12px", fontSize: 12, background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border)", color: "var(--fc-text)", outline: "none", borderRadius: 4 };
+const lbl: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: "var(--fc-text-secondary)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6, display: "block" };
 
 function TaskDetailModal({ task, allTasks, onClose, onSave, members, onRefresh, onSubtaskCreate, onSubtaskPatch, onSubtaskDelete }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
@@ -321,26 +321,26 @@ function TaskDetailModal({ task, allTasks, onClose, onSave, members, onRefresh, 
   const subtaskPct = subtaskTotal > 0 ? Math.round((subtaskDone / subtaskTotal) * 100) : 0;
 
   return createPortal(
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "3vh 16px", background: "var(--panel-bg)",  }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 700, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "3vh 16px", background: "var(--fc-surface-overlay)",  }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 700, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px", borderBottom: "1px solid var(--border)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px", borderBottom: "1px solid var(--fc-border)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <FileText style={{ width: 18, height: 18, color: "var(--cyan)" }} />
-            <span style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.1em" }}>{t.title}</span>
-            <Pill label={STATUS_CFG[task.status]?.label || task.status} bg={STATUS_CFG[task.status]?.bg || "var(--text-muted)"} color={STATUS_CFG[task.status]?.c || "#fff"} />
+            <FileText style={{ width: 18, height: 18, color: "var(--fc-accent)" }} />
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 700, color: "var(--fc-text)", letterSpacing: "0.1em" }}>{t.title}</span>
+            <Pill label={STATUS_CFG[task.status]?.label || task.status} bg={STATUS_CFG[task.status]?.bg || "var(--fc-text-muted)"} color={STATUS_CFG[task.status]?.c || "#fff"} />
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", padding: 4 }}><X style={{ width: 18, height: 18 }} /></button>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer", padding: 4 }}><X style={{ width: 18, height: 18 }} /></button>
         </div>
 
         {/* Tabs */}
-        <div style={{ display: "flex", gap: 4, borderBottom: "1px solid var(--border)", padding: "0 24px", background: "var(--surface-hover)" }}>
+        <div style={{ display: "flex", gap: 4, borderBottom: "1px solid var(--fc-border)", padding: "0 24px", background: "var(--fc-surface-hover)" }}>
           {tabs.map(tb => (
             <button key={tb.key} onClick={() => setTab(tb.key)} style={{
               display: "flex", alignItems: "center", gap: 5, padding: "12px 16px", border: "none", cursor: "pointer",
               background: "none", fontSize: 11, fontWeight: 600,
-              color: tab === tb.key ? "var(--cyan)" : "var(--text-secondary)",
-              borderBottom: tab === tb.key ? "2px solid var(--cyan)" : "2px solid transparent",
+              color: tab === tb.key ? "var(--fc-accent)" : "var(--fc-text-secondary)",
+              borderBottom: tab === tb.key ? "2px solid var(--fc-accent)" : "2px solid transparent",
               transition: "all 0.15s",
             }}>{tb.icon}{tb.label}</button>
           ))}
@@ -376,7 +376,7 @@ function TaskDetailModal({ task, allTasks, onClose, onSave, members, onRefresh, 
                   <option key={t.id} value={t.id}>{t.title}</option>
                 ))}
               </select>
-              <span style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4, display: "block" }}>{lang === "es" ? "Mantén Ctrl/Cmd para seleccionar múltiples" : "Hold Ctrl/Cmd to select multiple"}</span>
+              <span style={{ fontSize: 10, color: "var(--fc-text-muted)", marginTop: 4, display: "block" }}>{lang === "es" ? "Mantén Ctrl/Cmd para seleccionar múltiples" : "Hold Ctrl/Cmd to select multiple"}</span>
             </div>
             {sl && sl.i !== "none" && (
               <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", background: sl.bg, border: `1px solid ${sl.c}25`, borderRadius: 4 }}>
@@ -389,26 +389,26 @@ function TaskDetailModal({ task, allTasks, onClose, onSave, members, onRefresh, 
             <div>
               <label style={lbl}><Tag style={{ width: 10, height: 10, display: "inline", verticalAlign: "middle", marginRight: 4 }} />Etiquetas</label>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 8 }}>
-                {form.tags.map((tg, i) => <span key={i} style={{ fontSize: 10, padding: "2px 8px", background: "var(--cyan-dim)", border: "1px solid var(--border)", color: "var(--cyan)", borderRadius: 4, display: "flex", alignItems: "center", gap: 4 }}>{tg}<X style={{ width: 8, height: 8, cursor: "pointer" }} onClick={() => set("tags", form.tags.filter((_, j) => j !== i))} /></span>)}
+                {form.tags.map((tg, i) => <span key={i} style={{ fontSize: 10, padding: "2px 8px", background: "rgba(0, 212, 255, 0.1)", border: "1px solid var(--fc-border)", color: "var(--fc-accent)", borderRadius: 4, display: "flex", alignItems: "center", gap: 4 }}>{tg}<X style={{ width: 8, height: 8, cursor: "pointer" }} onClick={() => set("tags", form.tags.filter((_, j) => j !== i))} /></span>)}
               </div>
               <input style={inp} placeholder={t.addTagPlaceholder} value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTag(tagInput); } }} />
               <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 6 }}>
-                {TAG_PRESETS.filter(tg => !form.tags.includes(tg)).slice(0, 6).map(tg => <button key={tg} onClick={() => addTag(tg)} style={{ fontSize: 9, padding: "2px 8px", border: "1px solid var(--border)", background: "transparent", color: "var(--text-secondary)", cursor: "pointer", borderRadius: 4 }}>+ {tg}</button>)}
+                {TAG_PRESETS.filter(tg => !form.tags.includes(tg)).slice(0, 6).map(tg => <button key={tg} onClick={() => addTag(tg)} style={{ fontSize: 9, padding: "2px 8px", border: "1px solid var(--fc-border)", background: "transparent", color: "var(--fc-text-secondary)", cursor: "pointer", borderRadius: 4 }}>+ {tg}</button>)}
               </div>
             </div>
             {/* Attachments */}
             <div>
               <label style={lbl}><Paperclip style={{ width: 10, height: 10, display: "inline", verticalAlign: "middle", marginRight: 4 }} />{t.attachments}</label>
               {((task.attachments || []) as Attachment[]).map((a, i) => (
-                <a key={i} href={a.url} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", background: "var(--surface-hover)", border: "1px solid var(--border)", borderRadius: 6, marginBottom: 4, textDecoration: "none", color: "var(--foreground)", fontSize: 12 }}>
-                  {a.type === "image" ? <ImageIcon style={{ width: 14, height: 14, color: "var(--purple)" }} /> : <FileText style={{ width: 14, height: 14, color: "var(--cyan)" }} />}
+                <a key={i} href={a.url} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border)", borderRadius: 6, marginBottom: 4, textDecoration: "none", color: "var(--fc-text)", fontSize: 12 }}>
+                  {a.type === "image" ? <ImageIcon style={{ width: 14, height: 14, color: "var(--purple)" }} /> : <FileText style={{ width: 14, height: 14, color: "var(--fc-accent)" }} />}
                   <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.name}</span>
-                  <ExternalLink style={{ width: 10, height: 10, color: "var(--text-muted)" }} />
+                  <ExternalLink style={{ width: 10, height: 10, color: "var(--fc-text-muted)" }} />
                 </a>
               ))}
               <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
                 <input style={{ ...inp, flex: 1 }} placeholder={t.postAttach} value={attachUrl} onChange={e => setAttachUrl(e.target.value)} onKeyDown={e => { if (e.key === "Enter") addAttachment(); }} />
-                <button onClick={addAttachment} disabled={!attachUrl.trim()} style={{ padding: "8px 12px", background: "var(--cyan-dim)", border: "1px solid var(--border-strong)", borderRadius: 4, color: "var(--cyan)", cursor: "pointer", opacity: attachUrl.trim() ? 1 : 0.3 }}><Upload style={{ width: 14, height: 14 }} /></button>
+                <button onClick={addAttachment} disabled={!attachUrl.trim()} style={{ padding: "8px 12px", background: "rgba(0, 212, 255, 0.1)", border: "1px solid var(--fc-border-hover)", borderRadius: 4, color: "var(--fc-accent)", cursor: "pointer", opacity: attachUrl.trim() ? 1 : 0.3 }}><Upload style={{ width: 14, height: 14 }} /></button>
               </div>
             </div>
           </div>
@@ -419,38 +419,38 @@ function TaskDetailModal({ task, allTasks, onClose, onSave, members, onRefresh, 
           <div style={{ padding: 24, display: "flex", flexDirection: "column", height: "55vh" }}>
             {/* Progress bar */}
             <div style={{ marginBottom: 16 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--text-secondary)", marginBottom: 6 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--fc-text-secondary)", marginBottom: 6 }}>
                 <span>{lang === "es" ? "Progreso de Subtareas" : "Subtasks Progress"}</span>
-                <span style={{ fontWeight: 700, color: "var(--foreground)" }}>{subtaskDone}/{subtaskTotal} ({subtaskPct}%)</span>
+                <span style={{ fontWeight: 700, color: "var(--fc-text)" }}>{subtaskDone}/{subtaskTotal} ({subtaskPct}%)</span>
               </div>
-              <div style={{ height: 6, background: "var(--border)", borderRadius: 3, overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${subtaskPct}%`, background: "var(--emerald)", borderRadius: 3, transition: "width 0.3s ease" }} />
+              <div style={{ height: 6, background: "var(--fc-border)", borderRadius: 3, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${subtaskPct}%`, background: "var(--fc-success)", borderRadius: 3, transition: "width 0.3s ease" }} />
               </div>
             </div>
 
             {/* List */}
             <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
               {subtaskTotal === 0 && (
-                <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 12, padding: "32px 0" }}>
+                <p style={{ textAlign: "center", color: "var(--fc-text-muted)", fontSize: 12, padding: "32px 0" }}>
                   {lang === "es" ? "No hay subtareas registradas." : "No subtasks recorded."}
                 </p>
               )}
               {task.children?.map(sub => {
                 const isDone = sub.status === "Done";
                 return (
-                  <div key={sub.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "8px 12px", background: "var(--surface-hover)", border: "1px solid var(--border)", borderRadius: 6 }}>
+                  <div key={sub.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "8px 12px", background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border)", borderRadius: 6 }}>
                     <button
                       onClick={() => onSubtaskPatch(sub.id, { status: isDone ? "Backlog" : "Done" })}
-                      style={{ background: "none", border: "none", cursor: "pointer", color: isDone ? "var(--emerald)" : "var(--text-muted)", display: "flex", padding: 0 }}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: isDone ? "var(--fc-success)" : "var(--fc-text-muted)", display: "flex", padding: 0 }}
                     >
                       {isDone ? <CheckSquare style={{ width: 16, height: 16 }} /> : <Square style={{ width: 16, height: 16 }} />}
                     </button>
-                    <span style={{ flex: 1, fontSize: 12, color: isDone ? "var(--text-muted)" : "var(--foreground)", textDecoration: isDone ? "line-through" : "none", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <span style={{ flex: 1, fontSize: 12, color: isDone ? "var(--fc-text-muted)" : "var(--fc-text)", textDecoration: isDone ? "line-through" : "none", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {sub.title}
                     </span>
                     <button
                       onClick={() => onSubtaskDelete(sub.id)}
-                      style={{ background: "none", border: "none", cursor: "pointer", color: "var(--red)", opacity: 0.7 }}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "var(--fc-danger)", opacity: 0.7 }}
                       onMouseEnter={e => e.currentTarget.style.opacity = "1"}
                       onMouseLeave={e => e.currentTarget.style.opacity = "0.7"}
                     >
@@ -474,8 +474,8 @@ function TaskDetailModal({ task, allTasks, onClose, onSave, members, onRefresh, 
                 onClick={addSubtask}
                 disabled={!newSubtaskTitle.trim()}
                 style={{
-                  padding: "8px 16px", background: "var(--cyan-dim)", border: "1px solid var(--border-strong)",
-                  borderRadius: 4, color: "var(--cyan)", cursor: "pointer", fontSize: 12, fontWeight: 700,
+                  padding: "8px 16px", background: "rgba(0, 212, 255, 0.1)", border: "1px solid var(--fc-border-hover)",
+                  borderRadius: 4, color: "var(--fc-accent)", cursor: "pointer", fontSize: 12, fontWeight: 700,
                   opacity: newSubtaskTitle.trim() ? 1 : 0.4
                 }}
               >
@@ -489,27 +489,27 @@ function TaskDetailModal({ task, allTasks, onClose, onSave, members, onRefresh, 
         {tab === "comments" && (
           <div style={{ display: "flex", flexDirection: "column", height: "55vh" }}>
             <div style={{ flex: 1, overflowY: "auto", padding: "16px 24px" }}>
-              {loadingComments && <div style={{ textAlign: "center", padding: 20 }}><Loader2 style={{ width: 18, height: 18, animation: "spin 1s linear infinite", color: "var(--cyan)" }} /></div>}
-              {!loadingComments && comments.length === 0 && <p style={{ textAlign: "center", color: "var(--text-secondary)", fontSize: 12, padding: "32px 0" }}>{t.noComments}</p>}
+              {loadingComments && <div style={{ textAlign: "center", padding: 20 }}><Loader2 style={{ width: 18, height: 18, animation: "spin 1s linear infinite", color: "var(--fc-accent)" }} /></div>}
+              {!loadingComments && comments.length === 0 && <p style={{ textAlign: "center", color: "var(--fc-text-secondary)", fontSize: 12, padding: "32px 0" }}>{t.noComments}</p>}
               {comments.map(c => (
                 <div key={c.id} style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--cyan-dim)", border: "1px solid var(--border-strong)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "var(--cyan)", flexShrink: 0 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(0, 212, 255, 0.1)", border: "1px solid var(--fc-border-hover)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "var(--fc-accent)", flexShrink: 0 }}>
                     {c.userName[0]?.toUpperCase()}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 4 }}>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>{c.userName}</span>
-                      <span style={{ fontSize: 9, color: "var(--text-muted)" }}>{timeAgo(c.createdAt, lang)}</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "var(--fc-text)" }}>{c.userName}</span>
+                      <span style={{ fontSize: 9, color: "var(--fc-text-muted)" }}>{timeAgo(c.createdAt, lang)}</span>
                     </div>
-                    <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.6, margin: 0, wordBreak: "break-word" }}>{c.content}</p>
+                    <p style={{ fontSize: 13, color: "var(--fc-text-secondary)", lineHeight: 1.6, margin: 0, wordBreak: "break-word" }}>{c.content}</p>
                   </div>
                 </div>
               ))}
               <div ref={commentEndRef} />
             </div>
-            <div style={{ padding: "12px 24px", borderTop: "1px solid var(--border)", display: "flex", gap: 8 }}>
+            <div style={{ padding: "12px 24px", borderTop: "1px solid var(--fc-border)", display: "flex", gap: 8 }}>
               <input value={commentText} onChange={e => setCommentText(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); postComment(); } }} placeholder={t.writeComment} style={{ flex: 1, ...inp }} />
-              <button onClick={postComment} disabled={!commentText.trim()} style={{ padding: "8px 14px", background: commentText.trim() ? "var(--cyan-dim)" : "transparent", border: `1px solid ${commentText.trim() ? "var(--border-strong)" : "var(--border)"}`, borderRadius: 4, color: commentText.trim() ? "var(--cyan)" : "var(--text-muted)", cursor: "pointer" }}>
+              <button onClick={postComment} disabled={!commentText.trim()} style={{ padding: "8px 14px", background: commentText.trim() ? "rgba(0, 212, 255, 0.1)" : "transparent", border: `1px solid ${commentText.trim() ? "var(--fc-border-hover)" : "var(--fc-border)"}`, borderRadius: 4, color: commentText.trim() ? "var(--fc-accent)" : "var(--fc-text-muted)", cursor: "pointer" }}>
                 <Send style={{ width: 14, height: 14 }} />
               </button>
             </div>
@@ -519,17 +519,17 @@ function TaskDetailModal({ task, allTasks, onClose, onSave, members, onRefresh, 
         {/* ── Activity Tab ── */}
         {tab === "activity" && (
           <div style={{ padding: "16px 24px", maxHeight: "55vh", overflowY: "auto" }}>
-            {activities.length === 0 && <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 12, padding: "32px 0" }}>{t.noActivity}</p>}
+            {activities.length === 0 && <p style={{ textAlign: "center", color: "var(--fc-text-muted)", fontSize: 12, padding: "32px 0" }}>{t.noActivity}</p>}
             {activities.map(a => (
               <div key={a.id} style={{ display: "flex", gap: 10, padding: "8px 0", borderBottom: "1px solid var(--border-neutral)" }}>
-                <div style={{ width: 6, height: 6, borderRadius: "50%", background: a.action === "status_changed" ? "var(--emerald)" : a.action === "assigned" ? "var(--cyan)" : a.action === "priority_changed" ? "var(--amber)" : "var(--text-muted)", marginTop: 6, flexShrink: 0 }} />
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: a.action === "status_changed" ? "var(--fc-success)" : a.action === "assigned" ? "var(--fc-accent)" : a.action === "priority_changed" ? "var(--fc-warning)" : "var(--fc-text-muted)", marginTop: 6, flexShrink: 0 }} />
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0, lineHeight: 1.5 }}>
-                    <strong style={{ color: "var(--foreground)" }}>{a.userName}</strong> {actLabels[a.action] || a.action}
-                    {a.oldValue && a.newValue && <> de <span style={{ color: "var(--red)", textDecoration: "line-through" }}>{a.oldValue}</span> a <span style={{ color: "var(--emerald)" }}>{a.newValue}</span></>}
-                    {!a.oldValue && a.newValue && <> <span style={{ color: "var(--emerald)" }}>{a.newValue}</span></>}
+                  <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", margin: 0, lineHeight: 1.5 }}>
+                    <strong style={{ color: "var(--fc-text)" }}>{a.userName}</strong> {actLabels[a.action] || a.action}
+                    {a.oldValue && a.newValue && <> de <span style={{ color: "var(--fc-danger)", textDecoration: "line-through" }}>{a.oldValue}</span> a <span style={{ color: "var(--fc-success)" }}>{a.newValue}</span></>}
+                    {!a.oldValue && a.newValue && <> <span style={{ color: "var(--fc-success)" }}>{a.newValue}</span></>}
                   </p>
-                  <span style={{ fontSize: 9, color: "var(--text-muted)" }}>{timeAgo(a.createdAt, lang)}</span>
+                  <span style={{ fontSize: 9, color: "var(--fc-text-muted)" }}>{timeAgo(a.createdAt, lang)}</span>
                 </div>
               </div>
             ))}
@@ -538,8 +538,8 @@ function TaskDetailModal({ task, allTasks, onClose, onSave, members, onRefresh, 
 
         {/* Footer */}
         {tab === "details" && (
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "14px 24px", borderTop: "1px solid var(--border)" }}>
-            <button onClick={onClose} style={{ padding: "8px 16px", background: "transparent", border: "1px solid var(--border)", color: "var(--text-secondary)", cursor: "pointer", fontSize: 12, borderRadius: 4 }}>{t.cancel}</button>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "14px 24px", borderTop: "1px solid var(--fc-border)" }}>
+            <button onClick={onClose} style={{ padding: "8px 16px", background: "transparent", border: "1px solid var(--fc-border)", color: "var(--fc-text-secondary)", cursor: "pointer", fontSize: 12, borderRadius: 4 }}>{t.cancel}</button>
             <button onClick={submit} disabled={saving || !form.title.trim()} className="btn-primary" style={{ padding: "8px 24px", opacity: saving || !form.title.trim() ? 0.5 : 1 }}>{saving ? t.saving : t.update}</button>
           </div>
         )}
@@ -562,11 +562,11 @@ function CreateModal({ onClose, onSave, members }: { onClose: () => void; onSave
   const submit = async () => { if (!form.title.trim()) return; setSaving(true); await onSave({ ...form, dueDate: form.dueDate || null }); setSaving(false); };
 
   return createPortal(
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--panel-bg)",  }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 560, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid var(--border)" }}>
-          <span style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.1em" }}>NUEVA TAREA</span>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}><X style={{ width: 18, height: 18 }} /></button>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--fc-surface-overlay)",  }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 560, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid var(--fc-border)" }}>
+          <span style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 700, color: "var(--fc-text)", letterSpacing: "0.1em" }}>NUEVA TAREA</span>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer" }}><X style={{ width: 18, height: 18 }} /></button>
         </div>
         <div style={{ padding: 24, display: "grid", gap: 14 }}>
           <div><label style={lbl}>{t.taskTitle} *</label><input style={inp} placeholder="¿Qué necesitas hacer?" value={form.title} onChange={e => set("title", e.target.value)} autoFocus /></div>
@@ -585,16 +585,16 @@ function CreateModal({ onClose, onSave, members }: { onClose: () => void; onSave
           <div>
             <label style={lbl}>Etiquetas</label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 6 }}>
-              {form.tags.map((tg, i) => <span key={i} style={{ fontSize: 10, padding: "2px 8px", background: "var(--cyan-dim)", color: "var(--cyan)", border: "1px solid var(--border)", borderRadius: 4, display: "flex", alignItems: "center", gap: 4 }}>{tg}<X style={{ width: 8, height: 8, cursor: "pointer" }} onClick={() => set("tags", form.tags.filter((_, j) => j !== i))} /></span>)}
+              {form.tags.map((tg, i) => <span key={i} style={{ fontSize: 10, padding: "2px 8px", background: "rgba(0, 212, 255, 0.1)", color: "var(--fc-accent)", border: "1px solid var(--fc-border)", borderRadius: 4, display: "flex", alignItems: "center", gap: 4 }}>{tg}<X style={{ width: 8, height: 8, cursor: "pointer" }} onClick={() => set("tags", form.tags.filter((_, j) => j !== i))} /></span>)}
             </div>
             <input style={inp} placeholder={t.addTagPlaceholder} value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTag(tagInput); } }} />
             <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
-              {TAG_PRESETS.filter(tg => !form.tags.includes(tg)).slice(0, 6).map(tg => <button key={tg} onClick={() => addTag(tg)} style={{ fontSize: 9, padding: "2px 8px", border: "1px solid var(--border)", background: "transparent", color: "var(--text-secondary)", cursor: "pointer", borderRadius: 4 }}>+ {tg}</button>)}
+              {TAG_PRESETS.filter(tg => !form.tags.includes(tg)).slice(0, 6).map(tg => <button key={tg} onClick={() => addTag(tg)} style={{ fontSize: 9, padding: "2px 8px", border: "1px solid var(--fc-border)", background: "transparent", color: "var(--fc-text-secondary)", cursor: "pointer", borderRadius: 4 }}>+ {tg}</button>)}
             </div>
           </div>
         </div>
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "14px 24px", borderTop: "1px solid var(--border)" }}>
-          <button onClick={onClose} style={{ padding: "8px 16px", background: "transparent", border: "1px solid var(--border)", color: "var(--text-secondary)", cursor: "pointer", fontSize: 12, borderRadius: 4 }}>{t.cancel}</button>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "14px 24px", borderTop: "1px solid var(--fc-border)" }}>
+          <button onClick={onClose} style={{ padding: "8px 16px", background: "transparent", border: "1px solid var(--fc-border)", color: "var(--fc-text-secondary)", cursor: "pointer", fontSize: 12, borderRadius: 4 }}>{t.cancel}</button>
           <button onClick={submit} disabled={saving || !form.title.trim()} className="btn-primary" style={{ padding: "8px 24px", opacity: saving || !form.title.trim() ? 0.5 : 1 }}>{saving ? t.saving : t.create}</button>
         </div>
       </div>
@@ -633,11 +633,11 @@ function RequestModal({ onClose, onSave, areas, members }: { onClose: () => void
   };
 
   return createPortal(
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--panel-bg)",  }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 560, background: "var(--surface)", border: `1px solid ${area ? `${area.color}40` : "var(--border)"}`, borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid var(--border)" }}>
-          <span style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.1em", display: "flex", alignItems: "center", gap: 8 }}><Send style={{ width: 14, height: 14, color: area?.color || "var(--cyan)" }} /> NUEVA SOLICITUD</span>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}><X style={{ width: 18, height: 18 }} /></button>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--fc-surface-overlay)",  }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 560, background: "var(--fc-surface)", border: `1px solid ${area ? `${area.color}40` : "var(--fc-border)"}`, borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid var(--fc-border)" }}>
+          <span style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 700, color: "var(--fc-text)", letterSpacing: "0.1em", display: "flex", alignItems: "center", gap: 8 }}><Send style={{ width: 14, height: 14, color: area?.color || "var(--fc-accent)" }} /> NUEVA SOLICITUD</span>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer" }}><X style={{ width: 18, height: 18 }} /></button>
         </div>
         <div style={{ padding: 24, display: "grid", gap: 14 }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -660,14 +660,14 @@ function RequestModal({ onClose, onSave, areas, members }: { onClose: () => void
             <div><label style={lbl}>{t.dueDate}</label><input type="date" style={{ ...inp, cursor: "pointer" }} value={form.dueDate} onChange={e => set("dueDate", e.target.value)} /></div>
           </div>
           {etaPreview && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 6, background: "var(--cyan-dim)", border: "1px solid var(--border-strong)" }}>
-              <Clock style={{ width: 14, height: 14, color: "var(--cyan)" }} />
-              <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>SLA base <strong style={{ color: "var(--foreground)" }}>{slaH}h</strong> · entrega aprox. <strong style={{ color: "var(--cyan)" }}>{etaPreview.toLocaleDateString("es-MX", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</strong></span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 6, background: "rgba(0, 212, 255, 0.1)", border: "1px solid var(--fc-border-hover)" }}>
+              <Clock style={{ width: 14, height: 14, color: "var(--fc-accent)" }} />
+              <span style={{ fontSize: 12, color: "var(--fc-text-secondary)" }}>SLA base <strong style={{ color: "var(--fc-text)" }}>{slaH}h</strong> · entrega aprox. <strong style={{ color: "var(--fc-accent)" }}>{etaPreview.toLocaleDateString("es-MX", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</strong></span>
             </div>
           )}
         </div>
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "14px 24px", borderTop: "1px solid var(--border)" }}>
-          <button onClick={onClose} style={{ padding: "8px 16px", background: "transparent", border: "1px solid var(--border)", color: "var(--text-secondary)", cursor: "pointer", fontSize: 12, borderRadius: 4 }}>{t.cancel}</button>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "14px 24px", borderTop: "1px solid var(--fc-border)" }}>
+          <button onClick={onClose} style={{ padding: "8px 16px", background: "transparent", border: "1px solid var(--fc-border)", color: "var(--fc-text-secondary)", cursor: "pointer", fontSize: 12, borderRadius: 4 }}>{t.cancel}</button>
           <button onClick={submit} disabled={saving || !form.title.trim() || !area} className="btn-primary" style={{ padding: "8px 24px", opacity: saving || !form.title.trim() || !area ? 0.5 : 1 }}>{saving ? "Enviando..." : "Enviar solicitud"}</button>
         </div>
       </div>
@@ -681,13 +681,13 @@ function FilterChip({ label, value, active, children }: { label: string; value: 
     <Dropdown trigger={
       <div style={{
         display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 6, cursor: "pointer",
-        background: active ? "var(--cyan-dim)" : "var(--surface)",
-        border: `1px solid ${active ? "var(--border-strong)" : "var(--border)"}`,
+        background: active ? "rgba(0, 212, 255, 0.1)" : "var(--fc-surface)",
+        border: `1px solid ${active ? "var(--fc-border-hover)" : "var(--fc-border)"}`,
         fontSize: 11, whiteSpace: "nowrap",
       }}>
-        <span style={{ color: "var(--text-secondary)" }}>{label}:</span>
-        <span style={{ fontWeight: 700, color: active ? "var(--cyan)" : "var(--foreground)" }}>{value}</span>
-        <ChevronDown style={{ width: 12, height: 12, color: "var(--text-muted)" }} />
+        <span style={{ color: "var(--fc-text-secondary)" }}>{label}:</span>
+        <span style={{ fontWeight: 700, color: active ? "var(--fc-accent)" : "var(--fc-text)" }}>{value}</span>
+        <ChevronDown style={{ width: 12, height: 12, color: "var(--fc-text-muted)" }} />
       </div>
     }>
       {children}
@@ -833,7 +833,7 @@ export default function OpsPage() {
     if (groupBy === "assignee") {
       const names = Array.from(new Set(filtered.map(t => t.assignee || ""))).sort((a, b) => (a === "" ? 1 : b === "" ? -1 : a.localeCompare(b)));
       if (!names.includes("")) names.push("");
-      return names.map(n => ({ key: n || "__none__", label: n || (lang === "es" ? "Sin asignar" : "Unassigned"), color: "var(--cyan)", match: (t: Task) => (t.assignee || "") === n, createDefaults: { assignee: n || null } }));
+      return names.map(n => ({ key: n || "__none__", label: n || (lang === "es" ? "Sin asignar" : "Unassigned"), color: "var(--fc-accent)", match: (t: Task) => (t.assignee || "") === n, createDefaults: { assignee: n || null } }));
     }
     if (groupBy === "priority") {
       return PRIORITIES.map(p => ({ key: p, label: PRIO_CFG[p].label, color: PRIO_CFG[p].c, match: (t: Task) => t.priority === p, createDefaults: { priority: p } }));
@@ -919,15 +919,15 @@ export default function OpsPage() {
   return (
     <div className="space-y-6">
       <PageHeader title={t.title} description={t.subtitle}
-        icon={<Users className="w-6 h-6" style={{ color: "var(--red)" }} />}
+        icon={<Users className="w-6 h-6" style={{ color: "var(--fc-danger)" }} />}
         action={
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             {!myPerms.canAccessOps && (
-              <span style={{ fontSize: 10, fontWeight: 700, color: "var(--amber)", background: "var(--cyan-dim)", padding: "4px 10px", borderRadius: 4, letterSpacing: "0.05em" }}>{t.readOnly}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: "var(--fc-warning)", background: "rgba(0, 212, 255, 0.1)", padding: "4px 10px", borderRadius: 4, letterSpacing: "0.05em" }}>{t.readOnly}</span>
             )}
             {config.areas.length > 0 && myPerms.canAccessOps && (
               <button onClick={() => setShowRequest(true)} title="Solicitar a otra área"
-                style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", color: "var(--fc-text)", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                 <Send style={{ width: 14, height: 14 }} /> {t.requestBtn}
               </button>
             )}
@@ -939,16 +939,16 @@ export default function OpsPage() {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: t.totalTasks, value: total, color: "var(--cyan)", icon: <FileText style={{ width: 16, height: 16 }} /> },
-          { label: t.completed, value: done, color: "var(--emerald)", icon: <CheckCircle2 style={{ width: 16, height: 16 }} /> },
-          { label: t.overdueSla, value: overdue, color: "var(--red)", icon: <AlertTriangle style={{ width: 16, height: 16 }} /> },
-          { label: t.productivity, value: `${pct}%`, color: pct >= 70 ? "var(--emerald)" : pct >= 40 ? "var(--amber)" : "var(--red)", icon: <Clock style={{ width: 16, height: 16 }} /> },
+          { label: t.totalTasks, value: total, color: "var(--fc-accent)", icon: <FileText style={{ width: 16, height: 16 }} /> },
+          { label: t.completed, value: done, color: "var(--fc-success)", icon: <CheckCircle2 style={{ width: 16, height: 16 }} /> },
+          { label: t.overdueSla, value: overdue, color: "var(--fc-danger)", icon: <AlertTriangle style={{ width: 16, height: 16 }} /> },
+          { label: t.productivity, value: `${pct}%`, color: pct >= 70 ? "var(--fc-success)" : pct >= 40 ? "var(--fc-warning)" : "var(--fc-danger)", icon: <Clock style={{ width: 16, height: 16 }} /> },
         ].map(k => (
-          <div key={k.label} className="glass-panel" style={{ padding: "14px 16px", display: "flex", alignItems: "center", gap: 12 }}>
+          <div key={k.label} className="fc-glass" style={{ padding: "14px 16px", display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ color: k.color, opacity: 0.8 }}>{k.icon}</div>
             <div>
               <p style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 700, color: k.color }}>{loading ? "—" : k.value}</p>
-              <p style={{ fontSize: 9, color: "var(--text-secondary)", fontFamily: "var(--font-display)", letterSpacing: "0.12em", marginTop: 2 }}>{k.label}</p>
+              <p style={{ fontSize: 9, color: "var(--fc-text-secondary)", fontFamily: "var(--font-display)", letterSpacing: "0.12em", marginTop: 2 }}>{k.label}</p>
             </div>
           </div>
         ))}
@@ -957,18 +957,18 @@ export default function OpsPage() {
       {/* Area view tabs */}
       {!loading && config.areas.length > 0 && (
         <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2 }}>
-          <button onClick={() => setViewArea("__all__")} style={{ padding: "6px 14px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", border: viewArea === "__all__" ? "1px solid var(--border-strong)" : "1px solid var(--border)", background: viewArea === "__all__" ? "var(--cyan-dim)" : "transparent", color: viewArea === "__all__" ? "var(--cyan)" : "var(--text-secondary)" }}>{t.all}</button>
+          <button onClick={() => setViewArea("__all__")} style={{ padding: "6px 14px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", border: viewArea === "__all__" ? "1px solid var(--fc-border-hover)" : "1px solid var(--fc-border)", background: viewArea === "__all__" ? "rgba(0, 212, 255, 0.1)" : "transparent", color: viewArea === "__all__" ? "var(--fc-accent)" : "var(--fc-text-secondary)" }}>{t.all}</button>
           {myArea && (
-            <button onClick={() => setViewArea("__mine__")} style={{ padding: "6px 14px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", border: viewArea === "__mine__" ? `1px solid ${myArea.color}55` : "1px solid var(--border)", background: viewArea === "__mine__" ? `${myArea.color}18` : "transparent", color: viewArea === "__mine__" ? myArea.color : "var(--text-secondary)", display: "flex", alignItems: "center", gap: 6 }}>
+            <button onClick={() => setViewArea("__mine__")} style={{ padding: "6px 14px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", border: viewArea === "__mine__" ? `1px solid ${myArea.color}55` : "1px solid var(--fc-border)", background: viewArea === "__mine__" ? `${myArea.color}18` : "transparent", color: viewArea === "__mine__" ? myArea.color : "var(--fc-text-secondary)", display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ width: 8, height: 8, borderRadius: "50%", background: myArea.color }} />
               {t.myArea} ({myArea.name})
               {pendingReviews > 0 && myArea.leadIds.includes(currentUserId) && (
-                <span style={{ background: "var(--red)", color: "var(--foreground)", fontSize: 9, fontWeight: 700, borderRadius: 10, padding: "1px 6px", marginLeft: 4 }}>{pendingReviews}</span>
+                <span style={{ background: "var(--fc-danger)", color: "var(--fc-text)", fontSize: 9, fontWeight: 700, borderRadius: 10, padding: "1px 6px", marginLeft: 4 }}>{pendingReviews}</span>
               )}
             </button>
           )}
           {config.areas.filter(a => a.id !== myArea?.id).map(a => (
-            <button key={a.id} onClick={() => setViewArea(a.id)} style={{ padding: "6px 14px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", border: viewArea === a.id ? `1px solid ${a.color}55` : "1px solid var(--border)", background: viewArea === a.id ? `${a.color}18` : "transparent", color: viewArea === a.id ? a.color : "var(--text-secondary)", display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+            <button key={a.id} onClick={() => setViewArea(a.id)} style={{ padding: "6px 14px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", border: viewArea === a.id ? `1px solid ${a.color}55` : "1px solid var(--fc-border)", background: viewArea === a.id ? `${a.color}18` : "transparent", color: viewArea === a.id ? a.color : "var(--fc-text-secondary)", display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
               <span style={{ width: 8, height: 8, borderRadius: "50%", background: a.color }} />
               {a.name}
             </button>
@@ -979,20 +979,20 @@ export default function OpsPage() {
       {/* Toolbar */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         {/* Search */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 6, padding: "6px 12px", flex: 1, maxWidth: 320 }}>
-          <Search style={{ width: 14, height: 14, color: "var(--text-muted)" }} />
-          <input type="text" placeholder={t.searchPlaceholder} value={search} onChange={e => setSearch(e.target.value)} style={{ background: "transparent", border: "none", outline: "none", color: "var(--foreground)", fontSize: 13, width: "100%" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 6, padding: "6px 12px", flex: 1, maxWidth: 320 }}>
+          <Search style={{ width: 14, height: 14, color: "var(--fc-text-muted)" }} />
+          <input type="text" placeholder={t.searchPlaceholder} value={search} onChange={e => setSearch(e.target.value)} style={{ background: "transparent", border: "none", outline: "none", color: "var(--fc-text)", fontSize: 13, width: "100%" }} />
         </div>
 
         {/* View Switcher */}
-        <div style={{ display: "flex", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, padding: 2 }}>
+        <div style={{ display: "flex", background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 8, padding: 2 }}>
           <button
             onClick={() => setViewMode("kanban")}
             title={t.kanbanView}
             style={{
               display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 6, border: "none",
-              background: viewMode === "kanban" ? "var(--surface-hover)" : "transparent",
-              color: viewMode === "kanban" ? "var(--cyan)" : "var(--text-secondary)",
+              background: viewMode === "kanban" ? "var(--fc-surface-hover)" : "transparent",
+              color: viewMode === "kanban" ? "var(--fc-accent)" : "var(--fc-text-secondary)",
               cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: "inherit"
             }}
           >
@@ -1004,8 +1004,8 @@ export default function OpsPage() {
             title={t.tableView}
             style={{
               display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 6, border: "none",
-              background: viewMode === "table" ? "var(--surface-hover)" : "transparent",
-              color: viewMode === "table" ? "var(--cyan)" : "var(--text-secondary)",
+              background: viewMode === "table" ? "var(--fc-surface-hover)" : "transparent",
+              color: viewMode === "table" ? "var(--fc-accent)" : "var(--fc-text-secondary)",
               cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: "inherit"
             }}
           >
@@ -1017,8 +1017,8 @@ export default function OpsPage() {
             title={lang === "es" ? "Métricas de Salud" : "Health Metrics"}
             style={{
               display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 6, border: "none",
-              background: viewMode === "metrics" ? "var(--surface-hover)" : "transparent",
-              color: viewMode === "metrics" ? "var(--cyan)" : "var(--text-secondary)",
+              background: viewMode === "metrics" ? "var(--fc-surface-hover)" : "transparent",
+              color: viewMode === "metrics" ? "var(--fc-accent)" : "var(--fc-text-secondary)",
               cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: "inherit"
             }}
           >
@@ -1030,8 +1030,8 @@ export default function OpsPage() {
             title={lang === "es" ? "Estrategia (OKRs)" : "Strategy (OKRs)"}
             style={{
               display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 6, border: "none",
-              background: viewMode === "okrs" ? "var(--surface-hover)" : "transparent",
-              color: viewMode === "okrs" ? "var(--cyan)" : "var(--text-secondary)",
+              background: viewMode === "okrs" ? "var(--fc-surface-hover)" : "transparent",
+              color: viewMode === "okrs" ? "var(--fc-accent)" : "var(--fc-text-secondary)",
               cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: "inherit"
             }}
           >
@@ -1043,8 +1043,8 @@ export default function OpsPage() {
             style={{
               display: "flex", alignItems: "center", gap: 6, padding: "6px 12px",
               borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: "pointer", border: "none",
-              background: viewMode === "gantt" ? "var(--surface-hover)" : "transparent",
-              color: viewMode === "gantt" ? "var(--cyan)" : "var(--text-secondary)",
+              background: viewMode === "gantt" ? "var(--fc-surface-hover)" : "transparent",
+              color: viewMode === "gantt" ? "var(--fc-accent)" : "var(--fc-text-secondary)",
               transition: "all 0.2s ease"
             }}
           >
@@ -1056,8 +1056,8 @@ export default function OpsPage() {
             style={{
               display: "flex", alignItems: "center", gap: 6, padding: "6px 12px",
               borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: "pointer", border: "none",
-              background: viewMode === "calendar" ? "var(--surface-hover)" : "transparent",
-              color: viewMode === "calendar" ? "var(--cyan)" : "var(--text-secondary)",
+              background: viewMode === "calendar" ? "var(--fc-surface-hover)" : "transparent",
+              color: viewMode === "calendar" ? "var(--fc-accent)" : "var(--fc-text-secondary)",
               transition: "all 0.2s ease"
             }}
           >
@@ -1069,8 +1069,8 @@ export default function OpsPage() {
             style={{
               display: "flex", alignItems: "center", gap: 6, padding: "6px 12px",
               borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: "pointer", border: "none",
-              background: viewMode === "my-tasks" ? "var(--surface-hover)" : "transparent",
-              color: viewMode === "my-tasks" ? "var(--cyan)" : "var(--text-secondary)",
+              background: viewMode === "my-tasks" ? "var(--fc-surface-hover)" : "transparent",
+              color: viewMode === "my-tasks" ? "var(--fc-accent)" : "var(--fc-text-secondary)",
               transition: "all 0.2s ease"
             }}
           >
@@ -1115,7 +1115,7 @@ export default function OpsPage() {
             </FilterChip>
           )}
           {filtersActive && (
-            <button onClick={() => { setFAssignee(""); setFPriority(""); setFTag(""); setFArea(""); }} style={{ fontSize: 11, color: "var(--text-secondary)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}>
+            <button onClick={() => { setFAssignee(""); setFPriority(""); setFTag(""); setFArea(""); }} style={{ fontSize: 11, color: "var(--fc-text-secondary)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}>
               {t.clearFilters}
             </button>
           )}
@@ -1128,7 +1128,7 @@ export default function OpsPage() {
             <Skeleton key={i} style={{ height: "48px", width: "100%", borderRadius: "4px" }} />
           ))}
           <div style={{ textAlign: "center", marginTop: "8px" }}>
-            <span style={{ fontSize: "10px", color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.15em", fontWeight: 600 }}>
+            <span style={{ fontSize: "10px", color: "var(--fc-accent)", textTransform: "uppercase", letterSpacing: "0.15em", fontWeight: 600 }}>
               Sincronizando Operaciones...
             </span>
           </div>
@@ -1157,21 +1157,21 @@ export default function OpsPage() {
             const isCollapsed = expandedGroups[g.key] === true;
 
             return (
-              <div key={g.key} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+              <div key={g.key} style={{ background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 12, overflow: "hidden" }}>
                 {/* Header */}
                 <div
                   onClick={() => toggleGroupExpand(g.key)}
                   style={{
                     display: "flex", alignItems: "center", justifyContent: "space-between",
-                    padding: "12px 18px", borderBottom: isCollapsed ? "none" : "1px solid var(--border)",
-                    cursor: "pointer", background: "var(--surface-hover)"
+                    padding: "12px 18px", borderBottom: isCollapsed ? "none" : "1px solid var(--fc-border)",
+                    cursor: "pointer", background: "var(--fc-surface-hover)"
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     {isCollapsed ? <ChevronRight style={{ width: 16, height: 16, color: g.color }} /> : <ChevronDown style={{ width: 16, height: 16, color: g.color }} />}
                     <span style={{ width: 4, height: 16, background: g.color, borderRadius: 2 }} />
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)" }}>{g.label}</span>
-                    <span style={{ fontSize: 10, color: "var(--text-muted)", background: "var(--border)", padding: "1px 6px", borderRadius: 8 }}>{gt.length}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-text)" }}>{g.label}</span>
+                    <span style={{ fontSize: 10, color: "var(--fc-text-muted)", background: "var(--fc-border)", padding: "1px 6px", borderRadius: 8 }}>{gt.length}</span>
                   </div>
 
                   {myPerms.canAccessOps && (
@@ -1182,7 +1182,7 @@ export default function OpsPage() {
                         setNewTitle("");
                       }}
                       style={{
-                        background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)",
+                        background: "none", border: "none", cursor: "pointer", color: "var(--fc-text-secondary)",
                         display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 600, fontFamily: "inherit"
                       }}
                     >
@@ -1197,7 +1197,7 @@ export default function OpsPage() {
                   <div style={{ overflowX: "auto" }}>
                     <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
                       <thead>
-                        <tr style={{ borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
+                        <tr style={{ borderBottom: "1px solid var(--fc-border)", background: "var(--fc-surface)" }}>
                           <th style={{ ...ch, textAlign: "left", width: "35%" }}>{t.taskTitle}</th>
                           <th style={{ ...ch, textAlign: "left" }}>{t.assignee}</th>
                           <th style={{ ...ch, textAlign: "center" }}>{t.status}</th>
@@ -1226,7 +1226,7 @@ export default function OpsPage() {
                                 <select
                                   value={tsk.assignee || ""}
                                   onChange={(e) => patch(tsk.id, { assignee: e.target.value || null })}
-                                  style={{ background: "transparent", border: "none", color: "var(--foreground)", fontSize: 12, outline: "none", cursor: "pointer" }}
+                                  style={{ background: "transparent", border: "none", color: "var(--fc-text)", fontSize: 12, outline: "none", cursor: "pointer" }}
                                 >
                                   <option value="">{lang === "es" ? "Sin asignar" : "Unassigned"}</option>
                                   {members.map(m => (
@@ -1241,8 +1241,8 @@ export default function OpsPage() {
                                   value={tsk.status}
                                   onChange={(e) => patch(tsk.id, { status: e.target.value })}
                                   style={{
-                                    background: STATUS_CFG[tsk.status]?.bg || "var(--text-muted)",
-                                    color: "var(--foreground)", fontSize: 11, fontWeight: 700,
+                                    background: STATUS_CFG[tsk.status]?.bg || "var(--fc-text-muted)",
+                                    color: "var(--fc-text)", fontSize: 11, fontWeight: 700,
                                     border: "none", borderRadius: 4, padding: "4px 8px", cursor: "pointer",
                                     outline: "none"
                                   }}
@@ -1260,7 +1260,7 @@ export default function OpsPage() {
                                   onChange={(e) => patch(tsk.id, { priority: e.target.value })}
                                   style={{
                                     background: PRIO_CFG[tsk.priority]?.bg || "rgba(255,255,255,0.05)",
-                                    color: PRIO_CFG[tsk.priority]?.c || "var(--foreground)",
+                                    color: PRIO_CFG[tsk.priority]?.c || "var(--fc-text)",
                                     fontSize: 11, fontWeight: 700,
                                     border: "none", borderRadius: 4, padding: "4px 8px", cursor: "pointer",
                                     outline: "none"
@@ -1278,7 +1278,7 @@ export default function OpsPage() {
                                   type="date"
                                   value={tsk.dueDate ? new Date(tsk.dueDate).toISOString().split("T")[0] : ""}
                                   onChange={(e) => patch(tsk.id, { dueDate: e.target.value || null })}
-                                  style={{ background: "transparent", border: "none", color: "var(--foreground)", fontSize: 12, outline: "none", cursor: "pointer" }}
+                                  style={{ background: "transparent", border: "none", color: "var(--fc-text)", fontSize: 12, outline: "none", cursor: "pointer" }}
                                 />
                               </td>
 
@@ -1294,11 +1294,11 @@ export default function OpsPage() {
                               {/* Actions */}
                               <td style={{ padding: "8px 10px", textAlign: "center" }}>
                                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                                  <button onClick={() => setEditTask(tsk)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--cyan)" }} title={t.update}>
+                                  <button onClick={() => setEditTask(tsk)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--fc-accent)" }} title={t.update}>
                                     <FileText style={{ width: 14, height: 14 }} />
                                   </button>
                                   {myPerms.canAccessOps && (
-                                    <button onClick={() => del(tsk.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--red)" }} title="Eliminar">
+                                    <button onClick={() => del(tsk.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--fc-danger)" }} title="Eliminar">
                                       <Trash2 style={{ width: 14, height: 14 }} />
                                     </button>
                                   )}
@@ -1310,7 +1310,7 @@ export default function OpsPage() {
 
                         {/* Inline Create Row */}
                         {addingIn === g.key && (
-                          <tr style={{ background: "var(--surface-hover)" }}>
+                          <tr style={{ background: "var(--fc-surface-hover)" }}>
                             <td colSpan={7} style={{ padding: "8px 10px" }}>
                               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                                 <input
@@ -1319,14 +1319,14 @@ export default function OpsPage() {
                                   onChange={e => setNewTitle(e.target.value)}
                                   onKeyDown={e => { if (e.key === "Enter") createWith(g.createDefaults); if (e.key === "Escape") { setAddingIn(null); setNewTitle(""); } }}
                                   placeholder={lang === "es" ? "Agregar nueva tarea..." : "Add new task..."}
-                                  style={{ flex: 1, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 6, padding: "6px 12px", color: "var(--foreground)", fontSize: 12, outline: "none" }}
+                                  style={{ flex: 1, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 6, padding: "6px 12px", color: "var(--fc-text)", fontSize: 12, outline: "none" }}
                                 />
                                 <button
                                   onClick={() => createWith(g.createDefaults)}
                                   disabled={!newTitle.trim()}
                                   style={{
-                                    padding: "6px 14px", background: "var(--cyan-dim)", border: "1px solid var(--border-strong)",
-                                    borderRadius: 6, color: "var(--cyan)", cursor: "pointer", fontSize: 11, fontWeight: 700,
+                                    padding: "6px 14px", background: "rgba(0, 212, 255, 0.1)", border: "1px solid var(--fc-border-hover)",
+                                    borderRadius: 6, color: "var(--fc-accent)", cursor: "pointer", fontSize: 11, fontWeight: 700,
                                     opacity: newTitle.trim() ? 1 : 0.4
                                   }}
                                 >
@@ -1334,7 +1334,7 @@ export default function OpsPage() {
                                 </button>
                                 <button
                                   onClick={() => { setAddingIn(null); setNewTitle(""); }}
-                                  style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", fontSize: 11, fontFamily: "inherit" }}
+                                  style={{ background: "none", border: "none", cursor: "pointer", color: "var(--fc-text-secondary)", fontSize: 11, fontFamily: "inherit" }}
                                 >
                                   {t.cancel}
                                 </button>
@@ -1357,46 +1357,46 @@ export default function OpsPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           {/* Top row summaries */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
-            <div className="glass-panel" style={{ padding: 20 }}>
+            <div className="fc-glass" style={{ padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", fontFamily: "var(--font-display)", letterSpacing: "0.05em" }}>KPI GLOBAL SLA</span>
-                <Target style={{ width: 16, height: 16, color: "var(--cyan)" }} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--fc-text-secondary)", fontFamily: "var(--font-display)", letterSpacing: "0.05em" }}>KPI GLOBAL SLA</span>
+                <Target style={{ width: 16, height: 16, color: "var(--fc-accent)" }} />
               </div>
-              <p style={{ fontSize: 32, fontWeight: 800, color: globalSlaStats.globalSlaPct >= 95 ? "var(--emerald)" : "var(--amber)", fontFamily: "var(--font-display)", margin: "4px 0" }}>
+              <p style={{ fontSize: 32, fontWeight: 800, color: globalSlaStats.globalSlaPct >= 95 ? "var(--fc-success)" : "var(--fc-warning)", fontFamily: "var(--font-display)", margin: "4px 0" }}>
                 {globalSlaStats.globalSlaPct}%
               </p>
-              <div style={{ height: 6, background: "var(--border)", borderRadius: 3, overflow: "hidden", margin: "12px 0 8px 0" }}>
-                <div style={{ height: "100%", width: `${globalSlaStats.globalSlaPct}%`, background: globalSlaStats.globalSlaPct >= 95 ? "var(--emerald)" : "var(--amber)", borderRadius: 3 }} />
+              <div style={{ height: 6, background: "var(--fc-border)", borderRadius: 3, overflow: "hidden", margin: "12px 0 8px 0" }}>
+                <div style={{ height: "100%", width: `${globalSlaStats.globalSlaPct}%`, background: globalSlaStats.globalSlaPct >= 95 ? "var(--fc-success)" : "var(--fc-warning)", borderRadius: 3 }} />
               </div>
-              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+              <span style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>
                 {lang === "es" 
                   ? `Meta: >= 95% (${globalSlaStats.completedOnTimeCount}/${globalSlaStats.completedWithDueCount} a tiempo)` 
                   : `Target: >= 95% (${globalSlaStats.completedOnTimeCount}/${globalSlaStats.completedWithDueCount} on time)`}
               </span>
             </div>
 
-            <div className="glass-panel" style={{ padding: 20 }}>
+            <div className="fc-glass" style={{ padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", fontFamily: "var(--font-display)", letterSpacing: "0.05em" }}>ENTREGAS COMPLETADAS</span>
-                <CheckCircle2 style={{ width: 16, height: 16, color: "var(--emerald)" }} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--fc-text-secondary)", fontFamily: "var(--font-display)", letterSpacing: "0.05em" }}>ENTREGAS COMPLETADAS</span>
+                <CheckCircle2 style={{ width: 16, height: 16, color: "var(--fc-success)" }} />
               </div>
-              <p style={{ fontSize: 32, fontWeight: 800, color: "var(--foreground)", fontFamily: "var(--font-display)", margin: "4px 0" }}>
+              <p style={{ fontSize: 32, fontWeight: 800, color: "var(--fc-text)", fontFamily: "var(--font-display)", margin: "4px 0" }}>
                 {globalSlaStats.completedCount}
               </p>
-              <span style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginTop: 22 }}>
+              <span style={{ fontSize: 11, color: "var(--fc-text-muted)", display: "block", marginTop: 22 }}>
                 {lang === "es" ? "Tareas movidas a Completado con éxito" : "Tasks successfully resolved"}
               </span>
             </div>
 
-            <div className="glass-panel" style={{ padding: 20 }}>
+            <div className="fc-glass" style={{ padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", fontFamily: "var(--font-display)", letterSpacing: "0.05em" }}>SLA BREACH ACTIVO</span>
-                <AlertTriangle style={{ width: 16, height: 16, color: "var(--red)" }} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--fc-text-secondary)", fontFamily: "var(--font-display)", letterSpacing: "0.05em" }}>SLA BREACH ACTIVO</span>
+                <AlertTriangle style={{ width: 16, height: 16, color: "var(--fc-danger)" }} />
               </div>
-              <p style={{ fontSize: 32, fontWeight: 800, color: overdue > 0 ? "var(--red)" : "var(--text-muted)", fontFamily: "var(--font-display)", margin: "4px 0" }}>
+              <p style={{ fontSize: 32, fontWeight: 800, color: overdue > 0 ? "var(--fc-danger)" : "var(--fc-text-muted)", fontFamily: "var(--font-display)", margin: "4px 0" }}>
                 {overdue}
               </p>
-              <span style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginTop: 22 }}>
+              <span style={{ fontSize: 11, color: "var(--fc-text-muted)", display: "block", marginTop: 22 }}>
                 {lang === "es" ? "Tareas con fecha límite vencida activas" : "Active tasks past their due date"}
               </span>
             </div>
@@ -1404,8 +1404,8 @@ export default function OpsPage() {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 20 }}>
             {/* Area SLA OKR */}
-            <div className="glass-panel" style={{ padding: 20 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", marginBottom: 16, fontFamily: "var(--font-display)" }}>
+            <div className="fc-glass" style={{ padding: 20 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--fc-text)", marginBottom: 16, fontFamily: "var(--font-display)" }}>
                 {lang === "es" ? "Salud Operativa: SLA por Área (Meta: >= 95%)" : "Health: Area SLA Compliance (Target: >= 95%)"}
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -1414,22 +1414,22 @@ export default function OpsPage() {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <span style={{ width: 8, height: 8, borderRadius: "50%", background: stat.area.color }} />
-                        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>{stat.area.name}</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--fc-text)" }}>{stat.area.name}</span>
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                        <span style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>
                           {stat.avgLeadTimeHours !== null ? `${stat.avgLeadTimeHours}h avg` : "—"}
                         </span>
                         <span style={{
                           fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 4,
                           background: stat.okrStatus === "success" ? "rgba(52,183,124,0.12)" : "rgba(253,171,61,0.12)",
-                          color: stat.okrStatus === "success" ? "var(--emerald)" : "var(--amber)"
+                          color: stat.okrStatus === "success" ? "var(--fc-success)" : "var(--fc-warning)"
                         }}>
                           {stat.slaPct}% {stat.okrStatus === "success" ? "OK" : "En Riesgo"}
                         </span>
                       </div>
                     </div>
-                    <div style={{ height: 6, background: "var(--border)", borderRadius: 3, overflow: "hidden" }}>
+                    <div style={{ height: 6, background: "var(--fc-border)", borderRadius: 3, overflow: "hidden" }}>
                       <div style={{ height: "100%", width: `${stat.slaPct}%`, background: stat.area.color, borderRadius: 3 }} />
                     </div>
                   </div>
@@ -1438,34 +1438,34 @@ export default function OpsPage() {
             </div>
 
             {/* User Workload OKR */}
-            <div className="glass-panel" style={{ padding: 20 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", marginBottom: 16, fontFamily: "var(--font-display)" }}>
+            <div className="fc-glass" style={{ padding: 20 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--fc-text)", marginBottom: 16, fontFamily: "var(--font-display)" }}>
                 {lang === "es" ? "Salud Operativa: Carga de Equipo (Límite: <= 5 Activas)" : "Health: Workload Distribution (Limit: <= 5 Active)"}
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 14, maxHeight: 300, overflowY: "auto", paddingRight: 6 }}>
                 {memberLoadStats.map(stat => (
                   <div key={stat.member.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
-                      <div style={{ width: 24, height: 24, borderRadius: "50%", background: "var(--cyan-dim)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "var(--cyan)", flexShrink: 0 }}>
+                      <div style={{ width: 24, height: 24, borderRadius: "50%", background: "rgba(0, 212, 255, 0.1)", border: "1px solid var(--fc-border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "var(--fc-accent)", flexShrink: 0 }}>
                         {stat.member.name[0]?.toUpperCase()}
                       </div>
-                      <span style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <span style={{ fontSize: 12, fontWeight: 500, color: "var(--fc-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {stat.member.name}
                       </span>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: stat.okrStatus === "success" ? "var(--foreground)" : "var(--red)" }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: stat.okrStatus === "success" ? "var(--fc-text)" : "var(--fc-danger)" }}>
                         {stat.activeTasks} {lang === "es" ? "tareas" : "tasks"}
                       </span>
                       {stat.activeEstimate > 0 && (
-                        <span style={{ fontSize: 11, fontWeight: 600, color: "var(--cyan)", background: "var(--cyan-dim)", padding: "2px 6px", borderRadius: 4 }}>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: "var(--fc-accent)", background: "rgba(0, 212, 255, 0.1)", padding: "2px 6px", borderRadius: 4 }}>
                           {stat.activeEstimate} pts
                         </span>
                       )}
                       <span style={{
                         fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 4,
                         background: stat.okrStatus === "success" ? "rgba(52,183,124,0.1)" : "rgba(229,72,77,0.1)",
-                        color: stat.okrStatus === "success" ? "var(--emerald)" : "var(--red)"
+                        color: stat.okrStatus === "success" ? "var(--fc-success)" : "var(--fc-danger)"
                       }}>
                         {stat.okrStatus === "success" ? (lang === "es" ? "Estable" : "Healthy") : (lang === "es" ? "Saturado" : "Overloaded")}
                       </span>
@@ -1500,17 +1500,17 @@ export default function OpsPage() {
         <div style={{ padding: "24px 0", maxWidth: 1000, margin: "0 auto", animation: "fadeIn 0.3s ease" }}>
           {/* OKR headers... */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24 }}>
-            <Target size={24} style={{ color: "var(--cyan)" }} />
-            <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: "var(--foreground)" }}>
+            <Target size={24} style={{ color: "var(--fc-accent)" }} />
+            <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: "var(--fc-text)" }}>
               {lang === "es" ? "Estrategia Trimestral (OKRs)" : "Quarterly Strategy (OKRs)"}
             </h2>
           </div>
-          <p style={{ color: "var(--text-secondary)", fontSize: 14, marginBottom: 32 }}>
+          <p style={{ color: "var(--fc-text-secondary)", fontSize: 14, marginBottom: 32 }}>
             {lang === "es" 
               ? "Objetivos clave vinculados directamente a tareas de alto impacto. El progreso se calcula en base a las tareas marcadas como Done." 
               : "Key objectives tied directly to high-impact tasks. Progress is calculated based on tasks marked as Done."}
           </p>
-             <span style={{ fontSize: 12, color: "var(--text-muted)" }}>[Modulo de OKRs en construcción]</span>
+             <span style={{ fontSize: 12, color: "var(--fc-text-muted)" }}>[Modulo de OKRs en construcción]</span>
         </div>
       )}
 

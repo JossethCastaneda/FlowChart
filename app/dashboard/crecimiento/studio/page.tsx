@@ -101,7 +101,7 @@ export default function PredictiveStudio() {
             <button 
               disabled={!selectedDataset || training}
               onClick={handleTrain}
-              className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-[var(--foreground)] py-3 rounded-md font-semibold disabled:opacity-50 transition flex items-center justify-center gap-2"
+              className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-[var(--fc-text)] py-3 rounded-md font-semibold disabled:opacity-50 transition flex items-center justify-center gap-2"
             >
               {training ? (
                 "Entrenando modelo..."

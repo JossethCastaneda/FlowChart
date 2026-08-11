@@ -4,6 +4,7 @@ import { MoreHorizontal, ExternalLink, Calendar } from "lucide-react";
 import { PLATFORMS } from "@/lib/project-constants";
 import type { Project } from "@/types/project";
 import { useInsightsStore } from "@/stores/insightsStore";
+import { Button } from "@/components/ui/Button";
 import { getPlatformIcon } from "@/components/ui/AppIcons";
 
 interface ProjectCardProps {
@@ -65,12 +66,12 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
 
   return (
     <div
-      className="project-card"
+      className="fc-project-card"
       onClick={() => router.push(`/dashboard/proyectos/${p.id}`)}
     >
       {/* Left accent bar (status color) */}
       <div
-        className="project-card-accent"
+        className="fc-project-card__accent"
         style={{ background: accentColor }}
       />
 
@@ -78,7 +79,7 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
       <div style={{ height: 2, background: `linear-gradient(90deg, ${accentColor}88, transparent)`, marginLeft: 3 }} />
 
       {/* Card body */}
-      <div className="project-card-body">
+      <div className="fc-project-card__body">
         {/* Header row */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 10 }}>
           <div style={{ minWidth: 0, flex: 1 }}>
@@ -154,29 +155,29 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
       </div>
 
       {/* Metrics row */}
-      <div className="project-card-metrics">
-        <div className="project-card-metric">
-          <div className="project-card-metric-value">
+      <div className="fc-project-card__metrics">
+        <div className="fc-project-card__metric">
+          <div className="fc-project-card__metric-value">
             {spend != null ? fmtCurrency(spend) : totalBudget > 0 ? fmtCurrency(totalBudget) : "—"}
           </div>
-          <div className="project-card-metric-label">{spend != null ? "Inversión" : "Presupuesto"}</div>
+          <div className="fc-project-card__metric-label">{spend != null ? "Inversión" : "Presupuesto"}</div>
         </div>
-        <div className="project-card-metric">
-          <div className="project-card-metric-value">
+        <div className="fc-project-card__metric">
+          <div className="fc-project-card__metric-value">
             {cpr != null ? fmtCurrency(cpr) : "—"}
           </div>
-          <div className="project-card-metric-label">{p.channels[0]?.goal ? (p.channels[0].goal.includes("Lead") ? "CPL" : p.channels[0].goal.includes("Conv") ? "CPR" : "CPA") : "CPR"}</div>
+          <div className="fc-project-card__metric-label">{p.channels[0]?.goal ? (p.channels[0].goal.includes("Lead") ? "CPL" : p.channels[0].goal.includes("Conv") ? "CPR" : "CPA") : "CPR"}</div>
         </div>
-        <div className="project-card-metric">
-          <div className="project-card-metric-value">
+        <div className="fc-project-card__metric">
+          <div className="fc-project-card__metric-value">
             {results != null ? results.toLocaleString("es-MX") : "—"}
           </div>
-          <div className="project-card-metric-label">Resultados</div>
+          <div className="fc-project-card__metric-label">Resultados</div>
         </div>
       </div>
 
       {/* Footer: budget bar + date + actions */}
-      <div className="project-card-footer">
+      <div className="fc-project-card__footer">
         {/* Budget progress bar */}
         {totalBudget > 0 && (
           <div style={{ marginBottom: 10 }}>
@@ -234,14 +235,15 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
             </button>
 
             {/* Dashboard CTA */}
-            <button
+            <Button
               onClick={e => { e.stopPropagation(); router.push(`/dashboard/proyectos/${p.id}`); }}
-              className="btn-ghost"
+              variant="ghost"
+              size="sm"
               style={{ fontSize: 11, padding: "5px 12px", borderRadius: 7, fontWeight: 700 }}
             >
               <ExternalLink style={{ width: 11, height: 11 }} />
               Ver
-            </button>
+            </Button>
           </div>
         </div>
       </div>

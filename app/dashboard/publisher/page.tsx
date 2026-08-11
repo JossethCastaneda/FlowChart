@@ -11,7 +11,7 @@ export default function PublisherPage() {
       <PageHeader
         title="Planner"
         description="Planifica, redacta, programa y prepara aprobaciones para tus canales sociales."
-        icon={<Zap className="w-6 h-6" style={{ color: "var(--amber)" }} />}
+        icon={<Zap className="w-6 h-6" style={{ color: "var(--fc-warning)" }} />}
         action={
           <div style={{ display: "flex", gap: 8 }}>
             <ConnectedMetaBadge module="publisher_facebook" providers={["meta_publisher_facebook", "meta_social", "meta_community", "meta_inbox"]} />
