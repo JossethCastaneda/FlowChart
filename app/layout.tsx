@@ -28,8 +28,8 @@ const GTM_ID = rawGtmId?.startsWith("GTM-") ? rawGtmId : undefined;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 const GA4_ID = rawGa4Id?.startsWith("G-") ? rawGa4Id : undefined;
 
-const manrope = Manrope({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], display: "swap", variable: "--font-manrope" });
-const jbMono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500"], display: "swap", variable: "--font-jbmono" });
+const manrope = Manrope({ subsets: ["latin"], display: "swap", variable: "--font-manrope" });
+const jbMono = JetBrains_Mono({ subsets: ["latin"], display: "swap", variable: "--font-jbmono" });
 
 export const viewport: Viewport = {
   themeColor: "var(--background)",
