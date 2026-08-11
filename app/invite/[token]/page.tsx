@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { Zap, Users, Loader2, CheckCircle } from "lucide-react";
-import { Orbi } from "@/components/ui/Orbi";
+import { Loader } from "@/components/ui/Loader";
 
 export default function InvitePage() {
   const params = useParams();
@@ -180,7 +180,7 @@ export default function InvitePage() {
     border: "1px solid rgba(59,130,246,0.15)",
     
   };
-  const orbitron: React.CSSProperties = {
+  const fontDisplay: React.CSSProperties = {
     fontFamily: "var(--font-display)",
   };
   const inputStyle: React.CSSProperties = {
@@ -195,7 +195,7 @@ export default function InvitePage() {
   if (pageLoading) {
     return (
       <div style={{ ...page, flexDirection: "column", gap: "24px" }}>
-        <Orbi state="working" scale={0.8} />
+        <Loader size={24} />
         <p style={{ color: "var(--cyan)", fontFamily: "var(--font-display)", letterSpacing: "0.1em", fontSize: "14px" }}>CARGANDO INVITACIÓN...</p>
       </div>
     );
@@ -207,7 +207,7 @@ export default function InvitePage() {
       <div style={page}>
         <div style={card}>
           <Logo />
-          <p style={{ ...orbitron, fontSize: "11px", color: "var(--red)",
+          <p style={{ ...fontDisplay, fontSize: "11px", color: "var(--red)",
             letterSpacing: "0.15em", marginBottom: "8px" }}>
             INVITACIÓN INVÁLIDA
           </p>
@@ -226,7 +226,7 @@ export default function InvitePage() {
         <div style={{ ...card, textAlign: "center" as const }}>
           <CheckCircle style={{ width: 48, height: 48,
             color: "var(--emerald)", margin: "0 auto 16px" }} />
-          <p style={{ ...orbitron, fontSize: "12px",
+          <p style={{ ...fontDisplay, fontSize: "12px",
             color: "var(--emerald)", letterSpacing: "0.15em" }}>
             ¡BIENVENIDO AL EQUIPO!
           </p>
@@ -244,8 +244,8 @@ export default function InvitePage() {
     return (
       <div style={page}>
         <div style={{ ...card, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px", textAlign: "center" as const }}>
-          <Orbi state="working" scale={0.8} />
-          <p style={{ ...orbitron, fontSize: "11px",
+          <Loader size={24} />
+          <p style={{ ...fontDisplay, fontSize: "11px",
             color: "var(--cyan)", letterSpacing: "0.15em" }}>
             PROCESANDO INVITACIÓN...
           </p>
@@ -268,7 +268,7 @@ export default function InvitePage() {
           <Users style={{ width: 20, height: 20,
             color: "var(--cyan)", flexShrink: 0 }} />
           <div>
-            <p style={{ ...orbitron, fontSize: "11px",
+            <p style={{ ...fontDisplay, fontSize: "11px",
               color: "var(--cyan)", letterSpacing: "0.1em" }}>
               {invite?.workspace?.name}
             </p>
@@ -309,7 +309,7 @@ export default function InvitePage() {
                 background: "var(--cyan-dim)",
                 border: "1px solid rgba(59,130,246,0.3)",
                 color: "var(--foreground)", cursor: "pointer",
-                ...orbitron, fontSize: "11px",
+                ...fontDisplay, fontSize: "11px",
                 letterSpacing: "0.15em" }}>
               CONTINUAR CON GOOGLE
             </button>
@@ -331,7 +331,7 @@ export default function InvitePage() {
                 background: "var(--cyan-dim)" }} />
               <span style={{ fontSize: "10px",
                 color: "var(--text-secondary)",
-                ...orbitron, letterSpacing: "0.1em" }}>O</span>
+                ...fontDisplay, letterSpacing: "0.1em" }}>O</span>
               <span style={{ flex: 1, height: "1px",
                 background: "var(--cyan-dim)" }} />
             </div>
@@ -386,7 +386,7 @@ export default function InvitePage() {
                       ? "rgba(148,163,184,0.7)" : "white",
                     cursor: regLoading
                       ? "not-allowed" : "pointer",
-                    ...orbitron, fontSize: "11px",
+                    ...fontDisplay, fontSize: "11px",
                     letterSpacing: "0.15em" }}>
                   {regLoading
                     ? "PROCESANDO..."
@@ -406,7 +406,7 @@ export default function InvitePage() {
               color: accepting
                 ? "rgba(148,163,184,0.7)" : "white",
               cursor: accepting ? "not-allowed" : "pointer",
-              ...orbitron, fontSize: "11px",
+              ...fontDisplay, fontSize: "11px",
               letterSpacing: "0.15em" }}>
             {accepting
               ? "PROCESANDO..."

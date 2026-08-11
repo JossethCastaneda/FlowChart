@@ -7,14 +7,17 @@
 ### Flujo OBLIGATORIO — SIN EXCEPCIONES:
 
 1. **Trabaja en una rama de feature/fix** para desarrollar y validar localmente.
-2. **Antes de subir**, corre `npx tsc --noEmit` para asegurar que no hay errores de TypeScript.
-3. **Sube los cambios directo a `main`** usando:
+2. **Antes de solicitar integración**, ejecuta:
+   ```bash
+   npx tsc --noEmit
    ```
-   git push origin <tu-rama>:main
-   ```
-   Esto dispara el deploy en Vercel automáticamente.
-4. **NO crees Pull Requests** a menos que el usuario lo pida explícitamente. Los PRs en ramas distintas a `main` NO generan deploy en Vercel y confunden al usuario.
-5. **NO uses** `git push origin main` desde la rama de feature (puede fallar si no estás en main). Usa siempre `git push origin <rama-actual>:main`.
+   y reporta el resultado.
+3. No hagas commits automáticamente.
+4. No hagas push automáticamente. Está prohibido enviar cambios al repositorio remoto sin autorización explícita.
+5. No cambies de rama automáticamente.
+6. No publiques cambios directamente en main.
+7. La integración debe realizarse mediante Pull Request o revisión humana explícita.
+8. Antes de cualquier commit, push, merge o despliegue, informa el diff y espera aprobación.
 
 ### Regla de oro:
-> **Si no está en `main` → no está en producción. Si no está en producción → para el usuario no existe.**
+> **Ningún agente puede integrar cambios en main ni desplegar sin autorización humana explícita.**

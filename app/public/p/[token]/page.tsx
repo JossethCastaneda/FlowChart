@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { Loader2, Calendar, Target, CheckCircle2, TrendingUp, Sparkles, Building2, LayoutDashboard } from "lucide-react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Orbi } from "@/components/ui/Orbi";
+import { Loader } from "@/components/ui/Loader";
 
 interface PublicProject {
   id: string;
@@ -54,7 +54,7 @@ export default function PublicProjectPortal() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center gap-6">
-        <Orbi state="working" scale={0.8} />
+        <Loader size={24} />
         <p style={{ color: "var(--cyan)", fontFamily: "var(--font-display)", letterSpacing: "0.1em", fontSize: "14px" }}>CARGANDO PORTAL...</p>
       </div>
     );

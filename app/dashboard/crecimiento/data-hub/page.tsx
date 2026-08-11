@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { useState, useEffect } from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { Upload, FileSpreadsheet, CheckCircle, AlertTriangle } from "lucide-react";
-import { Orbi } from "@/components/ui/Orbi";
+import { Loader } from "@/components/ui/Loader";
 
 export default function DataHub() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
@@ -120,7 +120,7 @@ export default function DataHub() {
 
         <div>
           <div className="flex items-center gap-4 mb-4">
-            <Orbi state={result?.rowCount != null ? "thinking" : "idle"} />
+            <Loader size={32} />
             <p className="text-sm text-muted-foreground font-medium">
               {result?.error
                 ? result.error
@@ -151,3 +151,5 @@ export default function DataHub() {
     </div>
   );
 }
+
+

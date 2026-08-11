@@ -1,6 +1,6 @@
 /* 
   Layout para vistas públicas de reportes (sin sidebar, sin auth).
-  Aplica el tema 1A Comando y la fuente Orbitron.
+  Aplica el tema 1A Comando y la fuente de interfaz del sistema visual.
 */
 
 import React from "react";

@@ -51,7 +51,7 @@ import { usePathname } from "next/navigation";
 
 NOTA:
 - El grupo "sistema" (Integraciones, Configuración) va al PIE del sidebar,
-  separado por un margin-top:auto y en gris (color: var(--text-muted)).
+  separado por un margin-top:auto y en gris (color: var(--fc-text-muted)).
 - Los submódulos (m.tabs) NO se renderizan en el sidebar: son pestañas
   dentro de la página del módulo. Ver <ModuleTabs/> + breadcrumb.
 ───────────────────────────────────────────────────────────────── */

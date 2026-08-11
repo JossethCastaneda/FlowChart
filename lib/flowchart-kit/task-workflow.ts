@@ -53,7 +53,7 @@ export const TASK_STATES: Record<TaskState, StateDef> = {
     next: [], // terminal
   },
   cancelada: {
-    label: "Cancelada", color: "var(--text-muted)", icon: "x", actor: "lider",
+    label: "Cancelada", color: "var(--fc-text-muted)", icon: "x", actor: "lider",
     can: ["reabrir"],
     next: ["solicitada"],
   },
@@ -98,7 +98,7 @@ export function areaHealth(slaPct: number): AreaHealth {
   return "rezagada";
 }
 
-/** ¿Persona saturada? Para sugerencias de Orbi (reasignar / repriorizar). */
+/** ¿Persona saturada? Para sugerencias del asistente (reasignar / repriorizar). */
 export function isOverloaded(openTasks: number, teamAvg: number): boolean {
   return openTasks >= 7 || openTasks > teamAvg * 1.8;
 }

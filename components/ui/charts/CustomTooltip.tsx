@@ -42,9 +42,9 @@ export function CustomTooltip({
   return (
     <div
       style={{
-        background: "var(--surface)",
-        border: "1px solid var(--border-strong)",
-        borderLeft: "3px solid var(--cyan)",
+        background: "var(--fc-surface)",
+        border: "1px solid var(--fc-border-strong)",
+        borderLeft: "3px solid var(--fc-accent)",
         borderRadius: 8,
         padding: "10px 14px",
         boxShadow: "0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.3)",
@@ -61,7 +61,7 @@ export function CustomTooltip({
             fontWeight: 600,
             letterSpacing: "0.18em",
             textTransform: "uppercase",
-            color: "var(--text-muted)",
+            color: "var(--fc-text-muted)",
             marginBottom: 8,
           }}
         >
@@ -71,7 +71,7 @@ export function CustomTooltip({
 
       {/* Rows */}
       {payload.map((entry, i) => {
-        const color = entry.color || entry.fill || entry.stroke || "var(--cyan)";
+        const color = entry.color || entry.fill || entry.stroke || "var(--fc-accent)";
         const rawValue = entry.value;
         // Support legacy formatter that returns [valueStr, labelStr] array
         const fmtResult = formatter ? formatter(entry.name, rawValue) : null;
@@ -106,7 +106,7 @@ export function CustomTooltip({
               <span
                 style={{
                   fontSize: 11,
-                  color: "var(--text-secondary)",
+                  color: "var(--fc-text-secondary)",
                   fontWeight: 500,
                   whiteSpace: "nowrap",
                 }}
@@ -121,13 +121,13 @@ export function CustomTooltip({
                 fontFamily: "var(--font-mono)",
                 fontSize: 12,
                 fontWeight: 500,
-                color: "var(--foreground)",
+              color: "var(--fc-text)",
                 letterSpacing: "0.02em",
               }}
             >
               {displayValue}
               {entry.unit && (
-                <span style={{ color: "var(--text-muted)", marginLeft: 2 }}>{entry.unit}</span>
+                <span style={{ color: "var(--fc-text-muted)", marginLeft: 2 }}>{entry.unit}</span>
               )}
             </span>
           </div>

@@ -34,6 +34,7 @@ created: 2026-08-11
 - [[audit-fullstack-2026-06|Auditoría fullstack (junio 2026)]]
 - [[audit-channels-google-meta-2026-06|Auditoría de canales (junio 2026)]]
 - [[design-system|Design System — FlowChart Ink]]
+- [[design-system/FlowChart Sistema de Marca.html|Sistema Visual de Marca (HTML)]]
 - [[pendientes-humanos|Pendientes que requieren intervención humana]]
 
 ### ⚙️ Operaciones

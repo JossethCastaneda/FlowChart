@@ -1,11 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { Loader2 } from "lucide-react";
-import { Orbi } from "@/components/ui/Orbi";
+import { Loader } from "@/components/ui/Loader";
 
 function LoginPopup() {
   const searchParams = useSearchParams();
@@ -24,7 +24,7 @@ function LoginPopup() {
       minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
       background: "var(--background)", color: "var(--foreground)", fontFamily: "var(--font-sans)", flexDirection: "column", gap: 12,
     }}>
-      <Orbi state="working" scale={0.7} />
+      <Loader size={32} />
       <p style={{ color: "var(--cyan)", fontFamily: "var(--font-display)", letterSpacing: "0.1em", fontSize: "14px" }}>CONECTANDO...</p>
     </div>
   );
@@ -33,3 +33,5 @@ function LoginPopup() {
 export default function LoginPopupPage() {
   return <Suspense><LoginPopup /></Suspense>;
 }
+
+

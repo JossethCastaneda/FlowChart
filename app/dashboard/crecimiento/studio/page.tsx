@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { useState, useEffect } from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { BrainCircuit, Play, BarChart, CheckCircle } from "lucide-react";
-import { Orbi } from "@/components/ui/Orbi";
+import { Loader } from "@/components/ui/Loader";
 
 export default function PredictiveStudio() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
@@ -116,7 +116,7 @@ export default function PredictiveStudio() {
 
         <div>
           <div className="flex items-center gap-4 mb-4">
-            <Orbi state={training ? "thinking" : result ? "idle" : "idle"} />
+            <Loader size={32} />
             <p className="text-sm text-muted-foreground font-medium">
               {training ? "Entrenando modelo... Probando Regresión Logística y Scorecard WOE." : result ? (result.note ?? "Entrenamiento completado.") : "Selecciona un dataset para comenzar el entrenamiento predictivo."}
             </p>
@@ -159,3 +159,5 @@ export default function PredictiveStudio() {
     </div>
   );
 }
+
+

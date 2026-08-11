@@ -267,7 +267,7 @@ export const FlowChartIcon: React.FC<IconProps> = ({ size = 20, style, ...props 
 // ─── Map of all app icons for easy dynamic loading ────────────────────────────
 export const APP_ICONS: Record<string, React.FC<IconProps>> = {
   meta: MetaIcon,
-  facebook: MetaIcon,
+  facebook: FacebookIcon,
   google: GoogleAdsIcon,
   google_ads: GoogleAdsIcon,
   tiktok: TikTokAdsIcon,

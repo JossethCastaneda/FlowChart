@@ -38,7 +38,7 @@ function LegendDot({ color, label }: { color: string; label: string }) {
           boxShadow: `0 0 5px ${color}60`,
         }}
       />
-      <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>{label}</span>
+      <span style={{ fontSize: 11, color: "var(--fc-text-muted)", fontWeight: 500 }}>{label}</span>
     </div>
   );
 }
@@ -98,7 +98,7 @@ export function ChartPanel({
               height={28}
               viewBox="0 0 24 24"
               fill="none"
-              stroke="var(--text-muted)"
+              stroke="var(--fc-text-muted)"
               strokeWidth={1.5}
             >
               <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -107,7 +107,7 @@ export function ChartPanel({
             <p
               style={{
                 fontSize: 12,
-                color: "var(--text-muted)",
+                color: "var(--fc-text-muted)",
                 textAlign: "center",
               }}
             >

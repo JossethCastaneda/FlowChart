@@ -13,10 +13,10 @@ interface HoloIconProps extends Omit<LucideProps, "ref"> {
 
 /* Acento por variante — tokens del tema (sin glow ni gradientes) */
 const ACCENT: Record<HoloVariant, string> = {
-  cyan: "var(--cyan)",
-  emerald: "var(--emerald)",
-  pink: "var(--mod-metricas)",
-  gold: "var(--mod-escucha)",
+  cyan: "var(--fc-accent)",
+  emerald: "var(--fc-success)",
+  pink: "var(--fc-module-metricas)",
+  gold: "var(--fc-module-escucha)",
 };
 
 /**
@@ -31,7 +31,7 @@ export function HoloIcon({ icon: Icon, variant = "cyan", isActive = false, class
       strokeWidth={1.75}
       className={`transition-colors duration-200 ${className}`}
       style={{
-        color: isActive ? ACCENT[variant] || ACCENT.cyan : "rgba(148, 163, 184, 0.65)",
+        color: isActive ? ACCENT[variant] || ACCENT.cyan : "var(--fc-text-disabled)",
         ...style,
       }}
       {...props}
