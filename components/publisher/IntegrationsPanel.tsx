@@ -2,8 +2,9 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Loader2, RefreshCw, Bell, CheckCircle2, Circle, AlertTriangle, ChevronRight, X, Plus } from "lucide-react";
+import { FacebookIcon, InstagramIcon } from "@/components/ui/BrandIcons";
 import { WhatsAppConnectCard } from "@/components/settings/WhatsAppConnectCard";
+import { Loader2, RefreshCw, Bell, CheckCircle2, Circle, AlertTriangle, ChevronRight, X, Plus } from "lucide-react";
 
 interface InstagramAccountStatus {
   id: string;
@@ -45,9 +46,7 @@ const META_MODULES: MetaModuleDef[] = [
     key: "publisher_facebook",
     label: "Facebook Pages",
     icon: () => (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="#1877F2">
-        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-      </svg>
+      <FacebookIcon width={16} height={16} />
     ),
     color: "#1877F2",
     permissions: ["pages_manage_posts", "pages_read_engagement", "pages_manage_engagement"],
@@ -58,18 +57,7 @@ const META_MODULES: MetaModuleDef[] = [
     key: "publisher_instagram",
     label: "Instagram Business",
     icon: () => (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <defs>
-          <linearGradient id="ig-g" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#833ab4" />
-            <stop offset="50%" stopColor="#fd1d1d" />
-            <stop offset="100%" stopColor="var(--fc-warning)" />
-          </linearGradient>
-        </defs>
-        <rect x="2" y="2" width="20" height="20" rx="5" stroke="url(#ig-g)" fill="none" />
-        <circle cx="12" cy="12" r="4" stroke="url(#ig-g)" />
-        <circle cx="17.5" cy="6.5" r="0.5" fill="var(--fc-warning)" />
-      </svg>
+      <InstagramIcon width={16} height={16} />
     ),
     color: "#E4405F",
     permissions: ["instagram_business_basic", "instagram_business_content_publish", "instagram_business_manage_messages", "instagram_business_manage_comments"],
