@@ -57,7 +57,7 @@ export function InlineEditor({ value, type = "text", prefix = "", onSave }: Inli
                 position: "absolute",
                 left: "6px",
                 fontSize: "11px",
-                color: "var(--text-muted)",
+                color: "var(--fc-text-muted)",
               }}
             >
               {prefix}
@@ -75,9 +75,9 @@ export function InlineEditor({ value, type = "text", prefix = "", onSave }: Inli
             disabled={loading}
             style={{
               background: "var(--surface-hover)",
-              border: "1px solid var(--cyan)",
+              border: "1px solid var(--fc-accent)",
               borderRadius: "4px",
-              color: "var(--foreground)",
+              color: "var(--fc-text)",
               fontSize: "11px",
               fontWeight: 500,
               padding: "4px 6px",
@@ -91,10 +91,10 @@ export function InlineEditor({ value, type = "text", prefix = "", onSave }: Inli
           onClick={handleSave}
           disabled={loading}
           style={{
-            background: "var(--surface)",
+            background: "var(--fc-surface)",
             border: "1px solid rgba(52,183,124,0.3)",
             borderRadius: "4px",
-            color: "var(--emerald)",
+            color: "var(--fc-success)",
             padding: "4px",
             cursor: "pointer",
             display: "flex",
@@ -107,10 +107,10 @@ export function InlineEditor({ value, type = "text", prefix = "", onSave }: Inli
           onClick={handleCancel}
           disabled={loading}
           style={{
-            background: "var(--red-dim)",
+            background: "var(--fc-danger-wash)",
             border: "1px solid rgba(229,72,77,0.3)",
             borderRadius: "4px",
-            color: "var(--red)",
+            color: "var(--fc-danger)",
             padding: "4px",
             cursor: "pointer",
             display: "flex",
@@ -145,7 +145,7 @@ export function InlineEditor({ value, type = "text", prefix = "", onSave }: Inli
         {type === "number" ? Number(value).toLocaleString() : value}
       </span>
       <Edit3
-        className="w-3 h-3 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity"
+        className="w-3 h-3 text-[var(--fc-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity"
         style={{ marginTop: "-1px" }}
       />
     </div>

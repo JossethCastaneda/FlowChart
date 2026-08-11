@@ -30,7 +30,7 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
   const isActive   = p.status === "EN VUELO" || p.status === "Activo";
   const isOrbita   = p.status === "EN ÓRBITA";
   const isComplete = p.status === "Completado";
-  const accentColor = isActive ? "var(--emerald)" : isOrbita ? "var(--amber)" : isComplete ? "var(--cyan)" : "rgba(148,163,184,0.4)";
+  const accentColor = isActive ? "var(--fc-success)" : isOrbita ? "var(--fc-warning)" : isComplete ? "var(--fc-accent)" : "rgba(148,163,184,0.4)";
   const statusDotClass = isActive ? "status-dot-emerald" : isOrbita ? "status-dot-amber" : isComplete ? "status-dot-cyan" : "status-dot-muted";
 
   /* ── Budget ── */
@@ -91,14 +91,14 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
                 />
               )}
               <h3 style={{
-                fontSize: 14, fontWeight: 700, color: "var(--foreground)",
+                fontSize: 14, fontWeight: 700, color: "var(--fc-text)",
                 lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                 letterSpacing: "-0.01em",
               }}>
                 {p.alias || "Sin nombre"}
               </h3>
             </div>
-            <p style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <p style={{ fontSize: 11, color: "var(--fc-text-muted)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {[p.client, p.vertical].filter(Boolean).join(" · ") || "Sin cliente"}
             </p>
           </div>
@@ -119,7 +119,7 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
         {/* Platform chips */}
         <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap", marginBottom: 0 }}>
           {p.channels.length === 0 ? (
-            <span style={{ fontSize: 10, color: "var(--text-muted)", fontStyle: "italic" }}>Sin plataformas</span>
+            <span style={{ fontSize: 10, color: "var(--fc-text-muted)", fontStyle: "italic" }}>Sin plataformas</span>
           ) : p.channels.slice(0, 3).map((c, i) => {
             const pl = PLATFORMS.find(x => x.id === c.platformId);
             const isMeta = c.platformId === "meta" || c.platformId === "facebook";
@@ -132,13 +132,13 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
                 fontSize: 10, padding: "2px 8px", fontWeight: 600, letterSpacing: "0.03em",
                 borderRadius: 5, 
                 border: `1px solid ${isExpired ? "rgba(224,168,60,0.3)" : (pl?.color ? pl.color + "33" : "var(--hairline)")}`,
-                color: isExpired ? "var(--amber)" : (pl?.color || "var(--text-secondary)"),
+                color: isExpired ? "var(--fc-warning)" : (pl?.color || "var(--fc-text-secondary)"),
                 background: isExpired ? "rgba(224,168,60,0.06)" : (pl?.color ? pl.color + "0d" : "transparent"),
               }} title={isExpired ? "El token de acceso ha expirado o ha sido invalidado por Facebook. Reconecta la cuenta en Integraciones." : undefined}>
                 {IconComponent ? (
-                  <IconComponent size={10} style={{ flexShrink: 0, color: isExpired ? "var(--amber)" : "currentColor" }} />
+                  <IconComponent size={10} style={{ flexShrink: 0, color: isExpired ? "var(--fc-warning)" : "currentColor" }} />
                 ) : (
-                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: isExpired ? "var(--amber)" : (pl?.color || "currentColor"), flexShrink: 0 }} />
+                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: isExpired ? "var(--fc-warning)" : (pl?.color || "currentColor"), flexShrink: 0 }} />
                 )}
                 {c.platformName}
                 {isExpired && <span style={{ fontSize: 9, marginLeft: 2 }} role="img" aria-label="warning"></span>}
@@ -147,7 +147,7 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
           })}
 
           {p.channels.length > 3 && (
-            <span style={{ fontSize: 9, color: "var(--text-muted)", padding: "2px 6px", border: "1px solid var(--hairline)", borderRadius: 4 }}>
+            <span style={{ fontSize: 9, color: "var(--fc-text-muted)", padding: "2px 6px", border: "1px solid var(--hairline)", borderRadius: 4 }}>
               +{p.channels.length - 3}
             </span>
           )}
@@ -182,12 +182,12 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
         {totalBudget > 0 && (
           <div style={{ marginBottom: 10 }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-              <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+              <span style={{ fontSize: 9, color: "var(--fc-text-muted)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}>
                 Presupuesto
               </span>
               <span style={{
                 fontFamily: "var(--font-mono)",
-                fontSize: 10, color: isOver ? "var(--amber)" : "var(--text-secondary)",
+                fontSize: 10, color: isOver ? "var(--fc-warning)" : "var(--fc-text-secondary)",
               }}>
                 {spendPct != null ? `${spendPct.toFixed(0)}%` : `${fmtCurrency(totalBudget)}`}
               </span>
@@ -205,8 +205,8 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
           {dateStr ? (
             <div style={{ display: "flex", alignItems: "center", gap: 5, overflow: "hidden" }}>
-              <Calendar style={{ width: 11, height: 11, color: "var(--text-muted)", flexShrink: 0 }} />
-              <span style={{ fontSize: 10, color: "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <Calendar style={{ width: 11, height: 11, color: "var(--fc-text-muted)", flexShrink: 0 }} />
+              <span style={{ fontSize: 10, color: "var(--fc-text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {dateStr}
               </span>
             </div>
@@ -226,8 +226,8 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
                 setMenuOpen(p.id);
               }}
               style={{
-                background: "var(--surface)", border: "1px solid var(--hairline)",
-                cursor: "pointer", color: "var(--text-muted)", padding: "5px 7px",
+                background: "var(--fc-surface)", border: "1px solid var(--hairline)",
+                cursor: "pointer", color: "var(--fc-text-muted)", padding: "5px 7px",
                 borderRadius: 7, display: "flex", alignItems: "center",
               }}
             >

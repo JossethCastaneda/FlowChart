@@ -7,12 +7,26 @@ export interface Member {
   activityStatus?: string 
 }
 
-export interface Attachment { 
-  name: string; 
-  url: string; 
-  type: string; 
-  size: number; 
-  uploadedAt: string 
+export interface ProjectLight {
+  id: string;
+  name: string;
+  alias?: string | null;
+  client?: string | null;
+}
+
+export interface Attachment {
+  /** Ausente en adjuntos antiguos creados antes de la subida de evidencias. */
+  id?: string;
+  name: string;
+  url: string;
+  /** Fuerza la descarga del archivo ORIGINAL, sin recomprimir. */
+  downloadUrl?: string;
+  type: string;
+  mimeType?: string;
+  size: number;
+  uploadedAt: string;
+  uploadedById?: string;
+  uploadedByName?: string;
 }
 
 export interface Task {
@@ -28,6 +42,7 @@ export interface Task {
   estimate?: number | null;
   tags: string[];
   order: number; 
+  projectId?: string | null;
   parentId: string | null; 
   children: Task[]; 
   createdAt: string;
@@ -37,15 +52,26 @@ export interface Task {
   blockedBy?: { id: string }[];
   blocks?: { id: string }[];
   // Cross-area request (Capa 3)
-  targetAreaId?: string | null; 
-  requestType?: string | null; 
+  targetAreaId?: string | null;
+  requestType?: string | null;
   requesterId?: string | null;
+  // Aprobación por líder
+  approvalState?: "pending" | "approved" | "rejected" | null;
+  submittedAt?: string | null;
+  submittedById?: string | null;
+  reviewedAt?: string | null;
+  reviewedById?: string | null;
+  rejectionNote?: string | null;
+  reworkCount?: number;
+  // Estancamiento
+  lastProgressAt?: string | null;
+  holderId?: string | null;
 }
 
 export const PRIO_CFG: Record<string, { label: string; bg: string; c: string }> = {
-  P0: { label: "Urgente", bg: "var(--red-dim)", c: "var(--red)" },
-  P1: { label: "Alta", bg: "var(--cyan-dim)", c: "var(--cyan)" },
-  P2: { label: "Media", bg: "rgba(139,141,242,0.15)", c: "var(--purple)" },
-  P3: { label: "Baja", bg: "rgba(148,163,184,0.1)", c: "var(--text-secondary)" },
+  P0: { label: "Urgente", bg: "var(--fc-danger-wash)", c: "var(--fc-danger)" },
+  P1: { label: "Alta", bg: "var(--fc-accent-wash)", c: "var(--fc-accent)" },
+  P2: { label: "Media", bg: "rgba(139,141,242,0.15)", c: "var(--fc-module-aria)" },
+  P3: { label: "Baja", bg: "rgba(148,163,184,0.1)", c: "var(--fc-text-secondary)" },
 };
 export const PRIORITIES = Object.keys(PRIO_CFG);

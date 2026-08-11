@@ -94,9 +94,9 @@ export function UserReliabilityModule({
       <div style={{
         display: "flex", height: 256, alignItems: "center", justifyContent: "center",
         background: "rgba(255,255,255,0.02)", backdropFilter: "blur(12px)",
-        borderRadius: 16, border: "1px solid var(--border)",
+        borderRadius: 16, border: "1px solid var(--fc-border)",
       }}>
-        <Loader2 style={{ width: 32, height: 32, animation: "spin 1s linear infinite", color: "var(--cyan)" }} />
+        <Loader2 style={{ width: 32, height: 32, animation: "spin 1s linear infinite", color: "var(--fc-accent)" }} />
       </div>
     );
   }
@@ -126,37 +126,37 @@ export function UserReliabilityModule({
     const m = d.metrics || d;
     return (
       <div style={{
-        background: "var(--surface)", border: "1px solid var(--border)",
+        background: "var(--fc-surface)", border: "1px solid var(--fc-border)",
         padding: 12, borderRadius: 10, fontSize: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
         maxWidth: 240, zIndex: 9999,
       }}>
-        <p style={{ fontWeight: 700, color: "var(--foreground)", marginBottom: 6 }}>{label}</p>
+        <p style={{ fontWeight: 700, color: "var(--fc-text)", marginBottom: 6 }}>{label}</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          <span style={{ color: "var(--cyan)" }}>Score: {m.reliabilityScore}</span>
+          <span style={{ color: "var(--fc-accent)" }}>Score: {m.reliabilityScore}</span>
           <span style={{ color: "#10b981" }}>CVR: {m.cvr}%</span>
-          <span style={{ color: "var(--text-secondary)" }}>Link Clicks: {fmtNum(m.linkClicks > 0 ? m.linkClicks : m.totalClicks)}</span>
-          <span style={{ color: "var(--text-secondary)" }}>Clics Totales: {fmtNum(m.totalClicks)}</span>
-          <span style={{ color: "var(--text-secondary)" }}>{config.goalLabel}: {fmtNum(m.goalResults)}</span>
-          <span style={{ color: "var(--text-secondary)" }}>CPA: {fmtMXN(m.cpa)}</span>
-          <span style={{ color: "var(--amber)" }}>Intención: {m.intentionRate}%</span>
+          <span style={{ color: "var(--fc-text-secondary)" }}>Link Clicks: {fmtNum(m.linkClicks > 0 ? m.linkClicks : m.totalClicks)}</span>
+          <span style={{ color: "var(--fc-text-secondary)" }}>Clics Totales: {fmtNum(m.totalClicks)}</span>
+          <span style={{ color: "var(--fc-text-secondary)" }}>{config.goalLabel}: {fmtNum(m.goalResults)}</span>
+          <span style={{ color: "var(--fc-text-secondary)" }}>CPA: {fmtMXN(m.cpa)}</span>
+          <span style={{ color: "var(--fc-warning)" }}>Intención: {m.intentionRate}%</span>
         </div>
       </div>
     );
   };
 
   const panelStyle: React.CSSProperties = {
-    background: "var(--surface)", border: "1px solid var(--border)",
+    background: "var(--fc-surface)", border: "1px solid var(--fc-border)",
     borderRadius: 16, padding: 20, position: "relative", overflow: "hidden",
   };
 
   const headStyle: React.CSSProperties = {
-    fontSize: 13, fontWeight: 700, color: "var(--foreground)",
+    fontSize: 13, fontWeight: 700, color: "var(--fc-text)",
     display: "flex", alignItems: "center", gap: 8, marginBottom: 16,
   };
 
   const labelStyle: React.CSSProperties = {
     fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const,
-    color: "var(--text-muted)",
+    color: "var(--fc-text-muted)",
   };
 
   const COLORS_CHART = ["#6366f1", "#8b5cf6", "#d946ef", "#ec4899", "#f43f5e", "#f97316", "#eab308", "#22c55e"];
@@ -176,11 +176,11 @@ export function UserReliabilityModule({
               <ShieldCheck style={{ width: 24, height: 24, color: "#818cf8" }} />
             </div>
             <div>
-              <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--foreground)", fontFamily: "var(--font-display)", letterSpacing: "0.03em" }}>
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--fc-text)", fontFamily: "var(--font-display)", letterSpacing: "0.03em" }}>
                 Confiabilidad del Usuario
               </h2>
-              <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
-                Embudo: <strong style={{ color: "var(--cyan)" }}>Clic en Anuncio</strong>
+              <p style={{ fontSize: 12, color: "var(--fc-text-muted)", marginTop: 2 }}>
+                Embudo: <strong style={{ color: "var(--fc-accent)" }}>Clic en Anuncio</strong>
                 <ArrowRight style={{ width: 12, height: 12, display: "inline", margin: "0 4px", verticalAlign: "middle" }} />
                 <strong style={{ color: "#10b981" }}>{config.goalLabel}</strong>
               </p>
@@ -201,12 +201,12 @@ export function UserReliabilityModule({
         {/* Funnel Numbers Row */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
           {[
-            { label: "Impresiones", value: fmtNum(summary.impressions), icon: <Globe style={{ width: 14, height: 14 }} />, color: "var(--text-muted)" },
-            { label: "Clics Totales", value: fmtNum(summary.totalClicks), icon: <Crosshair style={{ width: 14, height: 14 }} />, color: "var(--cyan)" },
+            { label: "Impresiones", value: fmtNum(summary.impressions), icon: <Globe style={{ width: 14, height: 14 }} />, color: "var(--fc-text-muted)" },
+            { label: "Clics Totales", value: fmtNum(summary.totalClicks), icon: <Crosshair style={{ width: 14, height: 14 }} />, color: "var(--fc-accent)" },
             { label: "Clics en Enlace", value: summary.linkClicks > 0 ? fmtNum(summary.linkClicks) : "—", icon: <Crosshair style={{ width: 14, height: 14 }} />, color: "#3b82f6" },
             { label: config.goalLabel, value: fmtNum(summary.goalResults), icon: <ShieldCheck style={{ width: 14, height: 14 }} />, color: "#10b981" },
             { label: "Clics Desperdiciados", value: `${pct(summary.wastedClicksPct)}`, icon: <TrendingDown style={{ width: 14, height: 14 }} />, color: "#ef4444" },
-            { label: "CPA Global", value: fmtMXN(summary.globalCPA), icon: <TrendingDown style={{ width: 14, height: 14 }} />, color: "var(--amber)" },
+            { label: "CPA Global", value: fmtMXN(summary.globalCPA), icon: <TrendingDown style={{ width: 14, height: 14 }} />, color: "var(--fc-warning)" },
           ].map((item, i) => (
             <div key={i} style={{
               background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "12px 14px",
@@ -225,7 +225,7 @@ export function UserReliabilityModule({
 
         {/* Funnel progress bar */}
         <div style={{ marginTop: 16 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "var(--text-muted)", fontWeight: 600, marginBottom: 4, letterSpacing: "0.1em" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "var(--fc-text-muted)", fontWeight: 600, marginBottom: 4, letterSpacing: "0.1em" }}>
             <span>EMBUDO DE CONFIANZA</span>
             <span>CVR Global: {summary.globalCVR}%</span>
           </div>
@@ -275,7 +275,7 @@ export function UserReliabilityModule({
             </div>
             <div style={{ overflow: "hidden" }}>
               <p style={labelStyle}>{card.title}</p>
-              <p style={{ fontSize: 16, fontWeight: 800, color: "var(--foreground)", textTransform: "capitalize", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <p style={{ fontSize: 16, fontWeight: 800, color: "var(--fc-text)", textTransform: "capitalize", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {card.value}
               </p>
               <p style={{ fontSize: 11, color: "#10b981", fontWeight: 600, marginTop: 2 }}>{card.sub}</p>
@@ -306,7 +306,7 @@ export function UserReliabilityModule({
                 <XAxis type="number" hide />
                 <YAxis
                   dataKey="name" type="category" width={90}
-                  tick={{ fill: "var(--text-muted)", fontSize: 10 }}
+                  tick={{ fill: "var(--fc-text-muted)", fontSize: 10 }}
                   axisLine={false} tickLine={false}
                 />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
@@ -348,11 +348,11 @@ export function UserReliabilityModule({
                     const m = props.payload?.metrics;
                     return [`Score: ${value} · CVR: ${m?.cvr || 0}%`, name];
                   }}
-                  contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 11 }}
+                  contentStyle={{ background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 8, fontSize: 11 }}
                 />
                 <Legend
                   verticalAlign="bottom" height={36}
-                  wrapperStyle={{ fontSize: 11, color: "var(--text-muted)" }}
+                  wrapperStyle={{ fontSize: 11, color: "var(--fc-text-muted)" }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -365,12 +365,12 @@ export function UserReliabilityModule({
         <div style={{
           ...panelStyle,
           borderColor: "rgba(239,68,68,0.2)",
-          background: "linear-gradient(135deg, rgba(239,68,68,0.04), var(--surface))",
+          background: "linear-gradient(135deg, rgba(239,68,68,0.04), var(--fc-surface))",
         }}>
           <div style={headStyle}>
             <AlertTriangle style={{ width: 15, height: 15, color: "#ef4444" }} />
             <span>Zonas de Fuga</span>
-            <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 500, marginLeft: 4 }}>
+            <span style={{ fontSize: 10, color: "var(--fc-text-muted)", fontWeight: 500, marginLeft: 4 }}>
               — Segmentos con alto clic pero baja conversión
             </span>
           </div>
@@ -382,12 +382,12 @@ export function UserReliabilityModule({
                 display: "flex", justifyContent: "space-between", alignItems: "center",
               }}>
                 <div>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)" }}>{zone.segment}</p>
-                  <p style={{ fontSize: 10, color: "var(--text-muted)" }}>{zone.type}</p>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: "var(--fc-text)" }}>{zone.segment}</p>
+                  <p style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>{zone.type}</p>
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <p style={{ fontSize: 13, fontWeight: 800, color: "#ef4444" }}>{zone.cvr}% CVR</p>
-                  <p style={{ fontSize: 10, color: "var(--text-muted)" }}>
+                  <p style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>
                     {fmtNum(zone.linkClicks)} clics → {fmtNum(zone.goalResults)} resultados
                   </p>
                 </div>
@@ -403,7 +403,7 @@ export function UserReliabilityModule({
           <MapPin style={{ width: 15, height: 15, color: "#8b5cf6" }} />
           Ranking Regional
                     {data.regions.some((r: any) => r.metrics.isEstimated) && (
-            <span style={{ fontSize: 10, color: "var(--amber)", fontWeight: 500, marginLeft: 4 }}>
+            <span style={{ fontSize: 10, color: "var(--fc-warning)", fontWeight: 500, marginLeft: 4 }}>
               — *Resultados estimados heurísticamente por privacidad de Meta
             </span>
           )}
@@ -411,9 +411,9 @@ export function UserReliabilityModule({
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", textAlign: "left", borderCollapse: "collapse", fontSize: 12 }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid var(--border)" }}>
+              <tr style={{ borderBottom: "1px solid var(--fc-border)" }}>
                 {["#", "Región", "Link Clicks", config.goalLabel, "CVR", "Intención", "CPA", "Score", "Confiabilidad"].map((h) => (
-                  <th key={h} style={{ padding: "10px 12px", color: "var(--text-muted)", fontWeight: 600, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                  <th key={h} style={{ padding: "10px 12px", color: "var(--fc-text-muted)", fontWeight: 600, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase" }}>
                     {h}
                   </th>
                 ))}
@@ -427,20 +427,20 @@ export function UserReliabilityModule({
                     onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
                     onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                   >
-                    <td style={{ padding: "10px 12px", fontWeight: 700, color: i < 3 ? "#6366f1" : "var(--text-muted)" }}>
+                    <td style={{ padding: "10px 12px", fontWeight: 700, color: i < 3 ? "#6366f1" : "var(--fc-text-muted)" }}>
                       {i + 1}
                     </td>
-                    <td style={{ padding: "10px 12px", fontWeight: 600, color: "var(--foreground)" }}>{r.region}</td>
-                    <td style={{ padding: "10px 12px", color: "var(--text-secondary)" }}>{fmtNum(r.metrics.linkClicks > 0 ? r.metrics.linkClicks : r.metrics.totalClicks)}{r.metrics.linkClicks === 0 && <span title="Sin datos de link clicks; mostrando clics totales" style={{ color: "var(--text-muted)", fontSize: 9, marginLeft: 3 }}>*</span>}</td>
+                    <td style={{ padding: "10px 12px", fontWeight: 600, color: "var(--fc-text)" }}>{r.region}</td>
+                    <td style={{ padding: "10px 12px", color: "var(--fc-text-secondary)" }}>{fmtNum(r.metrics.linkClicks > 0 ? r.metrics.linkClicks : r.metrics.totalClicks)}{r.metrics.linkClicks === 0 && <span title="Sin datos de link clicks; mostrando clics totales" style={{ color: "var(--fc-text-muted)", fontSize: 9, marginLeft: 3 }}>*</span>}</td>
                     <td style={{ padding: "10px 12px", color: "#10b981", fontWeight: 600 }}>
-                      {r.metrics.isEstimated && <span style={{ color: "var(--amber)", marginRight: 2 }} title="Estimado">*</span>}
+                      {r.metrics.isEstimated && <span style={{ color: "var(--fc-warning)", marginRight: 2 }} title="Estimado">*</span>}
                       {fmtNum(r.metrics.goalResults)}
                     </td>
-                    <td style={{ padding: "10px 12px", color: r.metrics.cvr >= 15 ? "#10b981" : r.metrics.cvr >= 5 ? "var(--amber)" : "#ef4444", fontWeight: 700 }}>
+                    <td style={{ padding: "10px 12px", color: r.metrics.cvr >= 15 ? "#10b981" : r.metrics.cvr >= 5 ? "var(--fc-warning)" : "#ef4444", fontWeight: 700 }}>
                       {r.metrics.cvr}%
                     </td>
-                    <td style={{ padding: "10px 12px", color: "var(--text-secondary)" }}>{r.metrics.intentionRate}%</td>
-                    <td style={{ padding: "10px 12px", color: "var(--text-secondary)" }}>{fmtMXN(r.metrics.cpa)}</td>
+                    <td style={{ padding: "10px 12px", color: "var(--fc-text-secondary)" }}>{r.metrics.intentionRate}%</td>
+                    <td style={{ padding: "10px 12px", color: "var(--fc-text-secondary)" }}>{fmtMXN(r.metrics.cpa)}</td>
                     <td style={{ padding: "10px 12px", fontWeight: 800, color: c }}>{r.metrics.reliabilityScore}</td>
                     <td style={{ padding: "10px 12px" }}>
                       <span style={{
@@ -463,16 +463,16 @@ export function UserReliabilityModule({
         <div style={headStyle}>
           <Layers style={{ width: 15, height: 15, color: "#f59e0b" }} />
           Ubicaciones (Placements)
-          <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 500, marginLeft: 4 }}>
+          <span style={{ fontSize: 10, color: "var(--fc-text-muted)", fontWeight: 500, marginLeft: 4 }}>
             — Meta no permite desglose de conversiones por ubicación
           </span>
         </div>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", textAlign: "left", borderCollapse: "collapse", fontSize: 12 }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid var(--border)" }}>
+              <tr style={{ borderBottom: "1px solid var(--fc-border)" }}>
                 {["Plataforma", "Ubicación", "Impresiones", "Clics", "CTR", "CPM", "Inversión"].map((h) => (
-                  <th key={h} style={{ padding: "10px 12px", color: "var(--text-muted)", fontWeight: 600, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                  <th key={h} style={{ padding: "10px 12px", color: "var(--fc-text-muted)", fontWeight: 600, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase" }}>
                     {h}
                   </th>
                 ))}
@@ -484,15 +484,15 @@ export function UserReliabilityModule({
                   onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                 >
-                  <td style={{ padding: "10px 12px", fontWeight: 600, color: "var(--foreground)", textTransform: "capitalize" }}>{p.publisher_platform}</td>
-                  <td style={{ padding: "10px 12px", color: "var(--text-secondary)", textTransform: "capitalize" }}>{p.platform_position?.replace(/_/g, " ")}</td>
-                  <td style={{ padding: "10px 12px", color: "var(--text-secondary)" }}>{fmtNum(p.metrics.impressions)}</td>
-                  <td style={{ padding: "10px 12px", color: "var(--text-secondary)" }}>{fmtNum(p.metrics.totalClicks)}</td>
-                  <td style={{ padding: "10px 12px", fontWeight: 600, color: p.metrics.ctr > 2 ? "#10b981" : p.metrics.ctr > 0.8 ? "var(--amber)" : "#ef4444" }}>
+                  <td style={{ padding: "10px 12px", fontWeight: 600, color: "var(--fc-text)", textTransform: "capitalize" }}>{p.publisher_platform}</td>
+                  <td style={{ padding: "10px 12px", color: "var(--fc-text-secondary)", textTransform: "capitalize" }}>{p.platform_position?.replace(/_/g, " ")}</td>
+                  <td style={{ padding: "10px 12px", color: "var(--fc-text-secondary)" }}>{fmtNum(p.metrics.impressions)}</td>
+                  <td style={{ padding: "10px 12px", color: "var(--fc-text-secondary)" }}>{fmtNum(p.metrics.totalClicks)}</td>
+                  <td style={{ padding: "10px 12px", fontWeight: 600, color: p.metrics.ctr > 2 ? "#10b981" : p.metrics.ctr > 0.8 ? "var(--fc-warning)" : "#ef4444" }}>
                     {p.metrics.ctr}%
                   </td>
-                  <td style={{ padding: "10px 12px", color: "var(--text-secondary)" }}>{fmtMXN(p.metrics.cpm)}</td>
-                  <td style={{ padding: "10px 12px", color: "var(--text-secondary)" }}>{fmtMXN(p.metrics.spend)}</td>
+                  <td style={{ padding: "10px 12px", color: "var(--fc-text-secondary)" }}>{fmtMXN(p.metrics.cpm)}</td>
+                  <td style={{ padding: "10px 12px", color: "var(--fc-text-secondary)" }}>{fmtMXN(p.metrics.spend)}</td>
                 </tr>
               ))}
             </tbody>

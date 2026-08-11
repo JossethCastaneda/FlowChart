@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 
-const headingStyle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.03em", marginBottom: 4 };
-const subStyle: React.CSSProperties = { fontSize: 11, color: "var(--text-secondary)", marginBottom: 12, lineHeight: 1.5 };
+const headingStyle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "var(--fc-text)", letterSpacing: "0.03em", marginBottom: 4 };
+const subStyle: React.CSSProperties = { fontSize: 11, color: "var(--fc-text-secondary)", marginBottom: 12, lineHeight: 1.5 };
 
 interface HeatmapWidgetProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
@@ -110,7 +110,7 @@ export function HeatmapWidget({
     if (intensity > 0.5) return heatMetric === "spend" ? "rgba(251,191,36,0.45)" : "rgba(0,200,117,0.35)";
     if (intensity > 0.25) return heatMetric === "spend" ? "rgba(251,191,36,0.25)" : "rgba(59,130,246,0.25)";
     if (intensity > 0.1) return heatMetric === "spend" ? "rgba(251,191,36,0.12)" : "rgba(59,130,246,0.12)";
-    return "var(--border-neutral)";
+    return "var(--fc-border-subtle)";
   };
 
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -135,8 +135,8 @@ export function HeatmapWidget({
                 style={{
                   padding: "5px 12px", fontSize: 10, fontWeight: 700, border: "none",
                   borderRadius: 6, cursor: "pointer", transition: "all 0.15s",
-                  background: heatmapTimezone === tz.key ? "var(--cyan)" : "transparent",
-                  color: heatmapTimezone === tz.key ? "#000" : "var(--text-secondary)",
+                  background: heatmapTimezone === tz.key ? "var(--fc-accent)" : "transparent",
+                  color: heatmapTimezone === tz.key ? "#000" : "var(--fc-text-secondary)",
                   letterSpacing: "0.04em",
                 }}
               >
@@ -153,8 +153,8 @@ export function HeatmapWidget({
                 style={{
                   padding: "5px 12px", fontSize: 10, fontWeight: 700, border: "none",
                   borderRadius: 6, cursor: "pointer", transition: "all 0.15s",
-                  background: heatMetric === m.key ? "var(--cyan)" : "transparent",
-                  color: heatMetric === m.key ? "#000" : "var(--text-secondary)",
+                  background: heatMetric === m.key ? "var(--fc-accent)" : "transparent",
+                  color: heatMetric === m.key ? "#000" : "var(--fc-text-secondary)",
                   letterSpacing: "0.04em",
                 }}
               >
@@ -168,13 +168,13 @@ export function HeatmapWidget({
         <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 740 }}>
           <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
             <tr>
-              <th style={{ padding: "5px 10px", fontSize: 9, color: "var(--text-muted)", textAlign: "left", fontWeight: 700, width: 76, background: "var(--surface)", letterSpacing: "0.06em" }}>FECHA</th>
+              <th style={{ padding: "5px 10px", fontSize: 9, color: "var(--fc-text-muted)", textAlign: "left", fontWeight: 700, width: 76, background: "var(--fc-surface)", letterSpacing: "0.06em" }}>FECHA</th>
               {HOURS.map(h => (
-                <th key={h} style={{ padding: "5px 2px", fontSize: 9, color: "var(--text-muted)", textAlign: "center", fontWeight: 600, minWidth: 28, background: "var(--surface)" }}>
+                <th key={h} style={{ padding: "5px 2px", fontSize: 9, color: "var(--fc-text-muted)", textAlign: "center", fontWeight: 600, minWidth: 28, background: "var(--fc-surface)" }}>
                   {h.toString().padStart(2, "0")}
                 </th>
               ))}
-              <th style={{ padding: "5px 8px", fontSize: 9, color: "rgba(59,130,246,0.6)", textAlign: "right", fontWeight: 700, minWidth: 52, background: "var(--surface)", letterSpacing: "0.06em" }}>TOTAL</th>
+              <th style={{ padding: "5px 8px", fontSize: 9, color: "rgba(59,130,246,0.6)", textAlign: "right", fontWeight: 700, minWidth: 52, background: "var(--fc-surface)", letterSpacing: "0.06em" }}>TOTAL</th>
             </tr>
           </thead>
           <tbody>
@@ -188,7 +188,7 @@ export function HeatmapWidget({
                 <tr key={dateStr} style={{ background: isToday ? "rgba(59,130,246,0.04)" : "transparent" }}>
                   <td style={{
                     padding: "3px 10px", fontSize: 10,
-                    color: isToday ? "var(--cyan)" : isWeekend ? "rgba(59,130,246,0.45)" : "var(--text-secondary)",
+                    color: isToday ? "var(--fc-accent)" : isWeekend ? "rgba(59,130,246,0.45)" : "var(--fc-text-secondary)",
                     fontWeight: isToday ? 800 : 600, whiteSpace: "nowrap",
                     borderRight: isToday ? "2px solid rgba(59,130,246,0.35)" : "1px solid var(--hairline)",
                   }}>
@@ -208,7 +208,7 @@ export function HeatmapWidget({
                           background: getColor(val),
                           borderRadius: 3,
                           display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: 9, color: val > 0 ? "var(--foreground)" : "transparent",
+                          fontSize: 9, color: val > 0 ? "var(--fc-text)" : "transparent",
                           fontWeight: 700,
                           cursor: "default",
                           transition: "transform 0.1s",
@@ -231,7 +231,7 @@ export function HeatmapWidget({
             })}
           </tbody>
           <tfoot style={{ position: "sticky", bottom: 0 }}>
-            <tr style={{ border: "1px solid var(--border)", background: "var(--surface)" }}>
+            <tr style={{ border: "1px solid var(--fc-border)", background: "var(--fc-surface)" }}>
               <td style={{ padding: "5px 10px", fontSize: 9, color: "rgba(59,130,246,0.6)", fontWeight: 700, letterSpacing: "0.08em" }}>TOTAL</td>
               {HOURS.map(h => {
                 const colTotal = sortedDates.reduce((sum, dateStr) => sum + getVal(dateMap[dateStr][h]), 0);
@@ -250,11 +250,11 @@ export function HeatmapWidget({
       </div>
       {/* Legend */}
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, justifyContent: "flex-end", flexShrink: 0 }}>
-        <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600 }}>Menor actividad</span>
-        {["var(--row-hover)", "var(--border-neutral)", "rgba(59,130,246,0.12)", "rgba(59,130,246,0.25)", "rgba(0,200,117,0.35)", "rgba(0,200,117,0.6)"].map((c, i) => (
+        <span style={{ fontSize: 9, color: "var(--fc-text-muted)", fontWeight: 600 }}>Menor actividad</span>
+        {["var(--row-hover)", "var(--fc-border-subtle)", "rgba(59,130,246,0.12)", "rgba(59,130,246,0.25)", "rgba(0,200,117,0.35)", "rgba(0,200,117,0.6)"].map((c, i) => (
           <div key={i} style={{ width: 16, height: 12, borderRadius: 3, background: c }} />
         ))}
-        <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600 }}>Mayor actividad</span>
+        <span style={{ fontSize: 9, color: "var(--fc-text-muted)", fontWeight: 600 }}>Mayor actividad</span>
       </div>
     </div>
   );

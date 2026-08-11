@@ -95,6 +95,104 @@ const CHAR_LIMITS: Record<string, number> = {
 /* ══════════════════════════════════════════════════════════
    COMPOSER COMPONENT — Hootsuite-style
    ══════════════════════════════════════════════════════════ */
+function ComposerConnectDropdown({
+  onConnectFacebook,
+  onConnectInstagram,
+}: {
+  onConnectFacebook: () => void;
+  onConnectInstagram: () => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  return (
+    <div ref={containerRef} style={{ position: "relative", display: "inline-block", marginTop: 16 }}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "8px 16px",
+          borderRadius: 20,
+          background: "var(--fc-accent)",
+          color: "var(--fc-bg)",
+          fontSize: 13,
+          fontWeight: 600,
+          cursor: "pointer",
+          border: "none",
+          fontFamily: "inherit",
+          transition: "all 0.2s ease-in-out",
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(1.15)")}
+        onMouseLeave={(e) => (e.currentTarget.style.filter = "none")}
+      >
+        <Plus style={{ width: 14, height: 14 }} />
+        <span>Conectar más</span>
+        <ChevronDown style={{ width: 12, height: 12, opacity: 0.7, transform: isOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }} />
+      </button>
+
+      {isOpen && (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 6px)",
+            right: 0,
+            width: 260,
+            background: "var(--panel-bg)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid var(--glass-border)",
+            borderRadius: 12,
+            boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+            padding: "8px 0",
+            zIndex: 100,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <div style={{ padding: "6px 14px 4px", fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "var(--fc-text-muted)", letterSpacing: "0.05em" }}>
+            Selecciona plataforma
+          </div>
+          <button
+            onClick={() => { onConnectFacebook(); setIsOpen(false); }}
+            style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "transparent", border: "none", cursor: "pointer", color: "var(--fc-text)", fontFamily: "inherit", fontSize: 13, textAlign: "left", transition: "background 0.2s", width: "100%" }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            <Facebook style={{ width: 20, height: 20 }} />
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontWeight: 600 }}>Facebook</span>
+              <span style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>Gestiona tus páginas</span>
+            </div>
+          </button>
+          <button
+            onClick={() => { onConnectInstagram(); setIsOpen(false); }}
+            style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "transparent", border: "none", cursor: "pointer", color: "var(--fc-text)", fontFamily: "inherit", fontSize: 13, textAlign: "left", transition: "background 0.2s", width: "100%" }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            <Instagram style={{ width: 20, height: 20 }} />
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontWeight: 600 }}>Instagram</span>
+              <span style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>Conecta tus cuentas</span>
+            </div>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Composer() {
   /* ── State ──────────────────────────────────────────── */
   const [content, setContent] = useState("");
@@ -116,12 +214,44 @@ export function Composer() {
   const [pages, setPages] = useState<MetaPage[]>([]);
   const [allTargets, setAllTargets] = useState<PublishTarget[]>([]);
   const [pagesLoading, setPagesLoading] = useState(false);
+  const [requestingApproval, setRequestingApproval] = useState(false);
   const [showAccountPicker, setShowAccountPicker] = useState(false);
+
+  // Asset Groups
+  const [assetGroups, setAssetGroups] = useState<any[]>([]);
+  const loadAssetGroups = useCallback(async () => {
+    try {
+      const res = await fetch("/api/workspace/asset-groups");
+      if (res.ok) {
+        const data = await res.json();
+        setAssetGroups(data.data || []);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    loadAssetGroups();
+  }, [loadAssetGroups]);
+
+  const selectAssetGroup = (group: any) => {
+    if (!group.assets || !Array.isArray(group.assets)) return;
+    const newTargets = allTargets.filter(t => 
+      group.assets.some((a: any) => 
+        a.provider === t.platform && a.externalId === (t.platform === "facebook" ? t.pageId : t.igId)
+      )
+    );
+    setSelectedTargets(newTargets);
+    setShowAccountPicker(false);
+  };
 
   // Social connection status
     const [socialConnected, setSocialConnected] = useState<boolean | null>(null);
     const [socialPages, setSocialPages] = useState<any[]>([]);
-    const [socialInstagramAccounts, setSocialInstagramAccounts] = useState<any[]>([]);
+      const [socialInstagramAccounts, setSocialInstagramAccounts] = useState<any[]>([]);
+  // Cuentas de Instagram del activo UNIFICADO (mismo que el Inbox). Vienen de
+  // /api/connect/status → modules.publisher_instagram.instagramAccounts, así que
+  // aparecen aquí aunque la conexión se haya hecho desde el Inbox.
+  const [igAccounts, setIgAccounts] = useState<any[]>([]);
 
   // Loading
   const [savingDraft, setSavingDraft] = useState(false);
@@ -143,6 +273,7 @@ export function Composer() {
   /* ── Build targets from pages ───────────────────────── */
   useEffect(() => {
     const targets: PublishTarget[] = [];
+    const seenIg = new Set<string>();
     for (const page of pages) {
       targets.push({
         key: `fb_${page.id}`,
@@ -152,6 +283,7 @@ export function Composer() {
         pagePicture: page.picture,
       });
       if (page.instagram) {
+        seenIg.add(page.instagram.id);
         targets.push({
           key: `ig_${page.instagram.id}`,
           platform: "instagram",
@@ -164,9 +296,29 @@ export function Composer() {
         });
       }
     }
-   
-        setAllTargets(targets);
-  }, [pages]);
+
+    // Instagram conectado con "Iniciar sesión con Instagram" (aquí o en el Inbox):
+    // no depende de ninguna página de Facebook.
+    for (const acc of igAccounts) {
+      if (!acc?.id || seenIg.has(acc.id)) continue;
+      // El cliente puede haber apagado las publicaciones de esta cuenta: no se
+      // ofrece como destino. El servidor lo vuelve a comprobar al publicar.
+      if (acc.capabilities?.publish === false) continue;
+      seenIg.add(acc.id);
+      targets.push({
+        key: `ig_${acc.id}`,
+        platform: "instagram",
+        pageId: acc.pageId || "",
+        pageName: acc.name || acc.username || "Instagram",
+        pagePicture: acc.picture || "",
+        igId: acc.id,
+        igUsername: acc.username || undefined,
+        igPicture: acc.picture || undefined,
+      });
+    }
+
+    setAllTargets(targets);
+  }, [pages, igAccounts]);
 
   /* ── Load pages on mount and on connection ──────────── */
   const loadPages = useCallback(async () => {
@@ -208,6 +360,8 @@ export function Composer() {
                 const pagesArr: any[] = pub?.pages || [];
         setSocialPages(pagesArr);
                 setSocialInstagramAccounts(pagesArr.filter((p: any) => p.instagramId));
+        // Activo unificado de Instagram (compartido con el Inbox).
+        setIgAccounts(data.modules?.publisher_instagram?.instagramAccounts || []);
       } else {
         setSocialConnected(false);
       }
@@ -375,6 +529,8 @@ export function Composer() {
 
   const buildPayload = (status: "Draft" | "Scheduled") => {
     const fallbackTarget = selectedTargets[0];
+    // Multi-cuenta: el post recuerda a qué cuenta de Instagram va.
+    const firstIgTarget = selectedTargets.find((t) => t.platform === "instagram");
     return {
       content: fullContent(),
       contentByPlatform: customizeByPlatform ? { facebook: fbContent, instagram: igContent } : undefined,
@@ -387,6 +543,7 @@ export function Composer() {
       hashtags,
       pageName: firstFbTarget?.pageName || fallbackTarget?.pageName || null,
       pageId: firstFbTarget?.pageId || fallbackTarget?.pageId || null,
+      igUserId: firstIgTarget?.igId || undefined,
       targets: selectedTargets.map((t) => ({
         key: t.key,
         platform: t.platform,
@@ -414,6 +571,23 @@ export function Composer() {
       setBanner({ type: "error", message: e.message || "Error desconocido" }); 
     }
     finally { setSavingDraft(false); }
+  };
+
+  const requestApproval = async (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    const err = validateForm();
+    if (err) { setBanner({ type: "error", message: err }); return; }
+    setRequestingApproval(true);
+    try {
+      const status = scheduledAt ? "Scheduled" : "Draft";
+      const res = await fetch("/api/publisher/posts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...buildPayload(status), approvalStatus: "pending" }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "No se pudo solicitar aprobación");
+      setBanner({ type: "success", message: "Pieza enviada a la cola de aprobación del cliente." });
+      clearForm();
+    } catch (reason) {
+      setBanner({ type: "error", message: reason instanceof Error ? reason.message : "No se pudo solicitar aprobación" });
+    } finally { setRequestingApproval(false); }
   };
 
   const schedulePost = async (e?: React.MouseEvent) => {
@@ -555,7 +729,11 @@ export function Composer() {
         ) {
           await fetch("/api/publisher/first-comment", {
             method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ mediaId: publishPayload.published.instagram, comment: firstComment }),
+            body: JSON.stringify({
+              mediaId: publishPayload.published.instagram,
+              comment: firstComment,
+              igUserId: selectedTargets.find((t) => t.platform === "instagram")?.igId,
+            }),
           }).catch(() => {});
         }
 
@@ -573,7 +751,7 @@ export function Composer() {
     finally { setPublishing(false); }
   };
 
-  const anyLoading = savingDraft || scheduling || publishing;
+  const anyLoading = savingDraft || scheduling || publishing || requestingApproval;
 
   /* ── Preview helpers ────────────────────────────────── */
   const previewText = fullContent() || "Iniciando enlace de subespacio... El holomensaje proyectado aparecerá aquí.";
@@ -591,7 +769,7 @@ export function Composer() {
           padding: "10px 16px", marginBottom: 8, borderRadius: 8, fontSize: 13, fontWeight: 500,
           background: banner.type === "success" ? "rgba(0,200,117,0.12)" : "rgba(226,68,92,0.12)",
           border: `1px solid ${banner.type === "success" ? "rgba(0,200,117,0.3)" : "rgba(226,68,92,0.3)"}`,
-          color: banner.type === "success" ? "var(--emerald)" : "var(--red)",
+          color: banner.type === "success" ? "var(--fc-success)" : "var(--fc-danger)",
         }}>
           {banner.type === "success" ? <Terminal style={{ width: 16, height: 16, flexShrink: 0 }} /> : <AlertTriangle style={{ width: 16, height: 16, flexShrink: 0 }} />}
           {banner.message}
@@ -603,7 +781,7 @@ export function Composer() {
         {/* ═══ LEFT COLUMN: EDITOR ═══ */}
         <div className="glass-panel" style={{
           flex: 1, minWidth: 0, display: "flex", flexDirection: "column",
-          borderRadius: 12, overflow: "hidden",
+          borderRadius: 12, overflowY: "auto",
         }}>
           {/* ── Publish To bar ──────────────────────────────── */}
           <div style={{
@@ -611,10 +789,10 @@ export function Composer() {
             background: "var(--row-hover)",
           }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-secondary)", fontFamily: "var(--font-display)", letterSpacing: "0.1em" }}>SECTOR DE TRANSMISIÓN</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--fc-text-secondary)", fontFamily: "var(--font-display)", letterSpacing: "0.1em" }}>SECTOR DE TRANSMISIÓN</span>
               {selectedTargets.length > 0 && (
                 <button onClick={clearAllTargets} style={{
-                  background: "none", border: "none", color: "var(--text-muted)", fontSize: 11,
+                  background: "none", border: "none", color: "var(--fc-text-muted)", fontSize: 11,
                   cursor: "pointer", textDecoration: "underline", padding: 0,
                 }}>
                   Limpiar cuadrante
@@ -628,7 +806,7 @@ export function Composer() {
                 const isFb = target.platform === "facebook";
                 const bgColor = isFb ? "rgba(24,119,242,0.12)" : "rgba(225,48,108,0.12)";
                 const borderColor = isFb ? "rgba(24,119,242,0.4)" : "rgba(225,48,108,0.4)";
-                const textColor = isFb ? "var(--cyan)" : "#bc5fb2";
+                const textColor = isFb ? "var(--fc-accent)" : "#bc5fb2";
                 const Icon = isFb ? Facebook : Instagram;
                 const label = isFb ? target.pageName : `@${target.igUsername}`;
                 return (
@@ -656,8 +834,8 @@ export function Composer() {
                 <button onClick={() => setShowAccountPicker(!showAccountPicker)} style={{
                   display: "flex", alignItems: "center", gap: 6,
                   padding: "6px 12px", borderRadius: 20,
-                  background: "var(--surface-hover)", border: "1px dashed var(--border)",
-                  color: "var(--text-secondary)", fontSize: 12, cursor: "pointer",
+                  background: "var(--surface-hover)", border: "1px dashed var(--fc-border)",
+                  color: "var(--fc-text-secondary)", fontSize: 12, cursor: "pointer",
                   transition: "all 0.15s",
                 }}>
                   {pagesLoading ? (
@@ -674,7 +852,7 @@ export function Composer() {
                   <div style={{
                     position: "absolute", top: "calc(100% + 6px)", left: 0, minWidth: 320,
                     maxHeight: 420,
-                    background: "var(--background)", border: "1px solid var(--hairline)",
+                    background: "var(--fc-bg)", border: "1px solid var(--hairline)",
                     borderRadius: 12, overflow: "hidden", zIndex: 100,
                     boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
                     display: "flex", flexDirection: "column",
@@ -684,9 +862,9 @@ export function Composer() {
                       padding: "12px 16px", border: "1px solid var(--hairline)",
                       display: "flex", justifyContent: "space-between", alignItems: "center",
                     }}>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>Seleccionar cuentas</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "var(--fc-text)" }}>Seleccionar cuentas</span>
                       <button onClick={selectedTargets.length === allTargets.length ? clearAllTargets : selectAllTargets} style={{
-                        background: "none", border: "none", color: "var(--cyan)",
+                        background: "none", border: "none", color: "var(--fc-accent)",
                         fontSize: 11, cursor: "pointer", padding: 0,
                       }}>
                         {selectedTargets.length === allTargets.length ? "Despejar canales" : "Elegir todo el cuadrante"}
@@ -695,12 +873,38 @@ export function Composer() {
 
                     {/* Scrollable account list */}
                     <div style={{ flex: 1, overflowY: "auto", maxHeight: 300 }}>
+                    {/* Asset Groups section */}
+                    {assetGroups.length > 0 && (
+                      <>
+                        <div style={{
+                          padding: "8px 16px", fontSize: 10, fontWeight: 700,
+                          color: "var(--fc-text-secondary)", textTransform: "uppercase", letterSpacing: 1,
+                          background: "var(--surface-hover)",
+                          position: "sticky", top: 0, zIndex: 1,
+                        }}>
+                          Grupos de Activos
+                        </div>
+                        {assetGroups.map((group) => (
+                          <button key={group.id} onClick={() => selectAssetGroup(group)} style={{
+                            display: "flex", alignItems: "center", gap: 10, width: "100%",
+                            padding: "10px 16px", background: "transparent",
+                            border: "1px solid var(--hairline)",
+                            color: "var(--fc-accent)", fontSize: 13, cursor: "pointer", textAlign: "left",
+                            transition: "background 0.15s",
+                            fontWeight: 600
+                          }}>
+                            <span style={{ flex: 1 }}>{group.name}</span>
+                          </button>
+                        ))}
+                      </>
+                    )}
+
                     {/* Facebook section */}
                     {allTargets.filter((t) => t.platform === "facebook").length > 0 && (
                       <>
                         <div style={{
                           padding: "8px 16px", fontSize: 10, fontWeight: 700,
-                          color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: 1,
+                          color: "var(--fc-text-secondary)", textTransform: "uppercase", letterSpacing: 1,
                           background: "var(--surface-hover)",
                           position: "sticky", top: 0, zIndex: 1,
                         }}>
@@ -714,7 +918,7 @@ export function Composer() {
                               display: "flex", alignItems: "center", gap: 10, width: "100%",
                               padding: "10px 16px", background: isSelected ? "rgba(24,119,242,0.08)" : "transparent",
                               border: "1px solid var(--hairline)",
-                              color: "var(--foreground)", fontSize: 13, cursor: "pointer", textAlign: "left",
+                              color: "var(--fc-text)", fontSize: 13, cursor: "pointer", textAlign: "left",
                               transition: "background 0.15s",
                             }}>
                                                             <img src={target.pagePicture} alt="" style={{
@@ -729,7 +933,7 @@ export function Composer() {
                                 display: "flex", alignItems: "center", justifyContent: "center",
                                 transition: "all 0.15s",
                               }}>
-                                {isSelected && <Check style={{ width: 13, height: 13, color: "var(--foreground)" }} />}
+                                {isSelected && <Check style={{ width: 13, height: 13, color: "var(--fc-text)" }} />}
                               </div>
                             </button>
                           );
@@ -742,7 +946,7 @@ export function Composer() {
                       <>
                         <div style={{
                           padding: "8px 16px", fontSize: 10, fontWeight: 700,
-                          color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: 1,
+                          color: "var(--fc-text-secondary)", textTransform: "uppercase", letterSpacing: 1,
                           background: "var(--surface-hover)",
                           position: "sticky", top: 0, zIndex: 1,
                         }}>
@@ -756,16 +960,25 @@ export function Composer() {
                               display: "flex", alignItems: "center", gap: 10, width: "100%",
                               padding: "10px 16px", background: isSelected ? "rgba(225,48,108,0.08)" : "transparent",
                               border: "1px solid var(--hairline)",
-                              color: "var(--foreground)", fontSize: 13, cursor: "pointer", textAlign: "left",
+                              color: "var(--fc-text)", fontSize: 13, cursor: "pointer", textAlign: "left",
                               transition: "background 0.15s",
                             }}>
-                                                            <img src={target.igPicture || target.pagePicture} alt="" style={{
+                                                            <img
+                                src={
+                                  target.igPicture ||
+                                  target.pagePicture ||
+                                  `https://ui-avatars.com/api/?name=${encodeURIComponent(target.igUsername || target.pageName || "IG")}&background=random`
+                                }
+                                alt=""
+                                style={{
                                 width: 32, height: 32, borderRadius: "50%", objectFit: "cover",
                                 border: isSelected ? "2px solid #E1306C" : "2px solid transparent",
                               }} />
                               <div style={{ flex: 1 }}>
-                                <div style={{ fontWeight: 500 }}>@{target.igUsername}</div>
-                                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{target.pageName}</div>
+                                <div style={{ fontWeight: 500 }}>{target.igUsername ? `@${target.igUsername}` : target.pageName}</div>
+                                <div style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>
+                                  {target.pageId ? target.pageName : "Instagram Business"}
+                                </div>
                               </div>
                               <div style={{
                                 width: 20, height: 20, borderRadius: 4,
@@ -774,7 +987,7 @@ export function Composer() {
                                 display: "flex", alignItems: "center", justifyContent: "center",
                                 transition: "all 0.15s",
                               }}>
-                                {isSelected && <Check style={{ width: 13, height: 13, color: "var(--foreground)" }} />}
+                                {isSelected && <Check style={{ width: 13, height: 13, color: "var(--fc-text)" }} />}
                               </div>
                             </button>
                           );
@@ -785,26 +998,24 @@ export function Composer() {
                     {allTargets.length === 0 && !pagesLoading && (
                       <div style={{ padding: "32px 16px", display: "flex", flexDirection: "column", alignItems: "center" }}>
                         <EmptyState 
-                          icon={<AlertTriangle style={{ width: 32, height: 32, color: "var(--amber)" }} />}
+                          icon={<AlertTriangle style={{ width: 32, height: 32, color: "var(--fc-warning)" }} />}
                           title="SIN CONEXIÓN DE COMUNICACIONES"
                           description="No hay cuentas enlazadas para publicar. Conecta tu perfil para otorgar acceso a las páginas."
                         />
-                        <button
-                          onClick={() => openConnectPopup("publisher_facebook", loadPages)}
-                          style={{
-                            marginTop: 16,
-                            padding: "8px 16px",
-                            borderRadius: 20,
-                            background: "var(--cyan)",
-                            color: "var(--background)",
-                            fontSize: 13,
-                            fontWeight: 600,
-                            cursor: "pointer",
-                            border: "none"
-                          }}
-                        >
-                          Conectar Meta
-                        </button>
+                        <ComposerConnectDropdown 
+                          onConnectFacebook={() => openConnectPopup("publisher_facebook", loadPages)}
+                          onConnectInstagram={() => openConnectPopup("publisher_instagram", loadPages)}
+                        />
+                      </div>
+                    )}
+
+                    {/* Botón extra al final de la lista si hay cuentas */}
+                    {allTargets.length > 0 && !pagesLoading && (
+                      <div style={{ padding: "16px", display: "flex", justifyContent: "center", borderTop: "1px solid var(--hairline)" }}>
+                        <ComposerConnectDropdown 
+                          onConnectFacebook={() => openConnectPopup("publisher_facebook", loadPages)}
+                          onConnectInstagram={() => openConnectPopup("publisher_instagram", loadPages)}
+                        />
                       </div>
                     )}
                     </div>
@@ -813,8 +1024,8 @@ export function Composer() {
                     <div style={{ padding: "10px 16px", border: "1px solid var(--hairline)" }}>
                       <button onClick={() => setShowAccountPicker(false)} style={{
                         width: "100%", padding: "8px 0", borderRadius: 8,
-                        background: "linear-gradient(135deg, var(--cyan), var(--cyan))", border: "none",
-                        color: "var(--foreground)", fontSize: 13, fontWeight: 600, cursor: "pointer",
+                        background: "linear-gradient(135deg, var(--fc-accent), var(--fc-accent))", border: "none",
+                        color: "var(--fc-text)", fontSize: 13, fontWeight: 600, cursor: "pointer",
                       }}>
                         Aprobar Selección ({selectedTargets.length})
                       </button>
@@ -828,7 +1039,7 @@ export function Composer() {
           {/* ── Format Selector (Post / Reel / Story / Carousel) ── */}
           <div style={{
             padding: "10px 20px", border: "1px solid var(--hairline)",
-            background: "var(--surface)",
+            background: "var(--fc-surface)",
           }}>
             <FormatSelector value={format} onChange={setFormat} />
           </div>
@@ -852,7 +1063,7 @@ export function Composer() {
               style={{
                 flex: 1, width: "100%", background: "transparent",
                 border: "none", outline: "none", resize: "none",
-                padding: "16px 20px", color: "var(--foreground)", fontSize: 14,
+                padding: "16px 20px", color: "var(--fc-text)", fontSize: 14,
                 lineHeight: 1.6, fontFamily: "var(--font-sans)",
                 minHeight: 160,
               }}
@@ -865,12 +1076,12 @@ export function Composer() {
                   <span key={tag} style={{
                     display: "flex", alignItems: "center", gap: 4,
                     padding: "3px 10px", borderRadius: 20,
-                    background: "var(--surface)", border: "1px solid rgba(139,141,242,0.3)",
-                    color: "var(--purple)", fontSize: 12, fontWeight: 500,
+                    background: "var(--fc-surface)", border: "1px solid rgba(139,141,242,0.3)",
+                    color: "var(--fc-module-aria)", fontSize: 12, fontWeight: 500,
                   }}>
                     #{tag}
                     <button onClick={() => removeHashtag(tag)} style={{
-                      background: "none", border: "none", color: "var(--purple)",
+                      background: "none", border: "none", color: "var(--fc-module-aria)",
                       cursor: "pointer", padding: 0, display: "flex",
                     }}>
                       <X style={{ width: 12, height: 12 }} />
@@ -896,7 +1107,7 @@ export function Composer() {
                     <button onClick={() => removeMedia(i)} style={{
                       position: "absolute", top: 3, right: 3, width: 20, height: 20,
                       borderRadius: "50%", background: "var(--panel-bg)", border: "none",
-                      color: "var(--foreground)", cursor: "pointer", display: "flex",
+                      color: "var(--fc-text)", cursor: "pointer", display: "flex",
                       alignItems: "center", justifyContent: "center", padding: 0,
                     }}>
                       <X style={{ width: 11, height: 11 }} />
@@ -906,10 +1117,10 @@ export function Composer() {
                 {uploading && (
                   <div style={{
                     width: 72, height: 72, borderRadius: 10,
-                    border: "1px dashed var(--border)",
+                    border: "1px dashed var(--fc-border)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}>
-                    <Loader2 style={{ width: 20, height: 20, color: "var(--cyan)", animation: "spin 1s linear infinite" }} />
+                    <Loader2 style={{ width: 20, height: 20, color: "var(--fc-accent)", animation: "spin 1s linear infinite" }} />
                   </div>
                 )}
               </div>
@@ -919,7 +1130,7 @@ export function Composer() {
             {isDragging && (
               <div style={{
                 padding: "24px 20px", display: "flex", flexDirection: "column",
-                alignItems: "center", gap: 8, color: "var(--cyan)",
+                alignItems: "center", gap: 8, color: "var(--fc-accent)",
               }}>
                 <Upload style={{ width: 32, height: 32 }} />
                 <span style={{ fontSize: 13, fontWeight: 500 }}>Sube evidencia clasificada</span>
@@ -943,7 +1154,7 @@ export function Composer() {
                   style={{
                     padding: "6px 10px", borderRadius: 6,
                     background: "var(--surface-hover)", border: "1px solid var(--hairline)",
-                    color: "var(--text-secondary)", cursor: uploading ? "not-allowed" : "pointer",
+                    color: "var(--fc-text-secondary)", cursor: uploading ? "not-allowed" : "pointer",
                     display: "flex", alignItems: "center", gap: 4, fontSize: 12,
                     transition: "all 0.15s",
                   }}>
@@ -953,19 +1164,19 @@ export function Composer() {
                 </button>
 
                 <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <Hash style={{ width: 14, height: 14, color: "var(--text-muted)" }} />
+                  <Hash style={{ width: 14, height: 14, color: "var(--fc-text-muted)" }} />
                   <input type="text" value={hashtagInput}
                     onChange={(e) => setHashtagInput(e.target.value)}
                     onKeyDown={handleHashtagKeyDown}
                     placeholder="hashtag"
                     style={{
                       width: 100, background: "transparent", border: "none", outline: "none",
-                      color: "var(--purple)", fontSize: 12, fontFamily: "var(--font-sans)",
+                      color: "var(--fc-module-aria)", fontSize: 12, fontFamily: "var(--font-sans)",
                     }}
                   />
                   {hashtagInput.trim() && (
                     <button onClick={addHashtag} style={{
-                      background: "none", border: "none", color: "var(--purple)",
+                      background: "none", border: "none", color: "var(--fc-module-aria)",
                       cursor: "pointer", padding: 0, display: "flex",
                     }}>
                       <Plus style={{ width: 14, height: 14 }} />
@@ -978,14 +1189,14 @@ export function Composer() {
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{
                   fontSize: 11, fontWeight: 500,
-                  color: isOverLimit ? "var(--red)" : isNearLimit ? "var(--amber)" : "var(--text-muted)",
+                  color: isOverLimit ? "var(--fc-danger)" : isNearLimit ? "var(--fc-warning)" : "var(--fc-text-muted)",
                 }}>
                   {charCount.toLocaleString()} / {charLimit.toLocaleString()}
                 </span>
                 <div style={{ width: 40, height: 4, borderRadius: 2, background: "var(--surface-hover)", overflow: "hidden" }}>
                   <div style={{
                     width: `${charPercent}%`, height: "100%", borderRadius: 2,
-                    background: isOverLimit ? "var(--red)" : isNearLimit ? "var(--amber)" : "var(--cyan)",
+                    background: isOverLimit ? "var(--fc-danger)" : isNearLimit ? "var(--fc-warning)" : "var(--fc-accent)",
                     transition: "all 0.3s",
                   }} />
                 </div>
@@ -1023,8 +1234,8 @@ export function Composer() {
           }}>
             {/* Left: schedule */}
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Clock style={{ width: 15, height: 15, color: "var(--text-muted)" }} />
-              <span style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 500, fontFamily: "var(--font-display)", letterSpacing: "0.1em" }}>RETRASO ORBITAL:</span>
+              <Clock style={{ width: 15, height: 15, color: "var(--fc-text-muted)" }} />
+              <span style={{ fontSize: 12, color: "var(--fc-text-secondary)", fontWeight: 500, fontFamily: "var(--font-display)", letterSpacing: "0.1em" }}>RETRASO ORBITAL:</span>
               <input type="datetime-local" value={scheduledAt}
                 onChange={(e) => setScheduledAt(e.target.value)}
                 // min en hora LOCAL (el input datetime-local es local). Con toISOString()
@@ -1033,13 +1244,13 @@ export function Composer() {
                 style={{
                   maxWidth: 200, padding: "6px 10px", borderRadius: 6,
                   background: "var(--row-hover)", border: "1px solid var(--hairline)",
-                  color: "var(--foreground)", fontSize: 12, fontFamily: "var(--font-sans)",
+                  color: "var(--fc-text)", fontSize: 12, fontFamily: "var(--font-sans)",
                   outline: "none", colorScheme: "dark",
                 }}
               />
               {scheduledAt && (
                 <button onClick={() => setScheduledAt("")} style={{
-                  background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 2, display: "flex",
+                  background: "none", border: "none", color: "var(--fc-text-muted)", cursor: "pointer", padding: 2, display: "flex",
                 }}>
                   <X style={{ width: 13, height: 13 }} />
                 </button>
@@ -1051,7 +1262,7 @@ export function Composer() {
               <button onClick={saveDraft} disabled={anyLoading} style={{
                 display: "flex", alignItems: "center", gap: 6, padding: "8px 16px",
                 borderRadius: 8, background: "var(--surface-hover)",
-                border: "1px solid var(--hairline)", color: "var(--foreground)",
+                border: "1px solid var(--hairline)", color: "var(--fc-text)",
                 fontSize: 12, fontWeight: 500,
                 cursor: anyLoading ? "not-allowed" : "pointer", opacity: anyLoading ? 0.5 : 1,
                 transition: "all 0.2s",
@@ -1060,12 +1271,22 @@ export function Composer() {
                 Cifrar Borrador
               </button>
 
+              <button onClick={requestApproval} disabled={anyLoading} style={{
+                display: "flex", alignItems: "center", gap: 6, padding: "8px 16px",
+                borderRadius: 8, background: "rgba(16,185,129,.1)",
+                border: "1px solid rgba(16,185,129,.3)", color: "var(--fc-success)",
+                fontSize: 12, fontWeight: 600, cursor: anyLoading ? "not-allowed" : "pointer", opacity: anyLoading ? .5 : 1,
+              }}>
+                {requestingApproval ? <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> : <CheckCircle style={{ width: 14, height: 14 }} />}
+                Solicitar aprobación
+              </button>
+
               <button onClick={schedulePost} disabled={anyLoading} style={{
                 display: "flex", alignItems: "center", gap: 6, padding: "8px 16px",
                 borderRadius: 8,
                 background: scheduledAt ? "rgba(253,171,61,0.12)" : "rgba(255,255,255,0.09)",
                 border: scheduledAt ? "1px solid rgba(253,171,61,0.3)" : "1px solid var(--hairline)",
-                color: scheduledAt ? "var(--amber)" : "var(--text-muted)",
+                color: scheduledAt ? "var(--fc-warning)" : "var(--fc-text-muted)",
                 fontSize: 12, fontWeight: 500,
                 cursor: anyLoading ? "not-allowed" : "pointer", opacity: anyLoading ? 0.5 : 1,
                 transition: "all 0.2s",
@@ -1076,8 +1297,8 @@ export function Composer() {
 
               <button onClick={publishNow} disabled={anyLoading} style={{
                 display: "flex", alignItems: "center", gap: 6, padding: "8px 20px",
-                borderRadius: 8, background: "linear-gradient(135deg, var(--cyan), var(--cyan))",
-                border: "none", color: "var(--foreground)", fontSize: 13, fontWeight: 600,
+                borderRadius: 8, background: "linear-gradient(135deg, var(--fc-accent), var(--fc-accent))",
+                border: "none", color: "var(--fc-text)", fontSize: 13, fontWeight: 600,
                 cursor: anyLoading ? "not-allowed" : "pointer", opacity: anyLoading ? 0.6 : 1,
                 boxShadow: "0 4px 16px rgba(0,180,216,0.2)", transition: "all 0.2s",
               }}>
@@ -1099,19 +1320,19 @@ export function Composer() {
             padding: "14px 20px", border: "1px solid var(--hairline)",
             display: "flex", alignItems: "center", gap: 8,
           }}>
-            <Smartphone style={{ width: 15, height: 15, color: "var(--text-muted)" }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: 1.5, textTransform: "uppercase" }}>
+            <Smartphone style={{ width: 15, height: 15, color: "var(--fc-text-muted)" }} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--fc-text-secondary)", letterSpacing: 1.5, textTransform: "uppercase" }}>
               HOLOGRAMA DE SIMULACIÓN
             </span>
             <span style={{
-              fontSize: 10, fontWeight: 600, color: "var(--cyan)",
-              background: "var(--cyan-dim)", padding: "2px 8px", borderRadius: 10,
+              fontSize: 10, fontWeight: 600, color: "var(--fc-accent)",
+              background: "var(--fc-accent-wash)", padding: "2px 8px", borderRadius: 10,
               border: "1px solid rgba(59,130,246,0.2)", textTransform: "uppercase", letterSpacing: 0.5,
             }}>
               {format}
             </span>
             <span style={{
-              marginLeft: "auto", fontSize: 11, color: "var(--text-secondary)",
+              marginLeft: "auto", fontSize: 11, color: "var(--fc-text-secondary)",
               background: "var(--surface-hover)", padding: "3px 8px", borderRadius: 4,
             }}>
               {selectedTargets.length} {selectedTargets.length === 1 ? "cuenta" : "cuentas"}
@@ -1130,10 +1351,10 @@ export function Composer() {
                   background: "var(--surface-hover)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
-                  <Globe style={{ width: 22, height: 22, color: "var(--text-secondary)" }} />
+                  <Globe style={{ width: 22, height: 22, color: "var(--fc-text-secondary)" }} />
                 </div>
                 <EmptyState 
-                  icon={<Globe style={{ width: 48, height: 48, color: "var(--text-muted)" }} />}
+                  icon={<Globe style={{ width: 48, height: 48, color: "var(--fc-text-muted)" }} />}
                   title="SIN HOLOGRAMA"
                   description="Enlaza una frecuencia objetivo para visualizar la proyección antes de ordenar el lanzamiento."
                 />
@@ -1142,7 +1363,7 @@ export function Composer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
-                    marginTop: 8, fontSize: 11, color: "var(--text-secondary)",
+                    marginTop: 8, fontSize: 11, color: "var(--fc-text-secondary)",
                     textDecoration: "underline", cursor: "pointer",
                   }}
                 >

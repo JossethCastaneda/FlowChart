@@ -22,10 +22,10 @@ function LoginPopup() {
   return (
     <div style={{
       minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
-      background: "var(--background)", color: "var(--foreground)", fontFamily: "var(--font-sans)", flexDirection: "column", gap: 12,
+      background: "var(--fc-bg)", color: "var(--fc-text)", fontFamily: "var(--font-sans)", flexDirection: "column", gap: 12,
     }}>
       <Loader size={32} />
-      <p style={{ color: "var(--cyan)", fontFamily: "var(--font-display)", letterSpacing: "0.1em", fontSize: "14px" }}>CONECTANDO...</p>
+      <p style={{ color: "var(--fc-accent)", fontFamily: "var(--font-display)", letterSpacing: "0.1em", fontSize: "14px" }}>CONECTANDO...</p>
     </div>
   );
 }

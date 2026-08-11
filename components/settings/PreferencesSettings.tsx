@@ -65,7 +65,7 @@ export function PreferencesSettings() {
     void apply({
       notifications: {
         ...prefs.notifications,
-        [event]: { ...(prefs.notifications as any)[event], [channel]: value },
+        [event]: { ...prefs.notifications[event], [channel]: value },
       },
     });
   }
@@ -73,9 +73,9 @@ export function PreferencesSettings() {
   /** Apaga o enciende un canal en todos los eventos que lo soportan. */
   function setChannelEverywhere(channel: NotificationChannel, value: boolean) {
     const next = { ...prefs.notifications };
-    NOTIFICATION_EVENTS.forEach((event: NotificationEvent) => {
+    NOTIFICATION_EVENTS.forEach((event) => {
       if (NOTIFICATION_EVENT_META[event].channels.includes(channel)) {
-        (next as any)[event] = { ...(next as any)[event], [channel]: value };
+        next[event] = { ...next[event], [channel]: value };
       }
     });
     void apply({ notifications: next });
@@ -84,8 +84,8 @@ export function PreferencesSettings() {
   if (loading) return <SettingsSkeleton cards={2} />;
 
   const channelAllOn = (channel: NotificationChannel) =>
-    NOTIFICATION_EVENTS.filter((e: NotificationEvent) => NOTIFICATION_EVENT_META[e].channels.includes(channel)).every(
-      (e: NotificationEvent) => (prefs.notifications as any)[e][channel],
+    NOTIFICATION_EVENTS.filter((e) => NOTIFICATION_EVENT_META[e].channels.includes(channel)).every(
+      (e) => prefs.notifications[e][channel],
     );
 
   return (
@@ -94,12 +94,12 @@ export function PreferencesSettings() {
       <SettingsCard
         title="Notificaciones"
         description="Elige por dónde te avisamos de cada cosa. Sólo aparecen los canales que ese aviso realmente usa."
-        icon={<Bell className="w-5 h-5 text-[var(--cyan)]" />}
+        icon={<Bell className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
         {!hasWhatsapp && (
-          <div className="mb-5 flex items-start gap-2.5 p-3 rounded-xl border border-[var(--amber)]/20 bg-[var(--amber)]/5">
-            <AlertTriangle className="w-4 h-4 text-[var(--amber)] mt-0.5 shrink-0" />
-            <p className="text-[11px] text-[var(--amber)] leading-relaxed">
+          <div className="mb-5 flex items-start gap-2.5 p-3 rounded-xl border border-[var(--fc-warning)]/20 bg-[var(--fc-warning)]/5">
+            <AlertTriangle className="w-4 h-4 text-[var(--fc-warning)] mt-0.5 shrink-0" />
+            <p className="text-[11px] text-[var(--fc-warning)] leading-relaxed">
               No tienes número de WhatsApp guardado, así que ese canal no puede entregarte nada.
               Añádelo en{" "}
               <Link href="/dashboard/settings/profile" className="underline font-semibold">
@@ -112,7 +112,7 @@ export function PreferencesSettings() {
 
         {/* Cabecera de canales: apagado masivo por columna */}
         <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_repeat(3,84px)] gap-2 pb-3 mb-1 border-b border-[var(--hairline)]">
-          <span className="text-[10px] font-bold tracking-widest uppercase text-[var(--text-muted)] self-end">
+          <span className="text-[10px] font-bold tracking-widest uppercase text-[var(--fc-text-muted)] self-end">
             Avisarme cuando…
           </span>
           {(Object.keys(CHANNEL_META) as NotificationChannel[]).map((channel) => {
@@ -123,7 +123,7 @@ export function PreferencesSettings() {
                 key={channel}
                 onClick={() => setChannelEverywhere(channel, !allOn)}
                 title={allOn ? `Desactivar ${CHANNEL_META[channel].label} en todo` : `Activar ${CHANNEL_META[channel].label} en todo`}
-                className="flex flex-col items-center gap-1 text-[10px] font-bold tracking-wider uppercase text-[var(--text-muted)] hover:text-[var(--cyan)] transition-colors"
+                className="flex flex-col items-center gap-1 text-[10px] font-bold tracking-wider uppercase text-[var(--fc-text-muted)] hover:text-[var(--fc-accent)] transition-colors"
               >
                 <Icon className="w-4 h-4" />
                 {CHANNEL_META[channel].short}
@@ -133,7 +133,7 @@ export function PreferencesSettings() {
         </div>
 
         <div className="flex flex-col">
-          {NOTIFICATION_EVENTS.map((event: NotificationEvent, index: number) => {
+          {NOTIFICATION_EVENTS.map((event, index) => {
             const meta = NOTIFICATION_EVENT_META[event];
             const last = index === NOTIFICATION_EVENTS.length - 1;
 
@@ -145,8 +145,8 @@ export function PreferencesSettings() {
                 }`}
               >
                 <div className="min-w-0 sm:pr-4">
-                  <div className="text-[13px] font-medium text-[var(--foreground)]">{meta.label}</div>
-                  <div className="text-xs text-[var(--text-muted)] mt-1 leading-relaxed">
+                  <div className="text-[13px] font-medium text-[var(--fc-text)]">{meta.label}</div>
+                  <div className="text-xs text-[var(--fc-text-muted)] mt-1 leading-relaxed">
                     {meta.description}
                   </div>
                 </div>
@@ -158,7 +158,7 @@ export function PreferencesSettings() {
                   return (
                     <div key={channel} className="flex items-center justify-between sm:justify-center gap-2">
                       {/* Etiqueta sólo en móvil, donde no hay cabecera de columnas */}
-                      <span className="sm:hidden text-[11px] text-[var(--text-muted)] flex items-center gap-1.5">
+                      <span className="sm:hidden text-[11px] text-[var(--fc-text-muted)] flex items-center gap-1.5">
                         <Icon className="w-3.5 h-3.5" />
                         {CHANNEL_META[channel].label}
                       </span>
@@ -166,14 +166,14 @@ export function PreferencesSettings() {
                       {supported ? (
                         <Toggle
                           size="sm"
-                          checked={(prefs.notifications as any)[event][channel]}
+                          checked={prefs.notifications[event][channel]}
                           onChange={(value) => setChannel(event, channel, value)}
                           disabled={channel === "whatsapp" && !hasWhatsapp}
                           label={`${meta.label} por ${CHANNEL_META[channel].label}`}
                         />
                       ) : (
                         <span
-                          className="text-[10px] text-[var(--text-muted)] opacity-40"
+                          className="text-[10px] text-[var(--fc-text-muted)] opacity-40"
                           title="Este aviso no se envía por este canal"
                         >
                           —
@@ -192,11 +192,11 @@ export function PreferencesSettings() {
       <SettingsCard
         title="Interfaz"
         description="Ajustes visuales de esta cuenta. Se sincronizan con todos tus dispositivos."
-        icon={<Monitor className="w-5 h-5 text-[var(--cyan)]" />}
+        icon={<Monitor className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
         <div className="pb-6 mb-1 border-b border-[var(--hairline)]">
-          <label className="text-[13px] font-medium text-[var(--foreground)] block mb-1">Tema</label>
-          <p className="text-xs text-[var(--text-muted)] mb-4 leading-relaxed max-w-xl">
+          <label className="text-[13px] font-medium text-[var(--fc-text)] block mb-1">Tema</label>
+          <p className="text-xs text-[var(--fc-text-muted)] mb-4 leading-relaxed max-w-xl">
             «Sistema» sigue la configuración de tu equipo. Tu elección queda guardada en la cuenta,
             así que te acompaña a cualquier dispositivo.
           </p>

@@ -1,4 +1,4 @@
-Ôªø"use client";
+"use client";
 
 import React, { useState } from "react";
 import { AlertTriangle, AlertCircle, TrendingUp, ChevronDown, ChevronUp, X } from "lucide-react";
@@ -19,21 +19,21 @@ const LEVEL_CONFIG: Record<AlertLevel, {
     icon: <AlertCircle className="w-3.5 h-3.5" />,
     borderColor: "rgba(229,72,77,0.3)",
     bgColor: "rgba(229,72,77,0.06)",
-    textColor: "var(--red)",
-    label: "ALERTA CR√çTICA",
+    textColor: "var(--fc-danger)",
+    label: "ALERTA CRÕTICA",
   },
   warning: {
     icon: <AlertTriangle className="w-3.5 h-3.5" />,
     borderColor: "rgba(251,191,36,0.3)",
     bgColor: "rgba(251,191,36,0.06)",
-    textColor: "var(--amber)",
+    textColor: "var(--fc-warning)",
     label: "ADVERTENCIA",
   },
   positive: {
     icon: <TrendingUp className="w-3.5 h-3.5" />,
     borderColor: "rgba(52,211,153,0.3)",
     bgColor: "rgba(52,211,153,0.06)",
-    textColor: "var(--emerald)",
+    textColor: "var(--fc-success)",
     label: "POSITIVO",
   },
 };
@@ -75,22 +75,22 @@ export function AlertsCenter({ alerts }: AlertsCenterProps) {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "10px" }}>
           {criticalCount > 0 && (
-            <span style={{ display: "flex", alignItems: "center", gap: "3px", color: "var(--red)", fontWeight: 700 }}>
-              <AlertCircle className="w-3.5 h-3.5" /> {criticalCount} cr√≠tica{criticalCount !== 1 ? "s" : ""}
+            <span style={{ display: "flex", alignItems: "center", gap: "3px", color: "var(--fc-danger)", fontWeight: 700 }}>
+              <AlertCircle className="w-3.5 h-3.5" /> {criticalCount} crÌtica{criticalCount !== 1 ? "s" : ""}
             </span>
           )}
           {warningCount > 0 && (
-            <span style={{ display: "flex", alignItems: "center", gap: "3px", color: "var(--amber)", fontWeight: 700 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: "3px", color: "var(--fc-warning)", fontWeight: 700 }}>
               <AlertTriangle className="w-3.5 h-3.5" /> {warningCount} advertencia{warningCount !== 1 ? "s" : ""}
             </span>
           )}
           {positiveCount > 0 && (
-            <span style={{ display: "flex", alignItems: "center", gap: "3px", color: "var(--emerald)", fontWeight: 700 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: "3px", color: "var(--fc-success)", fontWeight: 700 }}>
               <TrendingUp className="w-3.5 h-3.5" /> {positiveCount} positiva{positiveCount !== 1 ? "s" : ""}
             </span>
           )}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "4px", color: "var(--text-muted)", fontSize: "9px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "4px", color: "var(--fc-text-muted)", fontSize: "9px" }}>
           {expanded ? "Colapsar" : `Ver ${visible.length} alertas`}
           {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         </div>
@@ -117,7 +117,7 @@ export function AlertsCenter({ alerts }: AlertsCenterProps) {
                 <div style={{ fontSize: "10px", fontWeight: 700, color: cfg.textColor, marginBottom: "2px" }}>
                   {alert.title}
                 </div>
-                <div style={{ fontSize: "10px", color: "var(--text-secondary)", lineHeight: "1.4" }}>
+                <div style={{ fontSize: "10px", color: "var(--fc-text-secondary)", lineHeight: "1.4" }}>
                   {alert.message}
                 </div>
               </div>
@@ -127,7 +127,7 @@ export function AlertsCenter({ alerts }: AlertsCenterProps) {
                   setDismissed(prev => new Set(prev).add(alert.id));
                 }}
                 style={{
-                  background: "none", border: "none", color: "var(--text-muted)",
+                  background: "none", border: "none", color: "var(--fc-text-muted)",
                   cursor: "pointer", padding: 0, flexShrink: 0,
                 }}
               >
@@ -144,11 +144,11 @@ export function AlertsCenter({ alerts }: AlertsCenterProps) {
           onClick={() => setExpanded(true)}
           style={{
             padding: "6px 14px", textAlign: "center",
-            fontSize: "9px", color: "var(--text-muted)", cursor: "pointer",
+            fontSize: "9px", color: "var(--fc-text-muted)", cursor: "pointer",
             border: "1px solid var(--hairline)",
           }}
         >
-          Ver {visible.length - 3} alertas m√°s...
+          Ver {visible.length - 3} alertas m·s...
         </div>
       )}
     </div>

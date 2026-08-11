@@ -90,16 +90,16 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
           padding: "6px 12px", borderRadius: 8,
           background: "var(--surface-hover)",
           border: "1px solid var(--hairline)",
-          color: "var(--foreground)", fontSize: 12, cursor: "pointer",
+          color: "var(--fc-text)", fontSize: 12, cursor: "pointer",
           transition: "all 0.2s",
         }}
         onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"}
         onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"}
       >
-        <Globe style={{ width: 12, height: 12, color: "var(--cyan)" }} />
+        <Globe style={{ width: 12, height: 12, color: "var(--fc-accent)" }} />
         {label}
         <ChevronDown style={{
-          width: 12, height: 12, color: "var(--text-muted)",
+          width: 12, height: 12, color: "var(--fc-text-muted)",
           transform: open ? "rotate(180deg)" : "none",
           transition: "transform 0.2s",
         }} />
@@ -109,7 +109,7 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
         <div style={{
           position: "absolute", top: "calc(100% + 4px)", left: 0,
           minWidth: 280, borderRadius: 10, overflow: "hidden",
-          background: "var(--surface)",
+          background: "var(--fc-surface)",
           border: "1px solid var(--hairline)",
           boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
           zIndex: 100,
@@ -123,17 +123,17 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
                 width: "100%", padding: "10px 14px",
                 border: "1px solid var(--hairline)",
                 background: "none", cursor: "pointer",
-                color: "var(--text-secondary)", fontSize: 11,
+                color: "var(--fc-text-secondary)", fontSize: 11,
               }}
             >
               <div style={{
                 width: 16, height: 16, borderRadius: 4,
-                border: `1px solid ${selectedIds.size === pages.length ? "var(--cyan)" : "rgba(255,255,255,0.15)"}`,
+                border: `1px solid ${selectedIds.size === pages.length ? "var(--fc-accent)" : "rgba(255,255,255,0.15)"}`,
                 background: selectedIds.size === pages.length ? "rgba(59,130,246,0.15)" : "transparent",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
                 {selectedIds.size === pages.length && (
-                  <Check style={{ width: 10, height: 10, color: "var(--cyan)" }} />
+                  <Check style={{ width: 10, height: 10, color: "var(--fc-accent)" }} />
                 )}
               </div>
               Seleccionar todas
@@ -164,13 +164,13 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
                 {/* Checkbox */}
                 <div style={{
                   width: 16, height: 16, borderRadius: 4, flexShrink: 0,
-                  border: `1px solid ${isSelected ? "var(--cyan)" : "rgba(255,255,255,0.15)"}`,
+                  border: `1px solid ${isSelected ? "var(--fc-accent)" : "rgba(255,255,255,0.15)"}`,
                   background: isSelected ? "rgba(59,130,246,0.15)" : "transparent",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   transition: "all 0.2s",
                 }}>
                   {isSelected && (
-                    <Check style={{ width: 10, height: 10, color: "var(--cyan)" }} />
+                    <Check style={{ width: 10, height: 10, color: "var(--fc-accent)" }} />
                   )}
                 </div>
 
@@ -188,9 +188,9 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
                 ) : (
                   <div style={{
                     width: 24, height: 24, borderRadius: "50%",
-                    background: "var(--cyan-dim)",
+                    background: "var(--fc-accent-wash)",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 10, fontWeight: 600, color: "var(--cyan)",
+                    fontSize: 10, fontWeight: 600, color: "var(--fc-accent)",
                     flexShrink: 0,
                   }}>
                     {page.name.charAt(0)}
@@ -199,11 +199,11 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
 
                 {/* Page info */}
                 <div style={{ flex: 1, textAlign: "left" }}>
-                  <div style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground)" }}>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: "var(--fc-text)" }}>
                     {page.name}
                   </div>
                   {page.instagramId && (
-                    <div style={{ fontSize: 10, color: "var(--text-muted)" }}>
+                    <div style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>
                       + Instagram vinculado
                     </div>
                   )}

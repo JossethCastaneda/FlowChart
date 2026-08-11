@@ -93,9 +93,9 @@ export function HScroller({ children, ariaLabel, gap = 16, snap = true, style, r
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "var(--surface)",
+    background: "var(--fc-surface)",
     border: "1px solid var(--border-strong)",
-    color: "var(--foreground)",
+    color: "var(--fc-text)",
     cursor: "pointer",
     boxShadow: "0 2px 10px rgba(0,0,0,0.35)",
     transition: "background 0.15s, opacity 0.15s",
@@ -109,7 +109,7 @@ export function HScroller({ children, ariaLabel, gap = 16, snap = true, style, r
           aria-label="Desplazar a la izquierda"
           onClick={() => nudge(-1)}
           onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "var(--surface)")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "var(--fc-surface)")}
           style={arrowStyle("left")}
         >
           <SIcon icon={ChevronLeft} size={16} />
@@ -121,7 +121,7 @@ export function HScroller({ children, ariaLabel, gap = 16, snap = true, style, r
           aria-label="Desplazar a la derecha"
           onClick={() => nudge(1)}
           onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "var(--surface)")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "var(--fc-surface)")}
           style={arrowStyle("right")}
         >
           <SIcon icon={ChevronRight} size={16} />

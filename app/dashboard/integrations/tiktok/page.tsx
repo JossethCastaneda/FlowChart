@@ -170,7 +170,7 @@ export default function TikTokIntegrationPage() {
               <button
                 onClick={handleDisconnect}
                 disabled={disconnecting}
-                style={{ padding: "9px 20px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--fc-danger)", cursor: "pointer", fontFamily: "inherit", opacity: disconnecting ? 0.6 : 1 }}
+                style={{ padding: "9px 20px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "var(--fc-danger-wash)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--fc-danger)", cursor: "pointer", fontFamily: "inherit", opacity: disconnecting ? 0.6 : 1 }}
               >
                 {disconnecting ? "..." : (lang === "es" ? "Desconectar" : "Disconnect")}
               </button>

@@ -11,7 +11,7 @@ export default function IntegrationsPage() {
       <SettingsCard
         title="Integraciones"
         description="Conecta las cuentas de anuncios, analítica y contenido que alimentan los módulos de Sodare."
-        icon={<Plug className="w-5 h-5 text-[var(--cyan)]" />}
+        icon={<Plug className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
         <IntegrationsView />
       </SettingsCard>
@@ -21,7 +21,7 @@ export default function IntegrationsPage() {
       <SettingsCard
         title="WhatsApp Business"
         description="Conecta la línea del workspace para recibir mensajes en Inbox y enviar avisos de tareas y SLA."
-        icon={<MessageCircle className="w-5 h-5 text-[var(--cyan)]" />}
+        icon={<MessageCircle className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
         <WhatsAppConnectCard />
       </SettingsCard>

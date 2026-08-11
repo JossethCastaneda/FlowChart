@@ -76,7 +76,7 @@ const BG_ROW    = "rgba(8,12,24,1)";
 const BG_HOVER  = "rgba(14,20,40,1)";
 const BG_SEL    = "rgba(4,20,50,1)";
 const BG_FOOTER = "rgba(3,7,18,1)";
-const BORDER    = "1px solid var(--border)";
+const BORDER    = "1px solid var(--fc-border)";
 
 // Accent lines for header and footer
 const TH_BORDER_BOTTOM = "2px solid rgba(59,130,246,0.45)";
@@ -419,8 +419,8 @@ export function AdsManagerTable({
   // ── Sort indicator ────────────────────────────────────────────────────────
   const renderSortIcon = (col: string) => {
     if (sortCol !== col) return <ChevronsUpDown className="w-3 h-3 inline-block ml-1" style={{ opacity: 0.3 }} />;
-    if (sortDir === "asc") return <ArrowUp className="w-3 h-3 inline-block ml-1" style={{ color: "var(--cyan)" }} />;
-    return <ArrowDown className="w-3 h-3 inline-block ml-1" style={{ color: "var(--cyan)" }} />;
+    if (sortDir === "asc") return <ArrowUp className="w-3 h-3 inline-block ml-1" style={{ color: "var(--fc-accent)" }} />;
+    return <ArrowDown className="w-3 h-3 inline-block ml-1" style={{ color: "var(--fc-accent)" }} />;
   };
 
   // ── Resize handle ─────────────────────────────────────────────────────────
@@ -517,8 +517,8 @@ export function AdsManagerTable({
   return (
     <div
       style={{
-        background: "var(--surface)",
-        border: "1px solid var(--border)",
+        background: "var(--fc-surface)",
+        border: "1px solid var(--fc-border)",
         borderRadius: "8px",
         width: "100%",
         display: "flex",
@@ -555,7 +555,7 @@ export function AdsManagerTable({
                   type="checkbox"
                   checked={isAllSelected}
                   onChange={onToggleSelectAll}
-                  style={{ accentColor: "var(--cyan)", cursor: "pointer" }}
+                  style={{ accentColor: "var(--fc-accent)", cursor: "pointer" }}
                 />
               </th>
 
@@ -774,7 +774,7 @@ export function AdsManagerTable({
                         checked={isSelected}
                         onChange={() => onToggleSelect(row.id)}
                         onClick={e => e.stopPropagation()}
-                        style={{ accentColor: "var(--cyan)", cursor: "pointer" }}
+                        style={{ accentColor: "var(--fc-accent)", cursor: "pointer" }}
                       />
                     </td>
 
@@ -797,10 +797,10 @@ export function AdsManagerTable({
                             if (!thumbUrl) return (
                               <div style={{
                                 width: 44, height: 44, minWidth: 44, borderRadius: 6,
-                                background: "var(--surface)",
+                                background: "var(--fc-surface)",
                                 border: "1px solid rgba(100,120,150,0.15)",
                                 display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 8, color: "var(--text-muted)",
+                                fontSize: 8, color: "var(--fc-text-muted)",
                                 fontWeight: 600, letterSpacing: "0.05em",
                               }}>
                                 AD
@@ -855,11 +855,11 @@ export function AdsManagerTable({
                                   style={{
                                     display: "flex", alignItems: "center", justifyContent: "center",
                                     width: 20, height: 20,
-                                    background: "var(--surface)",
+                                    background: "var(--fc-surface)",
                                     border: "1px solid rgba(59,130,246,0.2)",
                                     borderRadius: 4,
                                     cursor: "pointer",
-                                    color: "var(--cyan)",
+                                    color: "var(--fc-accent)",
                                     padding: 0,
                                     flexShrink: 0,
                                     transition: "all 0.15s",
@@ -871,14 +871,14 @@ export function AdsManagerTable({
                                 </button>
                               )}
                             </div>
-                            <span style={{ fontSize: 9, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4 }}>
-                              {row._accountName && <span style={{ padding: "1px 4px", fontSize: 8, background: "var(--surface)", color: "rgba(59,130,246,0.7)", borderRadius: 2, fontWeight: 600 }}>{row._accountName}</span>}
+                            <span style={{ fontSize: 9, color: "var(--fc-text-muted)", display: "flex", alignItems: "center", gap: 4 }}>
+                              {row._accountName && <span style={{ padding: "1px 4px", fontSize: 8, background: "var(--fc-surface)", color: "rgba(59,130,246,0.7)", borderRadius: 2, fontWeight: 600 }}>{row._accountName}</span>}
                               ID: {row.id}{" "}
                               <a
                                 href={`https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=${row.campaign_id || row.id}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                style={{ display: "inline-flex", alignItems: "center", color: "var(--cyan)" }}
+                                style={{ display: "inline-flex", alignItems: "center", color: "var(--fc-accent)" }}
                                 onClick={e => e.stopPropagation()}
                               >
                                 <ExternalLink className="w-2.5 h-2.5" />
@@ -894,7 +894,7 @@ export function AdsManagerTable({
                       <td data-frozen style={tdFrozen(L_DEL, DELIVERY_W, rowBg, isLastFrozen("delivery"))}>
                         {(() => {
                           const effStatus = row.effective_status || row.status;
-                          const sw = SW_STATUS[effStatus] || SW_STATUS[row.status] || { label: effStatus, color: "var(--text-muted)", glow: "rgba(107,114,128,0.3)" };
+                          const sw = SW_STATUS[effStatus] || SW_STATUS[row.status] || { label: effStatus, color: "var(--fc-text-muted)", glow: "rgba(107,114,128,0.3)" };
                           return (
                             <span style={{
                               fontSize: 8, fontWeight: 700, padding: "3px 8px", borderRadius: 4,
@@ -925,12 +925,12 @@ export function AdsManagerTable({
                             ) : (
                               <span style={{ fontSize: 11, fontWeight: 500 }}>{fmt$(rawBudget)}</span>
                             )}
-                            <span style={{ fontSize: 8, color: "var(--text-muted)", textTransform: "uppercase" }}>
+                            <span style={{ fontSize: 8, color: "var(--fc-text-muted)", textTransform: "uppercase" }}>
                               {hasDaily ? "Diario" : "Total"}
                             </span>
                           </div>
                         ) : (
-                          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Usando CBO</span>
+                          <span style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>Usando CBO</span>
                         )}
                       </td>
                     )}
@@ -946,7 +946,7 @@ export function AdsManagerTable({
                             onSave={val => onUpdateBidAmount ? onUpdateBidAmount(row.id, val as number) : Promise.resolve(false)}
                           />
                         ) : (
-                          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Automático</span>
+                          <span style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>Automático</span>
                         )}
                       </td>
                     )}
@@ -966,7 +966,7 @@ export function AdsManagerTable({
                             {objInfo.icon} {objInfo.label}
                           </span>
                         ) : (
-                          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{row.objective || "—"}</span>
+                          <span style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>{row.objective || "—"}</span>
                         )}
                       </td>
                     )}
@@ -976,10 +976,10 @@ export function AdsManagerTable({
                       <td style={tdMetric("roas")}>
                         <span style={{
                           fontSize: 11, fontWeight: 700,
-                          color: roas === 0 ? "var(--text-muted)"
-                            : roas >= 3 ? "var(--emerald)"
-                            : roas >= 1.5 ? "var(--amber)"
-                            : "var(--red)",
+                          color: roas === 0 ? "var(--fc-text-muted)"
+                            : roas >= 3 ? "var(--fc-success)"
+                            : roas >= 1.5 ? "var(--fc-warning)"
+                            : "var(--fc-danger)",
                         }}>
                           {roas === 0 ? "—" : fmtROAS(roas)}
                         </span>
@@ -999,7 +999,7 @@ export function AdsManagerTable({
                             {learningMapped.swLabel}
                           </span>
                         ) : (
-                          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>—</span>
+                          <span style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>—</span>
                         )}
                       </td>
                     )}
@@ -1011,101 +1011,101 @@ export function AdsManagerTable({
                           <span style={{
                             display: "inline-flex", alignItems: "center", gap: 3,
                             fontSize: 9, fontWeight: 700, padding: "3px 8px", borderRadius: 4,
-                            background: "var(--surface)", color: "var(--purple)",
+                            background: "var(--fc-surface)", color: "var(--fc-module-aria)",
                             border: "1px solid rgba(155,123,232,0.25)",
                           }}>
                             <Zap className="w-3 h-3" /> ADV+
                           </span>
                         ) : (
-                          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>—</span>
+                          <span style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>—</span>
                         )}
                       </td>
                     )}
 
                     {visibleColumns.includes("reach") && (
-                      <td style={{ ...tdMetric("reach"), color: "var(--foreground)" }}>{fmtNum(reach)}</td>
+                      <td style={{ ...tdMetric("reach"), color: "var(--fc-text)" }}>{fmtNum(reach)}</td>
                     )}
                     {visibleColumns.includes("impressions") && (
-                      <td style={{ ...tdMetric("impressions"), color: "var(--foreground)" }}>{fmtNum(impressions)}</td>
+                      <td style={{ ...tdMetric("impressions"), color: "var(--fc-text)" }}>{fmtNum(impressions)}</td>
                     )}
                     {visibleColumns.includes("cpm") && (
-                      <td style={{ ...tdMetric("cpm"), color: "var(--foreground)" }}>{fmt$(safeFloat(ins.cpm))}</td>
+                      <td style={{ ...tdMetric("cpm"), color: "var(--fc-text)" }}>{fmt$(safeFloat(ins.cpm))}</td>
                     )}
                     {visibleColumns.includes("frequency") && (
                       <td style={{
                         ...tdMetric("frequency"),
-                        color: freqAlert === "critical" ? "var(--red)"
-                          : freqAlert === "warning" ? "var(--amber)"
-                          : "var(--foreground)",
+                        color: freqAlert === "critical" ? "var(--fc-danger)"
+                          : freqAlert === "warning" ? "var(--fc-warning)"
+                          : "var(--fc-text)",
                         fontWeight: freqAlert !== "none" ? 700 : undefined,
                       }}>
                         <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
                           {fmtDec(freq)}
-                          {freqAlert === "critical" && <AlertTriangle className="w-3 h-3" style={{ color: "var(--red)", animation: "pulse 1.5s infinite" }} />}
-                          {freqAlert === "warning" && <AlertTriangle className="w-3 h-3" style={{ color: "var(--amber)" }} />}
+                          {freqAlert === "critical" && <AlertTriangle className="w-3 h-3" style={{ color: "var(--fc-danger)", animation: "pulse 1.5s infinite" }} />}
+                          {freqAlert === "warning" && <AlertTriangle className="w-3 h-3" style={{ color: "var(--fc-warning)" }} />}
                         </span>
                       </td>
                     )}
                     {visibleColumns.includes("clicks") && (
-                      <td style={{ ...tdMetric("clicks"), color: "var(--foreground)" }}>{fmtNum(safeInt(ins.clicks))}</td>
+                      <td style={{ ...tdMetric("clicks"), color: "var(--fc-text)" }}>{fmtNum(safeInt(ins.clicks))}</td>
                     )}
                     {visibleColumns.includes("ctr") && (
-                      <td style={{ ...tdMetric("ctr"), color: "var(--foreground)" }}>{fmtPct(safeFloat(ins.ctr))}</td>
+                      <td style={{ ...tdMetric("ctr"), color: "var(--fc-text)" }}>{fmtPct(safeFloat(ins.ctr))}</td>
                     )}
                     {visibleColumns.includes("cpc") && (
-                      <td style={{ ...tdMetric("cpc"), color: "var(--foreground)" }}>{fmt$(safeFloat(ins.cpc))}</td>
+                      <td style={{ ...tdMetric("cpc"), color: "var(--fc-text)" }}>{fmt$(safeFloat(ins.cpc))}</td>
                     )}
                     {visibleColumns.includes("results") && (
                       <td style={tdMetric("results")}>
                         <div style={{ display: "flex", flexDirection: "column" }}>
-                          <span style={{ fontSize: 11, fontWeight: 600, color: "var(--foreground)" }}>{fmtNum(resultsCount)}</span>
-                          <span style={{ fontSize: 9, color: "var(--text-muted)" }}>{resultsLabel}</span>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: "var(--fc-text)" }}>{fmtNum(resultsCount)}</span>
+                          <span style={{ fontSize: 9, color: "var(--fc-text-muted)" }}>{resultsLabel}</span>
                         </div>
                       </td>
                     )}
                     {visibleColumns.includes("conversations") && (
-                      <td style={{ ...tdMetric("conversations"), color: "var(--foreground)", fontWeight: 600 }}>{fmtNum(convsCount)}</td>
+                      <td style={{ ...tdMetric("conversations"), color: "var(--fc-text)", fontWeight: 600 }}>{fmtNum(convsCount)}</td>
                     )}
                     {visibleColumns.includes("cost_per_message") && (
-                      <td style={{ ...tdMetric("cost_per_message"), color: "var(--cyan)" }}>
+                      <td style={{ ...tdMetric("cost_per_message"), color: "var(--fc-accent)" }}>
                         {convsCount > 0 ? fmt$(costPerConv) : "$0.00"}
                       </td>
                     )}
                     {visibleColumns.includes("cost_per_conversation") && (
-                      <td style={{ ...tdMetric("cost_per_conversation"), color: "var(--cyan)" }}>
+                      <td style={{ ...tdMetric("cost_per_conversation"), color: "var(--fc-accent)" }}>
                         {convsCount > 0 ? fmt$(costPerConv) : "$0.00"}
                       </td>
                     )}
                     {visibleColumns.includes("cpa") && (
                       <td style={tdMetric("cpa")}>
                         <div style={{ display: "flex", flexDirection: "column" }}>
-                          <span style={{ fontSize: 11, fontWeight: 600, color: "var(--cyan)" }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: "var(--fc-accent)" }}>
                             {cpa.value > 0 ? fmt$(cpa.value) : "—"}
                           </span>
-                          <span style={{ fontSize: 8, color: "var(--text-muted)" }}>{cpa.label}</span>
+                          <span style={{ fontSize: 8, color: "var(--fc-text-muted)" }}>{cpa.label}</span>
                         </div>
                       </td>
                     )}
                     {visibleColumns.includes("landing_page_views") && (
-                      <td style={{ ...tdMetric("landing_page_views"), color: "var(--foreground)" }}>{lpv > 0 ? fmtNum(lpv) : "—"}</td>
+                      <td style={{ ...tdMetric("landing_page_views"), color: "var(--fc-text)" }}>{lpv > 0 ? fmtNum(lpv) : "—"}</td>
                     )}
                     {visibleColumns.includes("hook_rate") && (
                       <td style={tdMetric("hook_rate")}>
                         {hookRate > 0 ? (
                           <span style={{
                             fontSize: 11, fontWeight: 600,
-                            color: hookRate >= 35 ? "var(--emerald)" : hookRate >= 20 ? "var(--amber)" : "var(--red)",
+                            color: hookRate >= 35 ? "var(--fc-success)" : hookRate >= 20 ? "var(--fc-warning)" : "var(--fc-danger)",
                           }}>
                             {fmtPct(hookRate)}
                           </span>
                         ) : (
-                          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>—</span>
+                          <span style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>—</span>
                         )}
                       </td>
                     )}
                     {visibleColumns.includes("spend") && (
                       <td style={tdMetric("spend")}>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: "var(--foreground)" }}>{fmt$(spend)}</span>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: "var(--fc-text)" }}>{fmt$(spend)}</span>
                       </td>
                     )}
                     {visibleColumns.includes("quality_ranking") && level === "ads" && (
@@ -1119,10 +1119,10 @@ export function AdsManagerTable({
                               ? "rgba(229,72,77,0.15)"
                               : "rgba(224,168,60,0.15)",
                             color: ins.quality_ranking?.includes("ABOVE")
-                              ? "var(--emerald)"
+                              ? "var(--fc-success)"
                               : ins.quality_ranking?.includes("BELOW")
-                              ? "var(--red)"
-                              : "var(--amber)",
+                              ? "var(--fc-danger)"
+                              : "var(--fc-warning)",
                           }}
                         >
                           {ins.quality_ranking || "PROMEDIO"}
@@ -1133,105 +1133,105 @@ export function AdsManagerTable({
                     {/* ── Ghost columns row cells ── */}
                     {visibleColumns.includes("purchases") && (() => {
                       const v = findActionValue(ins.actions, "omni_purchase") || findActionValue(ins.actions, "purchase");
-                      return <td style={{ ...tdMetric("purchases"), color: "var(--foreground)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
+                      return <td style={{ ...tdMetric("purchases"), color: "var(--fc-text)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
                     })()}
                     {visibleColumns.includes("cost_per_purchase") && (() => {
                       const p = findActionValue(ins.actions, "omni_purchase") || findActionValue(ins.actions, "purchase");
                       const cpp = p > 0 ? spend / p : 0;
-                      return <td style={{ ...tdMetric("cost_per_purchase"), color: "var(--cyan)" }}>{cpp > 0 ? fmt$(cpp) : "—"}</td>;
+                      return <td style={{ ...tdMetric("cost_per_purchase"), color: "var(--fc-accent)" }}>{cpp > 0 ? fmt$(cpp) : "—"}</td>;
                     })()}
                     {visibleColumns.includes("leads") && (() => {
                       const v = findActionValue(ins.actions, "lead");
-                      return <td style={{ ...tdMetric("leads"), color: "var(--foreground)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
+                      return <td style={{ ...tdMetric("leads"), color: "var(--fc-text)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
                     })()}
                     {visibleColumns.includes("cost_per_lead") && (() => {
                       const l = findActionValue(ins.actions, "lead");
                       const cpl = l > 0 ? spend / l : 0;
-                      return <td style={{ ...tdMetric("cost_per_lead"), color: "var(--cyan)" }}>{cpl > 0 ? fmt$(cpl) : "—"}</td>;
+                      return <td style={{ ...tdMetric("cost_per_lead"), color: "var(--fc-accent)" }}>{cpl > 0 ? fmt$(cpl) : "—"}</td>;
                     })()}
                     {visibleColumns.includes("outbound_clicks") && (
-                      <td style={{ ...tdMetric("outbound_clicks"), color: "var(--foreground)" }}>
+                      <td style={{ ...tdMetric("outbound_clicks"), color: "var(--fc-text)" }}>
                         {safeInt(ins.outbound_clicks?.[0]?.value) > 0 ? fmtNum(safeInt(ins.outbound_clicks?.[0]?.value)) : "—"}
                       </td>
                     )}
                     {visibleColumns.includes("outbound_ctr") && (() => {
                       const oc = safeInt(ins.outbound_clicks?.[0]?.value);
                       const octr = impressions > 0 ? (oc / impressions) * 100 : 0;
-                      return <td style={{ ...tdMetric("outbound_ctr"), color: "var(--foreground)" }}>{octr > 0 ? fmtPct(octr) : "—"}</td>;
+                      return <td style={{ ...tdMetric("outbound_ctr"), color: "var(--fc-text)" }}>{octr > 0 ? fmtPct(octr) : "—"}</td>;
                     })()}
                     {visibleColumns.includes("unique_ctr") && (
-                      <td style={{ ...tdMetric("unique_ctr"), color: "var(--foreground)" }}>
+                      <td style={{ ...tdMetric("unique_ctr"), color: "var(--fc-text)" }}>
                         {safeFloat(ins.unique_ctr) > 0 ? fmtPct(safeFloat(ins.unique_ctr)) : "—"}
                       </td>
                     )}
                     {visibleColumns.includes("thruplay") && (() => {
                       const tp = findActionValue(ins.video_thruplay_watched_actions, "video_view");
-                      return <td style={{ ...tdMetric("thruplay"), color: "var(--foreground)" }}>{tp > 0 ? fmtNum(tp) : "—"}</td>;
+                      return <td style={{ ...tdMetric("thruplay"), color: "var(--fc-text)" }}>{tp > 0 ? fmtNum(tp) : "—"}</td>;
                     })()}
                     {visibleColumns.includes("thruplay_rate") && (() => {
                       const tp = findActionValue(ins.video_thruplay_watched_actions, "video_view");
                       const rate = impressions > 0 ? (tp / impressions) * 100 : 0;
-                      return <td style={{ ...tdMetric("thruplay_rate"), color: "var(--foreground)" }}>{rate > 0 ? fmtPct(rate) : "—"}</td>;
+                      return <td style={{ ...tdMetric("thruplay_rate"), color: "var(--fc-text)" }}>{rate > 0 ? fmtPct(rate) : "—"}</td>;
                     })()}
                     {visibleColumns.includes("cost_per_thruplay") && (() => {
                       const tp = findActionValue(ins.video_thruplay_watched_actions, "video_view");
                       const cpt = tp > 0 ? spend / tp : 0;
-                      return <td style={{ ...tdMetric("cost_per_thruplay"), color: "var(--cyan)" }}>{cpt > 0 ? fmt$(cpt) : "—"}</td>;
+                      return <td style={{ ...tdMetric("cost_per_thruplay"), color: "var(--fc-accent)" }}>{cpt > 0 ? fmt$(cpt) : "—"}</td>;
                     })()}
                     {visibleColumns.includes("video_p25") && (() => {
                       const v = findActionValue(ins.video_p25_watched_actions, "video_view");
-                      return <td style={{ ...tdMetric("video_p25"), color: "var(--foreground)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
+                      return <td style={{ ...tdMetric("video_p25"), color: "var(--fc-text)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
                     })()}
                     {visibleColumns.includes("video_p50") && (() => {
                       const v = findActionValue(ins.video_p50_watched_actions, "video_view");
-                      return <td style={{ ...tdMetric("video_p50"), color: "var(--foreground)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
+                      return <td style={{ ...tdMetric("video_p50"), color: "var(--fc-text)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
                     })()}
                     {visibleColumns.includes("video_p75") && (() => {
                       const v = findActionValue(ins.video_p75_watched_actions, "video_view");
-                      return <td style={{ ...tdMetric("video_p75"), color: "var(--foreground)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
+                      return <td style={{ ...tdMetric("video_p75"), color: "var(--fc-text)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
                     })()}
                     {visibleColumns.includes("video_p100") && (() => {
                       const v = findActionValue(ins.video_p100_watched_actions, "video_view");
-                      return <td style={{ ...tdMetric("video_p100"), color: "var(--foreground)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
+                      return <td style={{ ...tdMetric("video_p100"), color: "var(--fc-text)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
                     })()}
                     {visibleColumns.includes("video_plays") && (() => {
                       const v = findActionValue(ins.video_p25_watched_actions, "video_view");
-                      return <td style={{ ...tdMetric("video_plays"), color: "var(--foreground)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
+                      return <td style={{ ...tdMetric("video_plays"), color: "var(--fc-text)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
                     })()}
                     {visibleColumns.includes("video_plays_100") && (() => {
                       const v = findActionValue(ins.video_p100_watched_actions, "video_view");
-                      return <td style={{ ...tdMetric("video_plays_100"), color: "var(--foreground)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
+                      return <td style={{ ...tdMetric("video_plays_100"), color: "var(--fc-text)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
                     })()}
                     {visibleColumns.includes("add_to_cart") && (() => {
                       const v = findActionValue(ins.actions, "add_to_cart");
-                      return <td style={{ ...tdMetric("add_to_cart"), color: "var(--foreground)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
+                      return <td style={{ ...tdMetric("add_to_cart"), color: "var(--fc-text)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
                     })()}
                     {visibleColumns.includes("cost_per_atc") && (() => {
                       const atc = findActionValue(ins.actions, "add_to_cart");
                       const cpa2 = atc > 0 ? spend / atc : 0;
-                      return <td style={{ ...tdMetric("cost_per_atc"), color: "var(--cyan)" }}>{cpa2 > 0 ? fmt$(cpa2) : "—"}</td>;
+                      return <td style={{ ...tdMetric("cost_per_atc"), color: "var(--fc-accent)" }}>{cpa2 > 0 ? fmt$(cpa2) : "—"}</td>;
                     })()}
                     {visibleColumns.includes("initiate_checkout") && (() => {
                       const v = findActionValue(ins.actions, "initiate_checkout");
-                      return <td style={{ ...tdMetric("initiate_checkout"), color: "var(--foreground)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
+                      return <td style={{ ...tdMetric("initiate_checkout"), color: "var(--fc-text)" }}>{v > 0 ? fmtNum(v) : "—"}</td>;
                     })()}
                     {visibleColumns.includes("cost_per_ic") && (() => {
                       const ic = findActionValue(ins.actions, "initiate_checkout");
                       const cpic = ic > 0 ? spend / ic : 0;
-                      return <td style={{ ...tdMetric("cost_per_ic"), color: "var(--cyan)" }}>{cpic > 0 ? fmt$(cpic) : "—"}</td>;
+                      return <td style={{ ...tdMetric("cost_per_ic"), color: "var(--fc-accent)" }}>{cpic > 0 ? fmt$(cpic) : "—"}</td>;
                     })()}
                     {visibleColumns.includes("bid_strategy") && level !== "ads" && (
-                      <td style={{ ...tdMetric("bid_strategy"), fontSize: 9, color: "var(--text-secondary)" }}>
+                      <td style={{ ...tdMetric("bid_strategy"), fontSize: 9, color: "var(--fc-text-secondary)" }}>
                         {BID_LABELS[row.bid_strategy] || row.bid_strategy || "—"}
                       </td>
                     )}
                     {visibleColumns.includes("optimization_goal") && level === "adsets" && (
-                      <td style={{ ...tdMetric("optimization_goal"), fontSize: 9, color: "var(--text-secondary)" }}>
+                      <td style={{ ...tdMetric("optimization_goal"), fontSize: 9, color: "var(--fc-text-secondary)" }}>
                         {row.optimization_goal?.replace(/_/g, " ") || "—"}
                       </td>
                     )}
                     {visibleColumns.includes("last_edited") && (
-                      <td style={{ ...tdMetric("last_edited"), fontSize: 10, color: "var(--text-muted)" }}>
+                      <td style={{ ...tdMetric("last_edited"), fontSize: 10, color: "var(--fc-text-muted)" }}>
                         {fmtRelTime(row.updated_time)}
                       </td>
                     )}
@@ -1240,7 +1240,7 @@ export function AdsManagerTable({
                         <span style={{
                           fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4,
                           background: ins.engagement_rate_ranking?.includes("ABOVE") ? "rgba(52,183,124,0.15)" : ins.engagement_rate_ranking?.includes("BELOW") ? "rgba(229,72,77,0.15)" : "rgba(224,168,60,0.15)",
-                          color: ins.engagement_rate_ranking?.includes("ABOVE") ? "var(--emerald)" : ins.engagement_rate_ranking?.includes("BELOW") ? "var(--red)" : "var(--amber)",
+                          color: ins.engagement_rate_ranking?.includes("ABOVE") ? "var(--fc-success)" : ins.engagement_rate_ranking?.includes("BELOW") ? "var(--fc-danger)" : "var(--fc-warning)",
                         }}>
                           {ins.engagement_rate_ranking || "PROMEDIO"}
                         </span>
@@ -1251,7 +1251,7 @@ export function AdsManagerTable({
                         <span style={{
                           fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4,
                           background: ins.conversion_rate_ranking?.includes("ABOVE") ? "rgba(52,183,124,0.15)" : ins.conversion_rate_ranking?.includes("BELOW") ? "rgba(229,72,77,0.15)" : "rgba(224,168,60,0.15)",
-                          color: ins.conversion_rate_ranking?.includes("ABOVE") ? "var(--emerald)" : ins.conversion_rate_ranking?.includes("BELOW") ? "var(--red)" : "var(--amber)",
+                          color: ins.conversion_rate_ranking?.includes("ABOVE") ? "var(--fc-success)" : ins.conversion_rate_ranking?.includes("BELOW") ? "var(--fc-danger)" : "var(--fc-warning)",
                         }}>
                           {ins.conversion_rate_ranking || "PROMEDIO"}
                         </span>
@@ -1269,7 +1269,7 @@ export function AdsManagerTable({
                       : bd.device_platform || bd.country || bd.region || bd.dma || bd.date_start || bd.hourly_stats_aggregated_by_audience_time_zone || bd.impression_device || bd.image_asset?.name || bd.body_asset?.text?.substring(0, 40) || bd.title_asset?.text || `Row ${bdIdx + 1}`;
                     const bdBg = "rgba(4,12,28,1)";
                     return (
-                      <tr key={`${row.id}-bd-${bdIdx}`} style={{ background: "var(--cyan-dim)" }}>
+                      <tr key={`${row.id}-bd-${bdIdx}`} style={{ background: "var(--fc-accent-wash)" }}>
                         <td style={tdFrozen(L_CHECK, CHECKBOX_W, bdBg, false)} />
                         <td style={tdFrozen(L_STATUS, STATUS_W, bdBg, false)} />
                         {showName && (
@@ -1281,7 +1281,7 @@ export function AdsManagerTable({
                         {showBudg && <td style={tdFrozen(L_BUDG, BUDGET_W, bdBg, isLastFrozen("budget"))} />}
                         {showBid && <td style={tdFrozen(L_BID, BID_W, bdBg, isLastFrozen("bid"))} />}
                         {visibleColumns.filter(c => !["name", "delivery", "budget", "bid"].includes(c)).map((col) => (
-                          <td key={col} style={{ ...tdMetric(col), fontSize: 10, color: "var(--text-secondary)" }}>
+                          <td key={col} style={{ ...tdMetric(col), fontSize: 10, color: "var(--fc-text-secondary)" }}>
                             {col === "spend" ? fmt$(bd.spend || 0)
                               : col === "impressions" ? fmtNum(bd.impressions || 0)
                               : col === "clicks" ? fmtNum(bd.clicks || 0)
@@ -1306,9 +1306,9 @@ export function AdsManagerTable({
             <tfoot>
               <tr>
                 <td style={{ ...tfFrozen(L_CHECK, CHECKBOX_W, statusIsLast) }} />
-                <td style={{ ...tfFrozen(L_STATUS, STATUS_W, statusIsLast), color: "var(--foreground)" }}>TOTAL</td>
+                <td style={{ ...tfFrozen(L_STATUS, STATUS_W, statusIsLast), color: "var(--fc-text)" }}>TOTAL</td>
                 {showName && (
-                  <td style={{ ...tfFrozen(L_NAME, nameW, isLastFrozen("name")), color: "var(--text-muted)", fontWeight: 400 }}>
+                  <td style={{ ...tfFrozen(L_NAME, nameW, isLastFrozen("name")), color: "var(--fc-text-muted)", fontWeight: 400 }}>
                     {sortedData.length} elemento{sortedData.length !== 1 ? "s" : ""}
                   </td>
                 )}
@@ -1317,7 +1317,7 @@ export function AdsManagerTable({
                 {showBid  && <td style={tfFrozen(L_BID, BID_W, isLastFrozen("bid"))} />}
                 {visibleColumns.includes("objective") && level === "campaigns" && <td style={tfMetric("objective")} />}
                 {visibleColumns.includes("roas") && (
-                  <td style={{ ...tfMetric("roas"), color: avgRoas === 0 ? "var(--text-muted)" : avgRoas >= 3 ? "var(--emerald)" : avgRoas >= 1.5 ? "var(--amber)" : "var(--red)" }}>
+                  <td style={{ ...tfMetric("roas"), color: avgRoas === 0 ? "var(--fc-text-muted)" : avgRoas >= 3 ? "var(--fc-success)" : avgRoas >= 1.5 ? "var(--fc-warning)" : "var(--fc-danger)" }}>
                     {avgRoas === 0 ? "—" : fmtROAS(avgRoas)}
                   </td>
                 )}
@@ -1330,40 +1330,40 @@ export function AdsManagerTable({
                 {visibleColumns.includes("clicks") && <td style={tfMetric("clicks")}>{fmtNum(totalClicks)}</td>}
                 {visibleColumns.includes("ctr") && <td style={tfMetric("ctr")}>{fmtPct(avgCtr)}</td>}
                 {visibleColumns.includes("cpc") && <td style={tfMetric("cpc")}>{fmt$(avgCpc)}</td>}
-                {visibleColumns.includes("results") && <td style={{ ...tfMetric("results"), color: "var(--foreground)" }}>{fmtNum(totalResults)}</td>}
-                {visibleColumns.includes("conversations") && <td style={{ ...tfMetric("conversations"), color: "var(--foreground)" }}>{fmtNum(totalConversations)}</td>}
-                {visibleColumns.includes("cost_per_message") && <td style={{ ...tfMetric("cost_per_message"), color: "var(--cyan)" }}>{fmt$(avgCostPerMsg)}</td>}
-                {visibleColumns.includes("cost_per_conversation") && <td style={{ ...tfMetric("cost_per_conversation"), color: "var(--cyan)" }}>{fmt$(avgCostPerMsg)}</td>}
-                {visibleColumns.includes("cpa") && <td style={{ ...tfMetric("cpa"), color: "var(--cyan)" }}>{fmt$(avgCpa)}</td>}
+                {visibleColumns.includes("results") && <td style={{ ...tfMetric("results"), color: "var(--fc-text)" }}>{fmtNum(totalResults)}</td>}
+                {visibleColumns.includes("conversations") && <td style={{ ...tfMetric("conversations"), color: "var(--fc-text)" }}>{fmtNum(totalConversations)}</td>}
+                {visibleColumns.includes("cost_per_message") && <td style={{ ...tfMetric("cost_per_message"), color: "var(--fc-accent)" }}>{fmt$(avgCostPerMsg)}</td>}
+                {visibleColumns.includes("cost_per_conversation") && <td style={{ ...tfMetric("cost_per_conversation"), color: "var(--fc-accent)" }}>{fmt$(avgCostPerMsg)}</td>}
+                {visibleColumns.includes("cpa") && <td style={{ ...tfMetric("cpa"), color: "var(--fc-accent)" }}>{fmt$(avgCpa)}</td>}
                 {visibleColumns.includes("landing_page_views") && <td style={tfMetric("landing_page_views")}>{fmtNum(totalLPV)}</td>}
                 {visibleColumns.includes("hook_rate") && (
-                  <td style={{ ...tfMetric("hook_rate"), color: avgHookRate >= 35 ? "var(--emerald)" : avgHookRate >= 20 ? "var(--amber)" : "var(--red)" }}>
+                  <td style={{ ...tfMetric("hook_rate"), color: avgHookRate >= 35 ? "var(--fc-success)" : avgHookRate >= 20 ? "var(--fc-warning)" : "var(--fc-danger)" }}>
                     {avgHookRate > 0 ? fmtPct(avgHookRate) : "—"}
                   </td>
                 )}
-                {visibleColumns.includes("spend") && <td style={{ ...tfMetric("spend"), color: "var(--foreground)" }}>{fmt$(totalSpend)}</td>}
+                {visibleColumns.includes("spend") && <td style={{ ...tfMetric("spend"), color: "var(--fc-text)" }}>{fmt$(totalSpend)}</td>}
                 {visibleColumns.includes("quality_ranking") && level === "ads" && <td style={tfMetric("quality_ranking")} />}
                 {/* ── Ghost columns footer ── */}
-                {visibleColumns.includes("purchases") && <td style={{ ...tfMetric("purchases"), color: "var(--foreground)" }}>{totalPurchases > 0 ? fmtNum(totalPurchases) : "—"}</td>}
-                {visibleColumns.includes("cost_per_purchase") && <td style={{ ...tfMetric("cost_per_purchase"), color: "var(--cyan)" }}>{avgCPPurchase > 0 ? fmt$(avgCPPurchase) : "—"}</td>}
-                {visibleColumns.includes("leads") && <td style={{ ...tfMetric("leads"), color: "var(--foreground)" }}>{totalLeads > 0 ? fmtNum(totalLeads) : "—"}</td>}
-                {visibleColumns.includes("cost_per_lead") && <td style={{ ...tfMetric("cost_per_lead"), color: "var(--cyan)" }}>{avgCPLead > 0 ? fmt$(avgCPLead) : "—"}</td>}
-                {visibleColumns.includes("outbound_clicks") && <td style={{ ...tfMetric("outbound_clicks"), color: "var(--foreground)" }}>{totalOutboundClicks > 0 ? fmtNum(totalOutboundClicks) : "—"}</td>}
+                {visibleColumns.includes("purchases") && <td style={{ ...tfMetric("purchases"), color: "var(--fc-text)" }}>{totalPurchases > 0 ? fmtNum(totalPurchases) : "—"}</td>}
+                {visibleColumns.includes("cost_per_purchase") && <td style={{ ...tfMetric("cost_per_purchase"), color: "var(--fc-accent)" }}>{avgCPPurchase > 0 ? fmt$(avgCPPurchase) : "—"}</td>}
+                {visibleColumns.includes("leads") && <td style={{ ...tfMetric("leads"), color: "var(--fc-text)" }}>{totalLeads > 0 ? fmtNum(totalLeads) : "—"}</td>}
+                {visibleColumns.includes("cost_per_lead") && <td style={{ ...tfMetric("cost_per_lead"), color: "var(--fc-accent)" }}>{avgCPLead > 0 ? fmt$(avgCPLead) : "—"}</td>}
+                {visibleColumns.includes("outbound_clicks") && <td style={{ ...tfMetric("outbound_clicks"), color: "var(--fc-text)" }}>{totalOutboundClicks > 0 ? fmtNum(totalOutboundClicks) : "—"}</td>}
                 {visibleColumns.includes("outbound_ctr") && <td style={tfMetric("outbound_ctr")}>{avgOutboundCtr > 0 ? fmtPct(avgOutboundCtr) : "—"}</td>}
                 {visibleColumns.includes("unique_ctr") && <td style={tfMetric("unique_ctr")} />}
-                {visibleColumns.includes("thruplay") && <td style={{ ...tfMetric("thruplay"), color: "var(--foreground)" }}>{totalThruplay > 0 ? fmtNum(totalThruplay) : "—"}</td>}
+                {visibleColumns.includes("thruplay") && <td style={{ ...tfMetric("thruplay"), color: "var(--fc-text)" }}>{totalThruplay > 0 ? fmtNum(totalThruplay) : "—"}</td>}
                 {visibleColumns.includes("thruplay_rate") && <td style={tfMetric("thruplay_rate")}>{avgThruplayRate > 0 ? fmtPct(avgThruplayRate) : "—"}</td>}
-                {visibleColumns.includes("cost_per_thruplay") && <td style={{ ...tfMetric("cost_per_thruplay"), color: "var(--cyan)" }}>{avgCPThruplay > 0 ? fmt$(avgCPThruplay) : "—"}</td>}
-                {visibleColumns.includes("video_p25") && <td style={{ ...tfMetric("video_p25"), color: "var(--foreground)" }}>{totalVP25 > 0 ? fmtNum(totalVP25) : "—"}</td>}
-                {visibleColumns.includes("video_p50") && <td style={{ ...tfMetric("video_p50"), color: "var(--foreground)" }}>{totalVP50 > 0 ? fmtNum(totalVP50) : "—"}</td>}
-                {visibleColumns.includes("video_p75") && <td style={{ ...tfMetric("video_p75"), color: "var(--foreground)" }}>{totalVP75 > 0 ? fmtNum(totalVP75) : "—"}</td>}
-                {visibleColumns.includes("video_p100") && <td style={{ ...tfMetric("video_p100"), color: "var(--foreground)" }}>{totalVP100 > 0 ? fmtNum(totalVP100) : "—"}</td>}
-                {visibleColumns.includes("video_plays") && <td style={{ ...tfMetric("video_plays"), color: "var(--foreground)" }}>{totalVP25 > 0 ? fmtNum(totalVP25) : "—"}</td>}
-                {visibleColumns.includes("video_plays_100") && <td style={{ ...tfMetric("video_plays_100"), color: "var(--foreground)" }}>{totalVP100 > 0 ? fmtNum(totalVP100) : "—"}</td>}
-                {visibleColumns.includes("add_to_cart") && <td style={{ ...tfMetric("add_to_cart"), color: "var(--foreground)" }}>{totalATC > 0 ? fmtNum(totalATC) : "—"}</td>}
-                {visibleColumns.includes("cost_per_atc") && <td style={{ ...tfMetric("cost_per_atc"), color: "var(--cyan)" }}>{avgCPAtc > 0 ? fmt$(avgCPAtc) : "—"}</td>}
-                {visibleColumns.includes("initiate_checkout") && <td style={{ ...tfMetric("initiate_checkout"), color: "var(--foreground)" }}>{totalIC > 0 ? fmtNum(totalIC) : "—"}</td>}
-                {visibleColumns.includes("cost_per_ic") && <td style={{ ...tfMetric("cost_per_ic"), color: "var(--cyan)" }}>{avgCPIc > 0 ? fmt$(avgCPIc) : "—"}</td>}
+                {visibleColumns.includes("cost_per_thruplay") && <td style={{ ...tfMetric("cost_per_thruplay"), color: "var(--fc-accent)" }}>{avgCPThruplay > 0 ? fmt$(avgCPThruplay) : "—"}</td>}
+                {visibleColumns.includes("video_p25") && <td style={{ ...tfMetric("video_p25"), color: "var(--fc-text)" }}>{totalVP25 > 0 ? fmtNum(totalVP25) : "—"}</td>}
+                {visibleColumns.includes("video_p50") && <td style={{ ...tfMetric("video_p50"), color: "var(--fc-text)" }}>{totalVP50 > 0 ? fmtNum(totalVP50) : "—"}</td>}
+                {visibleColumns.includes("video_p75") && <td style={{ ...tfMetric("video_p75"), color: "var(--fc-text)" }}>{totalVP75 > 0 ? fmtNum(totalVP75) : "—"}</td>}
+                {visibleColumns.includes("video_p100") && <td style={{ ...tfMetric("video_p100"), color: "var(--fc-text)" }}>{totalVP100 > 0 ? fmtNum(totalVP100) : "—"}</td>}
+                {visibleColumns.includes("video_plays") && <td style={{ ...tfMetric("video_plays"), color: "var(--fc-text)" }}>{totalVP25 > 0 ? fmtNum(totalVP25) : "—"}</td>}
+                {visibleColumns.includes("video_plays_100") && <td style={{ ...tfMetric("video_plays_100"), color: "var(--fc-text)" }}>{totalVP100 > 0 ? fmtNum(totalVP100) : "—"}</td>}
+                {visibleColumns.includes("add_to_cart") && <td style={{ ...tfMetric("add_to_cart"), color: "var(--fc-text)" }}>{totalATC > 0 ? fmtNum(totalATC) : "—"}</td>}
+                {visibleColumns.includes("cost_per_atc") && <td style={{ ...tfMetric("cost_per_atc"), color: "var(--fc-accent)" }}>{avgCPAtc > 0 ? fmt$(avgCPAtc) : "—"}</td>}
+                {visibleColumns.includes("initiate_checkout") && <td style={{ ...tfMetric("initiate_checkout"), color: "var(--fc-text)" }}>{totalIC > 0 ? fmtNum(totalIC) : "—"}</td>}
+                {visibleColumns.includes("cost_per_ic") && <td style={{ ...tfMetric("cost_per_ic"), color: "var(--fc-accent)" }}>{avgCPIc > 0 ? fmt$(avgCPIc) : "—"}</td>}
                 {visibleColumns.includes("bid_strategy") && level !== "ads" && <td style={tfMetric("bid_strategy")} />}
                 {visibleColumns.includes("optimization_goal") && level === "adsets" && <td style={tfMetric("optimization_goal")} />}
                 {visibleColumns.includes("last_edited") && <td style={tfMetric("last_edited")} />}

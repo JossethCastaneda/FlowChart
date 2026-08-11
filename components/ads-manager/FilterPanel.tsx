@@ -114,12 +114,12 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
           style={{
             display: "flex", alignItems: "center", gap: "6px",
             padding: "6px 12px", background: "transparent",
-            border: "1px dashed var(--text-muted)", borderRadius: "20px",
-            color: "var(--text-secondary)", fontSize: "12px", cursor: "pointer",
+            border: "1px dashed var(--fc-text-muted)", borderRadius: "20px",
+            color: "var(--fc-text-secondary)", fontSize: "12px", cursor: "pointer",
             transition: "all 0.2s",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--cyan)")}
-          onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--text-muted)")}
+          onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--fc-accent)")}
+          onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--fc-text-muted)")}
         >
           <Filter className="w-3.5 h-3.5" /> Filtrar por... <Plus className="w-3.5 h-3.5" />
         </button>
@@ -128,7 +128,7 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
           <div
             style={{
               position: "absolute", top: "100%", left: 0, marginTop: "8px",
-              background: "var(--surface)", 
+              background: "var(--fc-surface)", 
               border: "1px solid rgba(59,130,246,0.15)", borderRadius: "10px",
               padding: "8px", zIndex: 100, minWidth: "260px", maxHeight: "360px",
               overflowY: "auto",
@@ -141,9 +141,9 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
               display: "flex", alignItems: "center", gap: "6px",
               padding: "6px 8px", marginBottom: "6px",
               background: "var(--surface-hover)", borderRadius: "6px",
-              border: "1px solid var(--border)",
+              border: "1px solid var(--fc-border)",
             }}>
-              <Search className="w-3 h-3" style={{ color: "var(--text-muted)" }} />
+              <Search className="w-3 h-3" style={{ color: "var(--fc-text-muted)" }} />
               <input
                 type="text"
                 value={searchTerm}
@@ -151,7 +151,7 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
                 placeholder="Buscar filtro..."
                 autoFocus
                 style={{
-                  background: "none", border: "none", color: "var(--foreground)",
+                  background: "none", border: "none", color: "var(--fc-text)",
                   fontSize: "11px", outline: "none", width: "100%",
                 }}
               />
@@ -160,7 +160,7 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
             {filteredGroups.map((group) => (
               <div key={group.group}>
                 <div style={{
-                  fontSize: "9px", color: "var(--text-muted)",
+                  fontSize: "9px", color: "var(--fc-text-muted)",
                   textTransform: "uppercase", padding: "6px 8px 3px",
                   letterSpacing: "0.08em", fontWeight: 700,
                 }}>
@@ -172,7 +172,7 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
                     onClick={() => addFilter(filter)}
                     style={{
                       width: "100%", textAlign: "left", padding: "7px 10px",
-                      fontSize: "11.5px", color: "var(--text-secondary)",
+                      fontSize: "11.5px", color: "var(--fc-text-secondary)",
                       background: "transparent", border: "none", cursor: "pointer",
                       borderRadius: "5px", transition: "all 0.15s",
                     }}
@@ -186,7 +186,7 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
             ))}
 
             {filteredGroups.length === 0 && (
-              <div style={{ padding: "12px", textAlign: "center", color: "var(--text-muted)", fontSize: "11px" }}>
+              <div style={{ padding: "12px", textAlign: "center", color: "var(--fc-text-muted)", fontSize: "11px" }}>
                 No se encontraron filtros
               </div>
             )}
@@ -200,9 +200,9 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
           key={idx}
           style={{
             display: "flex", alignItems: "center", gap: "6px",
-            padding: "4px 10px", background: "var(--surface)",
+            padding: "4px 10px", background: "var(--fc-surface)",
             border: "1px solid rgba(0,129,251,0.25)", borderRadius: "20px",
-            color: "var(--foreground)", fontSize: "11px",
+            color: "var(--fc-text)", fontSize: "11px",
           }}
         >
           <span>{filter.label}</span>
@@ -210,7 +210,7 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
             onClick={() => removeFilter(idx)}
             style={{
               background: "none", border: "none",
-              color: "var(--text-secondary)", cursor: "pointer",
+              color: "var(--fc-text-secondary)", cursor: "pointer",
               display: "flex", alignItems: "center", padding: 0,
               transition: "color 0.15s",
             }}
@@ -226,12 +226,12 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
         <button
           onClick={clearAll}
           style={{
-            fontSize: "11px", color: "var(--text-muted)",
+            fontSize: "11px", color: "var(--fc-text-muted)",
             background: "none", border: "none", cursor: "pointer",
             transition: "color 0.15s",
           }}
           onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--fc-text-muted)")}
         >
           Borrar todo
         </button>

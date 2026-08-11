@@ -222,7 +222,7 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "8px 12px", fontSize: "12px", background: "var(--surface-hover)",
-    border: "1px solid var(--border)", borderRadius: "6px", color: "var(--foreground)", outline: "none",
+    border: "1px solid var(--fc-border)", borderRadius: "6px", color: "var(--fc-text)", outline: "none",
   };
 
   return (
@@ -230,17 +230,17 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
       <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 200, background: "var(--panel-bg)",  }} />
       <div style={{
         position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 201,
-        width: "520px", maxWidth: "90vw", background: "var(--surface)", 
+        width: "520px", maxWidth: "90vw", background: "var(--fc-surface)", 
         border: "1px solid rgba(59,130,246,0.15)", borderRadius: "12px", overflow: "hidden",
         boxShadow: "0 20px 60px -12px rgba(0,0,0,0.7)",
       }}>
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 700, color: "var(--foreground)" }}>
-            <Upload className="w-4 h-4" style={{ color: "var(--cyan)" }} />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--fc-border)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 700, color: "var(--fc-text)" }}>
+            <Upload className="w-4 h-4" style={{ color: "var(--fc-accent)" }} />
             Importar {levelLabel}
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--fc-text-muted)", cursor: "pointer" }}>
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -248,7 +248,7 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
         {/* Step indicator */}
         <div style={{ display: "flex", padding: "12px 20px", gap: "4px" }}>
           {[1, 2, 3, 4].map((s) => (
-            <div key={s} style={{ flex: 1, height: "3px", borderRadius: "2px", background: s <= step ? "var(--cyan)" : "rgba(148,163,184,0.18)" }} />
+            <div key={s} style={{ flex: 1, height: "3px", borderRadius: "2px", background: s <= step ? "var(--fc-accent)" : "rgba(148,163,184,0.18)" }} />
           ))}
         </div>
 
@@ -262,16 +262,16 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
                 style={{
                   border: "2px dashed rgba(59,130,246,0.15)", borderRadius: "10px", padding: "32px 20px",
                   textAlign: "center", cursor: "pointer", transition: "all 0.2s",
-                  background: "var(--cyan-dim)",
+                  background: "var(--fc-accent-wash)",
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(59,130,246,0.35)"; e.currentTarget.style.background = "rgba(59,130,246,0.04)"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(59,130,246,0.15)"; e.currentTarget.style.background = "rgba(59,130,246,0.02)"; }}
               >
                 <FileSpreadsheet className="w-8 h-8" style={{ color: "rgba(59,130,246,0.3)", margin: "0 auto 10px" }} />
-                <div style={{ fontSize: "12px", color: "var(--foreground)", fontWeight: 600, marginBottom: "4px" }}>
+                <div style={{ fontSize: "12px", color: "var(--fc-text)", fontWeight: 600, marginBottom: "4px" }}>
                   {file ? file.name : "Arrastra un archivo o haz clic"}
                 </div>
-                <div style={{ fontSize: "10px", color: "var(--text-muted)" }}>
+                <div style={{ fontSize: "10px", color: "var(--fc-text-muted)" }}>
                   Formatos: .csv, .xlsx — Máximo 500 filas
                 </div>
                 <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls" onChange={handleFileSelect} style={{ display: "none" }} />
@@ -280,7 +280,7 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
               {/* Download template */}
               <button onClick={handleDownloadTemplate} style={{
                 display: "flex", alignItems: "center", gap: "6px", margin: "12px auto 0", padding: "6px 12px",
-                fontSize: "10px", fontWeight: 600, color: "var(--cyan)", background: "var(--cyan-dim)",
+                fontSize: "10px", fontWeight: 600, color: "var(--fc-accent)", background: "var(--fc-accent-wash)",
                 border: "1px solid rgba(59,130,246,0.1)", borderRadius: "6px", cursor: "pointer",
               }}>
                 <Download className="w-3 h-3" /> Descargar plantilla .xlsx
@@ -288,9 +288,9 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
 
               {/* Errors */}
               {errors.length > 0 && (
-                <div style={{ marginTop: "12px", padding: "10px", background: "var(--red-dim)", borderRadius: "6px", border: "1px solid rgba(229,72,77,0.15)" }}>
+                <div style={{ marginTop: "12px", padding: "10px", background: "var(--fc-danger-wash)", borderRadius: "6px", border: "1px solid rgba(229,72,77,0.15)" }}>
                   {errors.map((err, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "10px", color: "var(--red)", marginBottom: "2px" }}>
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "10px", color: "var(--fc-danger)", marginBottom: "2px" }}>
                       <AlertCircle className="w-3 h-3" style={{ flexShrink: 0 }} /> {err}
                     </div>
                   ))}
@@ -301,32 +301,32 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
 
           {step === 2 && (
             <>
-              <div style={{ fontSize: "12px", color: "var(--foreground)", fontWeight: 600, marginBottom: "10px" }}>
+              <div style={{ fontSize: "12px", color: "var(--fc-text)", fontWeight: 600, marginBottom: "10px" }}>
                 Vista previa — {parsedRows.length} {levelLabel} a importar
               </div>
-              <div style={{ maxHeight: "200px", overflowY: "auto", borderRadius: "6px", border: "1px solid var(--border)" }} className="custom-scrollbar">
+              <div style={{ maxHeight: "200px", overflowY: "auto", borderRadius: "6px", border: "1px solid var(--fc-border)" }} className="custom-scrollbar">
                 <table style={{ width: "100%", fontSize: "10px", borderCollapse: "collapse" }}>
                   <thead>
-                    <tr style={{ background: "var(--cyan-dim)" }}>
-                      <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--cyan)", fontWeight: 700 }}>#</th>
-                      <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--cyan)", fontWeight: 700 }}>Nombre</th>
-                      <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--cyan)", fontWeight: 700 }}>Estado</th>
-                      <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--cyan)", fontWeight: 700 }}>Presupuesto</th>
+                    <tr style={{ background: "var(--fc-accent-wash)" }}>
+                      <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--fc-accent)", fontWeight: 700 }}>#</th>
+                      <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--fc-accent)", fontWeight: 700 }}>Nombre</th>
+                      <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--fc-accent)", fontWeight: 700 }}>Estado</th>
+                      <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--fc-accent)", fontWeight: 700 }}>Presupuesto</th>
                     </tr>
                   </thead>
                   <tbody>
                     {parsedRows.slice(0, 20).map((row, i) => (
                       <tr key={i} style={{ border: "1px solid var(--hairline)" }}>
-                        <td style={{ padding: "4px 8px", color: "var(--text-muted)" }}>{i + 1}</td>
-                        <td style={{ padding: "4px 8px", color: "var(--foreground)" }}>{row.name}</td>
-                        <td style={{ padding: "4px 8px", color: row.status === "ACTIVE" ? "var(--emerald)" : "var(--text-muted)" }}>{row.status || "PAUSED"}</td>
-                        <td style={{ padding: "4px 8px", color: "var(--text-secondary)" }}>{row.daily_budget ? `$${row.daily_budget}/día` : row.lifetime_budget ? `$${row.lifetime_budget} total` : "—"}</td>
+                        <td style={{ padding: "4px 8px", color: "var(--fc-text-muted)" }}>{i + 1}</td>
+                        <td style={{ padding: "4px 8px", color: "var(--fc-text)" }}>{row.name}</td>
+                        <td style={{ padding: "4px 8px", color: row.status === "ACTIVE" ? "var(--fc-success)" : "var(--fc-text-muted)" }}>{row.status || "PAUSED"}</td>
+                        <td style={{ padding: "4px 8px", color: "var(--fc-text-secondary)" }}>{row.daily_budget ? `$${row.daily_budget}/día` : row.lifetime_budget ? `$${row.lifetime_budget} total` : "—"}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
                 {parsedRows.length > 20 && (
-                  <div style={{ padding: "6px", fontSize: "9px", color: "var(--text-muted)", textAlign: "center" }}>
+                  <div style={{ padding: "6px", fontSize: "9px", color: "var(--fc-text-muted)", textAlign: "center" }}>
                     +{parsedRows.length - 20} filas más...
                   </div>
                 )}
@@ -336,23 +336,23 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
 
           {step === 3 && (
             <div style={{ textAlign: "center", padding: "40px 0" }}>
-              <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--cyan)", margin: "0 auto 12px" }} />
-              <div style={{ fontSize: "12px", color: "var(--foreground)", fontWeight: 600 }}>Importando {parsedRows.length} {levelLabel}...</div>
-              <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "4px" }}>No cierres esta ventana</div>
+              <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--fc-accent)", margin: "0 auto 12px" }} />
+              <div style={{ fontSize: "12px", color: "var(--fc-text)", fontWeight: 600 }}>Importando {parsedRows.length} {levelLabel}...</div>
+              <div style={{ fontSize: "10px", color: "var(--fc-text-muted)", marginTop: "4px" }}>No cierres esta ventana</div>
             </div>
           )}
 
           {step === 4 && importResults && (
             <div style={{ textAlign: "center", padding: "20px 0" }}>
-              <CheckCircle2 className="w-10 h-10" style={{ color: importResults.failed === 0 ? "var(--emerald)" : "var(--amber)", margin: "0 auto 12px" }} />
-              <div style={{ fontSize: "14px", color: "var(--foreground)", fontWeight: 700, marginBottom: "6px" }}>
+              <CheckCircle2 className="w-10 h-10" style={{ color: importResults.failed === 0 ? "var(--fc-success)" : "var(--fc-warning)", margin: "0 auto 12px" }} />
+              <div style={{ fontSize: "14px", color: "var(--fc-text)", fontWeight: 700, marginBottom: "6px" }}>
                 Importación completada
               </div>
-              <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px" }}>
+              <div style={{ fontSize: "12px", color: "var(--fc-text-secondary)", marginBottom: "12px" }}>
                  {importResults.success} exitosas · {importResults.failed > 0 ? ` ${importResults.failed} fallidas` : "0 errores"}
               </div>
               {importResults.errors.length > 0 && (
-                <div style={{ textAlign: "left", maxHeight: "120px", overflowY: "auto", padding: "8px", background: "var(--red-dim)", borderRadius: "6px", fontSize: "9px", color: "var(--red)" }}>
+                <div style={{ textAlign: "left", maxHeight: "120px", overflowY: "auto", padding: "8px", background: "var(--fc-danger-wash)", borderRadius: "6px", fontSize: "9px", color: "var(--fc-danger)" }}>
                   {importResults.errors.map((err, i) => <div key={i} style={{ marginBottom: "2px" }}>• {err}</div>)}
                 </div>
               )}
@@ -361,24 +361,24 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
         </div>
 
         {/* Footer */}
-        <div style={{ display: "flex", gap: "8px", padding: "12px 20px", borderTop: "1px solid var(--border)", justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", gap: "8px", padding: "12px 20px", borderTop: "1px solid var(--fc-border)", justifyContent: "flex-end" }}>
           {step === 1 && (
-            <button onClick={onClose} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer" }}>
+            <button onClick={onClose} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "var(--fc-text-secondary)", cursor: "pointer" }}>
               Cancelar
             </button>
           )}
           {step === 2 && (
             <>
-              <button onClick={() => { setStep(1); setFile(null); setParsedRows([]); }} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer" }}>
+              <button onClick={() => { setStep(1); setFile(null); setParsedRows([]); }} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "var(--fc-text-secondary)", cursor: "pointer" }}>
                 Atrás
               </button>
-              <button onClick={handleImport} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.25)", borderRadius: "6px", color: "var(--cyan)", cursor: "pointer" }}>
+              <button onClick={handleImport} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.25)", borderRadius: "6px", color: "var(--fc-accent)", cursor: "pointer" }}>
                 Importar {parsedRows.length} {levelLabel}
               </button>
             </>
           )}
           {step === 4 && (
-            <button onClick={() => { onImported(); onClose(); }} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.25)", borderRadius: "6px", color: "var(--cyan)", cursor: "pointer" }}>
+            <button onClick={() => { onImported(); onClose(); }} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.25)", borderRadius: "6px", color: "var(--fc-accent)", cursor: "pointer" }}>
               Cerrar y actualizar
             </button>
           )}

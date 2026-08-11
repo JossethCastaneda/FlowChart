@@ -30,11 +30,11 @@ function passwordScore(value: string) {
 }
 
 const STRENGTH = [
-  { label: "Muy débil", color: "var(--red)" },
-  { label: "Débil", color: "var(--red)" },
-  { label: "Aceptable", color: "var(--amber)" },
-  { label: "Fuerte", color: "var(--emerald)" },
-  { label: "Excelente", color: "var(--emerald)" },
+  { label: "Muy débil", color: "var(--fc-danger)" },
+  { label: "Débil", color: "var(--fc-danger)" },
+  { label: "Aceptable", color: "var(--fc-warning)" },
+  { label: "Fuerte", color: "var(--fc-success)" },
+  { label: "Excelente", color: "var(--fc-success)" },
 ];
 
 export function SecuritySettings() {
@@ -163,7 +163,7 @@ export function SecuritySettings() {
             ? "Usa una contraseña larga y única. Al cambiarla, tus otras sesiones seguirán activas."
             : "Tu cuenta inicia sesión con un proveedor externo, así que no tiene contraseña que cambiar."
         }
-        icon={<Lock className="w-5 h-5 text-[var(--cyan)]" />}
+        icon={<Lock className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
         {hasPassword ? (
           <div className="flex flex-col gap-4 max-w-md">
@@ -243,8 +243,8 @@ export function SecuritySettings() {
           </div>
         ) : (
           <div className="flex items-start gap-3 p-4 rounded-xl bg-[var(--surface-hover)] border border-[var(--hairline)] max-w-xl">
-            <KeyRound className="w-4 h-4 text-[var(--text-muted)] mt-0.5 shrink-0" />
-            <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed">
+            <KeyRound className="w-4 h-4 text-[var(--fc-text-muted)] mt-0.5 shrink-0" />
+            <p className="text-[13px] text-[var(--fc-text-secondary)] leading-relaxed">
               Entras con Google o Facebook. Administra la seguridad de tu cuenta (contraseña,
               verificación en dos pasos) desde ese proveedor.
             </p>
@@ -256,7 +256,7 @@ export function SecuritySettings() {
       <SettingsCard
         title="Sesión y pertenencia"
         description="Cierra la sesión en este dispositivo o abandona el workspace actual."
-        icon={<Shield className="w-5 h-5 text-[var(--cyan)]" />}
+        icon={<Shield className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
         <div className="max-w-2xl">
           <SettingsRow
@@ -284,7 +284,7 @@ export function SecuritySettings() {
               onClick={handleLeaveWorkspace}
               disabled={leaveMutation.isPending || !workspaceId}
               className="btn-secondary"
-              style={{ borderColor: "rgba(226,68,92,0.25)", color: "var(--red)" }}
+              style={{ borderColor: "rgba(226,68,92,0.25)", color: "var(--fc-danger)" }}
             >
               {leaveMutation.isPending ? "Saliendo..." : "Salir del workspace"}
             </button>

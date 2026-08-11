@@ -190,17 +190,17 @@ export function TeamSettings() {
       <SettingsCard
         title="Invitar al equipo"
         description="Los invitados reciben un correo con un enlace válido durante 7 días. Ocupan un asiento de tu plan al aceptar."
-        icon={<Mail className="w-5 h-5 text-[var(--cyan)]" />}
+        icon={<Mail className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
         <div className="grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-5 max-w-3xl">
           {/* Email */}
           <div className="md:col-span-7">
-            <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">
+            <label className="block text-[11px] font-semibold text-[var(--fc-text-muted)] uppercase tracking-wider mb-2">
               Correo Electrónico
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-4 w-4 text-[var(--text-muted)]" />
+                <Mail className="h-4 w-4 text-[var(--fc-text-muted)]" />
               </div>
               <input
                 type="email"
@@ -216,7 +216,7 @@ export function TeamSettings() {
           
           {/* Rol */}
           <div className="md:col-span-5">
-            <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">
+            <label className="block text-[11px] font-semibold text-[var(--fc-text-muted)] uppercase tracking-wider mb-2">
               Rol Principal
             </label>
             <div className="relative">
@@ -229,7 +229,7 @@ export function TeamSettings() {
                 <option value="MEMBER">Miembro</option>
                 <option value="ADMIN">Admin</option>
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--fc-text-muted)] pointer-events-none" />
             </div>
           </div>
 
@@ -237,7 +237,7 @@ export function TeamSettings() {
           {inviteRole === "MEMBER" && (
             <>
               <div className="md:col-span-7">
-                <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">
+                <label className="block text-[11px] font-semibold text-[var(--fc-text-muted)] uppercase tracking-wider mb-2">
                   Área Asignada (Opcional)
                 </label>
                 <div className="relative">
@@ -251,11 +251,11 @@ export function TeamSettings() {
                       <option key={area.id} value={area.id}>{area.name}</option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--fc-text-muted)] pointer-events-none" />
                 </div>
               </div>
               <div className="md:col-span-5">
-                <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">
+                <label className="block text-[11px] font-semibold text-[var(--fc-text-muted)] uppercase tracking-wider mb-2">
                   Permiso en Área
                 </label>
                 <div className="relative">
@@ -269,7 +269,7 @@ export function TeamSettings() {
                     <option value="leaders">Líder</option>
                     <option value="external">Externo</option>
                   </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--fc-text-muted)] pointer-events-none" />
                 </div>
               </div>
             </>
@@ -277,9 +277,9 @@ export function TeamSettings() {
         </div>
 
         <div className="mt-6 flex flex-col md:flex-row md:items-center justify-between gap-4 max-w-3xl pt-2 border-t border-[var(--hairline)]">
-          <p className="text-[11px] text-[var(--text-muted)] leading-relaxed max-w-md">
-            <strong className="text-[var(--text-secondary)]">Miembro</strong> trabaja en los módulos que su
-            área habilite. <strong className="text-[var(--text-secondary)]">Admin</strong> además gestiona
+          <p className="text-[11px] text-[var(--fc-text-muted)] leading-relaxed max-w-md">
+            <strong className="text-[var(--fc-text-secondary)]">Miembro</strong> trabaja en los módulos que su
+            área habilite. <strong className="text-[var(--fc-text-secondary)]">Admin</strong> además gestiona
             equipo, integraciones y plan.
           </p>
           <button
@@ -309,11 +309,11 @@ export function TeamSettings() {
 
         {lastInvite && !lastInvite.emailSent && lastInvite.inviteUrl && (
           <div className="mt-4 p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl max-w-2xl">
-            <p className="text-[11px] text-[var(--amber)] mb-2 font-semibold tracking-widest uppercase">
+            <p className="text-[11px] text-[var(--fc-warning)] mb-2 font-semibold tracking-widest uppercase">
               No pudimos enviar el correo — comparte este enlace
             </p>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <code className="w-full sm:flex-1 text-xs text-[var(--text-secondary)] break-all bg-black/20 p-2.5 rounded-lg border border-[var(--hairline)]">
+              <code className="w-full sm:flex-1 text-xs text-[var(--fc-text-secondary)] break-all bg-black/20 p-2.5 rounded-lg border border-[var(--hairline)]">
                 {lastInvite.inviteUrl}
               </code>
               <button
@@ -348,8 +348,8 @@ export function TeamSettings() {
                   className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-[var(--surface-hover)] border border-white/5"
                 >
                   <div className="min-w-0">
-                    <p className="text-sm text-[var(--foreground)] font-medium truncate">{invite.email}</p>
-                    <p className="text-xs text-[var(--text-muted)] mt-1">
+                    <p className="text-sm text-[var(--fc-text)] font-medium truncate">{invite.email}</p>
+                    <p className="text-xs text-[var(--fc-text-muted)] mt-1">
                       {ROLE_META[invite.role]?.label ?? invite.role} · Expira el{" "}
                       {new Date(invite.expires).toLocaleDateString("es-MX")}
                     </p>
@@ -371,7 +371,7 @@ export function TeamSettings() {
       <SettingsCard
         title="Miembros"
         description="El botón de permisos ajusta el acceso a módulos de una persona por encima de lo que define su área."
-        icon={<Users className="w-5 h-5 text-[var(--cyan)]" />}
+        icon={<Users className="w-5 h-5 text-[var(--fc-accent)]" />}
         aside={<span className="badge badge-cyan">{members.length}</span>}
       >
         {loadingMembers ? (
@@ -409,18 +409,18 @@ export function TeamSettings() {
                           className="w-10 h-10 rounded-full border border-blue-500/20 object-cover shrink-0"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-[var(--surface)] border border-blue-500/20 flex items-center justify-center text-[var(--cyan)] text-sm font-semibold shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-[var(--fc-surface)] border border-blue-500/20 flex items-center justify-center text-[var(--fc-accent)] text-sm font-semibold shrink-0">
                           {(member.user.name || member.user.email || "?")[0].toUpperCase()}
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-[var(--foreground)] truncate">
+                        <p className="text-sm font-medium text-[var(--fc-text)] truncate">
                           {member.user.name || "Sin nombre"}
                           {isSelf && (
-                            <span className="text-[10px] text-[var(--text-muted)] font-normal ml-1.5">(tú)</span>
+                            <span className="text-[10px] text-[var(--fc-text-muted)] font-normal ml-1.5">(tú)</span>
                           )}
                         </p>
-                        <p className="text-xs text-[var(--text-muted)] truncate mt-0.5">{member.user.email}</p>
+                        <p className="text-xs text-[var(--fc-text-muted)] truncate mt-0.5">{member.user.email}</p>
                       </div>
                     </div>
 
@@ -459,8 +459,8 @@ export function TeamSettings() {
                           aria-label={`Permisos de ${member.user.name || member.user.email}`}
                           className={`relative p-2 rounded-lg border transition-colors ${
                             hasCustomPerms
-                              ? "bg-[var(--cyan)]/10 border-[var(--cyan)]/30 text-[var(--cyan)]"
-                              : "bg-[var(--surface)] border-[var(--hairline)] text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
+                              ? "bg-[var(--fc-accent)]/10 border-[var(--fc-accent)]/30 text-[var(--fc-accent)]"
+                              : "bg-[var(--fc-surface)] border-[var(--hairline)] text-[var(--fc-text-secondary)] hover:bg-[var(--surface-hover)]"
                           }`}
                         >
                           <SlidersHorizontal className="w-4 h-4" />

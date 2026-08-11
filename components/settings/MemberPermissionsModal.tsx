@@ -78,24 +78,24 @@ export function MemberPermissionsModal({ memberId, memberName, initialPerms, onC
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--panel-bg)]   animate-fadeIn">
       <div
-        className="w-full max-w-md bg-[var(--background)] border border-[var(--surface)] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-slideUp"
+        className="w-full max-w-md bg-[var(--fc-bg)] border border-[var(--fc-surface)] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-slideUp"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-[var(--hairline)]">
-          <div className="flex items-center gap-2 text-[var(--text-secondary)] font-semibold text-[15px]">
-            <Shield className="w-5 h-5 text-[var(--cyan)]" />
+          <div className="flex items-center gap-2 text-[var(--fc-text-secondary)] font-semibold text-[15px]">
+            <Shield className="w-5 h-5 text-[var(--fc-accent)]" />
             Permisos de {memberName}
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-[var(--text-secondary)] hover:text-[var(--foreground)] rounded-full hover:bg-[var(--surface-hover)] transition-colors"
+            className="p-1 text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] rounded-full hover:bg-[var(--surface-hover)] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="p-4 md:p-6 overflow-y-auto max-h-[70vh]">
-          <p className="text-[13px] text-[var(--text-secondary)] mb-6">
+          <p className="text-[13px] text-[var(--fc-text-secondary)] mb-6">
             Configura los permisos específicos de visualización y edición por cada módulo. 
             Estos permisos sobrescribirán la configuración predeterminada del área.
           </p>
@@ -105,13 +105,13 @@ export function MemberPermissionsModal({ memberId, memberName, initialPerms, onC
               type="checkbox"
               checked={useCustom}
               onChange={(e) => setUseCustom(e.target.checked)}
-              className="accent-[var(--cyan)] w-4 h-4"
+              className="accent-[var(--fc-accent)] w-4 h-4"
             />
             <div className="flex-1">
-              <div className="text-[13px] font-medium text-[var(--text-secondary)]">
+              <div className="text-[13px] font-medium text-[var(--fc-text-secondary)]">
                 Usar permisos personalizados
               </div>
-              <div className="text-[11px] text-[var(--text-muted)]">
+              <div className="text-[11px] text-[var(--fc-text-muted)]">
                 Si está desactivado, usará los permisos de su área o por defecto.
               </div>
             </div>
@@ -120,21 +120,21 @@ export function MemberPermissionsModal({ memberId, memberName, initialPerms, onC
           <div className={`space-y-3 ${!useCustom ? "opacity-40 pointer-events-none" : ""}`}>
             {MODULES.map(({ key, label }) => (
               <div key={key} className="flex items-center justify-between p-3 rounded-lg bg-[var(--surface-hover)] border border-[var(--hairline)]">
-                <div className="text-[13px] font-medium text-[var(--text-secondary)]">{label}</div>
+                <div className="text-[13px] font-medium text-[var(--fc-text-secondary)]">{label}</div>
                 <div className="flex items-center gap-4">
                   {/* Toggle Ver */}
                   <label className="flex items-center gap-1.5 cursor-pointer group">
-                    <span className="text-[11px] text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors flex items-center gap-1">
+                    <span className="text-[11px] text-[var(--fc-text-muted)] group-hover:text-[var(--fc-text-secondary)] transition-colors flex items-center gap-1">
                       <Eye className="w-3 h-3" /> Ver
                     </span>
                     <button
                       type="button"
                       onClick={() => toggleView(key)}
                       className="w-7 h-4 rounded-full relative transition-colors"
-                      style={{ background: perms[key].view ? "var(--cyan)" : "rgba(255,255,255,0.1)" }}
+                      style={{ background: perms[key].view ? "var(--fc-accent)" : "rgba(255,255,255,0.1)" }}
                     >
                       <span
-                        className="absolute top-[2px] w-3 h-3 rounded-full bg-[var(--surface)] transition-all"
+                        className="absolute top-[2px] w-3 h-3 rounded-full bg-[var(--fc-surface)] transition-all"
                         style={{ left: perms[key].view ? 14 : 2 }}
                       />
                     </button>
@@ -142,17 +142,17 @@ export function MemberPermissionsModal({ memberId, memberName, initialPerms, onC
 
                   {/* Toggle Editar */}
                   <label className="flex items-center gap-1.5 cursor-pointer group">
-                    <span className="text-[11px] text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors flex items-center gap-1">
+                    <span className="text-[11px] text-[var(--fc-text-muted)] group-hover:text-[var(--fc-text-secondary)] transition-colors flex items-center gap-1">
                       <Pencil className="w-3 h-3" /> Editar
                     </span>
                     <button
                       type="button"
                       onClick={() => toggleEdit(key)}
                       className="w-7 h-4 rounded-full relative transition-colors"
-                      style={{ background: perms[key].edit ? "var(--emerald)" : "rgba(255,255,255,0.1)" }}
+                      style={{ background: perms[key].edit ? "var(--fc-success)" : "rgba(255,255,255,0.1)" }}
                     >
                       <span
-                        className="absolute top-[2px] w-3 h-3 rounded-full bg-[var(--surface)] transition-all"
+                        className="absolute top-[2px] w-3 h-3 rounded-full bg-[var(--fc-surface)] transition-all"
                         style={{ left: perms[key].edit ? 14 : 2 }}
                       />
                     </button>
@@ -166,14 +166,14 @@ export function MemberPermissionsModal({ memberId, memberName, initialPerms, onC
         <div className="p-4 border-t border-[var(--hairline)] flex items-center justify-end gap-3 bg-[var(--panel-bg)] ">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-[13px] font-medium text-[var(--text-secondary)] hover:text-[var(--foreground)] bg-transparent rounded-lg hover:bg-[var(--surface-hover)] transition-colors"
+            className="px-4 py-2 text-[13px] font-medium text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] bg-transparent rounded-lg hover:bg-[var(--surface-hover)] transition-colors"
           >
             Cancelar
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-2 px-4 py-2 text-[13px] font-medium text-[var(--foreground)] bg-[var(--cyan)] hover:bg-[var(--cyan)] rounded-lg transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 text-[13px] font-medium text-[var(--fc-text)] bg-[var(--fc-accent)] hover:bg-[var(--fc-accent)] rounded-lg transition-colors disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
             Guardar Permisos

@@ -49,7 +49,7 @@ export class ErrorBoundary extends Component<Props, State> {
             justifyContent: "center",
             padding: "24px",
             textAlign: "center",
-            background: "var(--red-dim)",
+            background: "var(--fc-danger-wash)",
             border: "1px solid rgba(229,72,77,0.2)",
             borderRadius: "12px",
             position: "relative",
@@ -59,29 +59,29 @@ export class ErrorBoundary extends Component<Props, State> {
           {/* Top neon accent */}
           <div style={{
             position: "absolute", top: 0, left: 0, right: 0, height: "2px",
-            background: "linear-gradient(90deg, transparent, var(--red), transparent)",
+            background: "linear-gradient(90deg, transparent, var(--fc-danger), transparent)",
           }} />
 
           <div style={{
             width: "44px", height: "44px", borderRadius: "12px",
-            background: "var(--red-dim)",
+            background: "var(--fc-danger-wash)",
             border: "1px solid rgba(229,72,77,0.3)",
             display: "flex", alignItems: "center", justifyContent: "center",
             marginBottom: "12px",
             boxShadow: "0 0 20px rgba(229,72,77,0.15)",
           }}>
-            <AlertTriangle style={{ width: 20, height: 20, color: "var(--red)" }} />
+            <AlertTriangle style={{ width: 20, height: 20, color: "var(--fc-danger)" }} />
           </div>
 
           <p style={{
             fontFamily: "var(--font-display)",
             fontSize: "11px", fontWeight: 700,
             letterSpacing: "0.15em", textTransform: "uppercase",
-            color: "var(--red)", marginBottom: "6px",
+            color: "var(--fc-danger)", marginBottom: "6px",
           }}>
             Error al renderizar
           </p>
-          <p style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "14px", lineHeight: 1.5 }}>
+          <p style={{ fontSize: "11px", color: "var(--fc-text-muted)", marginBottom: "14px", lineHeight: 1.5 }}>
             {this.state.error?.message || "Ocurrió un error inesperado en esta sección."}
           </p>
 
@@ -90,9 +90,9 @@ export class ErrorBoundary extends Component<Props, State> {
             style={{
               display: "inline-flex", alignItems: "center", gap: "6px",
               padding: "7px 16px", borderRadius: "6px",
-              background: "var(--red-dim)",
+              background: "var(--fc-danger-wash)",
               border: "1px solid rgba(229,72,77,0.25)",
-              color: "var(--red)", fontSize: "11px", fontWeight: 600,
+              color: "var(--fc-danger)", fontSize: "11px", fontWeight: 600,
               cursor: "pointer", fontFamily: "inherit",
               transition: "all 0.2s",
             }}

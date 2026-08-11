@@ -356,7 +356,7 @@ function TestChatModal({ line, onClose }: { line: WaLine; onClose: () => void })
       <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 420, borderRadius: 14, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", boxShadow: "0 24px 80px rgba(0,0,0,0.6)", overflow: "hidden" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", background: "linear-gradient(135deg,rgba(7,94,84,0.5),rgba(18,140,126,0.3))", borderBottom: "1px solid var(--fc-border)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--fc-success-wash)", border: "1px solid rgba(37,211,102,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Send size={14} style={{ color: "#25D366" }} />
             </div>
             <div>
@@ -449,7 +449,7 @@ function EditProfileModal({ line, onClose, onSave }: { line: WaLine; onClose: ()
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid var(--fc-border)", flexShrink: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--fc-success-wash)", border: "1px solid rgba(37,211,102,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Pencil size={15} style={{ color: "#25D366" }} />
             </div>
             <div>
@@ -532,7 +532,7 @@ function EditProfileModal({ line, onClose, onSave }: { line: WaLine; onClose: ()
         {/* Footer */}
         <div style={{ padding: "16px 20px", borderTop: "1px solid var(--fc-border)", display: "flex", gap: 10, flexShrink: 0 }}>
           <button onClick={onClose} style={{ flex: 1, padding: "9px", borderRadius: 8, fontSize: 12, background: "transparent", border: "1px solid var(--fc-border)", color: "var(--fc-text-secondary)", cursor: "pointer", fontFamily: "inherit" }}>{t.cancel}</button>
-          <button onClick={handleSave} disabled={saving} style={{ flex: 2, padding: "9px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", cursor: saving ? "wait" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "inherit", opacity: saving ? 0.7 : 1 }}>
+          <button onClick={handleSave} disabled={saving} style={{ flex: 2, padding: "9px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "var(--fc-success-wash)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", cursor: saving ? "wait" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "inherit", opacity: saving ? 0.7 : 1 }}>
             {saving ? <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} /> : <Save size={12} />}
             {saving ? t.saving : t.save}
           </button>
@@ -585,7 +585,7 @@ function InfoModal({ line, wabaId, onClose, onUnlink }: { line: WaLine; wabaId?:
               value={wabaId || line.wabaId || "—"}
             />
             <InfoRow
-              icon={<div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}><Signal size={14} style={{ color: "#25D366" }} /></div>}
+              icon={<div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--fc-success-wash)", border: "1px solid rgba(37,211,102,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}><Signal size={14} style={{ color: "#25D366" }} /></div>}
               label="Is Cloud API"
               value={line.isCloudApi !== false ? "true" : "false"}
             />
@@ -595,7 +595,7 @@ function InfoModal({ line, wabaId, onClose, onUnlink }: { line: WaLine; wabaId?:
           <p style={{ fontSize: 12, fontWeight: 700, color: "var(--fc-text)", margin: "0 0 12px", letterSpacing: "0.05em" }}>Whatsapp line info</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
             <InfoRow
-              icon={<div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}><Phone size={14} style={{ color: "#25D366" }} /></div>}
+              icon={<div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--fc-success-wash)", border: "1px solid rgba(37,211,102,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}><Phone size={14} style={{ color: "#25D366" }} /></div>}
               label="WhatsApp Phone Id"
               value={line.id}
               copyable
@@ -864,17 +864,17 @@ export default function WhatsAppIntegrationPage() {
                 <button onClick={fetchLines} disabled={loadingLines} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border)", color: "var(--fc-text-secondary)", cursor: loadingLines ? "wait" : "pointer" }}>
                   <RefreshCw size={13} style={{ animation: loadingLines ? "spin 1s linear infinite" : "none" }} /> {t.update}
                 </button>
-                <button onClick={handleConnect} disabled={connecting || !sdkReady} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.2)", color: "#25D366", cursor: "pointer" }}>
+                <button onClick={handleConnect} disabled={connecting || !sdkReady} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "var(--fc-success-wash)", border: "1px solid rgba(37,211,102,0.2)", color: "#25D366", cursor: "pointer" }}>
                   <Plus size={13} /> {t.newAccount}
                 </button>
-                <button onClick={handleDisconnect} disabled={disconnecting} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--fc-danger)", cursor: "pointer" }}>
+                <button onClick={handleDisconnect} disabled={disconnecting} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "var(--fc-danger-wash)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--fc-danger)", cursor: "pointer" }}>
                   {disconnecting ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> : <XCircle size={13} />}
                   {t.disconnect}
                 </button>
               </>
             )}
             {!wabaStatus.connected && !loadingStatus && (
-              <button onClick={handleConnect} disabled={connecting || !sdkReady} className="wa-connect-btn" style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 10, fontSize: 13, fontWeight: 700, background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", cursor: connecting || !sdkReady ? "wait" : "pointer", opacity: connecting || !sdkReady ? 0.6 : 1, transition: "all 0.25s", fontFamily: "inherit" }}>
+              <button onClick={handleConnect} disabled={connecting || !sdkReady} className="wa-connect-btn" style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 10, fontSize: 13, fontWeight: 700, background: "var(--fc-success-wash)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", cursor: connecting || !sdkReady ? "wait" : "pointer", opacity: connecting || !sdkReady ? 0.6 : 1, transition: "all 0.25s", fontFamily: "inherit" }}>
                 {connecting ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <WaIcon size={16} />}
                 {connecting ? "Conectando..." : t.connectMeta}
               </button>
@@ -884,7 +884,7 @@ export default function WhatsAppIntegrationPage() {
 
         {/* ── Error ───────────────────────────────────────────────────────── */}
         {connectError && (
-          <div style={{ padding: "12px 16px", borderRadius: 10, marginBottom: 16, background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--fc-danger)", fontSize: 12, display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ padding: "12px 16px", borderRadius: 10, marginBottom: 16, background: "var(--fc-danger-wash)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--fc-danger)", fontSize: 12, display: "flex", alignItems: "center", gap: 8 }}>
             <AlertCircle size={14} style={{ flexShrink: 0 }} /> {connectError}
             <button onClick={() => setConnectError(null)} style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--fc-danger)", cursor: "pointer" }}><X size={12} /></button>
           </div>
@@ -963,7 +963,7 @@ export default function WhatsAppIntegrationPage() {
               {[
                 { icon: <Wifi size={14} style={{ color: "#25D366" }} />, title: "Cloud API", desc: "API oficial de Meta" },
                 { icon: <ShieldCheck size={14} style={{ color: "var(--fc-accent)" }} />, title: "Seguro", desc: "Tokens cifrados AES-256" },
-                { icon: <MessageSquare size={14} style={{ color: "var(--purple)" }} />, title: "Notificaciones", desc: "Alertas de tareas en WA" },
+                { icon: <MessageSquare size={14} style={{ color: "var(--fc-module-aria)" }} />, title: "Notificaciones", desc: "Alertas de tareas en WA" },
                 { icon: <Zap size={14} style={{ color: "var(--fc-warning)" }} />, title: "Plantillas", desc: "Mensajes proactivos" },
               ].map((f, i) => (
                 <div key={i} style={{ padding: "16px 20px", borderRight: i < 3 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
@@ -1023,7 +1023,7 @@ export default function WhatsAppIntegrationPage() {
                       <tr
                         key={line.id}
                         className={line.isLinked ? "wa-row" : "wa-row-unlinked"}
-                        style={{ background: isEvenRow ? "rgba(255,255,255,0.01)" : "transparent", transition: "background 0.15s", borderBottom: "1px solid var(--border-neutral)" }}
+                        style={{ background: isEvenRow ? "rgba(255,255,255,0.01)" : "transparent", transition: "background 0.15s", borderBottom: "1px solid var(--fc-border-subtle)" }}
                       >
                         {/* Perfil (avatar) */}
                         <td style={{ padding: "10px 14px", whiteSpace: "nowrap" }}>
@@ -1067,7 +1067,7 @@ export default function WhatsAppIntegrationPage() {
                         <td style={{ padding: "10px 14px", whiteSpace: "nowrap" }}>
                           {line.isLinked ? (
                             <button onClick={() => setTestLine(line)}
-                              style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 20, fontSize: 11, fontWeight: 600, background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.25)", color: "#25D366", cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s" }}>
+                              style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 20, fontSize: 11, fontWeight: 600, background: "var(--fc-success-wash)", border: "1px solid rgba(37,211,102,0.25)", color: "#25D366", cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s" }}>
                               <WaIcon size={12} /> Chat
                             </button>
                           ) : (
@@ -1121,7 +1121,7 @@ export default function WhatsAppIntegrationPage() {
                             {/* Link / Unlink */}
                             {!line.isLinked ? (
                               <button onClick={() => handleLink(line.id, null)}
-                                style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.2)", color: "#25D366", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                                style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, background: "var(--fc-success-wash)", border: "1px solid rgba(37,211,102,0.2)", color: "#25D366", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
                                 <Plus size={10} /> {t.linkBtn}
                               </button>
                             ) : null}

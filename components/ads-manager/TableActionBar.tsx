@@ -82,19 +82,19 @@ export function TableActionBar({
 
   const buttonStyle: React.CSSProperties = {
     display: "flex", alignItems: "center", gap: "4px", padding: "4px 8px",
-    background: "transparent", border: "1px solid var(--border)", borderRadius: "4px",
-    color: "var(--foreground)", fontSize: "10px", fontWeight: 500, cursor: "pointer", transition: "all 0.1s",
+    background: "transparent", border: "1px solid var(--fc-border)", borderRadius: "4px",
+    color: "var(--fc-text)", fontSize: "10px", fontWeight: 500, cursor: "pointer", transition: "all 0.1s",
   };
 
   const disabledButtonStyle: React.CSSProperties = {
-    ...buttonStyle, color: "var(--text-secondary)", cursor: "not-allowed", borderColor: "var(--text-secondary)",
+    ...buttonStyle, color: "var(--fc-text-secondary)", cursor: "not-allowed", borderColor: "var(--fc-text-secondary)",
   };
 
   const iconButtonStyle: React.CSSProperties = { ...buttonStyle, padding: "4px 6px" };
 
   const menuStyle: React.CSSProperties = {
     position: "absolute", top: "100%", left: 0, marginTop: "4px",
-    background: "var(--surface)", 
+    background: "var(--fc-surface)", 
     border: "1px solid var(--border-strong)", borderRadius: "6px",
     padding: "6px 0", minWidth: "240px", zIndex: 100,
     boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
@@ -109,9 +109,9 @@ export function TableActionBar({
   });
 
   const menuSectionTitleStyle: React.CSSProperties = {
-    padding: "8px 16px 4px", fontSize: "11px", fontWeight: 700, color: "var(--foreground)",
+    padding: "8px 16px 4px", fontSize: "11px", fontWeight: 700, color: "var(--fc-text)",
   };
-  const menuDividerStyle: React.CSSProperties = { height: "1px", background: "var(--border)", margin: "4px 0" };
+  const menuDividerStyle: React.CSSProperties = { height: "1px", background: "var(--fc-border)", margin: "4px 0" };
 
   const handleMenuItem = (action: () => void, requiresSelection = true) => {
     if (requiresSelection && !hasSelection) return;
@@ -127,15 +127,15 @@ export function TableActionBar({
       ref={menuRef}
       style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "4px 0", borderBottom: "1px solid var(--border)", gap: "8px", flexWrap: "nowrap",
+        padding: "4px 0", borderBottom: "1px solid var(--fc-border)", gap: "8px", flexWrap: "nowrap",
       }}
     >
       {/* Left side actions */}
       <div style={{ display: "flex", alignItems: "center", gap: "4px", flexWrap: "nowrap" }}>
         <button style={{
           display: "flex", alignItems: "center", gap: "4px", padding: "4px 10px",
-          background: "var(--emerald)", border: "none", borderRadius: "4px",
-          color: "var(--foreground)", fontSize: "10px", fontWeight: 600, cursor: "pointer",
+          background: "var(--fc-success)", border: "none", borderRadius: "4px",
+          color: "var(--fc-text)", fontSize: "10px", fontWeight: 600, cursor: "pointer",
         }}>
           <Plus className="w-3 h-3" /> Crear
         </button>
@@ -149,19 +149,19 @@ export function TableActionBar({
             <div style={menuStyle}>
               <button style={menuItemStyle(!hasSelection)} onClick={() => handleMenuItem(onDuplicateQuick)}>
                 <span>Duplicar rápidamente</span>
-                <span style={{ color: "var(--text-secondary)", fontSize: "11px" }}>Ctrl + D</span>
+                <span style={{ color: "var(--fc-text-secondary)", fontSize: "11px" }}>Ctrl + D</span>
               </button>
               <div style={menuDividerStyle} />
               <button style={menuItemStyle(!hasSelection)} onClick={() => handleMenuItem(onCopy)}>
                 <span>Copiar</span>
-                <span style={{ color: "var(--text-secondary)", fontSize: "11px" }}>Ctrl + C</span>
+                <span style={{ color: "var(--fc-text-secondary)", fontSize: "11px" }}>Ctrl + C</span>
               </button>
               <button style={menuItemStyle(clipboardCount === 0)} onClick={() => handleMenuItem(onPaste, false)}>
                 <span>Pegar {clipboardCount > 0 ? `(${clipboardCount})` : ""}</span>
-                <span style={{ color: "var(--text-secondary)", fontSize: "11px" }}>Ctrl + V</span>
+                <span style={{ color: "var(--fc-text-secondary)", fontSize: "11px" }}>Ctrl + V</span>
               </button>
               <button style={menuItemStyle(false)} onClick={() => handleMenuItem(onShowClipboard, false)}>
-                Ver elementos copiados {clipboardCount > 0 && <span style={{ background: "var(--cyan-dim)", color: "var(--cyan)", padding: "1px 6px", borderRadius: "8px", fontSize: "10px", fontWeight: 700 }}>{clipboardCount}</span>}
+                Ver elementos copiados {clipboardCount > 0 && <span style={{ background: "var(--fc-accent-wash)", color: "var(--fc-accent)", padding: "1px 6px", borderRadius: "8px", fontSize: "10px", fontWeight: 700 }}>{clipboardCount}</span>}
               </button>
             </div>
           )}
@@ -176,10 +176,10 @@ export function TableActionBar({
             <div style={menuStyle}>
               <div style={menuSectionTitleStyle}>General</div>
               <button style={menuItemStyle()} onClick={() => handleMenuItem(onActivate)}>
-                <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><Play className="w-3 h-3" style={{ color: "var(--emerald)" }} /> Activar</span>
+                <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><Play className="w-3 h-3" style={{ color: "var(--fc-success)" }} /> Activar</span>
               </button>
               <button style={menuItemStyle()} onClick={() => handleMenuItem(onDeactivate)}>
-                <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><Pause className="w-3 h-3" style={{ color: "var(--amber)" }} /> Desactivar</span>
+                <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><Pause className="w-3 h-3" style={{ color: "var(--fc-warning)" }} /> Desactivar</span>
               </button>
               <button style={menuItemStyle()} onClick={() => handleMenuItem(onBulkRename)}>
                 <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><Type className="w-3 h-3" /> Nombre</span>
@@ -245,19 +245,19 @@ export function TableActionBar({
                 {exportSub && (
                   <div style={{
                     position: "absolute", top: 0, left: "100%", marginLeft: "4px",
-                    background: "var(--surface)", 
+                    background: "var(--fc-surface)", 
                     border: "1px solid var(--border-strong)", borderRadius: "6px",
                     padding: "6px 0", minWidth: "180px", zIndex: 101,
                     boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
                   }}>
                     <button style={menuItemStyle(false)} onClick={() => handleMenuItem(onExportCSV, false)}>
-                      <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><Table2 className="w-3 h-3" style={{ color: "var(--emerald)" }} /> Exportar CSV</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><Table2 className="w-3 h-3" style={{ color: "var(--fc-success)" }} /> Exportar CSV</span>
                     </button>
                     <button style={menuItemStyle(false)} onClick={() => handleMenuItem(onExportExcel, false)}>
-                      <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><FileSpreadsheet className="w-3 h-3" style={{ color: "var(--emerald)" }} /> Exportar Excel</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><FileSpreadsheet className="w-3 h-3" style={{ color: "var(--fc-success)" }} /> Exportar Excel</span>
                     </button>
                     <button style={menuItemStyle(false)} onClick={() => handleMenuItem(onExportPDF, false)}>
-                      <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><FileText className="w-3 h-3" style={{ color: "var(--purple)" }} /> Reporte PDF</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><FileText className="w-3 h-3" style={{ color: "var(--fc-module-aria)" }} /> Reporte PDF</span>
                     </button>
                   </div>
                 )}

@@ -2,15 +2,19 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Calendar, CheckCircle2, Clock, Images, Zap } from "lucide-react";
+import { Calendar, CheckCircle2, Clock, Images, Zap, Users } from "lucide-react";
 import { Composer } from "./Composer";
 import { ScheduledCalendar } from "./ScheduledCalendar";
+import { ApprovalsPanel } from "./ApprovalsPanel";
+import { MediaLibrary } from "./MediaLibrary";
+import { AssetGroupManager } from "./AssetGroupManager";
 
 const TABS = [
-  { key: "composer", label: "Redactor", icon: Zap, color: "var(--amber)" },
-  { key: "calendar", label: "Calendario", icon: Calendar, color: "var(--emerald)" },
-  { key: "approvals", label: "Aprobaciones", icon: CheckCircle2, color: "var(--emerald)" },
+  { key: "composer", label: "Redactor", icon: Zap, color: "var(--fc-warning)" },
+  { key: "calendar", label: "Calendario", icon: Calendar, color: "var(--fc-success)" },
+  { key: "approvals", label: "Aprobaciones", icon: CheckCircle2, color: "var(--fc-success)" },
   { key: "library", label: "Biblioteca", icon: Images, color: "#bc5fb2" },
+  { key: "groups", label: "Grupos", icon: Users, color: "var(--fc-accent)" },
 ] as const;
 
 export function PublisherTabs() {
@@ -45,7 +49,7 @@ export function PublisherTabs() {
                 borderRadius: 8,
                 background: isActive ? "var(--surface-hover)" : "transparent",
                 border: "none",
-                color: isActive ? "var(--foreground)" : "var(--text-muted)",
+                color: isActive ? "var(--fc-text)" : "var(--fc-text-muted)",
                 fontSize: 12,
                 fontWeight: isActive ? 700 : 600,
                 cursor: "pointer",
@@ -85,7 +89,7 @@ export function PublisherTabs() {
             borderRadius: 8,
             background: "transparent",
             border: "none",
-            color: "var(--text-muted)",
+            color: "var(--fc-text-muted)",
             fontSize: 12,
             fontWeight: 600,
             textDecoration: "none",
@@ -100,28 +104,16 @@ export function PublisherTabs() {
 
       <PlannerOverview />
 
-      <div>
+      <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
         {activeTab === "composer" && <Composer />}
         {activeTab === "calendar" && <ScheduledCalendar />}
-        {activeTab === "approvals" && (
-          <PlannerPlaceholder
-            title="Aprobaciones editoriales"
-            description="Centraliza drafts, revisiones de cliente y aprobaciones internas antes de publicar."
-            items={["Pendientes de cliente", "Cambios solicitados", "Listos para programar"]}
-          />
-        )}
-        {activeTab === "library" && (
-          <PlannerPlaceholder
-            title="Biblioteca de medios"
-            description="Organiza assets por cliente, formato, campana y canal para reutilizar contenido sin buscar archivos sueltos."
-            items={["Imagenes y videos", "Hashtags y captions guardados", "Formatos por canal"]}
-          />
-        )}
+        {activeTab === "approvals" && <ApprovalsPanel />}
+        {activeTab === "library" && <MediaLibrary />}
+        {activeTab === "groups" && <AssetGroupManager />}
       </div>
     </div>
   );
 }
-
 function PlannerOverview() {
   return (
     <div
@@ -140,46 +132,10 @@ function PlannerOverview() {
         ["Estado Meta", "Valida permisos en Integraciones si falta algun canal."],
       ].map(([title, text]) => (
         <div key={title} style={{ padding: 14, background: "var(--bg-raised)" }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: "var(--foreground)" }}>{title}</div>
-          <div style={{ marginTop: 5, fontSize: 11, lineHeight: 1.45, color: "var(--text-secondary)" }}>{text}</div>
+          <div style={{ fontSize: 12, fontWeight: 800, color: "var(--fc-text)" }}>{title}</div>
+          <div style={{ marginTop: 5, fontSize: 11, lineHeight: 1.45, color: "var(--fc-text-secondary)" }}>{text}</div>
         </div>
       ))}
-    </div>
-  );
-}
-
-function PlannerPlaceholder({
-  title,
-  description,
-  items,
-}: {
-  title: string;
-  description: string;
-  items: string[];
-}) {
-  return (
-    <div className="glass-panel" style={{ padding: 28 }}>
-      <h2 style={{ margin: 0, color: "var(--foreground)", fontSize: 18, fontWeight: 800 }}>{title}</h2>
-      <p style={{ margin: "8px 0 18px", color: "var(--text-secondary)", fontSize: 13, lineHeight: 1.55, maxWidth: 680 }}>
-        {description}
-      </p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
-        {items.map((item) => (
-          <div
-            key={item}
-            style={{
-              padding: 12,
-              borderRadius: 8,
-              background: "var(--surface-hover)",
-              border: "1px solid var(--hairline)",
-              color: "var(--foreground)",
-              fontSize: 12,
-            }}
-          >
-            {item}
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

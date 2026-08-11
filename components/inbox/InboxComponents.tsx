@@ -13,7 +13,7 @@ export function Avatar({
   src,
   name,
   size = 42,
-  color = "var(--cyan)",
+  color = "var(--fc-accent)",
   style,
   className,
 }: {
@@ -116,7 +116,7 @@ export function PageSelector({
               width: 28, height: 28, borderRadius: "50%",
               background: selectedPage.platform === "instagram" ? "linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)" : "linear-gradient(135deg, #1877F2, #0d6efd)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 11, fontWeight: 700, color: "var(--foreground)", flexShrink: 0,
+              fontSize: 11, fontWeight: 700, color: "var(--fc-text)", flexShrink: 0,
             }}>
               {selectedPage.name.charAt(0).toUpperCase()}
             </div>
@@ -124,28 +124,28 @@ export function PageSelector({
         ) : (
           <div style={{
             width: 28, height: 28, borderRadius: "50%",
-            background: "var(--surface)",
+            background: "var(--fc-surface)",
             display: "flex", alignItems: "center", justifyContent: "center",
             flexShrink: 0,
           }}>
-            <Globe style={{ width: 14, height: 14, color: "var(--purple)" }} />
+            <Globe style={{ width: 14, height: 14, color: "var(--fc-module-aria)" }} />
           </div>
         )}
         <div style={{ flex: 1, textAlign: "left", minWidth: 0 }}>
           <div style={{
-            fontSize: 12, fontWeight: 600, color: "var(--foreground)",
+            fontSize: 12, fontWeight: 600, color: "var(--fc-text)",
             whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
           }}>
             {selectedPage?.name || "Todas las páginas"}
           </div>
           {selectedPage && (
-            <div style={{ fontSize: 9, color: "var(--text-muted)", textTransform: "capitalize" }}>
+            <div style={{ fontSize: 9, color: "var(--fc-text-muted)", textTransform: "capitalize" }}>
               {selectedPage.platform}
             </div>
           )}
         </div>
         <ChevronDown style={{
-          width: 14, height: 14, color: "var(--text-muted)",
+          width: 14, height: 14, color: "var(--fc-text-muted)",
           transform: open ? "rotate(180deg)" : "none",
           transition: "transform 0.2s", flexShrink: 0,
         }} />
@@ -170,7 +170,7 @@ export function PageSelector({
               background: "var(--surface-hover)",
               borderRadius: 6, border: "1px solid var(--hairline)",
             }}>
-              <Search style={{ width: 12, height: 12, color: "var(--text-muted)", flexShrink: 0 }} />
+              <Search style={{ width: 12, height: 12, color: "var(--fc-text-muted)", flexShrink: 0 }} />
               <input
                 type="text"
                 placeholder="Buscar página..."
@@ -179,7 +179,7 @@ export function PageSelector({
                 autoFocus
                 style={{
                   background: "transparent", border: "none", outline: "none",
-                  color: "var(--foreground)", fontSize: 11, width: "100%", fontFamily: "inherit",
+                  color: "var(--fc-text)", fontSize: 11, width: "100%", fontFamily: "inherit",
                 }}
               />
             </div>
@@ -195,21 +195,21 @@ export function PageSelector({
                 padding: "8px 12px", background: !selectedPage ? "rgba(155,123,232,0.06)" : "transparent",
                 border: "none", borderBottom: "1px solid var(--hairline)",
                 cursor: "pointer", transition: "background 0.1s", fontFamily: "inherit",
-                borderLeft: !selectedPage ? "3px solid var(--purple)" : "3px solid transparent",
+                borderLeft: !selectedPage ? "3px solid var(--fc-module-aria)" : "3px solid transparent",
               }}
               onMouseEnter={e => { if (selectedPage) e.currentTarget.style.background = "var(--row-hover)"; }}
               onMouseLeave={e => { if (selectedPage) e.currentTarget.style.background = "transparent"; }}
             >
               <div style={{
                 width: 32, height: 32, borderRadius: "50%",
-                background: "var(--surface)",
+                background: "var(--fc-surface)",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
-                <Globe style={{ width: 15, height: 15, color: "var(--purple)" }} />
+                <Globe style={{ width: 15, height: 15, color: "var(--fc-module-aria)" }} />
               </div>
               <div style={{ textAlign: "left" }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: !selectedPage ? "var(--purple)" : "white" }}>Todas las páginas</div>
-                <div style={{ fontSize: 9, color: "var(--text-muted)" }}>{pages.length} cuentas conectadas</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: !selectedPage ? "var(--fc-module-aria)" : "white" }}>Todas las páginas</div>
+                <div style={{ fontSize: 9, color: "var(--fc-text-muted)" }}>{pages.length} cuentas conectadas</div>
               </div>
             </button>
 
@@ -225,7 +225,7 @@ export function PageSelector({
                     background: isActive ? "rgba(155,123,232,0.06)" : "transparent",
                     border: "none", borderBottom: "1px solid var(--hairline)",
                     cursor: "pointer", transition: "background 0.1s", fontFamily: "inherit",
-                    borderLeft: isActive ? "3px solid var(--purple)" : "3px solid transparent",
+                    borderLeft: isActive ? "3px solid var(--fc-module-aria)" : "3px solid transparent",
                   }}
                   onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "var(--row-hover)"; }}
                   onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
@@ -245,7 +245,7 @@ export function PageSelector({
                           ? "linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)"
                           : "linear-gradient(135deg, #1877F2, #0d6efd)",
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 12, fontWeight: 700, color: "var(--foreground)",
+                        fontSize: 12, fontWeight: 700, color: "var(--fc-text)",
                       }}>
                         {page.name.charAt(0).toUpperCase()}
                       </div>
@@ -256,12 +256,12 @@ export function PageSelector({
                       width: 14, height: 14, borderRadius: "50%",
                       background: page.platform === "instagram" ? "#E1306C" : "#1877F2",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      border: "2px solid var(--background)",
+                      border: "2px solid var(--fc-bg)",
                     }}>
                       {page.platform === "instagram" ? (
-                        <MessageCircle style={{ width: 7, height: 7, color: "var(--foreground)" }} />
+                        <MessageCircle style={{ width: 7, height: 7, color: "var(--fc-text)" }} />
                       ) : (
-                        <MessageSquare style={{ width: 7, height: 7, color: "var(--foreground)" }} />
+                        <MessageSquare style={{ width: 7, height: 7, color: "var(--fc-text)" }} />
                       )}
                     </div>
                   </div>
@@ -270,12 +270,12 @@ export function PageSelector({
                   <div style={{ flex: 1, textAlign: "left", minWidth: 0 }}>
                     <div style={{
                       fontSize: 12, fontWeight: isActive ? 600 : 500,
-                      color: isActive ? "var(--purple)" : "white",
+                      color: isActive ? "var(--fc-module-aria)" : "white",
                       whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                     }}>
                       {page.name}
                     </div>
-                    <div style={{ fontSize: 9, color: "var(--text-muted)", textTransform: "capitalize" }}>
+                    <div style={{ fontSize: 9, color: "var(--fc-text-muted)", textTransform: "capitalize" }}>
                       {page.platform}
                     </div>
                   </div>
@@ -284,7 +284,7 @@ export function PageSelector({
                   {isActive && (
                     <div style={{
                       width: 6, height: 6, borderRadius: "50%",
-                      background: "var(--purple)", flexShrink: 0,
+                      background: "var(--fc-module-aria)", flexShrink: 0,
                     }} />
                   )}
                 </button>
@@ -292,7 +292,7 @@ export function PageSelector({
             })}
 
             {filteredPages.length === 0 && (
-              <div style={{ padding: 16, textAlign: "center", fontSize: 11, color: "var(--text-muted)" }}>
+              <div style={{ padding: 16, textAlign: "center", fontSize: 11, color: "var(--fc-text-muted)" }}>
                 Sin resultados
               </div>
             )}
@@ -352,8 +352,8 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
     if (loadingPost) {
       return (
         <div style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 40 }}>
-          <div style={{ width: 28, height: 28, border: "3px solid var(--hairline)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-          <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Cargando publicación...</p>
+          <div style={{ width: 28, height: 28, border: "3px solid var(--hairline)", borderTopColor: "var(--fc-accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+          <p style={{ fontSize: 13, color: "var(--fc-text-muted)" }}>Cargando publicación...</p>
           <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
         </div>
       );
@@ -362,8 +362,8 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
     if (!postData) {
     return (
       <div style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 40 }}>
-        <MessageSquare style={{ width: 32, height: 32, color: "var(--text-muted)" }} />
-        <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{loadError ? "No se pudo cargar la publicación" : "Sin datos de publicación"}</p>
+        <MessageSquare style={{ width: 32, height: 32, color: "var(--fc-text-muted)" }} />
+        <p style={{ fontSize: 13, color: "var(--fc-text-muted)" }}>{loadError ? "No se pudo cargar la publicación" : "Sin datos de publicación"}</p>
       </div>
     );
     }
@@ -377,17 +377,17 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
         display: "flex", alignItems: "center", gap: 10, flexShrink: 0,
       }}>
         {onBack && (
-          <button onClick={onBack} className="md:hidden text-[var(--text-secondary)] hover:text-[var(--foreground)] mr-2" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+          <button onClick={onBack} className="md:hidden text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] mr-2" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
             <ChevronLeft style={{ width: 20, height: 20 }} />
           </button>
         )}
         <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
           <pc.icon style={{ width: 12, height: 12, color: pc.color }} />
-          <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          <span style={{ fontSize: 10, color: "var(--fc-text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
             {pc.label}
           </span>
           <span style={{ fontSize: 10, color: "var(--hairline)" }}>Â·</span>
-          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{formatDate(conversation.lastMessageTime)}</span>
+          <span style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>{formatDate(conversation.lastMessageTime)}</span>
         </div>
         {postData.permalink && (
           <a href={postData.permalink} target="_blank" rel="noopener noreferrer"
@@ -395,7 +395,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
               padding: "5px 10px", borderRadius: 6,
               background: "var(--surface-hover)",
               border: "1px solid var(--hairline)",
-              color: "var(--cyan)", fontSize: 10, fontWeight: 600,
+              color: "var(--fc-accent)", fontSize: 10, fontWeight: 600,
               textDecoration: "none", display: "flex", alignItems: "center", gap: 4,
             }}
           >
@@ -456,10 +456,10 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
 
             {/* Page name + date */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", display: "flex", alignItems: "center", gap: 4 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-text)", display: "flex", alignItems: "center", gap: 4 }}>
                 {pageName}
               </div>
-              <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+              <div style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>
                 {formatDate(conversation.lastMessageTime)}
               </div>
             </div>
@@ -468,7 +468,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
           {/* Caption above image (Meta style) */}
           {postData.caption && (
             <div style={{ padding: "0 14px 10px" }}>
-              <p style={{ fontSize: 13, color: "var(--foreground)", lineHeight: 1.6, margin: 0, whiteSpace: "pre-wrap" }}>
+              <p style={{ fontSize: 13, color: "var(--fc-text)", lineHeight: 1.6, margin: 0, whiteSpace: "pre-wrap" }}>
                 {postData.caption.length > 280 ? postData.caption.slice(0, 280) + "..." : postData.caption}
               </p>
             </div>
@@ -494,14 +494,14 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 15 }}></span>
-              <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{(postData.likeCount ?? 0).toLocaleString()} likes</span>
+              <span style={{ fontSize: 13, color: "var(--fc-text-secondary)" }}>{(postData.likeCount ?? 0).toLocaleString()} likes</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+              <span style={{ fontSize: 12, color: "var(--fc-text-muted)" }}>
                 {(postData.commentsCount ?? 0).toLocaleString()} comentarios
               </span>
               {(postData.shareCount || 0) > 0 && (
-                <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                <span style={{ fontSize: 12, color: "var(--fc-text-muted)" }}>
                   · {(postData.shareCount || 0).toLocaleString()} compartidos
                 </span>
               )}
@@ -511,12 +511,12 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
 
         {/* ── Comments section ──────────────────────────────────────────────── */}
         <div style={{ padding: "0 16px 12px" }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--fc-text-muted)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>
             Comentarios ({postData.commentsCount})
           </div>
 
           {postData.comments.length === 0 ? (
-            <p style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center", padding: "20px 0" }}>
+            <p style={{ fontSize: 12, color: "var(--fc-text-muted)", textAlign: "center", padding: "20px 0" }}>
               Sin comentarios recientes
             </p>
           ) : (
@@ -538,14 +538,14 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
                         if (parent && !parent.querySelector(".cm-av")) {
                           const d = document.createElement("div");
                           d.className = "cm-av";
-                          d.style.cssText = "width:34px;height:34px;border-radius:50%;background:rgba(155,123,232,0.15);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--purple);";
+                          d.style.cssText = "width:34px;height:34px;border-radius:50%;background:rgba(155,123,232,0.15);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--fc-module-aria);";
                           d.textContent = comment.username.charAt(0).toUpperCase();
                           parent.insertBefore(d, e.target as Node);
                         }
                       }}
                     />
                   ) : (
-                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(155,123,232,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "var(--purple)" }}>
+                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(155,123,232,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "var(--fc-module-aria)" }}>
                       {comment.username.charAt(0).toUpperCase()}
                     </div>
                   )}
@@ -560,23 +560,23 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
                     display: "inline-block",
                     maxWidth: "100%",
                   }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", marginBottom: 2 }}>{comment.username}</div>
-                    <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0, lineHeight: 1.5, wordBreak: "break-word" }}>{comment.text}</p>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--fc-text)", marginBottom: 2 }}>{comment.username}</div>
+                    <p style={{ fontSize: 13, color: "var(--fc-text-secondary)", margin: 0, lineHeight: 1.5, wordBreak: "break-word" }}>{comment.text}</p>
                   </div>
 
                   {/* Meta: timestamp + likes + Responder */}
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4, paddingLeft: 4 }}>
-                    <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
+                    <span style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>
                       {new Date(comment.timestamp).toLocaleDateString("es-MX", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
                     </span>
                     {comment.likes > 0 && (
-                      <span style={{ fontSize: 10, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 2 }}>
+                      <span style={{ fontSize: 10, color: "var(--fc-text-muted)", display: "flex", alignItems: "center", gap: 2 }}>
                         <span></span>{comment.likes}
                       </span>
                     )}
                     <button
                       onClick={() => setReplyTarget({ id: comment.id, username: comment.username })}
-                      style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit" }}
+                      style={{ fontSize: 10, fontWeight: 700, color: "var(--fc-text-muted)", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit" }}
                     >
                       Responder
                     </button>
@@ -592,14 +592,14 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
       <div style={{
         borderTop: "1px solid var(--hairline)",
         padding: "10px 14px",
-        background: "var(--background)",
+        background: "var(--fc-bg)",
         flexShrink: 0,
       }}>
         {replyTarget && (
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6, padding: "4px 8px", background: "var(--surface-hover)", borderRadius: 6 }}>
-            <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Respondiendo a</span>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--cyan)" }}>@{replyTarget.username}</span>
-            <button onClick={() => setReplyTarget(null)} style={{ marginLeft: "auto", fontSize: 10, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>âœ</button>
+            <span style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>Respondiendo a</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--fc-accent)" }}>@{replyTarget.username}</span>
+            <button onClick={() => setReplyTarget(null)} style={{ marginLeft: "auto", fontSize: 10, color: "var(--fc-text-muted)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>âœ</button>
           </div>
         )}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -616,7 +616,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
             </div>
           )}
           <div style={{ flex: 1, display: "flex", alignItems: "center", background: "var(--surface-hover)", borderRadius: 20, border: "1px solid var(--hairline)", padding: "0 12px", gap: 8 }}>
-            <span style={{ fontSize: 10, color: "var(--text-muted)", whiteSpace: "nowrap" }}>como {pageName}</span>
+            <span style={{ fontSize: 10, color: "var(--fc-text-muted)", whiteSpace: "nowrap" }}>como {pageName}</span>
             <input
               value={replyText}
               onChange={e => setReplyText(e.target.value)}
@@ -624,7 +624,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
               placeholder="Escribe un comentario..."
               style={{
                 flex: 1, background: "transparent", border: "none", outline: "none",
-                fontSize: 13, color: "var(--foreground)", fontFamily: "inherit",
+                fontSize: 13, color: "var(--fc-text)", fontFamily: "inherit",
                 padding: "9px 0",
               }}
             />
@@ -633,7 +633,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
               disabled={!replyText.trim() || sendingReply}
               style={{
                 background: "none", border: "none", cursor: replyText.trim() ? "pointer" : "default",
-                padding: 0, color: replyText.trim() ? "var(--cyan)" : "var(--text-muted)",
+                padding: 0, color: replyText.trim() ? "var(--fc-accent)" : "var(--fc-text-muted)",
                 display: "flex", alignItems: "center",
               }}
             >
@@ -710,16 +710,16 @@ export function ChatView({
       <div className="flex flex-col gap-2 md:gap-3 p-3 md:p-4 shrink-0 bg-transparent border-b border-[var(--glass-border)]">
         {/* Top Row: User Info */}
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 md:gap-3 text-[11px] text-[var(--text-muted)]">
+          <div className="flex items-center gap-2 md:gap-3 text-[11px] text-[var(--fc-text-muted)]">
             {onBack && (
-              <button onClick={onBack} className="md:hidden text-[var(--text-secondary)] hover:text-[var(--foreground)] mr-1" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+              <button onClick={onBack} className="md:hidden text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] mr-1" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                 <ChevronLeft style={{ width: 18, height: 18 }} />
               </button>
             )}
             
             <div className="flex items-center gap-2 md:gap-3">
                             <Avatar src={resolveContactAvatar(conversation.contactAvatar, conversation.contactId, (conversation as any)?._pageId, conversation.platform)} name={conversation.contactName && /^\d+$/.test(conversation.contactName) ? "Usuario Anonimizado" : (conversation.contactName || "Usuario")} size={36} color={pc.color} />
-              <span className="text-[var(--foreground)] font-semibold text-[14px] md:text-[16px]">
+              <span className="text-[var(--fc-text)] font-semibold text-[14px] md:text-[16px]">
                 {conversation.contactName && /^\d+$/.test(conversation.contactName) ? "Usuario Anonimizado" : (conversation.contactName || "Usuario")}
               </span>
             </div>
@@ -729,14 +729,14 @@ export function ChatView({
             <button 
               onClick={onClose}
               className="flex items-center gap-1 md:gap-1.5 px-2 py-1.5 md:px-3 md:py-1.5 rounded-2xl font-semibold text-[10px] md:text-[11px] bg-transparent border border-[var(--glass-border)] transition-colors hover:bg-[var(--surface-hover)]"
-              style={{ color: conversation.closed ? "var(--emerald)" : "var(--text-secondary)" }}
+              style={{ color: conversation.closed ? "var(--fc-success)" : "var(--fc-text-secondary)" }}
             >
               <CheckCircle2 style={{ width: 14, height: 14 }} />
               {conversation.closed ? "REABRIR" : "CERRAR"}
             </button>
             <button
               onClick={onToggleProfile}
-              style={{ background: "none", border: "none", color: showProfile ? "var(--cyan)" : "var(--text-secondary)", cursor: "pointer", padding: 4 }}
+              style={{ background: "none", border: "none", color: showProfile ? "var(--fc-accent)" : "var(--fc-text-secondary)", cursor: "pointer", padding: 4 }}
             >
               <ChevronRight style={{ width: 16, height: 16, transform: showProfile ? "rotate(180deg)" : "none" }} />
             </button>
@@ -760,7 +760,7 @@ export function ChatView({
             }}>
               <div style={{ flex: 1, height: 1, background: "var(--hairline)" }} />
               <span style={{
-                fontSize: 10, color: "var(--text-muted)",
+                fontSize: 10, color: "var(--fc-text-muted)",
                 fontWeight: 500, whiteSpace: "nowrap",
               }}>
                 {group.date}
@@ -801,7 +801,7 @@ export function ChatView({
                   }}>
                     {msg.text && (
                       <p style={{
-                        fontSize: 13, color: msg.incoming ? "var(--foreground)" : "white",
+                        fontSize: 13, color: msg.incoming ? "var(--fc-text)" : "white",
                         margin: 0, lineHeight: 1.5, wordBreak: "break-word",
                       }}>
                         {msg.text}
@@ -836,7 +836,7 @@ export function ChatView({
                               href={att.payload?.url || att.image_data?.url || att.video_data?.url || att.file_url || att.url} 
                               target="_blank" 
                               rel="noreferrer"
-                              style={{ color: msg.incoming ? "var(--cyan)" : "white", textDecoration: "underline", fontSize: 13 }}
+                              style={{ color: msg.incoming ? "var(--fc-accent)" : "white", textDecoration: "underline", fontSize: 13 }}
                             >
                               Archivo adjunto
                             </a>
@@ -850,7 +850,7 @@ export function ChatView({
                         bottom: -10,
                         right: msg.incoming ? -10 : "auto",
                         left: !msg.incoming ? -10 : "auto",
-                        background: "var(--background)",
+                        background: "var(--fc-bg)",
                         border: "1px solid var(--hairline)",
                         borderRadius: "50%",
                         padding: "2px 4px",
@@ -866,37 +866,37 @@ export function ChatView({
                   {!msg.incoming && (
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4, marginTop: 3 }}>
                       {msg.status === "error" ? (
-                        <span style={{ fontSize: 9, color: "var(--red)", fontWeight: 500 }}>
+                        <span style={{ fontSize: 9, color: "var(--fc-danger)", fontWeight: 500 }}>
                           {msg.errorText || "Error al enviar"}
                         </span>
                       ) : msg.status === "sending" ? (
                         /* Sending: single grey tick with opacity pulse */
-                        <span style={{ display: "flex", alignItems: "center", color: "var(--text-muted)", opacity: 0.6 }}>
+                        <span style={{ display: "flex", alignItems: "center", color: "var(--fc-text-muted)", opacity: 0.6 }}>
                           <Check size={12} strokeWidth={3} />
                         </span>
                       ) : msg.readAt ? (
                         /* Read: double cyan/blue tick + "Visto" */
-                        <span style={{ fontSize: 9, color: "var(--cyan)", fontWeight: 500, display: "flex", alignItems: "center", gap: 2 }}>
+                        <span style={{ fontSize: 9, color: "var(--fc-accent)", fontWeight: 500, display: "flex", alignItems: "center", gap: 2 }}>
                           <CheckCheck size={14} strokeWidth={2.5} />
                           <span>Visto</span>
                         </span>
                       ) : msg.deliveredAt ? (
                         /* Delivered: double grey tick */
-                        <span style={{ fontSize: 9, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 2 }}>
+                        <span style={{ fontSize: 9, color: "var(--fc-text-muted)", display: "flex", alignItems: "center", gap: 2 }}>
                           <CheckCheck size={14} strokeWidth={2.5} />
                           <span>Entregado</span>
                         </span>
                       ) : (
                         /* Sent (persisted, awaiting delivery confirmation): single grey tick */
-                        <span style={{ display: "flex", alignItems: "center", color: "var(--text-muted)" }}>
+                        <span style={{ display: "flex", alignItems: "center", color: "var(--fc-text-muted)" }}>
                           <Check size={12} strokeWidth={3} />
                         </span>
                       )}
-                      <span style={{ fontSize: 9, color: "var(--text-muted)" }}>{formatTime(msg.timestamp)}</span>
+                      <span style={{ fontSize: 9, color: "var(--fc-text-muted)" }}>{formatTime(msg.timestamp)}</span>
                     </div>
                   )}
                   {msg.incoming && (
-                    <p style={{ fontSize: 9, margin: "3px 4px 0", color: "var(--text-muted)", textAlign: "left" }}>
+                    <p style={{ fontSize: 9, margin: "3px 4px 0", color: "var(--fc-text-muted)", textAlign: "left" }}>
                       {formatTime(msg.timestamp)}
                     </p>
                   )}
@@ -920,14 +920,14 @@ export function ChatView({
             display: "flex", alignItems: "center", justifyContent: "space-between",
             marginBottom: 6,
           }}>
-            <span style={{ fontSize: 10, color: "var(--text-secondary)", fontWeight: 600 }}>
+            <span style={{ fontSize: 10, color: "var(--fc-text-secondary)", fontWeight: 600 }}>
               Respuestas sugeridas
             </span>
             <button
               onClick={() => setShowReplies(false)}
               style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}
             >
-              <X style={{ width: 12, height: 12, color: "var(--text-muted)" }} />
+              <X style={{ width: 12, height: 12, color: "var(--fc-text-muted)" }} />
             </button>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -937,7 +937,7 @@ export function ChatView({
                 onClick={() => { setInput(reply); setShowReplies(false); }}
                 style={{
                   padding: "5px 10px", fontSize: 11,
-                  color: "var(--text-secondary)",
+                  color: "var(--fc-text-secondary)",
                   background: "var(--surface-hover)",
                   border: "1px solid var(--hairline)",
                   borderRadius: 16, cursor: "pointer",
@@ -947,7 +947,7 @@ export function ChatView({
                 onMouseEnter={e => {
                   e.currentTarget.style.background = "rgba(155,123,232,0.08)";
                   e.currentTarget.style.borderColor = "rgba(155,123,232,0.2)";
-                  e.currentTarget.style.color = "var(--purple)";
+                  e.currentTarget.style.color = "var(--fc-module-aria)";
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.background = "var(--surface-hover)";
@@ -974,14 +974,14 @@ export function ChatView({
             display: "flex", alignItems: "center", justifyContent: "space-between",
             marginBottom: 6,
           }}>
-            <span style={{ fontSize: 10, color: "var(--text-secondary)", fontWeight: 600 }}>
+            <span style={{ fontSize: 10, color: "var(--fc-text-secondary)", fontWeight: 600 }}>
               Emojis
             </span>
             <button
               onClick={() => setShowEmojis(false)}
               style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}
             >
-              <X style={{ width: 12, height: 12, color: "var(--text-muted)" }} />
+              <X style={{ width: 12, height: 12, color: "var(--fc-text-muted)" }} />
             </button>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -1041,7 +1041,7 @@ export function ChatView({
               >
                 <btn.icon style={{
                   width: 16, height: 16,
-                  color: btn.active ? "var(--purple)" : "var(--text-secondary)",
+                  color: btn.active ? "var(--fc-module-aria)" : "var(--fc-text-secondary)",
                 }} />
               </button>
             ))}
@@ -1068,7 +1068,7 @@ export function ChatView({
               rows={1}
               style={{
                 flex: 1, background: "transparent", border: "none", outline: "none",
-                color: "var(--foreground)", fontSize: 13, resize: "none", fontFamily: "inherit",
+                color: "var(--fc-text)", fontSize: 13, resize: "none", fontFamily: "inherit",
                 lineHeight: 1.5, minHeight: 28, maxHeight: 80,
               }}
             />
@@ -1078,7 +1078,7 @@ export function ChatView({
               style={{
                 width: 32, height: 32,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                background: input.trim() ? "linear-gradient(135deg, var(--purple), var(--purple))" : "var(--row-hover)",
+                background: input.trim() ? "linear-gradient(135deg, var(--fc-module-aria), var(--fc-module-aria))" : "var(--row-hover)",
                 border: "none", borderRadius: 8,
                 cursor: input.trim() ? "pointer" : "default",
                 transition: "all 0.2s", flexShrink: 0,
@@ -1087,7 +1087,7 @@ export function ChatView({
             >
               <Send style={{
                 width: 14, height: 14,
-                color: input.trim() ? "white" : "var(--text-muted)",
+                color: input.trim() ? "white" : "var(--fc-text-muted)",
               }} />
             </button>
           </div>
@@ -1105,7 +1105,7 @@ export function ChatView({
             onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
             onMouseLeave={e => e.currentTarget.style.background = "transparent"}
           >
-            <ThumbsUp style={{ width: 18, height: 18, color: "var(--text-muted)" }} />
+            <ThumbsUp style={{ width: 18, height: 18, color: "var(--fc-text-muted)" }} />
           </button>
         </div>
       </div>
@@ -1130,16 +1130,16 @@ export function ProfileSection({ title, defaultOpen = true, children }: {
         onMouseLeave={e => e.currentTarget.style.background = "transparent"}
       >
         <span style={{
-          fontSize: 12, fontWeight: 600, color: "var(--foreground)",
+          fontSize: 12, fontWeight: 600, color: "var(--fc-text)",
         }}>
           {title}
         </span>
         {open ? (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 16, height: 16, borderRadius: "50%", border: "1px solid var(--cyan)", color: "var(--cyan)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 16, height: 16, borderRadius: "50%", border: "1px solid var(--fc-accent)", color: "var(--fc-accent)" }}>
             <span style={{ fontSize: 14, lineHeight: 1, marginTop: -2 }}>-</span>
           </div>
         ) : (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 16, height: 16, borderRadius: "50%", border: "1px solid var(--cyan)", color: "var(--cyan)" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 16, height: 16, borderRadius: "50%", border: "1px solid var(--fc-accent)", color: "var(--fc-accent)" }}>
             <span style={{ fontSize: 12, lineHeight: 1 }}>+</span>
           </div>
         )}
@@ -1216,28 +1216,28 @@ export function ContactProfile({
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       {/* Profile Header */}
       <div style={{ padding: "20px 16px 16px", borderBottom: "1px solid var(--hairline)", flexShrink: 0, position: "relative" }}>
-        <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", color: "var(--cyan)", cursor: "pointer", padding: 4 }}>
+        <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", color: "var(--fc-accent)", cursor: "pointer", padding: 4 }}>
           <X style={{ width: 14, height: 14 }} />
         </button>
 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
           <div style={{ margin: "0 auto 10px", position: "relative" }}>
                         <Avatar src={resolveContactAvatar(conversation.contactAvatar, conversation.contactId, (conversation as any)?._pageId, conversation.platform)} name={displayName} size={60} color={pc.color} />
-            <div style={{ position: "absolute", bottom: 0, right: 0, background: "var(--surface)", borderRadius: "50%", padding: 2, border: "1px solid var(--hairline)" }}>
+            <div style={{ position: "absolute", bottom: 0, right: 0, background: "var(--fc-surface)", borderRadius: "50%", padding: 2, border: "1px solid var(--hairline)" }}>
               <PlatformIcon platform={conversation.platform} size={12} />
             </div>
           </div>
 
-          <p style={{ fontSize: 11, color: "var(--text-muted)", margin: "0 0 4px" }}>Datos del contacto</p>
+          <p style={{ fontSize: 11, color: "var(--fc-text-muted)", margin: "0 0 4px" }}>Datos del contacto</p>
           <div style={{ display: "flex", alignItems: "center", gap: 6, margin: "0 0 2px" }}>
-            <User style={{ width: 12, height: 12, color: "var(--text-muted)" }} />
-            <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>{displayName}</h3>
+            <User style={{ width: 12, height: 12, color: "var(--fc-text-muted)" }} />
+            <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--fc-text)", margin: 0 }}>{displayName}</h3>
           </div>
 
-          <p style={{ fontSize: 10, color: "var(--text-muted)", margin: "0 0 4px", display: "flex", alignItems: "center", gap: 4, justifyContent: "center" }}>
+          <p style={{ fontSize: 10, color: "var(--fc-text-muted)", margin: "0 0 4px", display: "flex", alignItems: "center", gap: 4, justifyContent: "center" }}>
             <PlatformIcon platform={conversation.platform} size={10} />
             {platformLabel[conversation.platform] || conversation.platform}
-            {conversation.pageName && <><span style={{ opacity: 0.4 }}>Â·</span><span style={{ color: "var(--text-secondary)" }}>{conversation.pageName}</span></>}
+            {conversation.pageName && <><span style={{ opacity: 0.4 }}>Â·</span><span style={{ color: "var(--fc-text-secondary)" }}>{conversation.pageName}</span></>}
           </p>
 
           <span style={{
@@ -1264,13 +1264,13 @@ export function ContactProfile({
           {(incomingCount + outgoingCount) > 0 && (
             <div style={{ display: "flex", gap: 6, width: "100%" }}>
               {[
-                { label: "Recibidos", value: incomingCount, color: "var(--cyan)" },
+                { label: "Recibidos", value: incomingCount, color: "var(--fc-accent)" },
                 { label: "Enviados", value: outgoingCount, color: "#8b5cf6" },
                 ...(conversation.createdAt ? [{ label: "Inicio", value: new Date(conversation.createdAt).toLocaleDateString("es-MX", { day: "2-digit", month: "short" }), color: "#f59e0b" as string }] : []),
               ].map((s, i) => (
                 <div key={i} style={{ flex: 1, background: "var(--surface-hover)", borderRadius: 8, padding: "6px 4px", border: "1px solid var(--hairline)", textAlign: "center" }}>
                   <p style={{ fontSize: typeof s.value === "number" ? 16 : 10, fontWeight: 800, color: s.color, margin: 0, lineHeight: 1 }}>{s.value}</p>
-                  <p style={{ fontSize: 8, color: "var(--text-muted)", margin: "2px 0 0", letterSpacing: "0.05em", textTransform: "uppercase" }}>{s.label}</p>
+                  <p style={{ fontSize: 8, color: "var(--fc-text-muted)", margin: "2px 0 0", letterSpacing: "0.05em", textTransform: "uppercase" }}>{s.label}</p>
                 </div>
               ))}
             </div>
@@ -1278,12 +1278,12 @@ export function ContactProfile({
 
           {/* Assignment */}
           <div ref={assignRef} style={{ marginTop: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, width: "100%", position: "relative" }}>
-            <div style={{ fontSize: 11, color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ fontSize: 11, color: "var(--fc-text-secondary)", display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: conversation.assignedTo ? "var(--green)" : "var(--yellow)" }} />
               <span>{conversation.assignedTo ? `Asignado: ${conversation.assignedTo}` : "Sin asignar"}</span>
             </div>
             <button onClick={() => setShowAssign(!showAssign)}
-              style={{ background: "transparent", border: "1px solid var(--glass-border)", color: "var(--cyan)", fontSize: 10, fontWeight: 600, padding: "4px 10px", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 4, marginTop: 4, fontFamily: "inherit" }}>
+              style={{ background: "transparent", border: "1px solid var(--glass-border)", color: "var(--fc-accent)", fontSize: 10, fontWeight: 600, padding: "4px 10px", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 4, marginTop: 4, fontFamily: "inherit" }}>
               <span>Cambiar asignación</span>
               <ChevronDown style={{ width: 10, height: 10 }} />
             </button>
@@ -1291,7 +1291,7 @@ export function ContactProfile({
               <div style={{ position: "absolute", top: "105%", left: "50%", transform: "translateX(-50%)", background: "var(--panel-bg)", border: "1px solid var(--glass-border)", borderRadius: 8, boxShadow: "var(--shadow-hard)", zIndex: 9999, minWidth: 140, overflow: "hidden" }}>
                 {TEAM_MEMBERS.map(member => (
                   <button key={member} onClick={() => { onAssign(member); setShowAssign(false); }}
-                    style={{ width: "100%", padding: "8px 12px", border: "none", borderBottom: "1px solid var(--hairline)", background: (conversation.assignedTo === member || (!conversation.assignedTo && member === "Sin asignar")) ? "var(--surface-hover)" : "transparent", color: "var(--text-secondary)", fontSize: 11, textAlign: "left", cursor: "pointer", fontFamily: "inherit" }}>
+                    style={{ width: "100%", padding: "8px 12px", border: "none", borderBottom: "1px solid var(--hairline)", background: (conversation.assignedTo === member || (!conversation.assignedTo && member === "Sin asignar")) ? "var(--surface-hover)" : "transparent", color: "var(--fc-text-secondary)", fontSize: 11, textAlign: "left", cursor: "pointer", fontFamily: "inherit" }}>
                     {member}
                   </button>
                 ))}
@@ -1312,26 +1312,26 @@ export function ContactProfile({
               placeholder="Nota interna (Ctrl+Enter para guardar)..."
               rows={2}
               onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSaveNote(); }}
-              style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: 8, padding: "6px 8px", fontSize: 11, color: "var(--foreground)", fontFamily: "inherit", resize: "vertical", outline: "none", boxSizing: "border-box" }}
+              style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: 8, padding: "6px 8px", fontSize: 11, color: "var(--fc-text)", fontFamily: "inherit", resize: "vertical", outline: "none", boxSizing: "border-box" }}
             />
             <button onClick={handleSaveNote} disabled={!noteText.trim() || savingNote}
-              style={{ alignSelf: "flex-end", padding: "4px 12px", borderRadius: 8, background: "var(--cyan)", color: "#000", fontSize: 10, fontWeight: 700, border: "none", cursor: "pointer", opacity: (!noteText.trim() || savingNote) ? 0.5 : 1 }}>
+              style={{ alignSelf: "flex-end", padding: "4px 12px", borderRadius: 8, background: "var(--fc-accent)", color: "#000", fontSize: 10, fontWeight: 700, border: "none", cursor: "pointer", opacity: (!noteText.trim() || savingNote) ? 0.5 : 1 }}>
               {savingNote ? "Guardando..." : "Guardar nota"}
             </button>
             {conversation.notes.length === 0
-              ? <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0 }}>Sin notas agregadas.</p>
+              ? <p style={{ fontSize: 11, color: "var(--fc-text-muted)", margin: 0 }}>Sin notas agregadas.</p>
               : conversation.notes.map(note => (
                 <div key={note.id} style={{ background: "rgba(251,191,36,0.05)", border: "1px solid rgba(251,191,36,0.15)", borderRadius: 8, padding: "8px 10px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
                     <div>
-                      <span style={{ fontSize: 10, fontWeight: 600, color: "var(--amber)" }}>{note.author.name}</span>
-                      <span style={{ fontSize: 9, color: "var(--text-muted)", marginLeft: 6 }}>{fmtDate(note.createdAt)}</span>
+                      <span style={{ fontSize: 10, fontWeight: 600, color: "var(--fc-warning)" }}>{note.author.name}</span>
+                      <span style={{ fontSize: 9, color: "var(--fc-text-muted)", marginLeft: 6 }}>{fmtDate(note.createdAt)}</span>
                     </div>
-                    <button onClick={() => onDeleteNote(note.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 0 }}>
+                    <button onClick={() => onDeleteNote(note.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--fc-text-muted)", padding: 0 }}>
                       <X style={{ width: 10, height: 10 }} />
                     </button>
                   </div>
-                  <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0, whiteSpace: "pre-wrap" }}>{note.content}</p>
+                  <p style={{ fontSize: 11, color: "var(--fc-text-secondary)", margin: 0, whiteSpace: "pre-wrap" }}>{note.content}</p>
                 </div>
               ))
             }
@@ -1342,20 +1342,20 @@ export function ContactProfile({
         <ProfileSection title="Etiquetas">
           <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
             {conversation.tags.map(tag => (
-              <span key={tag} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, color: "var(--cyan)", padding: "3px 8px", background: "var(--surface)", border: "1px solid rgba(0,178,255,0.15)", borderRadius: 12 }}>
+              <span key={tag} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, color: "var(--fc-accent)", padding: "3px 8px", background: "var(--fc-surface)", border: "1px solid rgba(0,178,255,0.15)", borderRadius: 12 }}>
                 {tag}
                 <X style={{ width: 10, height: 10, cursor: "pointer", opacity: 0.5 }} onClick={() => onRemoveTag(tag)} />
               </span>
             ))}
-            {conversation.tags.length === 0 && <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Sin etiquetas.</span>}
+            {conversation.tags.length === 0 && <span style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>Sin etiquetas.</span>}
           </div>
           <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
             <input value={newTag} onChange={e => setNewTag(e.target.value)} placeholder="Nueva etiqueta..."
-              style={{ flex: 1, background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: 6, padding: "4px 8px", fontSize: 11, color: "var(--foreground)", fontFamily: "inherit", outline: "none" }}
+              style={{ flex: 1, background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: 6, padding: "4px 8px", fontSize: 11, color: "var(--fc-text)", fontFamily: "inherit", outline: "none" }}
               onKeyDown={e => { if (e.key === "Enter" && newTag.trim()) { onAddTag(newTag.trim()); setNewTag(""); }}}
             />
             <button onClick={() => { if (newTag.trim()) { onAddTag(newTag.trim()); setNewTag(""); }}}
-              style={{ padding: "4px 10px", borderRadius: 6, background: "var(--surface)", border: "1px solid var(--hairline)", color: "var(--text-secondary)", fontSize: 10, cursor: "pointer" }}>+</button>
+              style={{ padding: "4px 10px", borderRadius: 6, background: "var(--fc-surface)", border: "1px solid var(--hairline)", color: "var(--fc-text-secondary)", fontSize: 10, cursor: "pointer" }}>+</button>
           </div>
         </ProfileSection>
 
@@ -1371,8 +1371,8 @@ export function ContactProfile({
               { label: "Último mensaje", value: fmtDate(conversation.lastMessageTime.toISOString()) },
             ].map((v, i) => (
               <div key={i} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>{v.label}</span>
-                <span style={{ fontSize: 11, color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: 4 }}>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--fc-text)" }}>{v.label}</span>
+                <span style={{ fontSize: 11, color: "var(--fc-text-secondary)", display: "flex", alignItems: "center", gap: 4 }}>
                                     {(v as any).hasIcon && <PlatformIcon platform={conversation.platform} size={12} />}
                   {v.value}
                 </span>
@@ -1385,20 +1385,20 @@ export function ContactProfile({
         <ProfileSection title="Información sobre ti">
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>Ubicación</span>
-                <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--fc-text)" }}>Ubicación</span>
+                <span style={{ fontSize: 11, color: "var(--fc-text-secondary)" }}>
                   {conversation.customFields?.locale || "Desconocida (Sin permiso)"}
                 </span>
              </div>
              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>Zona Horaria</span>
-                <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--fc-text)" }}>Zona Horaria</span>
+                <span style={{ fontSize: 11, color: "var(--fc-text-secondary)" }}>
                   {conversation.customFields?.timezone ? `UTC ${conversation.customFields.timezone}` : "No disponible"}
                 </span>
              </div>
              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>Género</span>
-                <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--fc-text)" }}>Género</span>
+                <span style={{ fontSize: 11, color: "var(--fc-text-secondary)" }}>
                   {conversation.customFields?.gender || "No disponible"}
                 </span>
              </div>
@@ -1408,8 +1408,8 @@ export function ContactProfile({
         {/* PEDIDOS */}
         <ProfileSection title="Pedidos">
            <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center", textAlign: "center", padding: "10px 0" }}>
-              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>No hay pedidos recientes.</span>
-              <button style={{ padding: "6px 12px", borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--cyan)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+              <span style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>No hay pedidos recientes.</span>
+              <button style={{ padding: "6px 12px", borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--fc-accent)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
                 + Crear pedido
               </button>
            </div>
@@ -1418,8 +1418,8 @@ export function ContactProfile({
         {/* CITAS */}
         <ProfileSection title="Citas">
            <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center", textAlign: "center", padding: "10px 0" }}>
-              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>No hay citas próximas.</span>
-              <button style={{ padding: "6px 12px", borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--cyan)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+              <span style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>No hay citas próximas.</span>
+              <button style={{ padding: "6px 12px", borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--fc-accent)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
                 + Programar cita
               </button>
            </div>
@@ -1427,12 +1427,12 @@ export function ContactProfile({
 
         {/* Mensajes destacados / Multimedia */}
         <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--hairline)", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>Mensajes destacados</span>
-          <ChevronRight style={{ width: 14, height: 14, color: "var(--text-muted)" }} />
+          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--fc-text)" }}>Mensajes destacados</span>
+          <ChevronRight style={{ width: 14, height: 14, color: "var(--fc-text-muted)" }} />
         </div>
         <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--hairline)", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>Multimedia y documentos</span>
-          <ChevronRight style={{ width: 14, height: 14, color: "var(--text-muted)" }} />
+          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--fc-text)" }}>Multimedia y documentos</span>
+          <ChevronRight style={{ width: 14, height: 14, color: "var(--fc-text-muted)" }} />
         </div>
 
       </div>

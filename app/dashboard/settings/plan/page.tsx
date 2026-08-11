@@ -27,7 +27,7 @@ export default function PlanPage() {
       <SettingsCard
         title="Uso del plan"
         description="Consumo actual frente a los límites de tu suscripción."
-        icon={<Gauge className="w-5 h-5 text-[var(--cyan)]" />}
+        icon={<Gauge className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
         <PlanUsageMeter
           onUpgrade={() =>
@@ -40,7 +40,7 @@ export default function PlanPage() {
         id="billing-options"
         title="Suscripción y facturación"
         description="Cambia de plan o administra tus datos de pago y facturas."
-        icon={<CreditCard className="w-5 h-5 text-[var(--cyan)]" />}
+        icon={<CreditCard className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
         <BillingManager />
       </SettingsCard>

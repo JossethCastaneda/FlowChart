@@ -1,11 +1,11 @@
-Ôªø"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { Shield, Check, Loader2, Zap, Calendar, MessageCircle, Megaphone, BarChart3, Target, ChevronDown, ChevronRight, CheckSquare, Square } from "lucide-react";
 import { DEFAULT_MEMBER_PERMS, DEFAULT_LEADER_PERMS, DEFAULT_EXTERNAL_PERMS, type Area, type AreaPermissions } from "@/lib/workflow-config";
 
 const PERM_KEYS: { key: keyof AreaPermissions; label: string; icon: React.ElementType }[] = [
-  { key: "canAccessOps",       label: "Ops (Gesti√≥n)",  icon: Zap },
+  { key: "canAccessOps",       label: "Ops (GestiÛn)",  icon: Zap },
   { key: "canAccessPublisher", label: "Publisher",       icon: Calendar },
   { key: "canAccessInbox",     label: "Inbox",           icon: MessageCircle },
   { key: "canAccessAds",       label: "Ads Manager",     icon: Megaphone },
@@ -87,23 +87,23 @@ export function PermissionsManager() {
 
   if (loading) return (
     <div style={{ display: "flex", justifyContent: "center", padding: 30 }}>
-      <Loader2 style={{ width: 22, height: 22, color: "var(--text-muted)", animation: "spin 1s linear infinite" }} />
+      <Loader2 style={{ width: 22, height: 22, color: "var(--fc-text-muted)", animation: "spin 1s linear infinite" }} />
     </div>
   );
 
   if (areas.length === 0) return (
     <div style={{ textAlign: "center", padding: 32 }}>
-      <Shield style={{ width: 32, height: 32, color: "var(--text-muted)", margin: "0 auto 12px" }} />
-      <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 4 }}>No hay √°reas configuradas todav√≠a.</p>
-      <p style={{ fontSize: 11, color: "var(--text-muted)" }}>Ve a <strong>√Åreas y flujos</strong> para crear √°reas primero.</p>
+      <Shield style={{ width: 32, height: 32, color: "var(--fc-text-muted)", margin: "0 auto 12px" }} />
+      <p style={{ fontSize: 13, color: "var(--fc-text-secondary)", marginBottom: 4 }}>No hay ·reas configuradas todavÌa.</p>
+      <p style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>Ve a <strong>¡reas y flujos</strong> para crear ·reas primero.</p>
     </div>
   );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
-        Controla a qu√© <strong>m√≥dulos</strong> pueden acceder los <strong>miembros</strong> de cada √°rea.{" "}
-        <span style={{ color: "var(--text-secondary)" }}>L√≠deres, Owners y Admins siempre tienen acceso total a sus √°reas.</span>
+      <p style={{ fontSize: 12, color: "var(--fc-text-muted)", margin: 0 }}>
+        Controla a quÈ <strong>mÛdulos</strong> pueden acceder los <strong>miembros</strong> de cada ·rea.{" "}
+        <span style={{ color: "var(--fc-text-secondary)" }}>LÌderes, Owners y Admins siempre tienen acceso total a sus ·reas.</span>
       </p>
 
       {/* Permissions table per area */}
@@ -129,15 +129,15 @@ export function PermissionsManager() {
                 display: "flex", alignItems: "center", gap: 10, cursor: "pointer",
                 transition: "background 0.2s ease-in-out"
               }}>
-              {isExpanded ? <ChevronDown className="w-4 h-4 text-[var(--text-secondary)] shrink-0" /> : <ChevronRight className="w-4 h-4 text-[var(--text-secondary)] shrink-0" />}
+              {isExpanded ? <ChevronDown className="w-4 h-4 text-[var(--fc-text-secondary)] shrink-0" /> : <ChevronRight className="w-4 h-4 text-[var(--fc-text-secondary)] shrink-0" />}
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: area.color, flexShrink: 0 }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", textTransform: "uppercase", letterSpacing: "0.05em", flex: 1 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-text)", textTransform: "uppercase", letterSpacing: "0.05em", flex: 1 }}>
                 {area.name}
               </span>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                {isDefault && <span style={{ fontSize: 10, color: "var(--text-secondary)", fontStyle: "italic", border: "1px solid var(--hairline)", padding: "2px 6px", borderRadius: 4 }}>Defaults</span>}
-                <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
-                  {area.memberIds.length} miembros ¬∑ {area.leadIds.length} l√≠deres
+                {isDefault && <span style={{ fontSize: 10, color: "var(--fc-text-secondary)", fontStyle: "italic", border: "1px solid var(--hairline)", padding: "2px 6px", borderRadius: 4 }}>Defaults</span>}
+                <span style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>
+                  {area.memberIds.length} miembros ∑ {area.leadIds.length} lÌderes
                 </span>
               </div>
             </div>
@@ -159,11 +159,11 @@ export function PermissionsManager() {
                   {/* Header & Batch Actions */}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, paddingBottom: 12, border: "1px solid var(--hairline)" }}>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--cyan)", letterSpacing: "0.02em" }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-accent)", letterSpacing: "0.02em" }}>
                          Permisos de Integrantes
                       </div>
-                      <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 4 }}>
-                        Aplica a todos los miembros asignados a esta √°rea. Los l√≠deres tienen acceso total por defecto.
+                      <div style={{ fontSize: 11, color: "var(--fc-text-secondary)", marginTop: 4 }}>
+                        Aplica a todos los miembros asignados a esta ·rea. Los lÌderes tienen acceso total por defecto.
                       </div>
                     </div>
                     {/* Batch Action Buttons */}
@@ -189,15 +189,15 @@ export function PermissionsManager() {
                       return (
                         <div key={p.key} style={{
                           display: "flex", alignItems: "center", justifyContent: "space-between",
-                          padding: "10px 12px", borderRadius: 8, background: "var(--surface)",
+                          padding: "10px 12px", borderRadius: 8, background: "var(--fc-surface)",
                           border: "1px solid var(--hairline)",
                         }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                             <div style={{ width: 28, height: 28, borderRadius: 6, background: checked ? "rgba(59,130,246, 0.1)" : "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                              <Icon className="w-4 h-4" style={{ color: checked ? "var(--cyan)" : "var(--text-muted)" }} />
+                              <Icon className="w-4 h-4" style={{ color: checked ? "var(--fc-accent)" : "var(--fc-text-muted)" }} />
                             </div>
                             <div>
-                              <div style={{ fontSize: 12, color: checked ? "var(--foreground)" : "var(--text-secondary)", fontWeight: checked ? 500 : 400 }}>
+                              <div style={{ fontSize: 12, color: checked ? "var(--fc-text)" : "var(--fc-text-secondary)", fontWeight: checked ? 500 : 400 }}>
                                 {p.label}
                               </div>
                             </div>
@@ -208,7 +208,7 @@ export function PermissionsManager() {
                             aria-checked={checked}
                             style={{
                               width: 36, height: 20, borderRadius: 10, border: "none",
-                              background: checked ? "var(--cyan)" : "rgba(255,255,255,0.1)",
+                              background: checked ? "var(--fc-accent)" : "rgba(255,255,255,0.1)",
                               cursor: "pointer", position: "relative", flexShrink: 0,
                               transition: "background 0.2s",
                             }}
@@ -216,7 +216,7 @@ export function PermissionsManager() {
                             <span style={{
                               position: "absolute", top: 2,
                               left: checked ? 18 : 2,
-                              width: 16, height: 16, borderRadius: "50%", background: "var(--surface)",
+                              width: 16, height: 16, borderRadius: "50%", background: "var(--fc-surface)",
                               transition: "left 0.15s",
                             }} />
                           </button>
@@ -234,7 +234,7 @@ export function PermissionsManager() {
       {/* Save */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, justifyContent: "flex-end" }}>
         {savedAt && !dirty && (
-          <span style={{ fontSize: 11, color: "var(--emerald)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+          <span style={{ fontSize: 11, color: "var(--fc-success)", display: "inline-flex", alignItems: "center", gap: 4 }}>
             <Check style={{ width: 13, height: 13 }} /> Guardado
           </span>
         )}

@@ -489,7 +489,7 @@ export default function Home() {
 
   return (
     <ReactLenis root options={{ lerp: 0.05, duration: 1.5, smoothWheel: true }}>
-    <div className="landing-dark" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--background)", color: "var(--foreground)" }}>
+    <div className="landing-dark" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--fc-bg)", color: "var(--fc-text)" }}>
 
       {/* Fondo tipo Framer: mesh de gradientes animado + grano de película */}
       <div className="zef-bg" aria-hidden />
@@ -528,7 +528,7 @@ export default function Home() {
           --c-brand: #3b82f6; --c-success: #34b77c; --c-warning: #e0a83c; --c-danger: #e5484d; --c-info: #8b8df2;
           --cyan: #5b9bff; --cyan-dim: rgba(59,130,246,0.12); --purple-dim: rgba(139,141,242,0.10);
           --emerald-dim: rgba(52,183,124,0.10); --amber-dim: rgba(224,168,60,0.10); --red-dim: rgba(229,72,77,0.12);
-          --glass-border: rgba(255,255,255,0.08); --panel-bg: var(--surface); --topbar-bg: var(--surface);
+          --glass-border: rgba(255,255,255,0.08); --panel-bg: var(--fc-surface); --topbar-bg: var(--fc-surface);
           --overlay-dark: rgba(0,0,0,0.72); --row-hover: rgba(255,255,255,0.03);
         }
 
@@ -737,7 +737,7 @@ export default function Home() {
           .col-outcome-row { grid-template-columns: 1fr !important; }
           .col-outcome-head { display: none !important; }
           .col-outcome-cell { border-right: none !important; }
-          .col-outcome-row > .col-outcome-cell:first-child { border-bottom: 1px solid var(--border); }
+          .col-outcome-row > .col-outcome-cell:first-child { border-bottom: 1px solid var(--fc-border); }
           .col-pilar-grid { grid-template-columns: 1fr !important; }
           .col-porque-row { grid-template-columns: 1fr !important; }
           .col-porque-head { display: none !important; }
@@ -801,7 +801,7 @@ export default function Home() {
               {productOpen && (
                 <div style={{ position: "absolute", top: "100%", left: 0, paddingTop: 16 }}>
                   <div style={{
-                    minWidth: 220, background: "var(--surface)", border: "1px solid var(--border)",
+                    minWidth: 220, background: "var(--fc-surface)", border: "1px solid var(--fc-border)",
                     borderRadius: 14, padding: 8, display: "flex", flexDirection: "column", gap: 2,
                     boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
                   }}>
@@ -832,12 +832,12 @@ export default function Home() {
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d={mobileMenu ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
           </button>
         </div>
-        <div className={`apple-mobile-menu ${mobileMenu ? "open" : ""}`} style={{ background: "var(--background)", border: "1px solid var(--hairline)", borderRadius: "0 0 24px 24px" }}>
+        <div className={`apple-mobile-menu ${mobileMenu ? "open" : ""}`} style={{ background: "var(--fc-bg)", border: "1px solid var(--hairline)", borderRadius: "0 0 24px 24px" }}>
           {[...PRODUCT_PILLARS, ...NAV_LINKS].map(([href, label]) => (
             <a key={href} href={href} onClick={() => setMobileMenu(false)}>{label}</a>
           ))}
           <Link href={LOGIN_URL} onClick={() => setMobileMenu(false)} style={{
-            padding: "10px 0", color: "var(--text-secondary)", fontWeight: 500, fontSize: 15, textDecoration: "none",
+            padding: "10px 0", color: "var(--fc-text-secondary)", fontWeight: 500, fontSize: 15, textDecoration: "none",
           }}>
             Entrar
           </Link>
@@ -1037,8 +1037,8 @@ export default function Home() {
             initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 1.9, ease: "easeOut" }}
           style={{ 
             width: "100%", maxWidth: 1100, height: 600, 
-            background: "var(--background)",
-            border: "1px solid var(--border)",
+            background: "var(--fc-bg)",
+            border: "1px solid var(--fc-border)",
             borderBottom: "none",
             borderRadius: "24px 24px 0 0",
             position: "relative",
@@ -1056,16 +1056,16 @@ export default function Home() {
             backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)",
             fontSize: 11.5, fontWeight: 600, color: "#fff", letterSpacing: "0.02em",
           }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--amber)" }} />
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--fc-warning)" }} />
             Vista de ejemplo
           </div>
           {/* Sidebar */}
           <div style={{ width: 240, border: "1px solid var(--hairline)", padding: 24, display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 48 }}>
               <div style={{ width: 24, height: 24, background: `linear-gradient(180deg, ${GRADIENT_START}, ${ACCENT_COLOR})`, borderRadius: 6 }} />
-              <div style={{ fontSize: 18, fontWeight: 600, color: "var(--foreground)" }}>FlowChart</div>
+              <div style={{ fontSize: 18, fontWeight: 600, color: "var(--fc-text)" }}>FlowChart</div>
             </div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 16 }}>Navegación</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--fc-text-muted)", marginBottom: 16 }}>Navegación</div>
             {[
               { icon: <Target size={16}/>, label: "Dashboard", active: true },
               { icon: <Globe size={16}/>, label: "Campañas", active: false },
@@ -1085,13 +1085,13 @@ export default function Home() {
           {/* Main Area */}
           <div style={{ flex: 1, padding: 32, display: "flex", flexDirection: "column", gap: 24, background: "radial-gradient(circle at bottom right, rgba(59,130,246, 0.1), transparent 50%)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-               <h3 style={{ fontSize: 24, fontWeight: 600, color: "var(--foreground)", display: "flex", alignItems: "center", gap: 8 }}>
+               <h3 style={{ fontSize: 24, fontWeight: 600, color: "var(--fc-text)", display: "flex", alignItems: "center", gap: 8 }}>
                  Resumen de Campañas 
                  <Activity size={24} color={ACCENT_COLOR} />
                </h3>
                <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center" }}><Users size={16} color="#fff"/></div>
-                 <div style={{ padding: "8px 16px", borderRadius: 999, background: "var(--surface-hover)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: 14 }}>Exportar</div>
+                 <div style={{ padding: "8px 16px", borderRadius: 999, background: "var(--surface-hover)", border: "1px solid var(--fc-border)", color: "var(--fc-text)", fontSize: 14 }}>Exportar</div>
                </div>
             </div>
             {/* Top Cards */}
@@ -1107,11 +1107,11 @@ export default function Home() {
                   border: c.glow ? `1px solid rgba(59,130,246, 0.3)` : "1px solid rgba(255,255,255,0.05)",
                   boxShadow: c.glow ? "0 10px 30px rgba(59,130,246, 0.1)" : "none"
                 }}>
-                  <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ fontSize: 13, color: "var(--fc-text-muted)", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
                     <div style={{ width: 8, height: 8, borderRadius: "50%", background: c.glow ? ACCENT_COLOR : "rgba(255,255,255,0.2)" }} />
                     {c.title}
                   </div>
-                  <div style={{ fontSize: 32, fontWeight: 700, color: "var(--foreground)" }}>{c.val}</div>
+                  <div style={{ fontSize: 32, fontWeight: 700, color: "var(--fc-text)" }}>{c.val}</div>
                   <div style={{ width: "100%", height: 4, background: "var(--surface-hover)", borderRadius: 2, marginTop: 16, overflow: "hidden" }}>
                      <div style={{ height: "100%", width: "70%", background: c.glow ? ACCENT_COLOR : "#fff" }} />
                   </div>
@@ -1119,8 +1119,8 @@ export default function Home() {
               ))}
             </div>
             {/* Chart Area */}
-            <div style={{ flex: 1, borderRadius: 16, background: "var(--surface)", border: "1px solid var(--hairline)", padding: 24, display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)", marginBottom: 24 }}>Rendimiento Multicanal</div>
+            <div style={{ flex: 1, borderRadius: 16, background: "var(--fc-surface)", border: "1px solid var(--hairline)", padding: 24, display: "flex", flexDirection: "column" }}>
+              <div style={{ fontSize: 16, fontWeight: 600, color: "var(--fc-text)", marginBottom: 24 }}>Rendimiento Multicanal</div>
               <div style={{ flex: 1, display: "flex", alignItems: "flex-end", gap: 16, padding: "0 24px" }}>
                  {[40, 60, 45, 80, 55, 90, 70].map((h, i) => (
                    <div key={i} className={`mockup-chart-bar ${i === 5 ? "active" : ""}`} style={{ height: `${h}%` }} />
@@ -1149,8 +1149,8 @@ export default function Home() {
               { icon: <Activity style={{ width: 18, height: 18 }} />, text: "99.9% uptime" },
               { icon: <Globe style={{ width: 18, height: 18 }} />, text: "Soporte que sí contesta" },
             ].map((item, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontWeight: 500, color: "var(--text-muted)" }}>
-                <span style={{ color: "var(--foreground)", display: "flex" }}>{item.icon}</span>{item.text}
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontWeight: 500, color: "var(--fc-text-muted)" }}>
+                <span style={{ color: "var(--fc-text)", display: "flex" }}>{item.icon}</span>{item.text}
               </div>
             ))}
           </div>
@@ -1173,7 +1173,7 @@ export default function Home() {
             <h2 className="col-section-h2 col-title" style={{ fontWeight: 700, fontSize: "clamp(34px, 4.8vw, 60px)", textAlign: "center", marginBottom: 20, lineHeight: 1.08 }}>
               No pierdes clientes por la estrategia. Los pierdes en la operación.
             </h2>
-            <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--text-secondary)", textAlign: "center", maxWidth: 720, margin: "0 auto", lineHeight: 1.6 }}>
+            <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--fc-text-secondary)", textAlign: "center", maxWidth: 720, margin: "0 auto", lineHeight: 1.6 }}>
               Operar 20 cuentas entre plataformas, hojas de cálculo y chats sueltos no es un problema de esfuerzo: es donde se te fugan las horas, el margen y los clientes.
             </p>
           </Reveal>
@@ -1262,7 +1262,7 @@ export default function Home() {
             <span style={{ WebkitTextFillColor: ACCENT_COLOR, color: ACCENT_COLOR }}>una sola pantalla</span>{" "}
             que hasta tu cliente entiende.
           </h2>
-          <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--text-secondary)", textAlign: "center", maxWidth: 760, margin: "0 auto 56px", lineHeight: 1.6 }}>
+          <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--fc-text-secondary)", textAlign: "center", maxWidth: 760, margin: "0 auto 56px", lineHeight: 1.6 }}>
             Imagina el lunes: abres un login, ves las 20 cuentas juntas, sabes qué campaña rinde y cuál
             desperdicia presupuesto, respondes los WhatsApp del fin de semana y mandas el reporte temprano.
             Sin alternar entre logins, sin capturar números a mano, sin sostener cada cuenta con hojas de cálculo y memoria.
@@ -1272,14 +1272,14 @@ export default function Home() {
         <Reveal>
           <div className="col-outcome-panel" style={{
             maxWidth: 1000, margin: "0 auto", borderRadius: 20, overflow: "hidden",
-            border: "1px solid var(--border)",
+            border: "1px solid var(--fc-border)",
             background: "linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.012))",
             boxShadow: "0 24px 60px rgba(0,0,0,0.35)",
           }}>
             {/* Encabezado de la tabla */}
-            <div className="col-outcome-row col-outcome-head" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderBottom: "1px solid var(--border)" }}>
-              <div className="col-outcome-cell" style={{ padding: "15px 26px", borderRight: "1px solid var(--border)" }}>
-                <span style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--text-muted)" }}>Antes</span>
+            <div className="col-outcome-row col-outcome-head" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderBottom: "1px solid var(--fc-border)" }}>
+              <div className="col-outcome-cell" style={{ padding: "15px 26px", borderRight: "1px solid var(--fc-border)" }}>
+                <span style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--fc-text-muted)" }}>Antes</span>
               </div>
               <div className="col-outcome-cell" style={{ padding: "15px 26px", background: "rgba(59,130,246,0.05)" }}>
                 <span style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: ACCENT_COLOR }}>Con FlowChart</span>
@@ -1291,14 +1291,14 @@ export default function Home() {
               { antes: "WhatsApp del cliente contestado tarde, desde tres celulares distintos.", con: "Todos los WhatsApp, Instagram y Messenger en una bandeja, con bots que atienden 24/7." },
               { antes: "Domingo en la noche armando la parrilla de contenido de cero.", con: "Parrillas, copies y briefs con IA que habla como se habla aquí. Recuperas tu domingo." },
             ].map((row, i, arr) => (
-              <div key={i} className="col-outcome-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderBottom: i < arr.length - 1 ? "1px solid var(--border)" : "none" }}>
-                <div className="col-outcome-cell" style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "22px 26px", borderRight: "1px solid var(--border)" }}>
-                  <X style={{ width: 16, height: 16, color: "var(--text-muted)", flexShrink: 0, marginTop: 3, opacity: 0.6 }} />
-                  <p style={{ fontSize: 14.5, color: "var(--text-muted)", lineHeight: 1.55, margin: 0 }}>{row.antes}</p>
+              <div key={i} className="col-outcome-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderBottom: i < arr.length - 1 ? "1px solid var(--fc-border)" : "none" }}>
+                <div className="col-outcome-cell" style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "22px 26px", borderRight: "1px solid var(--fc-border)" }}>
+                  <X style={{ width: 16, height: 16, color: "var(--fc-text-muted)", flexShrink: 0, marginTop: 3, opacity: 0.6 }} />
+                  <p style={{ fontSize: 14.5, color: "var(--fc-text-muted)", lineHeight: 1.55, margin: 0 }}>{row.antes}</p>
                 </div>
                 <div className="col-outcome-cell" style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "22px 26px", background: "rgba(59,130,246,0.05)" }}>
                   <CheckCircle2 style={{ width: 17, height: 17, color: ACCENT_COLOR, flexShrink: 0, marginTop: 2.5 }} />
-                  <p style={{ fontSize: 14.5, color: "var(--foreground)", fontWeight: 500, lineHeight: 1.55, margin: 0 }}>{row.con}</p>
+                  <p style={{ fontSize: 14.5, color: "var(--fc-text)", fontWeight: 500, lineHeight: 1.55, margin: 0 }}>{row.con}</p>
                 </div>
               </div>
             ))}
@@ -1354,13 +1354,13 @@ export default function Home() {
             >
               {PILAR_CARDS.map((c, i) => (
                 <div key={i} className="col-pilar-card" style={{ flex: "0 0 auto", width: 400, maxWidth: "82vw", scrollSnapAlign: "center" }}>
-                  <div style={{ position: "relative", borderRadius: 18, overflow: "hidden", border: "1px solid var(--border)", aspectRatio: "16 / 11", boxShadow: "0 24px 50px rgba(0,0,0,0.4)" }}>
+                  <div style={{ position: "relative", borderRadius: 18, overflow: "hidden", border: "1px solid var(--fc-border)", aspectRatio: "16 / 11", boxShadow: "0 24px 50px rgba(0,0,0,0.4)" }}>
                     <PilarMockup type={c.type} />
                   </div>
                   <div style={{ padding: "20px 4px 0" }}>
                     <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: ACCENT_COLOR, marginBottom: 10 }}>{c.pilar} · {c.name}</div>
                     <h3 style={{ fontSize: 20, fontWeight: 700, color: "#fff", lineHeight: 1.3, letterSpacing: "-0.01em", margin: "0 0 8px" }}>{c.benefit}</h3>
-                    <p style={{ fontSize: 14.5, color: "var(--text-secondary)", lineHeight: 1.55, margin: 0 }}>{c.desc}</p>
+                    <p style={{ fontSize: 14.5, color: "var(--fc-text-secondary)", lineHeight: 1.55, margin: 0 }}>{c.desc}</p>
                   </div>
                 </div>
               ))}
@@ -1374,7 +1374,7 @@ export default function Home() {
                 ))}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontSize: 13, color: "var(--text-muted)", fontFamily: "var(--font-jbmono), monospace", minWidth: 34, textAlign: "right" }}>{pilarIdx + 1}/{PILAR_CARDS.length}</span>
+                <span style={{ fontSize: 13, color: "var(--fc-text-muted)", fontFamily: "var(--font-jbmono), monospace", minWidth: 34, textAlign: "right" }}>{pilarIdx + 1}/{PILAR_CARDS.length}</span>
                 {([["prev", "M15 18l-6-6 6-6"], ["next", "M9 6l6 6-6 6"]] as const).map(([dir, d]) => (
                   <button
                     key={dir}
@@ -1385,7 +1385,7 @@ export default function Home() {
                       const step = card ? card.offsetWidth + 24 : 424;
                       el.scrollBy({ left: dir === "next" ? step : -step, behavior: "smooth" });
                     }}
-                    style={{ width: 40, height: 40, borderRadius: "50%", border: "1px solid var(--border)", background: "rgba(255,255,255,0.03)", color: "var(--foreground)", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                    style={{ width: 40, height: 40, borderRadius: "50%", border: "1px solid var(--fc-border)", background: "rgba(255,255,255,0.03)", color: "var(--fc-text)", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d={d} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   </button>
@@ -1396,8 +1396,8 @@ export default function Home() {
 
           {/* Cierre del bloque Solución (deck §4) */}
           <Reveal delay={0.1}>
-            <div style={{ marginTop: 56, padding: "30px 40px", borderRadius: 20, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)" }}>
-              <p style={{ fontSize: "clamp(16px, 2vw, 20px)", color: "var(--foreground)", lineHeight: 1.55, margin: "0 auto", fontWeight: 500, textAlign: "center", maxWidth: 900 }}>
+            <div style={{ marginTop: 56, padding: "30px 40px", borderRadius: 20, background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.2)" }}>
+              <p style={{ fontSize: "clamp(16px, 2vw, 20px)", color: "var(--fc-text)", lineHeight: 1.55, margin: "0 auto", fontWeight: 500, textAlign: "center", maxWidth: 900 }}>
                 Todo esto vive en un solo login, con soporte humano que sí contesta. Es la pantalla
                 desde donde manejas tu agencia completa.
               </p>
@@ -1410,7 +1410,7 @@ export default function Home() {
               <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en FlowChart" style={{ height: 56, padding: "0 36px", borderRadius: 14 }}>
                 Empieza gratis, sin tarjeta
               </Link>
-              <a href="#precios" style={{ fontSize: 15, color: "var(--text-secondary)", textDecoration: "none" }}>
+              <a href="#precios" style={{ fontSize: 15, color: "var(--fc-text-secondary)", textDecoration: "none" }}>
                 ¿Equipo grande? <span style={{ color: ACCENT_COLOR, textDecoration: "underline", textUnderlineOffset: 3 }}>Habla con nosotros</span>
               </a>
             </div>
@@ -1434,7 +1434,7 @@ export default function Home() {
           }}>
             De 40 pestañas a una sola pantalla en 3 pasos
           </h2>
-          <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--text-secondary)", textAlign: "center", maxWidth: 680, margin: "0 auto 72px", lineHeight: 1.6 }}>
+          <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--fc-text-secondary)", textAlign: "center", maxWidth: 680, margin: "0 auto 72px", lineHeight: 1.6 }}>
             Sin migraciones eternas, sin consultor, sin manual de 80 páginas. Conectas tus cuentas y el
             lunes ya operas distinto.
           </p>
@@ -1444,7 +1444,7 @@ export default function Home() {
           {/* Imagen del paso activo (crossfade) + paginación */}
           <Reveal>
             <div>
-              <div style={{ position: "relative", borderRadius: 24, overflow: "hidden", aspectRatio: "4 / 5", border: "1px solid var(--border)", boxShadow: "0 30px 70px rgba(0,0,0,0.5)" }}>
+              <div style={{ position: "relative", borderRadius: 24, overflow: "hidden", aspectRatio: "4 / 5", border: "1px solid var(--fc-border)", boxShadow: "0 30px 70px rgba(0,0,0,0.5)" }}>
                 {HOW_STEPS.map((s, i) => (
                   <div key={i} aria-hidden style={{
                     position: "absolute", inset: 0,
@@ -1479,23 +1479,23 @@ export default function Home() {
                     style={{
                       display: "block", width: "100%", textAlign: "left", font: "inherit", color: "inherit",
                       background: active ? "rgba(255,255,255,0.03)" : "transparent",
-                      border: "1px solid", borderColor: active ? "var(--border)" : "transparent",
+                      border: "1px solid", borderColor: active ? "var(--fc-border)" : "transparent",
                       borderRadius: 16, padding: "18px 22px", cursor: "pointer",
                       transition: "background 0.3s, border-color 0.3s",
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                      <span style={{ width: 34, height: 34, borderRadius: 10, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13.5, fontWeight: 700, fontFamily: "var(--font-jbmono), monospace", color: active ? "#fff" : "var(--text-muted)", background: active ? ACCENT_COLOR : "rgba(255,255,255,0.04)", border: active ? "none" : "1px solid var(--border)", flexShrink: 0, transition: "all 0.3s" }}>
+                      <span style={{ width: 34, height: 34, borderRadius: 10, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13.5, fontWeight: 700, fontFamily: "var(--font-jbmono), monospace", color: active ? "#fff" : "var(--fc-text-muted)", background: active ? ACCENT_COLOR : "rgba(255,255,255,0.04)", border: active ? "none" : "1px solid var(--fc-border)", flexShrink: 0, transition: "all 0.3s" }}>
                         {s.step}
                       </span>
-                      <h3 style={{ fontSize: 20, fontWeight: 600, color: active ? "#fff" : "var(--text-secondary)", margin: 0, letterSpacing: "-0.01em", transition: "color 0.3s" }}>
+                      <h3 style={{ fontSize: 20, fontWeight: 600, color: active ? "#fff" : "var(--fc-text-secondary)", margin: 0, letterSpacing: "-0.01em", transition: "color 0.3s" }}>
                         {s.title}
                       </h3>
                     </div>
                     <AnimatePresence initial={false}>
                       {active && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }} style={{ overflow: "hidden" }}>
-                          <p style={{ fontSize: 15.5, color: "var(--text-secondary)", lineHeight: 1.6, margin: "12px 0 0", paddingLeft: 48 }}>
+                          <p style={{ fontSize: 15.5, color: "var(--fc-text-secondary)", lineHeight: 1.6, margin: "12px 0 0", paddingLeft: 48 }}>
                             {s.desc}
                           </p>
                         </motion.div>
@@ -1510,7 +1510,7 @@ export default function Home() {
 
         {/* Microcopy honesto (deck §5) */}
         <Reveal delay={0.1}>
-          <p style={{ fontSize: 13.5, color: "var(--text-muted)", textAlign: "center", maxWidth: 620, margin: "48px auto 0", lineHeight: 1.6 }}>
+          <p style={{ fontSize: 13.5, color: "var(--fc-text-muted)", textAlign: "center", maxWidth: 620, margin: "48px auto 0", lineHeight: 1.6 }}>
             Los números que ves en la demo son una vista de ejemplo. Tus datos reales aparecen en cuanto
             conectas tu primera cuenta.
           </p>
@@ -1530,11 +1530,11 @@ export default function Home() {
           <h2 className="col-section-h2 col-title" style={{ fontWeight: 700, fontSize: "clamp(32px, 4.4vw, 54px)", textAlign: "center", marginBottom: 18, maxWidth: 940, marginLeft: "auto", marginRight: "auto" }}>
             El problema no es cada app. Es todo lo que se cae entre una y otra.
           </h2>
-          <p style={{ fontSize: "clamp(16px, 2vw, 20px)", color: "var(--text-secondary)", textAlign: "center", maxWidth: 800, margin: "0 auto 24px", lineHeight: 1.5, fontWeight: 500 }}>
+          <p style={{ fontSize: "clamp(16px, 2vw, 20px)", color: "var(--fc-text-secondary)", textAlign: "center", maxWidth: 800, margin: "0 auto 24px", lineHeight: 1.5, fontWeight: 500 }}>
             Seis herramientas que no se hablan entre sí. Copias datos de una a otra a mano, saltas entre
             logins y sostienes la operación con pura memoria.
           </p>
-          <p style={{ fontSize: "clamp(15px, 1.8vw, 17px)", color: "var(--text-muted)", textAlign: "center", maxWidth: 760, margin: "0 auto 56px", lineHeight: 1.6 }}>
+          <p style={{ fontSize: "clamp(15px, 1.8vw, 17px)", color: "var(--fc-text-muted)", textAlign: "center", maxWidth: 760, margin: "0 auto 56px", lineHeight: 1.6 }}>
             FlowChart reemplaza el Frankenstein de 6 apps más el Excel del lunes con el que hoy sostienes
             a tus clientes. Compara lo que usas ahora contra una sola pantalla para todas tus cuentas.
           </p>
@@ -1544,7 +1544,7 @@ export default function Home() {
           {/* Encabezados de columna (solo desktop) */}
           <div className="col-porque-head" style={{ display: "grid", gridTemplateColumns: "170px 1fr 1fr", gap: 14, padding: "0 20px" }}>
             <span />
-            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)" }}>Tu stack de hoy</span>
+            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--fc-text-muted)" }}>Tu stack de hoy</span>
             <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: ACCENT_COLOR }}>Con FlowChart</span>
           </div>
           {[
@@ -1563,17 +1563,17 @@ export default function Home() {
                 background: row.star ? "rgba(59,130,246,0.06)" : "transparent",
                 border: row.star ? "1px solid rgba(59,130,246,0.3)" : "1px solid transparent",
               }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "14px 20px", fontSize: 15, fontWeight: 700, color: "var(--foreground)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "14px 20px", fontSize: 15, fontWeight: 700, color: "var(--fc-text)" }}>
                   {row.star && <Star style={{ width: 16, height: 16, color: ACCENT_COLOR, fill: ACCENT_COLOR }} />}
                   {row.label}
                 </div>
-                <div style={{ display: "flex", gap: 11, alignItems: "flex-start", padding: "16px 20px", borderRadius: 14, background: "var(--surface)", border: "1px solid var(--border)" }}>
-                  <X style={{ width: 17, height: 17, color: "var(--text-muted)", flexShrink: 0, marginTop: 2 }} />
-                  <p style={{ fontSize: 14.5, color: "var(--text-muted)", lineHeight: 1.5, margin: 0 }}>{row.left}</p>
+                <div style={{ display: "flex", gap: 11, alignItems: "flex-start", padding: "16px 20px", borderRadius: 14, background: "var(--fc-surface)", border: "1px solid var(--fc-border)" }}>
+                  <X style={{ width: 17, height: 17, color: "var(--fc-text-muted)", flexShrink: 0, marginTop: 2 }} />
+                  <p style={{ fontSize: 14.5, color: "var(--fc-text-muted)", lineHeight: 1.5, margin: 0 }}>{row.left}</p>
                 </div>
-                <div style={{ display: "flex", gap: 11, alignItems: "flex-start", padding: "16px 20px", borderRadius: 14, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.25)" }}>
+                <div style={{ display: "flex", gap: 11, alignItems: "flex-start", padding: "16px 20px", borderRadius: 14, background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.25)" }}>
                   <CheckCircle2 style={{ width: 17, height: 17, color: ACCENT_COLOR, flexShrink: 0, marginTop: 2 }} />
-                  <p style={{ fontSize: 14.5, color: "var(--foreground)", fontWeight: 500, lineHeight: 1.5, margin: 0 }}>{row.right}</p>
+                  <p style={{ fontSize: 14.5, color: "var(--fc-text)", fontWeight: 500, lineHeight: 1.5, margin: 0 }}>{row.right}</p>
                 </div>
               </div>
             </Reveal>
@@ -1581,7 +1581,7 @@ export default function Home() {
         </div>
 
         <Reveal delay={0.1}>
-          <p style={{ fontSize: "clamp(17px, 2.1vw, 21px)", color: "var(--foreground)", textAlign: "center", maxWidth: 820, margin: "48px auto 0", lineHeight: 1.55, fontWeight: 500 }}>
+          <p style={{ fontSize: "clamp(17px, 2.1vw, 21px)", color: "var(--fc-text)", textAlign: "center", maxWidth: 820, margin: "48px auto 0", lineHeight: 1.55, fontWeight: 500 }}>
             Dejas de saltar entre pestañas y empiezas a manejar tu agencia completa desde un solo lugar.
           </p>
         </Reveal>
@@ -1591,7 +1591,7 @@ export default function Home() {
             <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en FlowChart" style={{ height: 56, padding: "0 36px", borderRadius: 14 }}>
               Empieza gratis, sin tarjeta
             </Link>
-            <a href="#precios" style={{ fontSize: 15, color: "var(--text-secondary)", textDecoration: "none" }}>
+            <a href="#precios" style={{ fontSize: 15, color: "var(--fc-text-secondary)", textDecoration: "none" }}>
               ¿Equipo grande o a la medida? <span style={{ color: ACCENT_COLOR, textDecoration: "underline", textUnderlineOffset: 3 }}>Cuéntanos</span>
             </a>
           </div>
@@ -1612,14 +1612,14 @@ export default function Home() {
           <h2 className="col-section-h2 col-title" style={{ fontWeight: 700, fontSize: "clamp(32px, 4.4vw, 54px)", textAlign: "center", marginBottom: 20, maxWidth: 900, marginLeft: "auto", marginRight: "auto" }}>
             Un precio que sí entiendes, sin letra chiquita.
           </h2>
-          <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--text-secondary)", textAlign: "center", maxWidth: 720, margin: "0 auto 24px", lineHeight: 1.6 }}>
+          <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--fc-text-secondary)", textAlign: "center", maxWidth: 720, margin: "0 auto 24px", lineHeight: 1.6 }}>
             Un solo precio claro, sin cotizaciones ni sorpresas.
             Empiezas gratis, sin tarjeta, y creces cuando tu operación lo pida.
           </p>
           {/* Badge provisional — QUITAR antes de publicar cuando existan los montos */}
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 44 }}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 980, background: "rgba(224,168,60,0.12)", border: "1px solid rgba(224,168,60,0.3)", color: "var(--amber)", fontSize: 12.5, fontWeight: 600 }}>
-              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--amber)" }} />
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 980, background: "rgba(224,168,60,0.12)", border: "1px solid rgba(224,168,60,0.3)", color: "var(--fc-warning)", fontSize: 12.5, fontWeight: 600 }}>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--fc-warning)" }} />
               Provisional — montos por confirmar
             </span>
           </div>
@@ -1628,75 +1628,75 @@ export default function Home() {
         <div className="col-precios-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, alignItems: "stretch" }}>
           {/* ── Gratis ── */}
           <Reveal delay={0}>
-            <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: "32px 28px", borderRadius: 20, background: "var(--surface)", border: "1px solid var(--border)" }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)" }}>Gratis <span style={{ color: "var(--text-muted)", fontWeight: 500 }}>· Para probar sin compromiso</span></p>
+            <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: "32px 28px", borderRadius: 20, background: "var(--fc-surface)", border: "1px solid var(--fc-border)" }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-text)" }}>Gratis <span style={{ color: "var(--fc-text-muted)", fontWeight: 500 }}>· Para probar sin compromiso</span></p>
               <div style={{ margin: "16px 0 10px" }}>
-                <span style={{ fontSize: 40, fontWeight: 700, color: "var(--foreground)", letterSpacing: "-0.03em" }}>$0</span>
-                <span style={{ fontSize: 15, color: "var(--text-muted)", marginLeft: 8 }}>para siempre. Sin tarjeta.</span>
+                <span style={{ fontSize: 40, fontWeight: 700, color: "var(--fc-text)", letterSpacing: "-0.03em" }}>$0</span>
+                <span style={{ fontSize: 15, color: "var(--fc-text-muted)", marginLeft: 8 }}>para siempre. Sin tarjeta.</span>
               </div>
-              <p style={{ fontSize: 14.5, color: "var(--text-secondary)", lineHeight: 1.55, marginBottom: 20 }}>
+              <p style={{ fontSize: 14.5, color: "var(--fc-text-secondary)", lineHeight: 1.55, marginBottom: 20 }}>
                 {/* TODO(fundador): [X] = cuentas del plan Gratis */}
-                Conecta hasta <strong style={{ color: "var(--foreground)" }}>[X]</strong> cuentas y mira toda tu pauta, tu WhatsApp y tu contenido en una sola pantalla. Todo lo básico para dejar de alternar entre logins, sin pagar un peso.
+                Conecta hasta <strong style={{ color: "var(--fc-text)" }}>[X]</strong> cuentas y mira toda tu pauta, tu WhatsApp y tu contenido en una sola pantalla. Todo lo básico para dejar de alternar entre logins, sin pagar un peso.
               </p>
               <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px", display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
                 {["Hasta [X] cuentas de cliente conectadas", "Pauta de Meta, TikTok y Google en una vista", "Bandeja única de WhatsApp, Instagram y Messenger", "Contenido con IA que sí habla como se habla aquí"].map((f, i) => (
-                  <li key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, color: "var(--text-secondary)" }}>
+                  <li key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, color: "var(--fc-text-secondary)" }}>
                     <CheckCircle2 style={{ width: 17, height: 17, color: ACCENT_COLOR, flexShrink: 0, marginTop: 1 }} /> {f}
                   </li>
                 ))}
               </ul>
-              <p style={{ fontSize: 12.5, color: "var(--text-muted)", textAlign: "center", marginBottom: 12 }}>Sin tarjeta. Listo en minutos.</p>
+              <p style={{ fontSize: 12.5, color: "var(--fc-text-muted)", textAlign: "center", marginBottom: 12 }}>Sin tarjeta. Listo en minutos.</p>
               <Link href={SIGNUP_URL} className="col-pill col-pill-secondary" style={{ height: 50, borderRadius: 12, width: "100%", textAlign: "center" }}>Empieza gratis</Link>
             </div>
           </Reveal>
 
           {/* ── Agencia (Recomendado) ── */}
           <Reveal delay={0.08}>
-            <div style={{ position: "relative", display: "flex", flexDirection: "column", height: "100%", padding: "32px 28px", borderRadius: 20, background: "var(--cyan-dim)", border: "1.5px solid rgba(59,130,246,0.45)", boxShadow: "0 20px 60px rgba(59,130,246,0.12)" }}>
+            <div style={{ position: "relative", display: "flex", flexDirection: "column", height: "100%", padding: "32px 28px", borderRadius: 20, background: "var(--fc-accent-wash)", border: "1.5px solid rgba(59,130,246,0.45)", boxShadow: "0 20px 60px rgba(59,130,246,0.12)" }}>
               <div style={{ position: "absolute", top: -13, left: "50%", transform: "translateX(-50%)", display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 14px", borderRadius: 980, background: `linear-gradient(180deg, ${GRADIENT_START}, ${ACCENT_COLOR})`, color: "#fff", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" }}>
                 <Star style={{ width: 13, height: 13, fill: "#fff" }} /> Recomendado
               </div>
-              <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", marginTop: 4 }}>Agencia</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-text)", marginTop: 4 }}>Agencia</p>
               <div style={{ margin: "16px 0 10px" }}>
                 {/* TODO(fundador): $[X] MXN = precio real del plan Agencia (mostrar "desde") */}
-                <span style={{ fontSize: 15, color: "var(--text-secondary)" }}>Desde </span>
-                <span style={{ fontSize: 40, fontWeight: 700, color: "var(--foreground)", letterSpacing: "-0.03em" }}>$[X]</span>
-                <span style={{ fontSize: 15, color: "var(--text-muted)", marginLeft: 6 }}>/ mes</span>
+                <span style={{ fontSize: 15, color: "var(--fc-text-secondary)" }}>Desde </span>
+                <span style={{ fontSize: 40, fontWeight: 700, color: "var(--fc-text)", letterSpacing: "-0.03em" }}>$[X]</span>
+                <span style={{ fontSize: 15, color: "var(--fc-text-muted)", marginLeft: 6 }}>/ mes</span>
               </div>
-              <p style={{ fontSize: 14.5, color: "var(--text-secondary)", lineHeight: 1.55, marginBottom: 20 }}>
+              <p style={{ fontSize: 14.5, color: "var(--fc-text-secondary)", lineHeight: 1.55, marginBottom: 20 }}>
                 Para la agencia que carga 10, 20 o 50 cuentas y ya se cansó de sostenerlas con pestañas y el Excel del lunes. Toda tu operación de cuentas en un solo login, sin límites que te frenen.
               </p>
               <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px", display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
                 {["Cuentas de cliente ilimitadas", "Chatbots que atienden, califican y asignan leads 24/7", "Calendario para programar y publicar en las redes de todos tus clientes", "Reportes por cliente sin vaciar números a mano", "Soporte humano de gente que entiende tu operación"].map((f, i) => (
-                  <li key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, color: "var(--foreground)" }}>
+                  <li key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, color: "var(--fc-text)" }}>
                     <CheckCircle2 style={{ width: 17, height: 17, color: ACCENT_COLOR, flexShrink: 0, marginTop: 1 }} /> {f}
                   </li>
                 ))}
               </ul>
-              <p style={{ fontSize: 12.5, color: "var(--text-muted)", textAlign: "center", marginBottom: 12 }}>Sin permanencia ni contrato. Cambias de plan cuando quieras.</p>
+              <p style={{ fontSize: 12.5, color: "var(--fc-text-muted)", textAlign: "center", marginBottom: 12 }}>Sin permanencia ni contrato. Cambias de plan cuando quieras.</p>
               <Link href={SIGNUP_URL} className="col-pill col-pill-primary" style={{ height: 50, borderRadius: 12, width: "100%", textAlign: "center" }}>Empieza gratis</Link>
             </div>
           </Reveal>
 
           {/* ── Enterprise ── */}
           <Reveal delay={0.16}>
-            <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: "32px 28px", borderRadius: 20, background: "var(--surface)", border: "1px solid var(--border)" }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)" }}>Enterprise <span style={{ color: "var(--text-muted)", fontWeight: 500 }}>· Equipos grandes y a la medida</span></p>
+            <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: "32px 28px", borderRadius: 20, background: "var(--fc-surface)", border: "1px solid var(--fc-border)" }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-text)" }}>Enterprise <span style={{ color: "var(--fc-text-muted)", fontWeight: 500 }}>· Equipos grandes y a la medida</span></p>
               <div style={{ margin: "16px 0 10px" }}>
-                <span style={{ fontSize: 40, fontWeight: 700, color: "var(--foreground)", letterSpacing: "-0.03em" }}>Hablemos.</span>
+                <span style={{ fontSize: 40, fontWeight: 700, color: "var(--fc-text)", letterSpacing: "-0.03em" }}>Hablemos.</span>
               </div>
-              <p style={{ fontSize: 14.5, color: "var(--text-secondary)", lineHeight: 1.55, marginBottom: 20 }}>
+              <p style={{ fontSize: 14.5, color: "var(--fc-text-secondary)", lineHeight: 1.55, marginBottom: 20 }}>
                 ¿Varios equipos operando en paralelo, con control de permisos, roles, migración asistida y facturación a la medida? Te armamos el plan contigo, con una persona real que te atiende directo.
               </p>
               <ul style={{ listStyle: "none", padding: 0, margin: "0 0 24px", display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
                 {["Onboarding y migración acompañados", "Permisos y roles por equipo", "Facturación a la medida"].map((f, i) => (
-                  <li key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, color: "var(--text-secondary)" }}>
+                  <li key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, color: "var(--fc-text-secondary)" }}>
                     <CheckCircle2 style={{ width: 17, height: 17, color: ACCENT_COLOR, flexShrink: 0, marginTop: 1 }} /> {f}
                   </li>
                 ))}
               </ul>
               {/* TODO(fundador): destino real de venta asistida (correo/WhatsApp) */}
-              <p style={{ fontSize: 12.5, color: "var(--text-muted)", textAlign: "center", marginBottom: 12 }}>Te respondemos el mismo día hábil.</p>
+              <p style={{ fontSize: 12.5, color: "var(--fc-text-muted)", textAlign: "center", marginBottom: 12 }}>Te respondemos el mismo día hábil.</p>
               <a href="#precios" className="col-pill col-pill-secondary" style={{ height: 50, borderRadius: 12, width: "100%", textAlign: "center", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>Agendar una llamada</a>
             </div>
           </Reveal>
@@ -1705,16 +1705,16 @@ export default function Home() {
         {/* Garantías */}
         <Reveal delay={0.1}>
           <div style={{ marginTop: 72 }}>
-            <h3 style={{ fontSize: "clamp(22px, 2.6vw, 30px)", fontWeight: 700, color: "var(--foreground)", textAlign: "center", marginBottom: 32 }}>Pruébalo sin riesgo. En serio.</h3>
+            <h3 style={{ fontSize: "clamp(22px, 2.6vw, 30px)", fontWeight: 700, color: "var(--fc-text)", textAlign: "center", marginBottom: 32 }}>Pruébalo sin riesgo. En serio.</h3>
             <div className="col-trust-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, maxWidth: 980, margin: "0 auto" }}>
               {[
                 { t: "Sin tarjeta para empezar.", d: "Conectas tus cuentas y ves todo junto antes de pagar un solo peso." },
                 { t: "Te ayudamos a migrar.", d: "Traes tus cuentas y tus clientes; nosotros te echamos la mano para dejarlo todo conectado, sin que pierdas un fin de semana en ello." },
                 { t: "Cancela cuando quieras.", d: "Sin contratos amarrados ni penalizaciones escondidas en la letra chiquita." },
               ].map((g, i) => (
-                <div key={i} style={{ padding: "24px", borderRadius: 16, background: "var(--surface)", border: "1px solid var(--border)" }}>
-                  <p style={{ fontSize: 15.5, fontWeight: 700, color: "var(--foreground)", marginBottom: 8 }}>{g.t}</p>
-                  <p style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.55, margin: 0 }}>{g.d}</p>
+                <div key={i} style={{ padding: "24px", borderRadius: 16, background: "var(--fc-surface)", border: "1px solid var(--fc-border)" }}>
+                  <p style={{ fontSize: 15.5, fontWeight: 700, color: "var(--fc-text)", marginBottom: 8 }}>{g.t}</p>
+                  <p style={{ fontSize: 14, color: "var(--fc-text-secondary)", lineHeight: 1.55, margin: 0 }}>{g.d}</p>
                 </div>
               ))}
             </div>
@@ -1723,12 +1723,12 @@ export default function Home() {
 
         {/* Seguridad de datos */}
         <Reveal delay={0.1}>
-          <div style={{ marginTop: 56, padding: "40px 40px", borderRadius: 24, background: "var(--surface)", border: "1px solid var(--border)", maxWidth: 980, marginLeft: "auto", marginRight: "auto" }}>
+          <div style={{ marginTop: 56, padding: "40px 40px", borderRadius: 24, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", maxWidth: 980, marginLeft: "auto", marginRight: "auto" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 8 }}>
               <Shield style={{ width: 24, height: 24, color: ACCENT_COLOR }} />
-              <h3 style={{ fontSize: "clamp(20px, 2.4vw, 26px)", fontWeight: 700, color: "var(--foreground)", margin: 0, textAlign: "center" }}>Tus datos y los de tus clientes: bajo llave.</h3>
+              <h3 style={{ fontSize: "clamp(20px, 2.4vw, 26px)", fontWeight: 700, color: "var(--fc-text)", margin: 0, textAlign: "center" }}>Tus datos y los de tus clientes: bajo llave.</h3>
             </div>
-            <p style={{ fontSize: 15, color: "var(--text-secondary)", textAlign: "center", maxWidth: 600, margin: "0 auto 28px", lineHeight: 1.5 }}>
+            <p style={{ fontSize: 15, color: "var(--fc-text-secondary)", textAlign: "center", maxWidth: 600, margin: "0 auto 28px", lineHeight: 1.5 }}>
               Manejas la información de decenas de clientes. Lo tratamos con el respeto que eso merece.
             </p>
             <div className="col-trust-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
@@ -1739,12 +1739,12 @@ export default function Home() {
               ].map((s, i) => (
                 <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 6 }}>
                                     <img src={s.img} alt="" width={56} height={56} style={{ width: 56, height: 56, objectFit: "contain", marginBottom: 12 }} />
-                  <p style={{ fontSize: 14.5, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>{s.t}</p>
-                  <p style={{ fontSize: 13.5, color: "var(--text-muted)", lineHeight: 1.5, margin: 0 }}>{s.d}</p>
+                  <p style={{ fontSize: 14.5, fontWeight: 600, color: "var(--fc-text)", margin: 0 }}>{s.t}</p>
+                  <p style={{ fontSize: 13.5, color: "var(--fc-text-muted)", lineHeight: 1.5, margin: 0 }}>{s.d}</p>
                 </div>
               ))}
             </div>
-            <p style={{ fontSize: 13, color: "var(--text-muted)", textAlign: "center", marginTop: 24 }}>
+            <p style={{ fontSize: 13, color: "var(--fc-text-muted)", textAlign: "center", marginTop: 24 }}>
               <a href="/aviso-de-privacidad" style={{ color: ACCENT_COLOR, textDecoration: "underline", textUnderlineOffset: 3 }}>Aviso de privacidad</a> y detalle de seguridad disponibles antes de que conectes tu primera cuenta.
             </p>
           </div>
@@ -1795,18 +1795,18 @@ export default function Home() {
             const open = openFaq === i;
             return (
               <Reveal key={i} delay={i * 0.05}>
-                <div style={{ borderRadius: 16, background: "var(--surface)", border: `1px solid ${open ? "rgba(59,130,246,0.3)" : "var(--border)"}`, overflow: "hidden", transition: "border-color 0.2s" }}>
+                <div style={{ borderRadius: 16, background: "var(--fc-surface)", border: `1px solid ${open ? "rgba(59,130,246,0.3)" : "var(--fc-border)"}`, overflow: "hidden", transition: "border-color 0.2s" }}>
                   <button
                     onClick={() => setOpenFaq(open ? null : i)}
                     aria-expanded={open}
-                    style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "22px 24px", background: "none", border: "none", cursor: "pointer", textAlign: "left", font: "inherit", color: "var(--foreground)" }}
+                    style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "22px 24px", background: "none", border: "none", cursor: "pointer", textAlign: "left", font: "inherit", color: "var(--fc-text)" }}
                   >
                     <span style={{ fontSize: "clamp(16px, 2vw, 18px)", fontWeight: 600 }}>{faq.q}</span>
                     <ChevronDown style={{ width: 20, height: 20, color: ACCENT_COLOR, flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform 0.25s" }} />
                   </button>
                   {open && (
                     <div style={{ padding: "0 24px 24px" }}>
-                      <p style={{ fontSize: 15.5, color: "var(--text-secondary)", lineHeight: 1.65, margin: 0, maxWidth: 680 }}>{faq.a}</p>
+                      <p style={{ fontSize: 15.5, color: "var(--fc-text-secondary)", lineHeight: 1.65, margin: 0, maxWidth: 680 }}>{faq.a}</p>
                     </div>
                   )}
                 </div>
@@ -1835,7 +1835,7 @@ export default function Home() {
           }}>
             Tu agencia completa, en una sola pantalla
           </h2>
-          <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--text-secondary)", lineHeight: 1.6, maxWidth: 680, margin: "0 auto 40px" }}>
+          <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--fc-text-secondary)", lineHeight: 1.6, maxWidth: 680, margin: "0 auto 40px" }}>
             Conecta Meta, TikTok, Google Ads y WhatsApp de todos tus clientes y opéralos desde una sola
             pantalla: pauta, conversaciones y contenido, juntos. Empiezas gratis y sin tarjeta; conectas
             tus cuentas y las ves todas juntas en minutos.
@@ -1844,8 +1844,8 @@ export default function Home() {
             <Link href={SIGNUP_URL} className="col-pill col-pill-primary" aria-label="Empieza gratis en FlowChart" style={{ padding: "18px 40px", fontSize: 18 }}>
               Empieza gratis — sin tarjeta
             </Link>
-            <p style={{ fontSize: 14, color: "var(--text-muted)" }}>Sin tarjeta. Sin contrato. Sales cuando quieras.</p>
-            <a href="#precios" style={{ fontSize: 14.5, color: "var(--text-secondary)", textDecoration: "none", marginTop: 6 }}>
+            <p style={{ fontSize: 14, color: "var(--fc-text-muted)" }}>Sin tarjeta. Sin contrato. Sales cuando quieras.</p>
+            <a href="#precios" style={{ fontSize: 14.5, color: "var(--fc-text-secondary)", textDecoration: "none", marginTop: 6 }}>
               ¿Equipo grande o necesidades a la medida? <span style={{ color: ACCENT_COLOR, textDecoration: "underline", textUnderlineOffset: 3 }}>Agenda una demo</span>
             </a>
           </div>
@@ -1866,7 +1866,7 @@ export default function Home() {
             <h2 className="col-section-h2 col-title" style={{ fontWeight: 700, fontSize: "clamp(32px, 4.4vw, 54px)", textAlign: "center", marginBottom: 18, maxWidth: 880, marginLeft: "auto", marginRight: "auto" }}>
               De Meta y TikTok a WhatsApp, todo se crea y publica desde un lugar.
             </h2>
-            <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--text-secondary)", textAlign: "center", maxWidth: 700, margin: "0 auto", lineHeight: 1.6 }}>
+            <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--fc-text-secondary)", textAlign: "center", maxWidth: 700, margin: "0 auto", lineHeight: 1.6 }}>
               Ads que paran el pulgar, respuestas por WhatsApp y contenido programado — el de todos tus clientes, en una sola pantalla.
             </p>
           </Reveal>
@@ -1886,7 +1886,7 @@ export default function Home() {
           {AD_CARDS.map((c, i) => (
             <div key={i} className="col-ad-card" style={{ flex: "0 0 auto", width: 288, maxWidth: "76vw", scrollSnapAlign: "center" }}>
               <AdMockup card={c} />
-              <div style={{ marginTop: 14, textAlign: "center", fontSize: 12.5, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--text-muted)" }}>{AD_PLATFORM_LABEL[c.platform]}</div>
+              <div style={{ marginTop: 14, textAlign: "center", fontSize: 12.5, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--fc-text-muted)" }}>{AD_PLATFORM_LABEL[c.platform]}</div>
             </div>
           ))}
         </div>
@@ -1898,25 +1898,25 @@ export default function Home() {
             ))}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ fontSize: 13, color: "var(--text-muted)", fontFamily: "var(--font-jbmono), monospace", minWidth: 34, textAlign: "right" }}>{adIdx + 1}/{AD_CARDS.length}</span>
+            <span style={{ fontSize: 13, color: "var(--fc-text-muted)", fontFamily: "var(--font-jbmono), monospace", minWidth: 34, textAlign: "right" }}>{adIdx + 1}/{AD_CARDS.length}</span>
             {([["prev", "M15 18l-6-6 6-6"], ["next", "M9 6l6 6-6 6"]] as const).map(([dir, d]) => (
-              <button key={dir} aria-label={dir === "prev" ? "Anterior" : "Siguiente"} onClick={() => { const el = adRef.current; if (!el) return; const card = el.querySelector(".col-ad-card") as HTMLElement | null; const step = card ? card.offsetWidth + 20 : 308; el.scrollBy({ left: dir === "next" ? step : -step, behavior: "smooth" }); }} style={{ width: 40, height: 40, borderRadius: "50%", border: "1px solid var(--border)", background: "rgba(255,255,255,0.03)", color: "var(--foreground)", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+              <button key={dir} aria-label={dir === "prev" ? "Anterior" : "Siguiente"} onClick={() => { const el = adRef.current; if (!el) return; const card = el.querySelector(".col-ad-card") as HTMLElement | null; const step = card ? card.offsetWidth + 20 : 308; el.scrollBy({ left: dir === "next" ? step : -step, behavior: "smooth" }); }} style={{ width: 40, height: 40, borderRadius: "50%", border: "1px solid var(--fc-border)", background: "rgba(255,255,255,0.03)", color: "var(--fc-text)", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d={d} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </button>
             ))}
           </div>
         </div>
 
-        <p style={{ maxWidth: 1100, margin: "16px auto 0", padding: "0 24px", fontSize: 12.5, color: "var(--text-muted)", textAlign: "center" }}>Ejemplos ilustrativos de contenido. Las cuentas y métricas son de muestra.</p>
+        <p style={{ maxWidth: 1100, margin: "16px auto 0", padding: "0 24px", fontSize: 12.5, color: "var(--fc-text-muted)", textAlign: "center" }}>Ejemplos ilustrativos de contenido. Las cuentas y métricas son de muestra.</p>
       </section>
 
       {/* ═══ FOOTER ═══ */}
-      <footer style={{ position: "relative", zIndex: 1, border: "1px solid var(--hairline)", background: "var(--surface)" }}>
+      <footer style={{ position: "relative", zIndex: 1, border: "1px solid var(--hairline)", background: "var(--fc-surface)" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "64px 24px 40px" }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 48, flexWrap: "wrap" }}>
             <div style={{ maxWidth: 320 }}>
               <FlowChartLogo size="sm" animated={false} />
-              <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 16, lineHeight: 1.6 }}>
+              <p style={{ fontSize: 14, color: "var(--fc-text-muted)", marginTop: 16, lineHeight: 1.6 }}>
                 El centro de mando para agencias de marketing, con soporte que sí contesta.
               </p>
               <Link href={SIGNUP_URL} className="col-pill col-pill-primary" style={{ marginTop: 20, height: 46, padding: "0 22px", borderRadius: 12, display: "inline-flex", alignItems: "center", fontSize: 14 }}>
@@ -1945,9 +1945,9 @@ export default function Home() {
 
           {/* Venta asistida — contacto */}
           {/* TODO(fundador): correo/WhatsApp de contacto por definir */}
-          <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 48, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 14, color: "var(--fc-text-muted)", marginTop: 48, lineHeight: 1.6 }}>
             ¿Equipo grande o necesidades a la medida? Escríbenos:{" "}
-            <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>[correo/WhatsApp por definir]</span>
+            <span style={{ color: "var(--fc-text-secondary)", fontWeight: 500 }}>[correo/WhatsApp por definir]</span>
           </p>
 
           <div className="col-footer-bottom" style={{
@@ -1955,8 +1955,8 @@ export default function Home() {
             borderTop: "1px solid var(--hairline)",
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap",
           }}>
-            <span style={{ fontSize: 13, color: "var(--text-muted)" }}> {new Date().getFullYear()} FlowChart. Todos los derechos reservados.</span>
-            <span style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 13, color: "var(--fc-text-muted)" }}> {new Date().getFullYear()} FlowChart. Todos los derechos reservados.</span>
+            <span style={{ fontSize: 13, color: "var(--fc-text-muted)", display: "flex", alignItems: "center", gap: 6 }}>
               Hecho en México <MapPin size={14} />
             </span>
           </div>
@@ -1974,10 +1974,10 @@ export default function Home() {
 function FooterCol({ title, links }: { title: string; links: { label: string; href: string }[] }) {
   return (
     <div>
-      <h4 style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", marginBottom: 16, letterSpacing: "0.02em" }}>{title}</h4>
+      <h4 style={{ fontSize: 14, fontWeight: 600, color: "var(--fc-text)", marginBottom: 16, letterSpacing: "0.02em" }}>{title}</h4>
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {links.map(l => (
-          <Link key={l.href} href={l.href} style={{ fontSize: 14, color: "var(--text-muted)", textDecoration: "none", transition: "color 0.2s" }}
+          <Link key={l.href} href={l.href} style={{ fontSize: 14, color: "var(--fc-text-muted)", textDecoration: "none", transition: "color 0.2s" }}
             onMouseEnter={e => (e.currentTarget.style.color = "#fff")}
             onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.5)")}
           >{l.label}</Link>

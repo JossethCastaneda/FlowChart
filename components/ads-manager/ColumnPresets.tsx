@@ -1,4 +1,4 @@
-ï»¿"use client";
+"use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import { Bookmark, Plus, X, Check, ChevronDown } from "lucide-react";
@@ -17,7 +17,7 @@ interface Preset {
 const BUILT_IN_PRESETS: Preset[] = [
   {
     id: "default",
-    name: "?? EstÃ¡ndar",
+    name: "?? Estándar",
     columns: ["name", "delivery", "budget", "objective", "roas", "reach", "impressions", "cpm", "frequency", "clicks", "ctr", "cpc", "results", "conversations", "cost_per_message", "cost_per_conversation", "cpa", "landing_page_views", "hook_rate", "spend", "quality_ranking"],
   },
   {
@@ -37,7 +37,7 @@ const BUILT_IN_PRESETS: Preset[] = [
   },
   {
     id: "overview",
-    name: "?? Vista RÃ¡pida",
+    name: "?? Vista Rápida",
     columns: ["name", "delivery", "budget", "results", "spend", "roas", "cpa"],
   },
 ];
@@ -55,7 +55,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrÃ³n
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
       if (stored) setCustomPresets(JSON.parse(stored));
     } catch {}
   }, []);
@@ -102,10 +102,10 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
           display: "flex", alignItems: "center", gap: "5px",
           padding: "6px 10px", fontSize: "11px", fontWeight: 600,
           background: "var(--row-hover)", border: "1px solid var(--hairline)",
-          borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer",
+          borderRadius: "6px", color: "var(--fc-text-secondary)", cursor: "pointer",
           transition: "all 0.15s",
         }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--cyan)"; e.currentTarget.style.color = "white"; }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--fc-accent)"; e.currentTarget.style.color = "white"; }}
         onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "rgba(148,163,184,0.7)"; }}
       >
         <Bookmark className="w-3.5 h-3.5" /> Presets <ChevronDown className="w-3 h-3" />
@@ -114,12 +114,12 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
       {showMenu && (
         <div style={{
           position: "absolute", top: "100%", right: 0, marginTop: "6px",
-          background: "var(--surface)", 
+          background: "var(--fc-surface)", 
           border: "1px solid rgba(59,130,246,0.15)", borderRadius: "10px",
           padding: "6px", zIndex: 100, minWidth: "220px",
           boxShadow: "0 12px 40px -8px rgba(0,0,0,0.7)",
         }}>
-          <div style={{ fontSize: "9px", color: "var(--text-muted)", padding: "6px 8px 3px", letterSpacing: "0.06em", fontWeight: 700 }}>
+          <div style={{ fontSize: "9px", color: "var(--fc-text-muted)", padding: "6px 8px 3px", letterSpacing: "0.06em", fontWeight: 700 }}>
             PRESETS DE COLUMNAS
           </div>
 
@@ -129,7 +129,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
                 onClick={() => { onApply(preset.columns); setShowMenu(false); }}
                 style={{
                   flex: 1, textAlign: "left", padding: "7px 10px", fontSize: "11px",
-                  color: "var(--text-secondary)", background: "transparent",
+                  color: "var(--fc-text-secondary)", background: "transparent",
                   border: "none", cursor: "pointer", borderRadius: "5px",
                   transition: "all 0.15s",
                 }}
@@ -137,14 +137,14 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
                 onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
               >
                 {preset.name}
-                <span style={{ display: "block", fontSize: "8px", color: "var(--text-muted)", marginTop: "1px" }}>
+                <span style={{ display: "block", fontSize: "8px", color: "var(--fc-text-muted)", marginTop: "1px" }}>
                   {preset.columns.length} columnas
                 </span>
               </button>
               {preset.id.startsWith("custom-") && (
                 <button
                   onClick={() => deletePreset(preset.id)}
-                  style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "4px" }}
+                  style={{ background: "none", border: "none", color: "var(--fc-text-muted)", cursor: "pointer", padding: "4px" }}
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -163,15 +163,15 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
                   placeholder="Nombre del preset..."
                   autoFocus
                   style={{
-                    flex: 1, background: "var(--surface-hover)", border: "1px solid var(--border)",
-                    borderRadius: "4px", padding: "4px 8px", fontSize: "10px", color: "var(--foreground)", outline: "none",
+                    flex: 1, background: "var(--surface-hover)", border: "1px solid var(--fc-border)",
+                    borderRadius: "4px", padding: "4px 8px", fontSize: "10px", color: "var(--fc-text)", outline: "none",
                   }}
                 />
                 <button
                   onClick={savePreset}
                   style={{
-                    background: "var(--surface)", border: "1px solid rgba(52,211,153,0.25)",
-                    borderRadius: "4px", color: "var(--emerald)", cursor: "pointer", padding: "4px 6px",
+                    background: "var(--fc-surface)", border: "1px solid rgba(52,211,153,0.25)",
+                    borderRadius: "4px", color: "var(--fc-success)", cursor: "pointer", padding: "4px 6px",
                   }}
                 >
                   <Check className="w-3 h-3" />
@@ -182,7 +182,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
                 onClick={() => setSaving(true)}
                 style={{
                   width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: "6px",
-                  padding: "7px 10px", fontSize: "11px", color: "var(--cyan)",
+                  padding: "7px 10px", fontSize: "11px", color: "var(--fc-accent)",
                   background: "transparent", border: "none", cursor: "pointer", borderRadius: "5px",
                 }}
                 onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,129,251,0.1)")}

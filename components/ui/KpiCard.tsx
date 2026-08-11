@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
 
 interface KpiCardProps {
@@ -13,7 +13,7 @@ interface KpiCardProps {
   sparkline?: number[];
 }
 
-/* RGB de los tokens de acento (ver app/globals.css) — para rgba() en gradientes SVG */
+/* RGB de los tokens de acento (ver app/globals.css) � para rgba() en gradientes SVG */
 const COLOR_MAP: Record<string, string> = {
   cyan:    "91,155,255",
   emerald: "52,183,124",
@@ -117,7 +117,7 @@ export function KpiCard({
       </div>
 
       {/* Value + Label */}
-      <p className="kpi-value" style={{ fontSize: "24px", color: "var(--foreground)", marginBottom: 4 }}>
+      <p className="kpi-value" style={{ fontSize: "24px", color: "var(--fc-text)", marginBottom: 4 }}>
         {value}
       </p>
       <p className="kpi-label">{label}</p>
@@ -144,10 +144,10 @@ export function KpiCard({
                     : "rgba(148,163,184,0.10)",
                 color:
                   trend === "up"
-                    ? "var(--emerald)"
+                    ? "var(--fc-success)"
                     : trend === "down"
-                    ? "var(--red)"
-                    : "var(--text-secondary)",
+                    ? "var(--fc-danger)"
+                    : "var(--fc-text-secondary)",
               }}
             >
               {trend === "up" ? (
@@ -161,7 +161,7 @@ export function KpiCard({
             </div>
           )}
           {context && (
-            <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>{context}</span>
+            <span style={{ fontSize: "10px", color: "var(--fc-text-muted)" }}>{context}</span>
           )}
         </div>
       )}

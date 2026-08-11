@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React from "react";
 import { FileText, Video, Camera, Images } from "lucide-react";
 
@@ -11,7 +11,7 @@ interface Props {
 
 const FORMATS: { key: PostFormat; icon: React.ElementType; label: string; badges?: string[] }[] = [
   { key: "post", icon: FileText, label: "Post" },
-  { key: "reel", icon: Video, label: "Reel", badges: ["9:16", "máx 90s"] },
+  { key: "reel", icon: Video, label: "Reel", badges: ["9:16", "m�x 90s"] },
   { key: "story", icon: Camera, label: "Story", badges: ["9:16", "24h"] },
   { key: "carousel", icon: Images, label: "Carousel", badges: ["2-10 items"] },
 ];
@@ -42,7 +42,7 @@ export function FormatSelector({ value, onChange }: Props) {
                 border: isActive
                   ? "1px solid rgba(59,130,246,0.4)"
                   : "1px solid var(--hairline)",
-                color: isActive ? "var(--cyan)" : "var(--text-secondary)",
+                color: isActive ? "var(--fc-accent)" : "var(--fc-text-secondary)",
                 fontSize: 13,
                 fontWeight: isActive ? 600 : 500,
                 cursor: "pointer",
@@ -67,8 +67,8 @@ export function FormatSelector({ value, onChange }: Props) {
                 fontSize: 10,
                 padding: "2px 8px",
                 borderRadius: 10,
-                background: "var(--cyan-dim)",
-                color: "var(--cyan)",
+                background: "var(--fc-accent-wash)",
+                color: "var(--fc-accent)",
                 border: "1px solid rgba(59,130,246,0.2)",
                 fontWeight: 500,
                 fontFamily: "var(--font-sans)",

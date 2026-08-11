@@ -43,8 +43,8 @@ interface AdCreative {
 const FormatBadge = ({ format }: { format: string }) => {
   const colors: Record<string, { bg: string; text: string }> = {
     video:    { bg: "rgba(162,93,220,0.15)", text: "#9b7be8" },
-    image:    { bg: "rgba(59,130,246,0.12)", text: "var(--cyan)" },
-    carousel: { bg: "rgba(253,171,61,0.12)", text: "var(--amber)" },
+    image:    { bg: "rgba(59,130,246,0.12)", text: "var(--fc-accent)" },
+    carousel: { bg: "rgba(253,171,61,0.12)", text: "var(--fc-warning)" },
   };
   const c = colors[format] || colors.image;
   const label = format === "video" ? "Video" : format === "carousel" ? "Carrusel" : "Imagen";
@@ -83,13 +83,13 @@ const VideoPlayer = ({
     // No playable video source from Meta — show poster (contain) with a clear notice.
     return (
       <div style={{ position: "relative", width: "100%", height: "100%" }}>
-        <img src={poster} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", background: "var(--background)" }} />
+        <img src={poster} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", background: "var(--fc-bg)" }} />
         <div style={{
           position: "absolute", inset: 0, display: "flex", flexDirection: "column", gap: 6,
           alignItems: "center", justifyContent: "center", background: "var(--surface-hover)",
         }}>
-          <Play style={{ width: compact ? 22 : 36, height: compact ? 22 : 36, color: "var(--foreground)", fill: "white", opacity: 0.45 }} />
-          {!compact && <span style={{ fontSize: 10, color: "var(--text-secondary)" }}>Vista previa de video no disponible</span>}
+          <Play style={{ width: compact ? 22 : 36, height: compact ? 22 : 36, color: "var(--fc-text)", fill: "white", opacity: 0.45 }} />
+          {!compact && <span style={{ fontSize: 10, color: "var(--fc-text-secondary)" }}>Vista previa de video no disponible</span>}
         </div>
       </div>
     );
@@ -99,7 +99,7 @@ const VideoPlayer = ({
     <div style={{ position: "relative", width: "100%", height: "100%" }} onClick={toggle}>
       <video
         ref={ref} src={src} poster={poster} muted={muted} loop playsInline
-        style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", cursor: "pointer", background: "var(--background)" }}
+        style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", cursor: "pointer", background: "var(--fc-bg)" }}
       />
       {/* Play/Pause overlay */}
       {!playing && (
@@ -107,7 +107,7 @@ const VideoPlayer = ({
           position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
           background: "var(--surface-hover)", cursor: "pointer",
         }}>
-          <Play style={{ width: compact ? 28 : 48, height: compact ? 28 : 48, color: "var(--foreground)", fill: "white", opacity: 0.9 }} />
+          <Play style={{ width: compact ? 28 : 48, height: compact ? 28 : 48, color: "var(--fc-text)", fill: "white", opacity: 0.9 }} />
         </div>
       )}
       {/* Controls */}
@@ -122,8 +122,8 @@ const VideoPlayer = ({
           }}
         >
           {muted
-            ? <VolumeX style={{ width: 14, height: 14, color: "var(--foreground)" }} />
-            : <Volume2 style={{ width: 14, height: 14, color: "var(--foreground)" }} />
+            ? <VolumeX style={{ width: 14, height: 14, color: "var(--fc-text)" }} />
+            : <Volume2 style={{ width: 14, height: 14, color: "var(--fc-text)" }} />
           }
         </button>
       </div>
@@ -157,7 +157,7 @@ const CarouselViewer = ({
               display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3,
             }}
           >
-            <ChevronLeft style={{ width: compact ? 14 : 18, height: compact ? 14 : 18, color: "var(--foreground)" }} />
+            <ChevronLeft style={{ width: compact ? 14 : 18, height: compact ? 14 : 18, color: "var(--fc-text)" }} />
           </button>
           <button
             onClick={e => { e.stopPropagation(); setIdx(i => Math.min(items.length - 1, i + 1)); }}
@@ -169,7 +169,7 @@ const CarouselViewer = ({
               display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3,
             }}
           >
-            <ChevronRight style={{ width: compact ? 14 : 18, height: compact ? 14 : 18, color: "var(--foreground)" }} />
+            <ChevronRight style={{ width: compact ? 14 : 18, height: compact ? 14 : 18, color: "var(--fc-text)" }} />
           </button>
           {/* Dots */}
           <div style={{
@@ -179,7 +179,7 @@ const CarouselViewer = ({
             {items.map((_, i) => (
               <span key={i} onClick={e => { e.stopPropagation(); setIdx(i); }} style={{
                 width: i === idx ? 12 : 6, height: 6, borderRadius: 3,
-                background: i === idx ? "var(--cyan)" : "rgba(255,255,255,0.5)",
+                background: i === idx ? "var(--fc-accent)" : "rgba(255,255,255,0.5)",
                 cursor: "pointer", transition: "all 0.2s",
               }} />
             ))}
@@ -192,7 +192,7 @@ const CarouselViewer = ({
           position: "absolute", bottom: 28, left: 8, right: 8,
           background: "var(--panel-bg)",  borderRadius: 4, padding: "4px 8px", zIndex: 2,
         }}>
-          <p style={{ fontSize: 10, color: "var(--foreground)", fontWeight: 600 }}>{items[idx].title}</p>
+          <p style={{ fontSize: 10, color: "var(--fc-text)", fontWeight: 600 }}>{items[idx].title}</p>
         </div>
       )}
     </div>
@@ -219,7 +219,7 @@ export const CreativeCard = ({
       onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.transform = "none"; }}
     >
       {/* Media area — fixed aspect ratio for consistency */}
-      <div style={{ position: "relative", width: "100%", aspectRatio: "4 / 5", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+      <div style={{ position: "relative", width: "100%", aspectRatio: "4 / 5", background: "var(--fc-surface)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
         {ad.format === "video" ? (
           <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <VideoPlayer src={ad.videoUrl || ""} poster={ad.thumbnailUrl} compact />
@@ -231,13 +231,13 @@ export const CreativeCard = ({
         ) : hasMedia ? (
           <img src={ad.thumbnailUrl} alt={ad.adName} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
         ) : (
-          <Eye style={{ width: 24, height: 24, color: "var(--text-muted)" }} />
+          <Eye style={{ width: 24, height: 24, color: "var(--fc-text-muted)" }} />
         )}
         <FormatBadge format={ad.format} />
         {/* Preview hint */}
         <div style={{
           position: "absolute", bottom: 8, left: 8, padding: "3px 8px",
-          background: "var(--panel-bg)",  borderRadius: 4, fontSize: 9, color: "var(--text-secondary)",
+          background: "var(--panel-bg)",  borderRadius: 4, fontSize: 9, color: "var(--fc-text-secondary)",
           opacity: 0, transition: "opacity 0.2s", pointerEvents: "none",
         }} className="preview-hint">
           <Eye style={{ width: 10, height: 10, display: "inline", verticalAlign: "middle", marginRight: 4 }} />
@@ -247,21 +247,21 @@ export const CreativeCard = ({
 
       {/* Info */}
       <div style={{ padding: "10px 12px" }}>
-        <p style={{ fontSize: 11, color: "var(--foreground)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 4 }}>
+        <p style={{ fontSize: 11, color: "var(--fc-text)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 4 }}>
           {ad.adName}
         </p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4 }}>
           <div>
-            <p style={{ fontSize: 8, color: "var(--text-muted)", textTransform: "uppercase" }}>Inversión</p>
-            <p style={{ fontSize: 11, fontWeight: 600, color: "var(--amber)" }}>{fmtMXN(ad.spend)}</p>
+            <p style={{ fontSize: 8, color: "var(--fc-text-muted)", textTransform: "uppercase" }}>Inversión</p>
+            <p style={{ fontSize: 11, fontWeight: 600, color: "var(--fc-warning)" }}>{fmtMXN(ad.spend)}</p>
           </div>
           <div>
-            <p style={{ fontSize: 8, color: "var(--text-muted)", textTransform: "uppercase" }}>Result.</p>
-            <p style={{ fontSize: 11, fontWeight: 700, color: "var(--emerald)" }}>{ad.results}</p>
+            <p style={{ fontSize: 8, color: "var(--fc-text-muted)", textTransform: "uppercase" }}>Result.</p>
+            <p style={{ fontSize: 11, fontWeight: 700, color: "var(--fc-success)" }}>{ad.results}</p>
           </div>
           <div>
-            <p style={{ fontSize: 8, color: "var(--text-muted)", textTransform: "uppercase" }}>CPR</p>
-            <p style={{ fontSize: 11, fontWeight: 600, color: ad.cprVal === Infinity ? "var(--red)" : cprTarget > 0 && ad.cprVal > cprTarget ? "var(--red)" : "var(--cyan)" }}>
+            <p style={{ fontSize: 8, color: "var(--fc-text-muted)", textTransform: "uppercase" }}>CPR</p>
+            <p style={{ fontSize: 11, fontWeight: 600, color: ad.cprVal === Infinity ? "var(--fc-danger)" : cprTarget > 0 && ad.cprVal > cprTarget ? "var(--fc-danger)" : "var(--fc-accent)" }}>
               {ad.cprVal === Infinity ? "—" : fmtMXN(ad.cprVal)}
             </p>
           </div>
@@ -295,7 +295,7 @@ export const CreativeLightbox = ({
   useEffect(() => { setMounted(true); }, []);
   if (!mounted) return null;
 
-  const statusColor = ad.status === "ACTIVE" ? "var(--emerald)" : ad.status === "PAUSED" ? "var(--amber)" : "rgba(148,163,184,0.65)";
+  const statusColor = ad.status === "ACTIVE" ? "var(--fc-success)" : ad.status === "PAUSED" ? "var(--fc-warning)" : "rgba(148,163,184,0.65)";
   const statusLabel = ad.status === "ACTIVE" ? "Activo" : ad.status === "PAUSED" ? "Pausado" : ad.status;
 
   const content = (
@@ -314,7 +314,7 @@ export const CreativeLightbox = ({
         onClick={e => e.stopPropagation()}
         style={{
           position: "relative",
-          background: "var(--background)", border: "1px solid var(--hairline)", borderRadius: 12,
+          background: "var(--fc-bg)", border: "1px solid var(--hairline)", borderRadius: 12,
           maxWidth: 460, width: "100%", maxHeight: "90vh", overflow: "auto",
           display: "flex", flexDirection: "column", animation: "slideUp 0.25s ease",
           margin: "auto",
@@ -328,16 +328,16 @@ export const CreativeLightbox = ({
             border: "1px solid var(--hairline)", borderRadius: 6, width: 32, height: 32,
             cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10
           }}>
-            <X style={{ width: 16, height: 16, color: "var(--text-secondary)" }} />
+            <X style={{ width: 16, height: 16, color: "var(--fc-text-secondary)" }} />
           </button>
 
           {/* Ad name + status */}
           <div style={{ marginBottom: 16, paddingRight: 40 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", marginBottom: 6, lineHeight: 1.3 }}>{ad.adName}</h3>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--fc-text)", marginBottom: 6, lineHeight: 1.3 }}>{ad.adName}</h3>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: statusColor }} />
-              <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>{statusLabel}</span>
-              <span style={{ fontSize: 10, color: "var(--text-secondary)", fontFamily: "var(--font-mono)", marginLeft: 8 }}>ID: {ad.adId}</span>
+              <span style={{ fontSize: 11, color: "var(--fc-text-secondary)" }}>{statusLabel}</span>
+              <span style={{ fontSize: 10, color: "var(--fc-text-secondary)", fontFamily: "var(--font-mono)", marginLeft: 8 }}>ID: {ad.adId}</span>
             </div>
           </div>
 
@@ -347,18 +347,18 @@ export const CreativeLightbox = ({
             borderRadius: 8, overflow: "hidden", marginBottom: 20, flexShrink: 0
           }}>
             <div style={{ padding: "10px 12px", borderBottom: "1px solid var(--hairline)" }}>
-              <p style={{ fontSize: 9, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>Vista previa del anuncio</p>
+              <p style={{ fontSize: 9, color: "var(--fc-text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>Vista previa del anuncio</p>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {pageImageUrl ? (
                   <img src={pageImageUrl} alt={pageName || ""} style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", border: "1px solid var(--hairline)" }} />
                 ) : (
-                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg, #0081FB, var(--cyan))", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)" }}>{(pageName || ad.adName || "A")[0].toUpperCase()}</span>
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg, #0081FB, var(--fc-accent))", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "var(--fc-text)" }}>{(pageName || ad.adName || "A")[0].toUpperCase()}</span>
                   </div>
                 )}
                 <div>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>{pageName || ad.title || ad.adName}</p>
-                  <p style={{ fontSize: 10, color: "var(--text-secondary)" }}>Publicidad · </p>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: "var(--fc-text)" }}>{pageName || ad.title || ad.adName}</p>
+                  <p style={{ fontSize: 10, color: "var(--fc-text-secondary)" }}>Publicidad · </p>
                 </div>
               </div>
             </div>
@@ -366,16 +366,16 @@ export const CreativeLightbox = ({
             {/* Body text */}
             {ad.body && (
               <div style={{ padding: "10px 12px" }}>
-                <p style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+                <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", lineHeight: 1.5 }}>
                   {ad.body}
                 </p>
               </div>
             )}
 
             {/* Preview image/video — single media surface, capped height */}
-            <div style={{ width: "100%", background: "var(--background)", overflow: "hidden", position: "relative" }}>
+            <div style={{ width: "100%", background: "var(--fc-bg)", overflow: "hidden", position: "relative" }}>
               {ad.format === "video" ? (
-                <div style={{ width: "100%", height: "min(56vh, 480px)", position: "relative", background: "var(--background)" }}>
+                <div style={{ width: "100%", height: "min(56vh, 480px)", position: "relative", background: "var(--fc-bg)" }}>
                   <VideoPlayer src={ad.videoUrl || ""} poster={ad.thumbnailUrl} autoPlay={!!ad.videoUrl} />
                 </div>
               ) : ad.format === "carousel" && ad.carouselItems && ad.carouselItems.length > 0 ? (
@@ -389,14 +389,14 @@ export const CreativeLightbox = ({
             {/* Title + CTA */}
             <div style={{ padding: "10px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--surface-hover)" }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                {ad.title && <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.title}</p>}
-                {ad.description && <p style={{ fontSize: 11, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.description}</p>}
+                {ad.title && <p style={{ fontSize: 13, fontWeight: 600, color: "var(--fc-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.title}</p>}
+                {ad.description && <p style={{ fontSize: 11, color: "var(--fc-text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.description}</p>}
 
               </div>
               {ad.cta && (
                 <span style={{
                   padding: "6px 14px", fontSize: 11, fontWeight: 700,
-                  background: "var(--surface)", color: "#0081FB",
+                  background: "var(--fc-surface)", color: "#0081FB",
                   borderRadius: 4, textTransform: "uppercase", whiteSpace: "nowrap", marginLeft: 12,
                 }}>{ad.cta}</span>
               )}
@@ -405,7 +405,7 @@ export const CreativeLightbox = ({
             {/* Engagement bar */}
             <div style={{
               padding: "8px 12px", borderTop: "1px solid var(--hairline)",
-              display: "flex", gap: 20, fontSize: 11, color: "var(--text-muted)",
+              display: "flex", gap: 20, fontSize: 11, color: "var(--fc-text-muted)",
             }}>
               <span style={{ display: "flex", alignItems: "center", gap: 4 }}><ThumbsUp style={{ width: 12, height: 12 }} /> Me gusta</span>
               <span style={{ display: "flex", alignItems: "center", gap: 4 }}><MessageCircle style={{ width: 12, height: 12 }} /> Comentar</span>
@@ -416,23 +416,23 @@ export const CreativeLightbox = ({
           {/* Metrics */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, marginBottom: 12, flexShrink: 0 }}>
             {[
-              { label: "Inversión", value: fmtMXN(ad.spend), color: "var(--amber)" },
-              { label: "Resultados", value: String(ad.results), color: "var(--emerald)" },
-              { label: cprLabel, value: ad.cprVal === Infinity ? "—" : fmtMXN(ad.cprVal), color: ad.cprVal === Infinity ? "var(--red)" : cprTarget > 0 && ad.cprVal > cprTarget ? "var(--red)" : "var(--cyan)" },
-              { label: "CTR", value: `${ad.ctr.toFixed(2)}%`, color: "var(--text-secondary)" },
+              { label: "Inversión", value: fmtMXN(ad.spend), color: "var(--fc-warning)" },
+              { label: "Resultados", value: String(ad.results), color: "var(--fc-success)" },
+              { label: cprLabel, value: ad.cprVal === Infinity ? "—" : fmtMXN(ad.cprVal), color: ad.cprVal === Infinity ? "var(--fc-danger)" : cprTarget > 0 && ad.cprVal > cprTarget ? "var(--fc-danger)" : "var(--fc-accent)" },
+              { label: "CTR", value: `${ad.ctr.toFixed(2)}%`, color: "var(--fc-text-secondary)" },
             ].map(m => (
               <div key={m.label} style={{ background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: 6, padding: "8px 10px" }}>
-                <p style={{ fontSize: 8, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 }}>{m.label}</p>
+                <p style={{ fontSize: 8, color: "var(--fc-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 }}>{m.label}</p>
                 <p style={{ fontSize: 14, fontWeight: 700, color: m.color }}>{m.value}</p>
               </div>
             ))}
           </div>
 
           {/* Additional metrics row */}
-          <div style={{ display: "flex", gap: 16, fontSize: 11, color: "var(--text-secondary)", flexShrink: 0 }}>
-            <span>Impresiones: <strong style={{ color: "var(--foreground)" }}>{fmtNum(ad.impressions)}</strong></span>
-            <span>Clics: <strong style={{ color: "var(--foreground)" }}>{fmtNum(ad.clicks)}</strong></span>
-            <span>CPC: <strong style={{ color: "var(--foreground)" }}>{fmtMXN(ad.spend / (ad.clicks || 1))}</strong></span>
+          <div style={{ display: "flex", gap: 16, fontSize: 11, color: "var(--fc-text-secondary)", flexShrink: 0 }}>
+            <span>Impresiones: <strong style={{ color: "var(--fc-text)" }}>{fmtNum(ad.impressions)}</strong></span>
+            <span>Clics: <strong style={{ color: "var(--fc-text)" }}>{fmtNum(ad.clicks)}</strong></span>
+            <span>CPC: <strong style={{ color: "var(--fc-text)" }}>{fmtMXN(ad.spend / (ad.clicks || 1))}</strong></span>
           </div>
         </div>
       </div>

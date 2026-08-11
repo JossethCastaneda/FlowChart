@@ -127,27 +127,11 @@ export function ConnectedMetaBadge({
   }
 
   if (!profile) {
-    const Icon = module.includes("instagram") ? InstagramIcon : FacebookIcon;
     return (
-      <button
-        onClick={() => openConnectPopup(module, fetchIntegrations)}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-          padding: "6px 12px",
-          borderRadius: 16,
-          background: "var(--surface)",
-          border: "1px solid rgba(0,132,255,0.2)",
-          color: module.includes("instagram") ? "#E1306C" : "#0084ff",
-          fontSize: 12,
-          fontWeight: 600,
-          cursor: "pointer",
-        }}
-      >
-        <Icon size={14} />
-        {labelToUse}
-      </button>
+      <BadgeConnectDropdown 
+        onConnectFacebook={() => openConnectPopup(module, fetchIntegrations)}
+        onConnectInstagram={() => openConnectPopup(module.replace('facebook', 'instagram'), fetchIntegrations)}
+      />
     );
   }
 
@@ -160,7 +144,7 @@ export function ConnectedMetaBadge({
         padding: "4px 8px 4px 4px",
         borderRadius: 20,
         background: "var(--surface-hover)",
-        border: "1px solid var(--border)",
+        border: "1px solid var(--fc-border)",
       }}
       title="Perfil de Facebook conectado que otorga los permisos de esta sección"
     >
@@ -169,23 +153,87 @@ export function ConnectedMetaBadge({
           {profile.picture ? (
             <Image src={profile.picture} alt={profile.name || "Perfil"} fill style={{ objectFit: "cover" }} unoptimized />
           ) : (
-            <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "var(--foreground)" }}>
+            <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "var(--fc-text)" }}>
               {profile.name?.charAt(0) || "F"}
             </div>
           )}
         </div>
-        <span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-secondary)", maxWidth: 120, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+        <span style={{ fontSize: 12, fontWeight: 500, color: "var(--fc-text-secondary)", maxWidth: 120, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
           {profile.name || "Usuario"}
         </span>
-        <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--emerald)", marginLeft: 4 }} />
+        <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--fc-success)", marginLeft: 4 }} />
       </div>
-      <div style={{ display: "flex", gap: 2, paddingLeft: 4, borderLeft: "1px solid var(--border)", marginLeft: 4 }}>
+      <div style={{ display: "flex", gap: 2, paddingLeft: 4, borderLeft: "1px solid var(--fc-border)", marginLeft: 4 }}>
+        <BadgeConnectDropdown 
+          onConnectFacebook={() => openConnectPopup(`${module}?force=1`, fetchIntegrations)}
+          onConnectInstagram={() => openConnectPopup(`${module.replace('facebook', 'instagram')}?force=1`, fetchIntegrations)}
+          isSmallIcon={true}
+        />
+
         <button
-          onClick={() => openConnectPopup(`${module}?force=1`, fetchIntegrations)}
+          onClick={handleDisconnect}
           style={{
             background: "none",
             border: "none",
-            color: "var(--text-muted)",
+            color: "var(--fc-text-muted)",
+            cursor: "pointer",
+            padding: "2px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "50%",
+            transition: "color 0.2s, background-color 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "var(--fc-danger)";
+            e.currentTarget.style.backgroundColor = "rgba(229,72,77, 0.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "var(--fc-text-muted)";
+            e.currentTarget.style.backgroundColor = "transparent";
+          }}
+          title="Desconectar cuenta"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+import { ChevronDown } from "lucide-react";
+
+function BadgeConnectDropdown({
+  onConnectFacebook,
+  onConnectInstagram,
+  isSmallIcon = false,
+}: {
+  onConnectFacebook: () => void;
+  onConnectInstagram: () => void;
+  isSmallIcon?: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  return (
+    <div ref={containerRef} style={{ position: "relative", display: "inline-block", zIndex: 50 }}>
+      {isSmallIcon ? (
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          style={{
+            background: "none",
+            border: "none",
+            color: "var(--fc-text-muted)",
             cursor: "pointer",
             padding: "2px",
             display: "flex",
@@ -196,44 +244,89 @@ export function ConnectedMetaBadge({
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.color = "var(--text-primary)";
-            e.currentTarget.style.backgroundColor = "var(--surface)";
+            e.currentTarget.style.backgroundColor = "var(--fc-surface)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.color = "var(--text-muted)";
+            e.currentTarget.style.color = "var(--fc-text-muted)";
             e.currentTarget.style.backgroundColor = "transparent";
           }}
           title="Agregar más cuentas"
         >
           <Plus className="w-3.5 h-3.5" />
         </button>
-
+      ) : (
         <button
-          onClick={handleDisconnect}
+          onClick={() => setIsOpen(!isOpen)}
           style={{
-            background: "none",
-            border: "none",
-            color: "var(--text-muted)",
-            cursor: "pointer",
-            padding: "2px",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            borderRadius: "50%",
-            transition: "color 0.2s, background-color 0.2s",
+            gap: 6,
+            padding: "6px 12px",
+            borderRadius: 16,
+            background: "var(--fc-surface)",
+            border: "1px solid rgba(0,132,255,0.2)",
+            color: "#0084ff",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+            fontFamily: "inherit",
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = "var(--red)";
-            e.currentTarget.style.backgroundColor = "rgba(229,72,77, 0.1)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = "var(--text-muted)";
-            e.currentTarget.style.backgroundColor = "transparent";
-          }}
-          title="Desconectar cuenta"
+          onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(1.1)")}
+          onMouseLeave={(e) => (e.currentTarget.style.filter = "none")}
         >
-          <X className="w-3.5 h-3.5" />
+          <FacebookIcon size={14} />
+          Conectar Facebook
+          <ChevronDown style={{ width: 12, height: 12, opacity: 0.7, transform: isOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }} />
         </button>
-      </div>
+      )}
+
+      {isOpen && (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 6px)",
+            right: 0,
+            width: 260,
+            background: "var(--panel-bg)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid var(--glass-border)",
+            borderRadius: 12,
+            boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+            padding: "8px 0",
+            zIndex: 100,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <div style={{ padding: "6px 14px 4px", fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "var(--fc-text-muted)", letterSpacing: "0.05em", textAlign: "left" }}>
+            Selecciona plataforma
+          </div>
+          <button
+            onClick={() => { onConnectFacebook(); setIsOpen(false); }}
+            style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "transparent", border: "none", cursor: "pointer", color: "var(--fc-text)", fontFamily: "inherit", fontSize: 13, textAlign: "left", transition: "background 0.2s", width: "100%" }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            <FacebookIcon size={20} />
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontWeight: 600 }}>Facebook</span>
+              <span style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>Gestiona tus páginas</span>
+            </div>
+          </button>
+          <button
+            onClick={() => { onConnectInstagram(); setIsOpen(false); }}
+            style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "transparent", border: "none", cursor: "pointer", color: "var(--fc-text)", fontFamily: "inherit", fontSize: 13, textAlign: "left", transition: "background 0.2s", width: "100%" }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            <InstagramIcon size={20} />
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontWeight: 600 }}>Instagram</span>
+              <span style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>Conecta tus cuentas</span>
+            </div>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

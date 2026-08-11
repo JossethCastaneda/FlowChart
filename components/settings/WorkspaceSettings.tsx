@@ -74,7 +74,7 @@ export function WorkspaceSettings() {
   });
 
   function patchGeneral(patch: Partial<WorkspaceGeneral>) {
-    setGeneral((prev: any) => ({ ...prev, ...patch }));
+    setGeneral((prev) => ({ ...prev, ...patch }));
     setGeneralDirty(true);
     setGeneralSaved(false);
   }
@@ -104,7 +104,7 @@ export function WorkspaceSettings() {
   if (!workspace) {
     return (
       <SettingsCard title="Workspace" description="No pudimos cargar tu espacio de trabajo.">
-        <p className="text-[13px] text-[var(--text-secondary)]">
+        <p className="text-[13px] text-[var(--fc-text-secondary)]">
           Recarga la página. Si el problema continúa, vuelve a iniciar sesión.
         </p>
       </SettingsCard>
@@ -117,7 +117,7 @@ export function WorkspaceSettings() {
       <SettingsCard
         title="General"
         description="Identidad de tu espacio de trabajo dentro de Sodare."
-        icon={<Globe className="w-5 h-5 text-[var(--cyan)]" />}
+        icon={<Globe className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
         <div className="max-w-xl space-y-6">
           <Field
@@ -166,7 +166,7 @@ export function WorkspaceSettings() {
       <SettingsCard
         title="Región y horario"
         description="Determina cómo se calculan los SLA, cuándo salen los recordatorios y con qué formato se muestran fechas y montos."
-        icon={<Clock className="w-5 h-5 text-[var(--cyan)]" />}
+        icon={<Clock className="w-5 h-5 text-[var(--fc-accent)]" />}
         footer={
           isAdmin ? (
             <SaveBar
@@ -195,7 +195,7 @@ export function WorkspaceSettings() {
               onChange={(e) => patchGeneral({ timezone: e.target.value })}
               className={`${inputClass} sm:w-[260px] cursor-pointer`}
             >
-              {TIMEZONES.map((tz: any) => (
+              {TIMEZONES.map((tz) => (
                 <option key={tz.value} value={tz.value}>
                   {tz.label}
                 </option>
@@ -215,7 +215,7 @@ export function WorkspaceSettings() {
               onChange={(e) => patchGeneral({ locale: e.target.value })}
               className={`${inputClass} sm:w-[260px] cursor-pointer`}
             >
-              {LOCALES.map((locale: any) => (
+              {LOCALES.map((locale) => (
                 <option key={locale.value} value={locale.value}>
                   {locale.label}
                 </option>
@@ -235,7 +235,7 @@ export function WorkspaceSettings() {
               onChange={(e) => patchGeneral({ currency: e.target.value })}
               className={`${inputClass} sm:w-[260px] cursor-pointer`}
             >
-              {CURRENCIES.map((currency: any) => (
+              {CURRENCIES.map((currency) => (
                 <option key={currency.value} value={currency.value}>
                   {currency.label}
                 </option>
@@ -276,7 +276,7 @@ export function WorkspaceSettings() {
                   <option key={h} value={h}>{`${String(h).padStart(2, "0")}:00`}</option>
                 ))}
               </select>
-              <span className="text-xs text-[var(--text-muted)]">a</span>
+              <span className="text-xs text-[var(--fc-text-muted)]">a</span>
               <select
                 aria-label="Hora de fin de jornada"
                 value={general.workdayEnd}

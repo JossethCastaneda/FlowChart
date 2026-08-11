@@ -1,4 +1,4 @@
-ï»¿"use client";
+"use client";
 import React, { useState, useEffect, useRef } from "react";
 import { X, Save, Loader2, AlertCircle, Target, MapPin, Users, Monitor } from "lucide-react";
 import { useMetaUpdate } from "@/hooks/useMetaUpdate";
@@ -8,9 +8,9 @@ import { inputStyle, selectStyle, toggleStyle } from "./EditCampaignModal";
 function FormGroup({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return (
     <div>
-      <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+      <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--fc-text-secondary)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
         {label}
-        {hint && <span style={{ marginLeft: 6, fontSize: 9, color: "var(--text-muted)", fontWeight: 400, textTransform: "none", fontStyle: "italic" }}>{hint}</span>}
+        {hint && <span style={{ marginLeft: 6, fontSize: 9, color: "var(--fc-text-muted)", fontWeight: 400, textTransform: "none", fontStyle: "italic" }}>{hint}</span>}
       </label>
       {children}
     </div>
@@ -22,16 +22,16 @@ const OPTIMIZATION_GOALS = [
   { value: "REACH", label: "Alcance" },
   { value: "LINK_CLICKS", label: "Clics en enlace" },
   { value: "CONVERSIONS", label: "Conversiones" },
-  { value: "LEAD_GENERATION", label: "GeneraciÃ³n de leads" },
+  { value: "LEAD_GENERATION", label: "Generación de leads" },
   { value: "REPLIES", label: "Respuestas en mensajes" },
   { value: "THRUPLAY", label: "ThruPlay (video)" },
-  { value: "POST_ENGAGEMENT", label: "InteracciÃ³n con publicaciÃ³n" },
+  { value: "POST_ENGAGEMENT", label: "Interacción con publicación" },
 ];
 
 const BID_STRATEGIES_ADSET = [
-  { value: "LOWEST_COST_WITHOUT_CAP", label: "Costo mÃ¡s bajo (automÃ¡tico)" },
-  { value: "LOWEST_COST_WITH_BID_CAP", label: "LÃ­mite de puja" },
-  { value: "COST_CAP", label: "LÃ­mite de costo" },
+  { value: "LOWEST_COST_WITHOUT_CAP", label: "Costo más bajo (automático)" },
+  { value: "LOWEST_COST_WITH_BID_CAP", label: "Límite de puja" },
+  { value: "COST_CAP", label: "Límite de costo" },
 ];
 
 interface EditAdSetModalProps {
@@ -100,15 +100,15 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
     if (bidAmount > 0 && bidStrategy === "LOWEST_COST_WITH_BID_CAP") fields.bid_amount = bidAmount;
     if (optimizationGoal !== adset.optimization_goal) fields.optimization_goal = optimizationGoal;
 
-    // Schedule â€” SOLO enviar si el usuario cambiÃ³ el valor. Antes se reenviaba en cada
+    // Schedule — SOLO enviar si el usuario cambió el valor. Antes se reenviaba en cada
     // guardado y `new Date(localValue).toISOString()` reinterpretaba la hora en la zona
-    // horaria del navegador, desplazando la programaciÃ³n un poco en cada save.
+    // horaria del navegador, desplazando la programación un poco en cada save.
     const origStart = adset.start_time ? adset.start_time.substring(0, 16) : "";
     const origEnd = adset.end_time ? adset.end_time.substring(0, 16) : "";
     if (startTime && startTime !== origStart) fields.start_time = new Date(startTime).toISOString();
     if (endTime !== origEnd) fields.end_time = endTime ? new Date(endTime).toISOString() : null;
 
-    // Targeting â€” must be full object
+    // Targeting — must be full object
     const newTargeting = {
       ...targeting,
       age_min: ageMin,
@@ -133,8 +133,8 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
   const TABS = [
     { key: "general", label: "General", icon: <Target className="w-3.5 h-3.5" /> },
     { key: "budget", label: "Presupuesto", icon: <Monitor className="w-3.5 h-3.5" /> },
-    { key: "targeting", label: "SegmentaciÃ³n", icon: <Users className="w-3.5 h-3.5" /> },
-    { key: "schedule", label: "ProgramaciÃ³n", icon: <MapPin className="w-3.5 h-3.5" /> },
+    { key: "targeting", label: "Segmentación", icon: <Users className="w-3.5 h-3.5" /> },
+    { key: "schedule", label: "Programación", icon: <MapPin className="w-3.5 h-3.5" /> },
   ] as const;
 
   return (
@@ -149,8 +149,8 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
     >
       <div
         style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
+          background: "var(--fc-surface)",
+          border: "1px solid var(--fc-border)",
           borderRadius: 12,
           width: "100%", maxWidth: 560,
           maxHeight: "90vh",
@@ -160,23 +160,23 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
         }}
       >
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid var(--border)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid var(--fc-border)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Target className="w-4 h-4" style={{ color: "var(--purple)" }} />
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--fc-surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Target className="w-4 h-4" style={{ color: "var(--fc-module-aria)" }} />
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--foreground)" }}>Editar Conjunto de Anuncios</div>
-              <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>ID: {adset.id}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--fc-text)" }}>Editar Conjunto de Anuncios</div>
+              <div style={{ fontSize: 11, color: "var(--fc-text-secondary)" }}>ID: {adset.id}</div>
             </div>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", padding: 4, display: "flex", alignItems: "center", borderRadius: 6 }}>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--fc-text-secondary)", padding: 4, display: "flex", alignItems: "center", borderRadius: 6 }}>
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div style={{ display: "flex", borderBottom: "1px solid var(--border)", padding: "0 20px" }}>
+        <div style={{ display: "flex", borderBottom: "1px solid var(--fc-border)", padding: "0 20px" }}>
           {TABS.map((tab) => (
             <button
               key={tab.key}
@@ -185,8 +185,8 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
                 display: "flex", alignItems: "center", gap: 5,
                 padding: "10px 12px",
                 background: "none", border: "none",
-                borderBottom: `2px solid ${activeTab === tab.key ? "var(--cyan)" : "transparent"}`,
-                color: activeTab === tab.key ? "var(--cyan)" : "var(--text-secondary)",
+                borderBottom: `2px solid ${activeTab === tab.key ? "var(--fc-accent)" : "transparent"}`,
+                color: activeTab === tab.key ? "var(--fc-accent)" : "var(--fc-text-secondary)",
                 fontSize: 12, fontWeight: 600, cursor: "pointer",
                 marginBottom: -1, transition: "color 0.15s",
               }}
@@ -207,13 +207,13 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
               <FormGroup label="Estado">
                 <div style={{ display: "flex", gap: 8 }}>
                   {(["ACTIVE", "PAUSED"] as const).map((s) => (
-                    <button key={s} onClick={() => setStatus(s)} style={{ ...toggleStyle, background: status === s ? (s === "ACTIVE" ? "rgba(52,183,124,0.15)" : "rgba(224,168,60,0.1)") : "rgba(255,255,255,0.09)", borderColor: status === s ? (s === "ACTIVE" ? "var(--emerald)" : "var(--amber)") : "var(--border)", color: status === s ? (s === "ACTIVE" ? "var(--emerald)" : "var(--amber)") : "var(--text-secondary)" }}>
+                    <button key={s} onClick={() => setStatus(s)} style={{ ...toggleStyle, background: status === s ? (s === "ACTIVE" ? "rgba(52,183,124,0.15)" : "rgba(224,168,60,0.1)") : "rgba(255,255,255,0.09)", borderColor: status === s ? (s === "ACTIVE" ? "var(--fc-success)" : "var(--fc-warning)") : "var(--fc-border)", color: status === s ? (s === "ACTIVE" ? "var(--fc-success)" : "var(--fc-warning)") : "var(--fc-text-secondary)" }}>
                       {s === "ACTIVE" ? "? Activo" : "? Pausado"}
                     </button>
                   ))}
                 </div>
               </FormGroup>
-              <FormGroup label="Objetivo de optimizaciÃ³n">
+              <FormGroup label="Objetivo de optimización">
                 <select value={optimizationGoal} onChange={(e) => setOptimizationGoal(e.target.value)} style={selectStyle}>
                   {OPTIMIZATION_GOALS.map((g) => (
                     <option key={g.value} value={g.value}>{g.label}</option>
@@ -228,7 +228,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
               <FormGroup label="Tipo de presupuesto">
                 <div style={{ display: "flex", gap: 8 }}>
                   {(["daily", "lifetime"] as const).map((t) => (
-                    <button key={t} onClick={() => setBudgetType(t)} style={{ ...toggleStyle, background: budgetType === t ? "rgba(0,129,251,0.15)" : "rgba(255,255,255,0.09)", borderColor: budgetType === t ? "var(--cyan)" : "var(--border)", color: budgetType === t ? "var(--cyan)" : "var(--text-secondary)" }}>
+                    <button key={t} onClick={() => setBudgetType(t)} style={{ ...toggleStyle, background: budgetType === t ? "rgba(0,129,251,0.15)" : "rgba(255,255,255,0.09)", borderColor: budgetType === t ? "var(--fc-accent)" : "var(--fc-border)", color: budgetType === t ? "var(--fc-accent)" : "var(--fc-text-secondary)" }}>
                       {t === "daily" ? "Diario" : "Total"}
                     </button>
                   ))}
@@ -236,7 +236,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
               </FormGroup>
               <FormGroup label="Importe">
                 <div style={{ position: "relative" }}>
-                  <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)", fontSize: 13 }}>$</span>
+                  <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--fc-text-secondary)", fontSize: 13 }}>$</span>
                   <input type="number" value={budget} onChange={(e) => setBudget(parseFloat(e.target.value) || 0)} min={0.01} step={0.01} style={{ ...inputStyle, paddingLeft: 28 }} />
                 </div>
               </FormGroup>
@@ -248,9 +248,9 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
                 </select>
               </FormGroup>
               {bidStrategy === "LOWEST_COST_WITH_BID_CAP" && (
-                <FormGroup label="LÃ­mite de puja ($)">
+                <FormGroup label="Límite de puja ($)">
                   <div style={{ position: "relative" }}>
-                    <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)", fontSize: 13 }}>$</span>
+                    <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--fc-text-secondary)", fontSize: 13 }}>$</span>
                     <input type="number" value={bidAmount} onChange={(e) => setBidAmount(parseFloat(e.target.value) || 0)} min={0.01} step={0.01} style={{ ...inputStyle, paddingLeft: 28 }} />
                   </div>
                 </FormGroup>
@@ -263,13 +263,13 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
               <FormGroup label="Rango de edad">
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                   <input type="number" value={ageMin} onChange={(e) => setAgeMin(parseInt(e.target.value) || 18)} min={13} max={65} style={{ ...inputStyle, width: 80 }} />
-                  <span style={{ color: "var(--text-muted)", fontSize: 12 }}>â€“</span>
+                  <span style={{ color: "var(--fc-text-muted)", fontSize: 12 }}>–</span>
                   <input type="number" value={ageMax} onChange={(e) => setAgeMax(parseInt(e.target.value) || 65)} min={13} max={65} style={{ ...inputStyle, width: 80 }} />
-                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>aÃ±os</span>
+                  <span style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>años</span>
                 </div>
               </FormGroup>
 
-              <FormGroup label="GÃ©nero">
+              <FormGroup label="Género">
                 <div style={{ display: "flex", gap: 8 }}>
                   {([{ v: 0, l: "Todos" }, { v: 1, l: "Hombres" }, { v: 2, l: "Mujeres" }]).map(({ v, l }) => {
                     const isActive = v === 0 ? genders.length === 0 : genders.includes(v);
@@ -280,7 +280,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
                           if (v === 0) setGenders([]);
                           else setGenders(genders.includes(v) ? genders.filter((g) => g !== v) : [...genders.filter((g) => g !== 0), v]);
                         }}
-                        style={{ ...toggleStyle, background: isActive ? "rgba(0,129,251,0.15)" : "rgba(255,255,255,0.09)", borderColor: isActive ? "var(--cyan)" : "var(--border)", color: isActive ? "var(--cyan)" : "var(--text-secondary)" }}
+                        style={{ ...toggleStyle, background: isActive ? "rgba(0,129,251,0.15)" : "rgba(255,255,255,0.09)", borderColor: isActive ? "var(--fc-accent)" : "var(--fc-border)", color: isActive ? "var(--fc-accent)" : "var(--fc-text-secondary)" }}
                       >
                         {l}
                       </button>
@@ -289,7 +289,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
                 </div>
               </FormGroup>
 
-              <FormGroup label="PaÃ­ses" hint="Separados por coma (ej: MX, US, ES)">
+              <FormGroup label="Países" hint="Separados por coma (ej: MX, US, ES)">
                 <input
                   value={countries}
                   onChange={(e) => setCountries(e.target.value)}
@@ -298,8 +298,8 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
                 />
               </FormGroup>
 
-              <div style={{ padding: "10px 12px", background: "var(--surface)", border: "1px solid rgba(224,168,60,0.2)", borderRadius: 8, fontSize: 11, color: "rgba(224,168,60,0.9)", lineHeight: 1.5 }}>
-                ?? La segmentaciÃ³n detallada (intereses, comportamientos, audiencias personalizadas) se gestiona a nivel avanzado desde el Administrador de Meta para evitar pÃ©rdida de datos.
+              <div style={{ padding: "10px 12px", background: "var(--fc-surface)", border: "1px solid rgba(224,168,60,0.2)", borderRadius: 8, fontSize: 11, color: "rgba(224,168,60,0.9)", lineHeight: 1.5 }}>
+                ?? La segmentación detallada (intereses, comportamientos, audiencias personalizadas) se gestiona a nivel avanzado desde el Administrador de Meta para evitar pérdida de datos.
               </div>
             </>
           )}
@@ -312,19 +312,19 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
               <FormGroup label="Fecha de fin" hint="Opcional">
                 <input type="datetime-local" value={endTime} onChange={(e) => setEndTime(e.target.value)} style={{ ...inputStyle, colorScheme: "dark" }} />
                 {endTime && (
-                  <button onClick={() => setEndTime("")} style={{ marginTop: 6, background: "none", border: "none", fontSize: 11, color: "var(--text-secondary)", cursor: "pointer" }}>
+                  <button onClick={() => setEndTime("")} style={{ marginTop: 6, background: "none", border: "none", fontSize: 11, color: "var(--fc-text-secondary)", cursor: "pointer" }}>
                     Eliminar fecha de fin
                   </button>
                 )}
               </FormGroup>
-              <div style={{ padding: "10px 12px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.08)", borderRadius: 8, fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                ?? Los cambios de programaciÃ³n pueden reiniciar la fase de aprendizaje del conjunto.
+              <div style={{ padding: "10px 12px", background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.08)", borderRadius: 8, fontSize: 11, color: "var(--fc-text-secondary)", lineHeight: 1.5 }}>
+                ?? Los cambios de programación pueden reiniciar la fase de aprendizaje del conjunto.
               </div>
             </>
           )}
 
           {localError && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.3)", borderRadius: 8, fontSize: 12, color: "var(--red)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "var(--fc-danger-wash)", border: "1px solid rgba(229,72,77,0.3)", borderRadius: 8, fontSize: 12, color: "var(--fc-danger)" }}>
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               {localError}
             </div>
@@ -332,11 +332,11 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
         </div>
 
         {/* Footer */}
-        <div style={{ padding: "14px 20px", borderTop: "1px solid var(--border)", display: "flex", gap: 10, justifyContent: "flex-end" }}>
-          <button onClick={onClose} style={{ padding: "9px 18px", background: "transparent", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text-secondary)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+        <div style={{ padding: "14px 20px", borderTop: "1px solid var(--fc-border)", display: "flex", gap: 10, justifyContent: "flex-end" }}>
+          <button onClick={onClose} style={{ padding: "9px 18px", background: "transparent", border: "1px solid var(--fc-border)", borderRadius: 8, color: "var(--fc-text-secondary)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
             Cancelar
           </button>
-          <button onClick={handleSave} disabled={loading || saved} style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 18px", background: saved ? "rgba(52,183,124,0.2)" : "rgba(0,129,251,0.2)", border: `1px solid ${saved ? "var(--emerald)" : "var(--cyan)"}`, borderRadius: 8, color: saved ? "var(--emerald)" : "var(--cyan)", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>
+          <button onClick={handleSave} disabled={loading || saved} style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 18px", background: saved ? "rgba(52,183,124,0.2)" : "rgba(0,129,251,0.2)", border: `1px solid ${saved ? "var(--fc-success)" : "var(--fc-accent)"}`, borderRadius: 8, color: saved ? "var(--fc-success)" : "var(--fc-accent)", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? "? Guardado" : <><Save className="w-4 h-4" /> Guardar</>}
           </button>
         </div>

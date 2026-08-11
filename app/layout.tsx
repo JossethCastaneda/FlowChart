@@ -32,7 +32,7 @@ const manrope = Manrope({ subsets: ["latin"], display: "swap", variable: "--font
 const jbMono = JetBrains_Mono({ subsets: ["latin"], display: "swap", variable: "--font-jbmono" });
 
 export const viewport: Viewport = {
-  themeColor: "var(--background)",
+  themeColor: "var(--fc-bg)",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

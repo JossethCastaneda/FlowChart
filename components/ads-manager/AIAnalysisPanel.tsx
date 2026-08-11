@@ -1,4 +1,4 @@
-Ôªø"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
@@ -41,13 +41,13 @@ function analyzeLocally(item: any): AIAnalysis {
   // ROAS analysis
   if (roas >= 3) {
     score += 15;
-    opportunities.push(`ROAS excelente de ${roas.toFixed(2)}x ‚Äî considera escalar el presupuesto un 20-30%.`);
+    opportunities.push(`ROAS excelente de ${roas.toFixed(2)}x ó considera escalar el presupuesto un 20-30%.`);
   } else if (roas >= 1.5) {
     score += 5;
-    opportunities.push(`ROAS de ${roas.toFixed(2)}x est√° por encima del punto de equilibrio.`);
+    opportunities.push(`ROAS de ${roas.toFixed(2)}x est· por encima del punto de equilibrio.`);
   } else if (roas > 0 && roas < 1) {
     score -= 15;
-    problems.push(`ROAS de ${roas.toFixed(2)}x est√° por debajo del punto de equilibrio. Est√°s perdiendo dinero.`);
+    problems.push(`ROAS de ${roas.toFixed(2)}x est· por debajo del punto de equilibrio. Est·s perdiendo dinero.`);
     actions.push("Pausa los ad sets con peor rendimiento y redistribuye presupuesto.");
   }
 
@@ -57,34 +57,34 @@ function analyzeLocally(item: any): AIAnalysis {
     opportunities.push("CTR alto indica que los creativos resuenan bien con la audiencia.");
   } else if (ctr < 0.5 && impressions > 1000) {
     score -= 10;
-    problems.push(`CTR de ${ctr.toFixed(2)}% es muy bajo. Los creativos no est√°n captando atenci√≥n.`);
+    problems.push(`CTR de ${ctr.toFixed(2)}% es muy bajo. Los creativos no est·n captando atenciÛn.`);
     actions.push("Prueba nuevos formatos (video corto, UGC) o cambia el copy del headline.");
   }
 
   // Frequency analysis
   if (freqLevel === "critical") {
     score -= 15;
-    problems.push(`Frecuencia de ${freq.toFixed(1)} es cr√≠tica. Tu audiencia est√° viendo los anuncios demasiadas veces.`);
-    actions.push("Ampl√≠a tu audiencia, rota creativos, o reduce el presupuesto.");
+    problems.push(`Frecuencia de ${freq.toFixed(1)} es crÌtica. Tu audiencia est· viendo los anuncios demasiadas veces.`);
+    actions.push("AmplÌa tu audiencia, rota creativos, o reduce el presupuesto.");
   } else if (freqLevel === "warning") {
     score -= 5;
-    problems.push(`Frecuencia de ${freq.toFixed(1)} est√° subiendo. Pronto ver√°s fatiga creativa.`);
-    actions.push("Prepara nuevos creativos para rotaci√≥n.");
+    problems.push(`Frecuencia de ${freq.toFixed(1)} est· subiendo. Pronto ver·s fatiga creativa.`);
+    actions.push("Prepara nuevos creativos para rotaciÛn.");
   }
 
   // Spend analysis
   if (spend === 0 && item.status === "ACTIVE") {
     score -= 20;
-    problems.push("Campa√±a activa sin gasto. Posible problema de configuraci√≥n o revisi√≥n de Meta.");
-    actions.push("Verifica que el m√©todo de pago est√© activo y que no haya pol√≠ticas violadas.");
+    problems.push("CampaÒa activa sin gasto. Posible problema de configuraciÛn o revisiÛn de Meta.");
+    actions.push("Verifica que el mÈtodo de pago estÈ activo y que no haya polÌticas violadas.");
   }
 
   // Learning phase
   if (item.learning_phase_info?.status === "LEARNING") {
-    opportunities.push("En fase de aprendizaje ‚Äî evita hacer cambios significativos durante 7 d√≠as.");
+    opportunities.push("En fase de aprendizaje ó evita hacer cambios significativos durante 7 dÌas.");
   } else if (item.learning_phase_info?.status === "LEARNING_LIMITED") {
-    problems.push("Learning Limited ‚Äî no hubo suficientes conversiones para optimizar.");
-    actions.push("Incrementa el presupuesto o ampl√≠a la ventana de conversi√≥n.");
+    problems.push("Learning Limited ó no hubo suficientes conversiones para optimizar.");
+    actions.push("Incrementa el presupuesto o amplÌa la ventana de conversiÛn.");
   }
 
   // CPA analysis
@@ -101,7 +101,7 @@ function analyzeLocally(item: any): AIAnalysis {
     && findActionValue(ins.actions, "omni_purchase") === 0) {
     score -= 10;
     problems.push("Gasto significativo sin conversiones. El embudo puede tener fugas.");
-    actions.push("Revisa el p√≠xel, la landing page, y verifica que el evento de conversi√≥n est√© disparando.");
+    actions.push("Revisa el pÌxel, la landing page, y verifica que el evento de conversiÛn estÈ disparando.");
   }
 
   // Clamp score
@@ -114,19 +114,19 @@ function analyzeLocally(item: any): AIAnalysis {
   else status = "critical";
 
   const summaryMap: Record<string, string> = {
-    excellent: "Esta campa√±a tiene un rendimiento excepcional. Los indicadores clave est√°n muy por encima del promedio.",
-    good: "Rendimiento s√≥lido. Hay oportunidades de optimizaci√≥n pero la campa√±a es rentable.",
-    warning: "La campa√±a muestra se√±ales de advertencia que requieren atenci√≥n inmediata.",
-    critical: "Rendimiento cr√≠tico. Se recomienda intervenir de inmediato para evitar p√©rdidas.",
+    excellent: "Esta campaÒa tiene un rendimiento excepcional. Los indicadores clave est·n muy por encima del promedio.",
+    good: "Rendimiento sÛlido. Hay oportunidades de optimizaciÛn pero la campaÒa es rentable.",
+    warning: "La campaÒa muestra seÒales de advertencia que requieren atenciÛn inmediata.",
+    critical: "Rendimiento crÌtico. Se recomienda intervenir de inmediato para evitar pÈrdidas.",
   };
 
   return {
     score,
     status,
     summary: summaryMap[status],
-    opportunities: opportunities.length > 0 ? opportunities : ["No se detectaron oportunidades espec√≠ficas."],
+    opportunities: opportunities.length > 0 ? opportunities : ["No se detectaron oportunidades especÌficas."],
     problems: problems.length > 0 ? problems : [],
-    actions: actions.length > 0 ? actions : ["Mant√©n la campa√±a monitoreada y revisa en 24-48 horas."],
+    actions: actions.length > 0 ? actions : ["MantÈn la campaÒa monitoreada y revisa en 24-48 horas."],
   };
 }
 
@@ -136,12 +136,12 @@ function ScoreGauge({ score, status }: { score: number; status: string }) {
   const circumference = 2 * Math.PI * radius;
   const progress = (score / 100) * circumference;
   const colors: Record<string, string> = {
-    excellent: "var(--emerald)",
-    good: "var(--cyan)",
-    warning: "var(--amber)",
-    critical: "var(--red)",
+    excellent: "var(--fc-success)",
+    good: "var(--fc-accent)",
+    warning: "var(--fc-warning)",
+    critical: "var(--fc-danger)",
   };
-  const color = colors[status] || "var(--cyan)";
+  const color = colors[status] || "var(--fc-accent)";
 
   return (
     <div style={{ position: "relative", width: 90, height: 90 }}>
@@ -165,7 +165,7 @@ function ScoreGauge({ score, status }: { score: number; status: string }) {
         <div style={{ fontSize: "22px", fontWeight: 800, color, letterSpacing: "-0.02em" }}>
           {score}
         </div>
-        <div style={{ fontSize: "7px", color: "var(--text-muted)", fontWeight: 600, letterSpacing: "0.08em" }}>
+        <div style={{ fontSize: "7px", color: "var(--fc-text-muted)", fontWeight: 600, letterSpacing: "0.08em" }}>
           SCORE IA
         </div>
       </div>
@@ -179,7 +179,7 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patr√≥n
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrÛn
     setLoading(true);
     // Simulate analysis delay for UX
     const timer = setTimeout(() => {
@@ -188,7 +188,7 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
       setLoading(false);
     }, 800);
     return () => clearTimeout(timer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: [React] Refactor de hooks anti-patr√≥n
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: [React] Refactor de hooks anti-patrÛn
   }, [item.id]);
 
   return (
@@ -198,11 +198,11 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
     }}>
       <div style={{
         display: "flex", alignItems: "center", gap: "6px", marginBottom: "14px",
-        fontSize: "10px", fontWeight: 700, color: "var(--cyan)",
+        fontSize: "10px", fontWeight: 700, color: "var(--fc-accent)",
         letterSpacing: "0.06em",
       }}>
         <Brain className="w-4 h-4" />
-        AN√ÅLISIS IA FLOWCHART
+        AN¡LISIS IA FLOWCHART
       </div>
 
       {loading ? (
@@ -210,9 +210,9 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
           padding: "30px", gap: "10px",
         }}>
-          <RefreshCw className="w-5 h-5 animate-spin" style={{ color: "var(--cyan)" }} />
-          <span style={{ fontSize: "10px", color: "var(--text-muted)", letterSpacing: "0.08em" }}>
-            El Consejo Jedi est√° analizando tus campa√±as...
+          <RefreshCw className="w-5 h-5 animate-spin" style={{ color: "var(--fc-accent)" }} />
+          <span style={{ fontSize: "10px", color: "var(--fc-text-muted)", letterSpacing: "0.08em" }}>
+            El Consejo Jedi est· analizando tus campaÒas...
           </span>
         </div>
       ) : analysis ? (
@@ -221,7 +221,7 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
           <div style={{ display: "flex", gap: "14px", alignItems: "center", marginBottom: "16px" }}>
             <ScoreGauge score={analysis.score} status={analysis.status} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "11px", color: "var(--text-secondary)", lineHeight: "1.5", marginBottom: "6px" }}>
+              <div style={{ fontSize: "11px", color: "var(--fc-text-secondary)", lineHeight: "1.5", marginBottom: "6px" }}>
                 {analysis.summary}
               </div>
             </div>
@@ -230,14 +230,14 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
           {/* Problems */}
           {analysis.problems.length > 0 && (
             <div style={{ marginBottom: "12px" }}>
-              <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--red)", marginBottom: "6px", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: "4px" }}>
+              <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--fc-danger)", marginBottom: "6px", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: "4px" }}>
                 <AlertTriangle className="w-3 h-3" /> PROBLEMAS DETECTADOS
               </div>
               {analysis.problems.map((p, i) => (
                 <div key={i} style={{
-                  fontSize: "10px", color: "var(--text-secondary)", lineHeight: "1.5",
+                  fontSize: "10px", color: "var(--fc-text-secondary)", lineHeight: "1.5",
                   padding: "6px 8px", marginBottom: "4px", borderRadius: "4px",
-                  background: "var(--red-dim)", borderLeft: "2px solid rgba(229,72,77,0.3)",
+                  background: "var(--fc-danger-wash)", borderLeft: "2px solid rgba(229,72,77,0.3)",
                 }}>
                   {p}
                 </div>
@@ -247,14 +247,14 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
 
           {/* Opportunities */}
           <div style={{ marginBottom: "12px" }}>
-            <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--emerald)", marginBottom: "6px", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: "4px" }}>
+            <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--fc-success)", marginBottom: "6px", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: "4px" }}>
               <TrendingUp className="w-3 h-3" /> OPORTUNIDADES
             </div>
             {analysis.opportunities.map((o, i) => (
               <div key={i} style={{
-                fontSize: "10px", color: "var(--text-secondary)", lineHeight: "1.5",
+                fontSize: "10px", color: "var(--fc-text-secondary)", lineHeight: "1.5",
                 padding: "6px 8px", marginBottom: "4px", borderRadius: "4px",
-                background: "var(--surface)", borderLeft: "2px solid rgba(52,211,153,0.3)",
+                background: "var(--fc-surface)", borderLeft: "2px solid rgba(52,211,153,0.3)",
               }}>
                 {o}
               </div>
@@ -263,14 +263,14 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
 
           {/* Actions */}
           <div>
-            <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--amber)", marginBottom: "6px", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: "4px" }}>
+            <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--fc-warning)", marginBottom: "6px", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: "4px" }}>
               <Lightbulb className="w-3 h-3" /> ACCIONES RECOMENDADAS
             </div>
             {analysis.actions.map((a, i) => (
               <div key={i} style={{
-                fontSize: "10px", color: "var(--text-secondary)", lineHeight: "1.5",
+                fontSize: "10px", color: "var(--fc-text-secondary)", lineHeight: "1.5",
                 padding: "6px 8px", marginBottom: "4px", borderRadius: "4px",
-                background: "var(--surface)", borderLeft: "2px solid rgba(251,191,36,0.3)",
+                background: "var(--fc-surface)", borderLeft: "2px solid rgba(251,191,36,0.3)",
               }}>
                 {i + 1}. {a}
               </div>

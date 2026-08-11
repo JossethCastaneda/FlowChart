@@ -138,12 +138,12 @@ export function quickFatigueCheck(ins: any): FatigueAnalysis["level"] {
 export function getFatigueDisplay(level: FatigueAnalysis["level"]) {
   switch (level) {
     case "fresh":
-      return { label: "Fresh", color: "var(--emerald)", bg: "rgba(52,211,153,0.08)", border: "rgba(52,211,153,0.2)", icon: "" };
+      return { label: "Fresh", color: "var(--fc-success)", bg: "rgba(52,211,153,0.08)", border: "rgba(52,211,153,0.2)", icon: "" };
     case "healthy":
-      return { label: "Estable", color: "var(--cyan)", bg: "rgba(59,130,246,0.06)", border: "rgba(59,130,246,0.15)", icon: "" };
+      return { label: "Estable", color: "var(--fc-accent)", bg: "rgba(59,130,246,0.06)", border: "rgba(59,130,246,0.15)", icon: "" };
     case "warning":
-      return { label: "Fatigando", color: "var(--amber)", bg: "rgba(251,191,36,0.08)", border: "rgba(251,191,36,0.2)", icon: "" };
+      return { label: "Fatigando", color: "var(--fc-warning)", bg: "rgba(251,191,36,0.08)", border: "rgba(251,191,36,0.2)", icon: "" };
     case "critical":
-      return { label: "Fatigado", color: "var(--red)", bg: "rgba(229,72,77,0.08)", border: "rgba(229,72,77,0.2)", icon: "" };
+      return { label: "Fatigado", color: "var(--fc-danger)", bg: "rgba(229,72,77,0.08)", border: "rgba(229,72,77,0.2)", icon: "" };
   }
 }

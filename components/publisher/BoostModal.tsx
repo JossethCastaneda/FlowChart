@@ -123,7 +123,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: "var(--foreground)",
+          background: "var(--fc-text)",
           border: "1px solid rgba(224,168,60,0.3)",
           borderRadius: 12, padding: 0, width: "100%", maxWidth: 420,
           maxHeight: "90vh", overflowY: "auto",
@@ -134,19 +134,19 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "14px 20px", borderBottom: "1px solid rgba(224,168,60,0.15)",
-          background: "var(--surface)",
+          background: "var(--fc-surface)",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Zap style={{ width: 16, height: 16, color: "var(--amber)" }} />
+            <Zap style={{ width: 16, height: 16, color: "var(--fc-warning)" }} />
             <span style={{
-              fontSize: 13, fontWeight: 700, color: "var(--amber)",
+              fontSize: 13, fontWeight: 700, color: "var(--fc-warning)",
               fontFamily: "var(--font-display)", letterSpacing: "0.1em",
             }}>
               CONFIGURAR IMPULSO
             </span>
           </div>
           <button onClick={onClose} style={{
-            background: "none", border: "none", color: "var(--text-muted)",
+            background: "none", border: "none", color: "var(--fc-text-muted)",
             cursor: "pointer", padding: 4, display: "flex",
           }}>
             <X style={{ width: 16, height: 16 }} />
@@ -157,12 +157,12 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
         <div style={{
           display: "flex", gap: 10, padding: "12px 20px",
           border: "1px solid var(--hairline)",
-          background: "var(--surface)",
+          background: "var(--fc-surface)",
         }}>
           {(post.mediaUrls?.[0] || post.mediaUrl) && (
             <div style={{
               width: 44, height: 44, borderRadius: 6, overflow: "hidden",
-              flexShrink: 0, background: "var(--background)",
+              flexShrink: 0, background: "var(--fc-bg)",
             }}>
                             <img
                 src={post.mediaUrls?.[0] || post.mediaUrl || ""}
@@ -173,12 +173,12 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
           )}
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{
-              fontSize: 12, color: "var(--foreground)", margin: 0,
+              fontSize: 12, color: "var(--fc-text)", margin: 0,
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
             }}>
               {post.content.length > 80 ? post.content.slice(0, 80) + "..." : post.content}
             </p>
-            <p style={{ fontSize: 10, color: "var(--text-muted)", margin: "2px 0 0" }}>
+            <p style={{ fontSize: 10, color: "var(--fc-text-muted)", margin: "2px 0 0" }}>
               {post.pageName || "Página"} · {post.channels.join(", ")}
             </p>
           </div>
@@ -188,7 +188,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
           {/* ── Budget ── */}
           <div>
             <label style={{
-              fontSize: 10, fontWeight: 700, color: "var(--text-secondary)",
+              fontSize: 10, fontWeight: 700, color: "var(--fc-text-secondary)",
               fontFamily: "var(--font-display)", letterSpacing: "0.1em",
               display: "flex", alignItems: "center", gap: 6, marginBottom: 8,
             }}>
@@ -203,7 +203,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
               background: "var(--surface-hover)",
               border: "1px solid var(--hairline)",
             }}>
-              <span style={{ fontSize: 14, color: "var(--text-muted)", fontWeight: 600 }}>$</span>
+              <span style={{ fontSize: 14, color: "var(--fc-text-muted)", fontWeight: 600 }}>$</span>
               <input
                 type="number"
                 min={10}
@@ -212,11 +212,11 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
                 onChange={(e) => setBudget(Math.max(10, Number(e.target.value)))}
                 style={{
                   flex: 1, background: "transparent", border: "none", outline: "none",
-                  color: "var(--foreground)", fontSize: 16, fontWeight: 600,
+                  color: "var(--fc-text)", fontSize: 16, fontWeight: 600,
                   fontFamily: "var(--font-sans)",
                 }}
               />
-              <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 500 }}>MXN / día</span>
+              <span style={{ fontSize: 12, color: "var(--fc-text-muted)", fontWeight: 500 }}>MXN / día</span>
             </div>
 
             {/* Budget presets */}
@@ -230,7 +230,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
                     cursor: "pointer", transition: "all 0.15s",
                     background: budget === preset ? "rgba(224,168,60,0.15)" : "var(--surface-hover)",
                     border: budget === preset ? "1px solid rgba(224,168,60,0.4)" : "1px solid rgba(255,255,255,0.06)",
-                    color: budget === preset ? "var(--amber)" : "var(--text-muted)",
+                    color: budget === preset ? "var(--fc-warning)" : "var(--fc-text-muted)",
                   }}
                 >
                   ${preset}
@@ -242,7 +242,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
           {/* ── Duration ── */}
           <div>
             <label style={{
-              fontSize: 10, fontWeight: 700, color: "var(--text-secondary)",
+              fontSize: 10, fontWeight: 700, color: "var(--fc-text-secondary)",
               fontFamily: "var(--font-display)", letterSpacing: "0.1em",
               display: "flex", alignItems: "center", gap: 6, marginBottom: 8,
             }}>
@@ -258,12 +258,12 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
                 value={days}
                 onChange={(e) => setDays(Number(e.target.value))}
                 style={{
-                  flex: 1, accentColor: "var(--amber)", height: 4,
+                  flex: 1, accentColor: "var(--fc-warning)", height: 4,
                   cursor: "pointer",
                 }}
               />
               <span style={{
-                fontSize: 13, fontWeight: 600, color: "var(--foreground)",
+                fontSize: 13, fontWeight: 600, color: "var(--fc-text)",
                 minWidth: 50, textAlign: "right",
               }}>
                 {days} día{days > 1 ? "s" : ""}
@@ -273,11 +273,11 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
             <div style={{
               display: "flex", justifyContent: "space-between", alignItems: "center",
               marginTop: 6, padding: "6px 10px", borderRadius: 6,
-              background: "var(--surface)",
+              background: "var(--fc-surface)",
               border: "1px solid rgba(224,168,60,0.15)",
             }}>
-              <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>Total estimado:</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--amber)" }}>
+              <span style={{ fontSize: 11, color: "var(--fc-text-secondary)" }}>Total estimado:</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--fc-warning)" }}>
                 ${totalEstimated.toLocaleString()} MXN
               </span>
             </div>
@@ -286,7 +286,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
           {/* ── Countries ── */}
           <div>
             <label style={{
-              fontSize: 10, fontWeight: 700, color: "var(--text-secondary)",
+              fontSize: 10, fontWeight: 700, color: "var(--fc-text-secondary)",
               fontFamily: "var(--font-display)", letterSpacing: "0.1em",
               display: "flex", alignItems: "center", gap: 6, marginBottom: 8,
             }}>
@@ -307,7 +307,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
                       cursor: "pointer", transition: "all 0.15s",
                       background: active ? "rgba(0,200,117,0.1)" : "var(--surface-hover)",
                       border: active ? "1px solid rgba(0,200,117,0.3)" : "1px solid rgba(255,255,255,0.06)",
-                      color: active ? "var(--emerald)" : "var(--text-muted)",
+                      color: active ? "var(--fc-success)" : "var(--fc-text-muted)",
                     }}
                   >
                     <span>{c.flag}</span>
@@ -322,7 +322,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
           {/* ── Ad Account ID ── */}
           <div>
             <label style={{
-              fontSize: 10, fontWeight: 700, color: "var(--text-secondary)",
+              fontSize: 10, fontWeight: 700, color: "var(--fc-text-secondary)",
               fontFamily: "var(--font-display)", letterSpacing: "0.1em",
               display: "block", marginBottom: 8,
             }}>
@@ -338,13 +338,13 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
                 width: "100%", padding: "8px 12px", borderRadius: 8,
                 background: "var(--surface-hover)",
                 border: "1px solid var(--hairline)",
-                color: "var(--foreground)", fontSize: 13, fontFamily: "var(--font-sans)",
+                color: "var(--fc-text)", fontSize: 13, fontFamily: "var(--font-sans)",
                 outline: "none",
               }}
               onFocus={(e) => { e.currentTarget.style.borderColor = "rgba(224,168,60,0.4)"; }}
               onBlur={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; }}
             />
-            <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: "4px 0 0" }}>
+            <p style={{ fontSize: 10, color: "var(--fc-text-secondary)", margin: "4px 0 0" }}>
               Sin prefijo "act_" — lo encontrarás en Meta Business Suite → Configuración
             </p>
           </div>
@@ -354,9 +354,9 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
             <div style={{
               display: "flex", alignItems: "center", gap: 6,
               padding: "8px 12px", borderRadius: 6, fontSize: 12,
-              background: "var(--surface)",
+              background: "var(--fc-surface)",
               border: "1px solid rgba(226,68,92,0.25)",
-              color: "var(--red)",
+              color: "var(--fc-danger)",
             }}>
               <AlertCircle style={{ width: 13, height: 13, flexShrink: 0 }} />
               {error}
@@ -368,7 +368,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
         <div style={{
           display: "flex", gap: 8, padding: "14px 20px",
           border: "1px solid var(--hairline)",
-          background: "var(--surface)",
+          background: "var(--fc-surface)",
           justifyContent: "flex-end",
         }}>
           <button
@@ -377,7 +377,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
             style={{
               padding: "8px 18px", borderRadius: 8, fontSize: 12, fontWeight: 500,
               background: "var(--surface-hover)", border: "1px solid var(--hairline)",
-              color: "var(--text-secondary)", cursor: loading ? "not-allowed" : "pointer",
+              color: "var(--fc-text-secondary)", cursor: loading ? "not-allowed" : "pointer",
               transition: "all 0.15s",
             }}
           >
@@ -391,9 +391,9 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
               padding: "8px 22px", borderRadius: 8, fontSize: 13, fontWeight: 600,
               background: loading
                 ? "rgba(224,168,60,0.2)"
-                : "linear-gradient(135deg, var(--amber), var(--amber))",
+                : "linear-gradient(135deg, var(--fc-warning), var(--fc-warning))",
               border: "none",
-              color: "var(--foreground)", cursor: loading ? "not-allowed" : "pointer",
+              color: "var(--fc-text)", cursor: loading ? "not-allowed" : "pointer",
               boxShadow: loading ? "none" : "0 4px 16px rgba(224,168,60,0.25)",
               transition: "all 0.2s",
               opacity: loading ? 0.7 : 1,

@@ -34,10 +34,10 @@ const BIDS = [
 
 const inp: React.CSSProperties = {
   width: "100%", padding: "9px 12px", background: "var(--surface-hover)",
-  border: "1px solid var(--hairline)", borderRadius: 6, color: "var(--foreground)",
+  border: "1px solid var(--hairline)", borderRadius: 6, color: "var(--fc-text)",
   fontSize: 13, outline: "none", fontFamily: "inherit",
 };
-const lbl: React.CSSProperties = { fontSize: 11, color: "var(--text-secondary)", display: "block", marginBottom: 5, fontWeight: 500 };
+const lbl: React.CSSProperties = { fontSize: 11, color: "var(--fc-text-secondary)", display: "block", marginBottom: 5, fontWeight: 500 };
 
 export function CreateCampaignModal({ adAccountId, adAccountName, onClose, onCreated }: Props) {
   const [name, setName] = useState("");
@@ -88,18 +88,18 @@ export function CreateCampaignModal({ adAccountId, adAccountName, onClose, onCre
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--overlay-dark)",  }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 560, background: "var(--surface)", border: "1px solid rgba(0,129,251,0.2)", borderRadius: 10, animation: "fadeInScale 0.2s ease-out" }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 560, background: "var(--fc-surface)", border: "1px solid rgba(0,129,251,0.2)", borderRadius: 10, animation: "fadeInScale 0.2s ease-out" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 22px", border: "1px solid var(--hairline)" }}>
-          <span style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 14, fontWeight: 700, color: "var(--fc-text)" }}>
             <Megaphone style={{ width: 16, height: 16, color: "#0081FB" }} /> Crear campaña
           </span>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}><X style={{ width: 18, height: 18 }} /></button>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--fc-text-muted)", cursor: "pointer" }}><X style={{ width: 18, height: 18 }} /></button>
         </div>
 
         <div style={{ padding: 22, display: "grid", gap: 16 }}>
           {adAccountName && (
-            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Cuenta: <span style={{ color: "var(--foreground)" }}>{adAccountName}</span></div>
+            <div style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>Cuenta: <span style={{ color: "var(--fc-text)" }}>{adAccountName}</span></div>
           )}
 
           <div>
@@ -117,8 +117,8 @@ export function CreateCampaignModal({ adAccountId, adAccountName, onClose, onCre
                     style={{ textAlign: "left", padding: "10px 12px", borderRadius: 8, cursor: "pointer", fontFamily: "inherit",
                       background: active ? "rgba(0,129,251,0.1)" : "rgba(255,255,255,0.02)",
                       border: `1px solid ${active ? "rgba(0,129,251,0.4)" : "rgba(255,255,255,0.07)"}` }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: active ? "var(--cyan)" : "var(--foreground)" }}>{o.label}</div>
-                    <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>{o.desc}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: active ? "var(--fc-accent)" : "var(--fc-text)" }}>{o.label}</div>
+                    <div style={{ fontSize: 10, color: "var(--fc-text-muted)", marginTop: 2 }}>{o.desc}</div>
                   </button>
                 );
               })}
@@ -127,13 +127,13 @@ export function CreateCampaignModal({ adAccountId, adAccountName, onClose, onCre
 
           {objective === "OUTCOME_SALES" && (
             <div style={{ marginTop: 8 }}>
-              <label style={{ display: "flex", alignItems: "flex-start", gap: 12, cursor: "pointer", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.15)", padding: "14px", borderRadius: 8 }}>
-                <input type="checkbox" checked={isAsc} onChange={(e) => setIsAsc(e.target.checked)} style={{ width: 18, height: 18, accentColor: "var(--cyan)", marginTop: 2 }} />
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 12, cursor: "pointer", background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.15)", padding: "14px", borderRadius: 8 }}>
+                <input type="checkbox" checked={isAsc} onChange={(e) => setIsAsc(e.target.checked)} style={{ width: 18, height: 18, accentColor: "var(--fc-accent)", marginTop: 2 }} />
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--cyan)", display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-accent)", display: "flex", alignItems: "center", gap: 6 }}>
                     <Megaphone style={{ width: 14, height: 14 }} /> Campaña de compras Advantage+ (ASC)
                   </div>
-                  <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 4, lineHeight: 1.4 }}>
+                  <div style={{ fontSize: 11, color: "var(--fc-text-secondary)", marginTop: 4, lineHeight: 1.4 }}>
                     Simplifica la configuración de la campaña y confía en el aprendizaje automático de Meta para encontrar los públicos adecuados. (Recomendado)
                   </div>
                 </div>
@@ -159,7 +159,7 @@ export function CreateCampaignModal({ adAccountId, adAccountName, onClose, onCre
 
           {/* Optional CBO */}
           <div>
-            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--text-secondary)", cursor: "pointer" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--fc-text-secondary)", cursor: "pointer" }}>
               <input type="checkbox" checked={cbo} onChange={(e) => setCbo(e.target.checked)} />
               Presupuesto de la campaña Advantage+
             </label>
@@ -180,24 +180,24 @@ export function CreateCampaignModal({ adAccountId, adAccountName, onClose, onCre
           </div>
 
           {/* Safety note */}
-          <div style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "10px 12px", borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(251,191,36,0.18)" }}>
-            <PauseCircle style={{ width: 16, height: 16, color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
-            <div style={{ fontSize: 11, color: "var(--amber)" }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "10px 12px", borderRadius: 8, background: "var(--fc-surface)", border: "1px solid rgba(251,191,36,0.18)" }}>
+            <PauseCircle style={{ width: 16, height: 16, color: "var(--fc-warning)", flexShrink: 0, marginTop: 1 }} />
+            <div style={{ fontSize: 11, color: "var(--fc-warning)" }}>
               La campaña se crea <strong>en pausa</strong> y no gasta nada hasta que le agregues conjuntos de anuncios y anuncios, y la actives en Meta.
             </div>
           </div>
 
           {error && (
-            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 12px", borderRadius: 6, background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.2)" }}>
-              <AlertTriangle style={{ width: 14, height: 14, color: "var(--red)", flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: "var(--red)" }}>{error}</span>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 12px", borderRadius: 6, background: "var(--fc-danger-wash)", border: "1px solid rgba(229,72,77,0.2)" }}>
+              <AlertTriangle style={{ width: 14, height: 14, color: "var(--fc-danger)", flexShrink: 0 }} />
+              <span style={{ fontSize: 12, color: "var(--fc-danger)" }}>{error}</span>
             </div>
           )}
         </div>
 
         {/* Footer */}
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "14px 22px", border: "1px solid var(--hairline)" }}>
-          <button onClick={onClose} style={{ padding: "9px 18px", background: "transparent", border: "1px solid var(--border)", color: "var(--text-secondary)", cursor: "pointer", fontSize: 12, borderRadius: 6, fontFamily: "inherit" }}>Cancelar</button>
+          <button onClick={onClose} style={{ padding: "9px 18px", background: "transparent", border: "1px solid var(--fc-border)", color: "var(--fc-text-secondary)", cursor: "pointer", fontSize: 12, borderRadius: 6, fontFamily: "inherit" }}>Cancelar</button>
           <button onClick={submit} disabled={saving || !name.trim()} className="btn-primary" style={{ padding: "9px 22px", opacity: saving || !name.trim() ? 0.5 : 1, display: "inline-flex", alignItems: "center", gap: 7 }}>
             {saving ? <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> : <PauseCircle style={{ width: 14, height: 14 }} />}
             Crear en pausa

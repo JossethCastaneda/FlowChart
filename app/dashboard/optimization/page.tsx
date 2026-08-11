@@ -170,7 +170,7 @@ export default function OptimizationCenterPage() {
     <div className="flex flex-col gap-6 p-4 md:p-6 lg:p-8 max-w-[1600px] w-full mx-auto">
       <header className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-[var(--purple)] text-xs font-bold uppercase tracking-[0.18em] mb-2">
+          <div className="flex items-center gap-2 text-[var(--fc-module-aria)] text-xs font-bold uppercase tracking-[0.18em] mb-2">
             <Gauge className="w-4 h-4" /> Centro de Optimización
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-[var(--fc-text)] m-0">Decisiones publicitarias gobernadas</h1>
@@ -272,7 +272,7 @@ export default function OptimizationCenterPage() {
                       <p className="text-[10px] text-[var(--fc-text-muted)] mt-1 mb-0">{evaluation.sampleSize} filas · mínimo {evaluation.minimumSampleSize}</p>
                     </div>
                     <div className="flex items-center gap-3 text-xs">
-                      <div><span className="block text-[10px] text-[var(--fc-text-muted)] mb-1">Predicción</span><strong className="text-[var(--purple)]">{formatEvaluationValue(evaluation.predictedValue, evaluation.metric)}</strong></div>
+                      <div><span className="block text-[10px] text-[var(--fc-text-muted)] mb-1">Predicción</span><strong className="text-[var(--fc-module-aria)]">{formatEvaluationValue(evaluation.predictedValue, evaluation.metric)}</strong></div>
                       <span className="text-[var(--fc-text-muted)]">→</span>
                       <div><span className="block text-[10px] text-[var(--fc-text-muted)] mb-1">Observado</span><strong className="text-[var(--fc-text)]">{formatEvaluationValue(evaluation.actualValue, evaluation.metric)}</strong></div>
                     </div>
@@ -311,12 +311,12 @@ export default function OptimizationCenterPage() {
                     <div className="flex items-center gap-3 text-xs">
                       <div><span className="block text-[10px] text-[var(--fc-text-muted)] mb-1">Actual</span><strong className="text-[var(--fc-text)]">{formatValue(action.currentValue, action.unit, action.currency)}</strong></div>
                       <span className="text-[var(--fc-text-muted)]">→</span>
-                      <div><span className="block text-[10px] text-[var(--fc-text-muted)] mb-1">Propuesto</span><strong className="text-[var(--purple)]">{formatValue(action.proposedValue, action.unit, action.currency)}</strong></div>
+                      <div><span className="block text-[10px] text-[var(--fc-text-muted)] mb-1">Propuesto</span><strong className="text-[var(--fc-module-aria)]">{formatValue(action.proposedValue, action.unit, action.currency)}</strong></div>
                     </div>
                     <div className="flex flex-wrap xl:justify-end items-center gap-2">
                       {["requires_review", "rejected"].includes(action.state) && ["OWNER", "ADMIN"].includes(overview.executionControl.viewerRole) && (
                         <>
-                          <button type="button" disabled={!!busyAction} onClick={() => void mutateAction(action.id, "approve")} className="rounded-lg bg-[var(--purple)] px-3 py-2 text-[10px] font-bold text-white disabled:opacity-50">Aprobar</button>
+                          <button type="button" disabled={!!busyAction} onClick={() => void mutateAction(action.id, "approve")} className="rounded-lg bg-[var(--fc-module-aria)] px-3 py-2 text-[10px] font-bold text-white disabled:opacity-50">Aprobar</button>
                           <button type="button" disabled={!!busyAction} onClick={() => void mutateAction(action.id, "reject")} className="rounded-lg border border-[var(--fc-border)] px-3 py-2 text-[10px] font-bold text-[var(--fc-text-secondary)] disabled:opacity-50">Rechazar</button>
                         </>
                       )}

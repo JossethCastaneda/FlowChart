@@ -244,17 +244,17 @@ const panelStyle: React.CSSProperties = {
   height: "100%",
   width: "100%",
 };
-const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 5 };
-const headingStyle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.03em", marginBottom: 4 };
-const subStyle: React.CSSProperties = { fontSize: 11, color: "var(--text-secondary)", marginBottom: 12, lineHeight: 1.5 };
-const tooltipStyle = { backgroundColor: "var(--surface)", border: "1px solid var(--border-strong)", borderLeft: "3px solid var(--cyan)", borderRadius: 8, fontSize: 12, color: "var(--foreground)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" };
-const CHART_COLORS = ["var(--cyan)", "var(--emerald)", "var(--amber)", "var(--red)", "var(--purple)", "#5b9bff", "#bc5fb2", "#45aec2"];
+const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: "var(--fc-text-muted)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 5 };
+const headingStyle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "var(--fc-text)", letterSpacing: "0.03em", marginBottom: 4 };
+const subStyle: React.CSSProperties = { fontSize: 11, color: "var(--fc-text-secondary)", marginBottom: 12, lineHeight: 1.5 };
+const tooltipStyle = { backgroundColor: "var(--fc-surface)", border: "1px solid var(--border-strong)", borderLeft: "3px solid var(--fc-accent)", borderRadius: 8, fontSize: 12, color: "var(--fc-text)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" };
+const CHART_COLORS = ["var(--fc-accent)", "var(--fc-success)", "var(--fc-warning)", "var(--fc-danger)", "var(--fc-module-aria)", "#5b9bff", "#bc5fb2", "#45aec2"];
 
 function KpiBox({ title, value, sub, icon, color, progress }: any) {
   const c = color.startsWith("#") ? color : `var(--${color})`;
   const progressPct = progress !== undefined ? Math.min(Math.max(progress, 0), 100) : undefined;
   const isOverBudget = progress !== undefined && progress > 100;
-  const progressColor = isOverBudget ? "var(--red)" : progressPct && progressPct > 75 ? "var(--emerald)" : c;
+  const progressColor = isOverBudget ? "var(--fc-danger)" : progressPct && progressPct > 75 ? "var(--fc-success)" : c;
   return (
     <div
       className={`kpi-card ${color.startsWith("#") ? "" : color}`}
@@ -265,17 +265,17 @@ function KpiBox({ title, value, sub, icon, color, progress }: any) {
       {/* Icon + Label */}
       <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
         <div style={{ padding: "6px", background: `${c}14`, border: `1px solid ${c}28`, borderRadius: 9, color: c, display: "flex" }}>{icon}</div>
-        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--text-muted)" }}>{title}</span>
+        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--fc-text-muted)" }}>{title}</span>
       </div>
       {/* Value */}
-      <div style={{ fontSize: 22, fontWeight: 700, color: "var(--foreground)", marginBottom: 3, fontFamily: "var(--font-display)", lineHeight: 1 }}>{value}</div>
-      <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: progress !== undefined ? 10 : 0, fontFamily: "var(--font-mono)" }}>{sub}</div>
+      <div style={{ fontSize: 22, fontWeight: 700, color: "var(--fc-text)", marginBottom: 3, fontFamily: "var(--font-display)", lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 10, color: "var(--fc-text-muted)", marginBottom: progress !== undefined ? 10 : 0, fontFamily: "var(--font-mono)" }}>{sub}</div>
       {/* Progress bar */}
       {progress !== undefined && (
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
-            <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>PROGRESO</span>
-            <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: isOverBudget ? "var(--red)" : progressPct && progressPct > 75 ? "var(--emerald)" : c }}>{progress.toFixed(0)}%</span>
+            <span style={{ fontSize: 9, color: "var(--fc-text-muted)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>PROGRESO</span>
+            <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: isOverBudget ? "var(--fc-danger)" : progressPct && progressPct > 75 ? "var(--fc-success)" : c }}>{progress.toFixed(0)}%</span>
           </div>
           <div className="progress-track">
             <div className={`progress-bar${isOverBudget ? " over-budget" : ""}`} style={{ width: `${Math.min(progress, 100)}%`, background: `linear-gradient(90deg, ${progressColor}, ${progressColor}cc)` }} />
@@ -287,11 +287,11 @@ function KpiBox({ title, value, sub, icon, color, progress }: any) {
 }
 
 function NoData({ msg = "Sin datos disponibles" }: { msg?: string }) {
-  return <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", gap: 12, padding: 20 }}><BarChart2 style={{ width: 32, height: 32, color: "rgba(255,255,255,0.04)" }} /><p style={{ fontSize: 11, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "center" }}>{msg}</p></div>;
+  return <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", gap: 12, padding: 20 }}><BarChart2 style={{ width: 32, height: 32, color: "rgba(255,255,255,0.04)" }} /><p style={{ fontSize: 11, color: "var(--fc-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "center" }}>{msg}</p></div>;
 }
 
 function LoadingOverlay() {
-  return <div style={{ position: "absolute", inset: 0, background: "var(--surface)",  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10, borderRadius: "inherit" }}><div style={{ width: 30, height: 30, border: "3px solid var(--border-strong)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 1s linear infinite" }} /><span style={{ marginTop: 10, fontSize: 11, color: "var(--foreground)", letterSpacing: "0.05em", textTransform: "uppercase" }}>Sincronizando Meta...</span></div>;
+  return <div style={{ position: "absolute", inset: 0, background: "var(--fc-surface)",  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10, borderRadius: "inherit" }}><div style={{ width: 30, height: 30, border: "3px solid var(--border-strong)", borderTopColor: "var(--fc-accent)", borderRadius: "50%", animation: "spin 1s linear infinite" }} /><span style={{ marginTop: 10, fontSize: 11, color: "var(--fc-text)", letterSpacing: "0.05em", textTransform: "uppercase" }}>Sincronizando Meta...</span></div>;
 }
 
 function TabButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: React.ReactNode; onClick: () => void }) {
@@ -314,7 +314,7 @@ function TimeToggle({ value, onChange }: { value: string; onChange: (v: string) 
         <button key={t.k} onClick={() => onChange(t.k)} style={{
           padding: "4px 12px", fontSize: 10, fontWeight: 600, borderRadius: 4, border: "none", cursor: "pointer",
           background: value === t.k ? "rgba(59,130,246,0.12)" : "transparent",
-          color: value === t.k ? "var(--cyan)" : "var(--text-secondary)",
+          color: value === t.k ? "var(--fc-accent)" : "var(--fc-text-secondary)",
         }}>{t.l}</button>
       ))}
     </div>
@@ -639,7 +639,7 @@ export default function ProjectDashboardPage() {
     }
   };
 
-  if (!project) return <div style={{ padding: 40, textAlign: "center", color: "var(--text-secondary)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, minHeight: 200 }}><div style={{ width: 40, height: 40, border: "3px solid rgba(255,255,255,0.04)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 1s linear infinite" }} /><span style={{ fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase" }}>Cargando proyecto...</span></div>;
+  if (!project) return <div style={{ padding: 40, textAlign: "center", color: "var(--fc-text-secondary)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, minHeight: 200 }}><div style={{ width: 40, height: 40, border: "3px solid rgba(255,255,255,0.04)", borderTopColor: "var(--fc-accent)", borderRadius: "50%", animation: "spin 1s linear infinite" }} /><span style={{ fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase" }}>Cargando proyecto...</span></div>;
 
   const ch = project.channels.find(c => c.platformId === activePlatform);
   const timeMetrics = getTimeFilterMetrics(datePreset, dateStart, dateEnd);
@@ -803,7 +803,7 @@ export default function ProjectDashboardPage() {
         position: "relative", zIndex: 999,
         display: "flex", alignItems: "flex-start", justifyContent: "space-between",
         flexWrap: "wrap", gap: 12,
-        background: "var(--surface)", border: "1px solid var(--hairline)",
+        background: "var(--fc-surface)", border: "1px solid var(--hairline)",
         borderRadius: 14, padding: "14px 18px",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -811,12 +811,12 @@ export default function ProjectDashboardPage() {
             onClick={() => router.push("/dashboard/proyectos")}
             style={{
               width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
-              background: "var(--surface-hover)", border: "1px solid var(--border)",
-              borderRadius: 8, color: "var(--text-secondary)", cursor: "pointer",
+              background: "var(--surface-hover)", border: "1px solid var(--fc-border)",
+              borderRadius: 8, color: "var(--fc-text-secondary)", cursor: "pointer",
               transition: "all 0.15s", flexShrink: 0,
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.09)"; (e.currentTarget as HTMLButtonElement).style.color = "white"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.05)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--text-secondary)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.05)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--fc-text-secondary)"; }}
           >
             <ArrowLeft style={{ width: 15, height: 15 }} />
           </button>
@@ -824,15 +824,15 @@ export default function ProjectDashboardPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
               {/* Live pulse for active projects */}
               {(project.status === "EN VUELO" || project.status === "Activo") && (
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 10px rgba(52,183,124,0.8)", animation: "status-pulse 2s infinite", display: "inline-block", flexShrink: 0 }} />
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--fc-success)", boxShadow: "0 0 10px rgba(52,183,124,0.8)", animation: "status-pulse 2s infinite", display: "inline-block", flexShrink: 0 }} />
               )}
-              <h1 style={{ fontFamily: "var(--font-display)", fontSize: 21, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.04em", lineHeight: 1 }}>{project.alias}</h1>
+              <h1 style={{ fontFamily: "var(--font-display)", fontSize: 21, fontWeight: 700, color: "var(--fc-text)", letterSpacing: "0.04em", lineHeight: 1 }}>{project.alias}</h1>
               <span className={`badge badge-${STATUS_COLORS[project.status] || "muted"}`}>{project.status}</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-              {project.client && <span style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 500 }}>{project.client}</span>}
+              {project.client && <span style={{ fontSize: 11, color: "var(--fc-text-secondary)", fontWeight: 500 }}>{project.client}</span>}
               {project.client && project.vertical && <span style={{ fontSize: 10, color: "rgba(108,124,147,0.5)" }}>·</span>}
-              {project.vertical && <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>{project.vertical}</span>}
+              {project.vertical && <span style={{ fontSize: 11, color: "var(--fc-text-muted)", fontWeight: 500 }}>{project.vertical}</span>}
               {project.channels.length > 0 && (
                 <>
                   <span style={{ fontSize: 10, color: "rgba(108,124,147,0.5)" }}>·</span>
@@ -842,7 +842,7 @@ export default function ProjectDashboardPage() {
                       <span key={c.platformId} style={{
                         fontSize: 10, padding: "2px 7px", borderRadius: 4, fontWeight: 700,
                         border: `1px solid ${pl?.color ? pl.color + "50" : "var(--hairline)"}`,
-                        color: pl?.color || "var(--text-muted)",
+                        color: pl?.color || "var(--fc-text-muted)",
                         background: pl?.color ? pl.color + "14" : "transparent",
                       }}>
                         {c.platformName}
@@ -875,7 +875,7 @@ export default function ProjectDashboardPage() {
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         
         {/* Primary group navigation */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16, borderBottom: "1px solid var(--border)", paddingBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16, borderBottom: "1px solid var(--fc-border)", paddingBottom: 12 }}>
           <div style={{ display: "flex", gap: 24 }}>
             {["Analítica", "Optimización", "Configuración"].map(group => {
               const isActiveGroup = getGroupForTab(activeTab) === group;
@@ -889,7 +889,7 @@ export default function ProjectDashboardPage() {
                   }}
                   style={{
                     background: "none", border: "none", padding: "0 0 10px 0",
-                    color: isActiveGroup ? "var(--cyan)" : "var(--text-muted)",
+                    color: isActiveGroup ? "var(--fc-accent)" : "var(--fc-text-muted)",
                     fontWeight: isActiveGroup ? 700 : 500, fontSize: 14, cursor: "pointer",
                     position: "relative",
                     marginBottom: -13, // align with borderBottom
@@ -897,7 +897,7 @@ export default function ProjectDashboardPage() {
                 >
                   {group}
                   {isActiveGroup && (
-                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 2, background: "var(--cyan)", borderRadius: "2px 2px 0 0", boxShadow: "0 -2px 10px rgba(59,130,246,0.5)" }} />
+                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 2, background: "var(--fc-accent)", borderRadius: "2px 2px 0 0", boxShadow: "0 -2px 10px rgba(59,130,246,0.5)" }} />
                   )}
                 </button>
               );
@@ -914,7 +914,7 @@ export default function ProjectDashboardPage() {
                   padding: "6px 14px", fontSize: 11, fontWeight: 700,
                   background: isActive ? `${pl.color}20` : "rgba(255,255,255,0.04)",
                   border: `1px solid ${isActive ? pl.color + "60" : "rgba(255,255,255,0.08)"}`,
-                  color: isActive ? pl.color : "var(--text-muted)",
+                  color: isActive ? pl.color : "var(--fc-text-muted)",
                   borderRadius: 20, cursor: "pointer", transition: "all 0.2s",
                   boxShadow: isActive ? `0 0 16px ${pl.color}25` : "none",
                 }}>
@@ -928,7 +928,7 @@ export default function ProjectDashboardPage() {
                     padding: "6px 14px", fontSize: 11, fontWeight: 700,
                     background: activePlatform === "multichannel" ? `rgba(255,255,255,0.15)` : "rgba(255,255,255,0.04)",
                     border: `1px solid ${activePlatform === "multichannel" ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.08)"}`,
-                    color: activePlatform === "multichannel" ? "var(--foreground)" : "var(--text-muted)",
+                    color: activePlatform === "multichannel" ? "var(--fc-text)" : "var(--fc-text-muted)",
                     borderRadius: 20, cursor: "pointer", transition: "all 0.2s",
                   }}>
                     Multicanal (Vista Global)
@@ -937,8 +937,8 @@ export default function ProjectDashboardPage() {
 
             {ch?.adAccounts && ch.adAccounts.length > 1 && activePlatform !== "multichannel" && (
               <select value={selectedAccountId} onChange={e => { setSelectedAccountId(e.target.value); setBreakdownData({}); }} style={{
-                background: "var(--surface)", border: "1px solid var(--border)",
-                color: "var(--foreground)", fontSize: 11, padding: "6px 24px 6px 12px",
+                background: "var(--fc-surface)", border: "1px solid var(--fc-border)",
+                color: "var(--fc-text)", fontSize: 11, padding: "6px 24px 6px 12px",
                 borderRadius: 20, cursor: "pointer", appearance: "none", fontWeight: 600,
               }}>
                 <option value="all">Todas ({ch.adAccounts.length})</option>
@@ -992,24 +992,24 @@ export default function ProjectDashboardPage() {
             
             {/* Disclaimer si el rango no es grande */}
             {datePreset !== "this_year" && datePreset !== "all_time" && (
-              <div style={{ padding: "10px 14px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.15)", borderRadius: 6, marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
-                <Activity style={{ width: 16, height: 16, color: "var(--cyan)" }} />
-                <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Para ver un historial completo, cambia el filtro de fechas a <strong>"Este Año"</strong>.</span>
+              <div style={{ padding: "10px 14px", background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.15)", borderRadius: 6, marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
+                <Activity style={{ width: 16, height: 16, color: "var(--fc-accent)" }} />
+                <span style={{ fontSize: 12, color: "var(--fc-text-secondary)" }}>Para ver un historial completo, cambia el filtro de fechas a <strong>"Este Año"</strong>.</span>
               </div>
             )}
 
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", textAlign: "left", borderCollapse: "collapse", fontSize: 12 }}>
                 <thead>
-                  <tr style={{ border: "1px solid var(--border)" }}>
-                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Mes</th>
-                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Inversión Real</th>
-                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Inversión Meta</th>
-                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>CPA Real</th>
-                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>CPA Meta</th>
-                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Resultados</th>
-                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Resultados Meta</th>
-                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Estatus (CPA)</th>
+                  <tr style={{ border: "1px solid var(--fc-border)" }}>
+                    <th style={{ padding: "10px 14px", color: "var(--fc-text-muted)", fontWeight: 600 }}>Mes</th>
+                    <th style={{ padding: "10px 14px", color: "var(--fc-text-muted)", fontWeight: 600 }}>Inversión Real</th>
+                    <th style={{ padding: "10px 14px", color: "var(--fc-text-muted)", fontWeight: 600 }}>Inversión Meta</th>
+                    <th style={{ padding: "10px 14px", color: "var(--fc-text-muted)", fontWeight: 600 }}>CPA Real</th>
+                    <th style={{ padding: "10px 14px", color: "var(--fc-text-muted)", fontWeight: 600 }}>CPA Meta</th>
+                    <th style={{ padding: "10px 14px", color: "var(--fc-text-muted)", fontWeight: 600 }}>Resultados</th>
+                    <th style={{ padding: "10px 14px", color: "var(--fc-text-muted)", fontWeight: 600 }}>Resultados Meta</th>
+                    <th style={{ padding: "10px 14px", color: "var(--fc-text-muted)", fontWeight: 600 }}>Estatus (CPA)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1033,7 +1033,7 @@ export default function ProjectDashboardPage() {
                     const sortedKeys = Object.keys(monthly).sort((a, b) => b.localeCompare(a));
                     
                     if (sortedKeys.length === 0) {
-                      return <tr><td colSpan={8} style={{ padding: "20px", textAlign: "center", color: "var(--text-muted)" }}>No hay datos para el rango seleccionado.</td></tr>;
+                      return <tr><td colSpan={8} style={{ padding: "20px", textAlign: "center", color: "var(--fc-text-muted)" }}>No hay datos para el rango seleccionado.</td></tr>;
                     }
                     
                     return sortedKeys.map(monthKey => {
@@ -1061,24 +1061,24 @@ export default function ProjectDashboardPage() {
                       // else -> off-track (red)
                       let statusEl;
                       if (mCpr <= 0) {
-                        statusEl = <span style={{ color: "var(--text-muted)" }}>Sin meta</span>;
+                        statusEl = <span style={{ color: "var(--fc-text-muted)" }}>Sin meta</span>;
                       } else if (actualCpa <= mCpr * 1.05) {
-                        statusEl = <span style={{ color: "var(--emerald)", fontWeight: 600 }}> Superado</span>;
+                        statusEl = <span style={{ color: "var(--fc-success)", fontWeight: 600 }}> Superado</span>;
                       } else if (actualCpa <= mCpr * 1.20) {
-                        statusEl = <span style={{ color: "var(--amber)", fontWeight: 600 }}> Riesgo</span>;
+                        statusEl = <span style={{ color: "var(--fc-warning)", fontWeight: 600 }}> Riesgo</span>;
                       } else {
-                        statusEl = <span style={{ color: "var(--red)", fontWeight: 600 }}> Desviado</span>;
+                        statusEl = <span style={{ color: "var(--fc-danger)", fontWeight: 600 }}> Desviado</span>;
                       }
 
                       return (
                         <tr key={monthKey} style={{ border: "1px solid var(--hairline)" }}>
-                          <td style={{ padding: "12px 14px", color: "var(--foreground)", fontWeight: 600 }}>{monthKey}</td>
-                          <td style={{ padding: "12px 14px", color: data.spend > mBudgetMonthly ? "var(--red)" : "white" }}>{fmtMXN0(data.spend)}</td>
-                          <td style={{ padding: "12px 14px", color: "var(--text-muted)" }}>{fmtMXN0(mBudgetMonthly)}</td>
-                          <td style={{ padding: "12px 14px", color: actualCpa > mCpr * 1.1 ? "var(--red)" : "white" }}>{fmtMXN(actualCpa)}</td>
-                          <td style={{ padding: "12px 14px", color: "var(--text-muted)" }}>{fmtMXN(mCpr)}</td>
-                          <td style={{ padding: "12px 14px", color: data.results >= mGoal ? "var(--emerald)" : "white" }}>{fmtNum(data.results)}</td>
-                          <td style={{ padding: "12px 14px", color: "var(--text-muted)" }}>{fmtNum(mGoal)}</td>
+                          <td style={{ padding: "12px 14px", color: "var(--fc-text)", fontWeight: 600 }}>{monthKey}</td>
+                          <td style={{ padding: "12px 14px", color: data.spend > mBudgetMonthly ? "var(--fc-danger)" : "white" }}>{fmtMXN0(data.spend)}</td>
+                          <td style={{ padding: "12px 14px", color: "var(--fc-text-muted)" }}>{fmtMXN0(mBudgetMonthly)}</td>
+                          <td style={{ padding: "12px 14px", color: actualCpa > mCpr * 1.1 ? "var(--fc-danger)" : "white" }}>{fmtMXN(actualCpa)}</td>
+                          <td style={{ padding: "12px 14px", color: "var(--fc-text-muted)" }}>{fmtMXN(mCpr)}</td>
+                          <td style={{ padding: "12px 14px", color: data.results >= mGoal ? "var(--fc-success)" : "white" }}>{fmtNum(data.results)}</td>
+                          <td style={{ padding: "12px 14px", color: "var(--fc-text-muted)" }}>{fmtNum(mGoal)}</td>
                           <td style={{ padding: "12px 14px" }}>{statusEl}</td>
                         </tr>
                       );
@@ -1368,17 +1368,17 @@ export default function ProjectDashboardPage() {
             ...panelStyle,
             padding: "18px 22px",
             background: "linear-gradient(135deg, rgba(0,129,251,0.1) 0%, rgba(59,130,246,0.06) 50%, rgba(139,141,242,0.06) 100%)",
-            borderLeft: "3px solid var(--cyan)",
+            borderLeft: "3px solid var(--fc-accent)",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ width: 42, height: 42, borderRadius: 12, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Users style={{ width: 20, height: 20, color: "var(--cyan)" }} />
+              <div style={{ width: 42, height: 42, borderRadius: 12, background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Users style={{ width: 20, height: 20, color: "var(--fc-accent)" }} />
               </div>
               <div style={{ flex: 1 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", marginBottom: 3 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--fc-text)", marginBottom: 3 }}>
                   ¿A quién estás llegando?
                 </h3>
-                <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+                <p style={{ fontSize: 11, color: "var(--fc-text-secondary)", lineHeight: 1.5 }}>
                   Demografía, ubicación geográfica, plataformas y dispositivos — basado en inversión del periodo.
                 </p>
               </div>
@@ -1388,7 +1388,7 @@ export default function ProjectDashboardPage() {
                   onChange={e => setAudienceMetric(e.target.value as any)}
                   style={{
                     padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600,
-                    background: "var(--surface-hover)", border: "1px solid var(--border)", color: "var(--text-primary)", cursor: "pointer",
+                    background: "var(--surface-hover)", border: "1px solid var(--fc-border)", color: "var(--text-primary)", cursor: "pointer",
                     outline: "none", marginRight: 8
                   }}
                 >
@@ -1397,12 +1397,12 @@ export default function ProjectDashboardPage() {
                   <option value="clicks">Clics</option>
                 </select>
                 {[
-                  { label: "Edad/Género", color: "var(--cyan)" },
-                  { label: "Región", color: "var(--amber)" },
-                  { label: "Dispositivo", color: "var(--purple)" },
-                  { label: "Plataforma", color: "var(--emerald)" },
+                  { label: "Edad/Género", color: "var(--fc-accent)" },
+                  { label: "Región", color: "var(--fc-warning)" },
+                  { label: "Dispositivo", color: "var(--fc-module-aria)" },
+                  { label: "Plataforma", color: "var(--fc-success)" },
                 ].map((chip, i) => (
-                  <div key={i} style={{ padding: "3px 10px", borderRadius: 20, fontSize: 9, fontWeight: 700, background: "var(--surface-hover)", border: "1px solid var(--border)", color: chip.color, letterSpacing: "0.06em" }}>
+                  <div key={i} style={{ padding: "3px 10px", borderRadius: 20, fontSize: 9, fontWeight: 700, background: "var(--surface-hover)", border: "1px solid var(--fc-border)", color: chip.color, letterSpacing: "0.06em" }}>
                     {chip.label}
                   </div>
                 ))}
@@ -1431,10 +1431,10 @@ export default function ProjectDashboardPage() {
                       {[70, 90, 55, 80, 65, 45].map((w, i) => (
                         <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
                           <div style={{ width: 36, height: 14, borderRadius: 4, background: "var(--surface-hover)", animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.1}s` }} />
-                          <div style={{ height: 24, borderRadius: 4, background: "var(--cyan-dim)", flex: 1, maxWidth: `${w}%`, animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.1}s` }} />
+                          <div style={{ height: 24, borderRadius: 4, background: "var(--fc-accent-wash)", flex: 1, maxWidth: `${w}%`, animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.1}s` }} />
                         </div>
                       ))}
-                      <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 11, marginTop: 8 }}>Cargando datos de audiencia...</p>
+                      <p style={{ textAlign: "center", color: "var(--fc-text-muted)", fontSize: 11, marginTop: 8 }}>Cargando datos de audiencia...</p>
                     </div>
                   );
                   const buckets: Record<string, { age: string; Hombres: number; Mujeres: number; Otro: number }> = {};
@@ -1450,12 +1450,12 @@ export default function ProjectDashboardPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={cd} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                        <XAxis dataKey="age" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} />
-                        <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => audienceMetric === "spend" ? `$${v}` : v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
+                        <XAxis dataKey="age" stroke="var(--fc-text-secondary)" fontSize={10} tickLine={false} axisLine={false} />
+                        <YAxis stroke="var(--fc-text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => audienceMetric === "spend" ? `$${v}` : v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "Inversión" : audienceMetric === "impressions" ? "Impresiones" : "Clics"]} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
-                        <Bar dataKey="Mujeres" stackId="a" fill="var(--purple)" />
-                        <Bar dataKey="Hombres" stackId="a" fill="var(--cyan)" radius={[3, 3, 0, 0]} barSize={12} />
+                        <Bar dataKey="Mujeres" stackId="a" fill="var(--fc-module-aria)" />
+                        <Bar dataKey="Hombres" stackId="a" fill="var(--fc-accent)" radius={[3, 3, 0, 0]} barSize={12} />
                       </BarChart>
                     </ResponsiveContainer>
                   );
@@ -1487,10 +1487,10 @@ export default function ProjectDashboardPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
-                        <XAxis type="number" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => audienceMetric === "spend" ? `$${v}` : v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
-                        <YAxis type="category" dataKey="region" stroke="var(--text-secondary)" fontSize={9} tickLine={false} axisLine={false} width={90} />
+                        <XAxis type="number" stroke="var(--fc-text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => audienceMetric === "spend" ? `$${v}` : v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
+                        <YAxis type="category" dataKey="region" stroke="var(--fc-text-secondary)" fontSize={9} tickLine={false} axisLine={false} width={90} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "Inversión" : audienceMetric === "impressions" ? "Impresiones" : "Clics"]} />
-                        <Bar dataKey="metric" fill="var(--amber)" radius={[0, 4, 4, 0]} barSize={14} />
+                        <Bar dataKey="metric" fill="var(--fc-warning)" radius={[0, 4, 4, 0]} barSize={14} />
                       </BarChart>
                     </ResponsiveContainer>
                   );
@@ -1575,7 +1575,7 @@ export default function ProjectDashboardPage() {
                   const platformColors: Record<string, string> = {
                     "Facebook": "#1877F2",
                     "Instagram": "#E1306C",
-                    "Audience Network": "var(--cyan)",
+                    "Audience Network": "var(--fc-accent)",
                     "Messenger": "#00B2FF"
                   };
 
@@ -1680,8 +1680,8 @@ export default function ProjectDashboardPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
-                        <XAxis type="number" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
-                        <YAxis type="category" dataKey="placement" stroke="var(--text-secondary)" fontSize={8} tickLine={false} axisLine={false} width={120} />
+                        <XAxis type="number" stroke="var(--fc-text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+                        <YAxis type="category" dataKey="placement" stroke="var(--fc-text-secondary)" fontSize={8} tickLine={false} axisLine={false} width={120} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), name === "spend" ? "Inversión" : name === "impressions" ? "Impresiones" : "Clicks"]} />
                         <Bar dataKey="spend" fill="#9b7be8" radius={[0, 4, 4, 0]} barSize={12} />
                       </BarChart>
@@ -1723,12 +1723,12 @@ export default function ProjectDashboardPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <ComposedChart data={d} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                        <XAxis dataKey="hour" stroke="var(--text-secondary)" fontSize={9} tickLine={false} axisLine={false} interval={1} />
-                        <YAxis yAxisId="left" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
+                        <XAxis dataKey="hour" stroke="var(--fc-text-secondary)" fontSize={9} tickLine={false} axisLine={false} interval={1} />
+                        <YAxis yAxisId="left" stroke="var(--fc-text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
                         <YAxis yAxisId="right" orientation="right" stroke="rgba(148,163,184,0.65)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "Inversión" ? fmtMXN(Number(v)) : fmtNum(Number(v)), name]} />
-                        <Bar yAxisId="left" dataKey="spend" name="Inversión" fill="var(--cyan)" radius={[3, 3, 0, 0]} barSize={10} />
-                        <Line yAxisId="right" type="monotone" dataKey="impressions" name="Impresiones" stroke="var(--amber)" strokeWidth={2} dot={false} />
+                        <Bar yAxisId="left" dataKey="spend" name="Inversión" fill="var(--fc-accent)" radius={[3, 3, 0, 0]} barSize={10} />
+                        <Line yAxisId="right" type="monotone" dataKey="impressions" name="Impresiones" stroke="var(--fc-warning)" strokeWidth={2} dot={false} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
                       </ComposedChart>
                     </ResponsiveContainer>
@@ -1760,11 +1760,11 @@ export default function ProjectDashboardPage() {
                 <>
                   {creativesLoading && <LoadingOverlay />}
           <div style={{ ...panelStyle, padding: "14px 18px", background: "linear-gradient(135deg, rgba(162,93,220,0.06), rgba(253,171,61,0.04))" }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", marginBottom: 4 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--fc-text)", marginBottom: 4 }}>
               <Palette style={{ width: 15, height: 15, display: "inline", verticalAlign: "middle", marginRight: 8, color: "#9b7be8" }} />
               Análisis de Creativos
             </h3>
-            <p style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
+            <p style={{ fontSize: 11, color: "var(--fc-text-muted)", lineHeight: 1.5 }}>
               Identifica qué anuncios funcionan mejor y cuáles necesitan optimización. Ordenados por eficiencia (CPR).
             </p>
           </div>
@@ -1801,7 +1801,7 @@ export default function ProjectDashboardPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 {/* Best */}
                 <div style={panelStyle}>
-                  <h3 style={headingStyle}><TrendingUp style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "var(--emerald)" }} />Top 3 Mejores Anuncios</h3>
+                  <h3 style={headingStyle}><TrendingUp style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "var(--fc-success)" }} />Top 3 Mejores Anuncios</h3>
                   <p style={subStyle}>Menor costo por resultado — clic para ver preview</p>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginTop: 10, alignItems: "flex-start" }}>
                     {best.length > 0 ? best.map((ad) => (
@@ -1811,7 +1811,7 @@ export default function ProjectDashboardPage() {
                 </div>
                 {/* Worst */}
                 <div style={panelStyle}>
-                  <h3 style={headingStyle}><TrendingDown style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "var(--red)" }} />Top 3 Peores Anuncios</h3>
+                  <h3 style={headingStyle}><TrendingDown style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "var(--fc-danger)" }} />Top 3 Peores Anuncios</h3>
                   <p style={subStyle}>Mayor gasto sin resultados o CPR más alto</p>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginTop: 10, alignItems: "flex-start" }}>
                     {worstByEfficiency.length > 0 ? worstByEfficiency.map((ad) => (
@@ -1838,14 +1838,14 @@ export default function ProjectDashboardPage() {
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
                   <thead>
                     <tr style={{ border: "1px solid var(--hairline)" }}>
-                      <th style={{ padding: "8px 6px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.05em" }}>#</th>
-                      <th style={{ padding: "8px 6px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Anuncio</th>
-                      <th style={{ padding: "8px 6px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Estado</th>
-                      <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Inversión</th>
-                      <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Result.</th>
-                      <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>CPR</th>
-                      <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>CTR</th>
-                      <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Impr.</th>
+                      <th style={{ padding: "8px 6px", textAlign: "left", color: "var(--fc-text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.05em" }}>#</th>
+                      <th style={{ padding: "8px 6px", textAlign: "left", color: "var(--fc-text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Anuncio</th>
+                      <th style={{ padding: "8px 6px", textAlign: "left", color: "var(--fc-text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Estado</th>
+                      <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--fc-text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Inversión</th>
+                      <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--fc-text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Result.</th>
+                      <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--fc-text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>CPR</th>
+                      <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--fc-text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>CTR</th>
+                      <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--fc-text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Impr.</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1855,35 +1855,35 @@ export default function ProjectDashboardPage() {
                       const cprVal = results > 0 ? ad.spend / results : 0;
                       const ctrVal = ad.ctr || (ad.clicks > 0 && ad.impressions > 0 ? (ad.clicks / ad.impressions) * 100 : 0);
                       return (
-                        <tr key={ad.adId || i} style={{ border: "1px solid var(--border)", transition: "background 0.15s", cursor: "pointer" }}
+                        <tr key={ad.adId || i} style={{ border: "1px solid var(--fc-border)", transition: "background 0.15s", cursor: "pointer" }}
                           onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}
                           onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                           onClick={() => { const ra2 = findResultAction(ad.actions, ch?.goal, getObjective(ad, insights)); setPreviewAd({ ...ad, results, cprVal, ctrVal }); }}>
-                          <td style={{ padding: "8px 6px", color: "var(--text-muted)", fontSize: 10 }}>{i + 1}</td>
+                          <td style={{ padding: "8px 6px", color: "var(--fc-text-muted)", fontSize: 10 }}>{i + 1}</td>
                           <td style={{ padding: "8px 6px", maxWidth: 250 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                               <div style={{ width: 40, height: 40, borderRadius: 4, overflow: "hidden", flexShrink: 0, background: "var(--surface-hover)", position: "relative" }}>
                                 {ad.thumbnailUrl
                                   ? <img src={ad.thumbnailUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                  : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><Eye style={{ width: 14, height: 14, color: "var(--text-secondary)" }} /></div>
+                                  : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><Eye style={{ width: 14, height: 14, color: "var(--fc-text-secondary)" }} /></div>
                                 }
-                                {ad.format === "video" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--surface)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>▶</span>}
-                                {ad.format === "carousel" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--surface)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>📑</span>}
+                                {ad.format === "video" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--fc-surface)", color: "var(--fc-text)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>▶</span>}
+                                {ad.format === "carousel" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--fc-surface)", color: "var(--fc-text)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>📑</span>}
                               </div>
-                              <span style={{ color: "var(--foreground)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.adName}</span>
+                              <span style={{ color: "var(--fc-text)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.adName}</span>
                             </div>
                           </td>
                           <td style={{ padding: "8px 6px" }}>
                             <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                              <span style={{ width: 5, height: 5, borderRadius: "50%", background: ad.status === "ACTIVE" ? "var(--emerald)" : ad.status === "PAUSED" ? "var(--amber)" : "rgba(148,163,184,0.65)" }} />
-                              <span style={{ fontSize: 9, color: "var(--text-secondary)" }}>{ad.status === "ACTIVE" ? "Activo" : ad.status === "PAUSED" ? "Pausado" : ad.status}</span>
+                              <span style={{ width: 5, height: 5, borderRadius: "50%", background: ad.status === "ACTIVE" ? "var(--fc-success)" : ad.status === "PAUSED" ? "var(--fc-warning)" : "rgba(148,163,184,0.65)" }} />
+                              <span style={{ fontSize: 9, color: "var(--fc-text-secondary)" }}>{ad.status === "ACTIVE" ? "Activo" : ad.status === "PAUSED" ? "Pausado" : ad.status}</span>
                             </span>
                           </td>
-                          <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--amber)", fontWeight: 600 }}>{fmtMXN(ad.spend)}</td>
-                          <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--emerald)", fontWeight: 700 }}>{results}</td>
-                          <td style={{ padding: "8px 6px", textAlign: "right", color: results === 0 ? "var(--red)" : cprTarget > 0 && cprVal > cprTarget ? "var(--red)" : "var(--cyan)", fontWeight: 600 }}>{results > 0 ? fmtMXN(cprVal) : "—"}</td>
-                          <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)" }}>{ctrVal.toFixed(2)}%</td>
-                          <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)" }}>{fmtNum(ad.impressions || 0)}</td>
+                          <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--fc-warning)", fontWeight: 600 }}>{fmtMXN(ad.spend)}</td>
+                          <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--fc-success)", fontWeight: 700 }}>{results}</td>
+                          <td style={{ padding: "8px 6px", textAlign: "right", color: results === 0 ? "var(--fc-danger)" : cprTarget > 0 && cprVal > cprTarget ? "var(--fc-danger)" : "var(--fc-accent)", fontWeight: 600 }}>{results > 0 ? fmtMXN(cprVal) : "—"}</td>
+                          <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--fc-text-secondary)" }}>{ctrVal.toFixed(2)}%</td>
+                          <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--fc-text-secondary)" }}>{fmtNum(ad.impressions || 0)}</td>
                         </tr>
                       );
                     })}
@@ -1949,17 +1949,17 @@ export default function ProjectDashboardPage() {
                     ? <NoData msg="Cargando..." />
                     : data.length > 0
                       ? data.map((d, i) => (
-                          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", border: "1px solid var(--border)" }}>
+                          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", border: "1px solid var(--fc-border)" }}>
                             <span style={{ width: 22, height: 22, borderRadius: 4, background: `${CHART_COLORS[i]}20`, color: CHART_COLORS[i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <p style={{ fontSize: 12, color: "var(--foreground)", lineHeight: 1.4, wordBreak: "break-word" }} title={d.text}>
+                              <p style={{ fontSize: 12, color: "var(--fc-text)", lineHeight: 1.4, wordBreak: "break-word" }} title={d.text}>
                                 {d.text.length > 80 ? d.text.slice(0, 80) + "..." : d.text}
                               </p>
                               <div style={{ display: "flex", gap: 12, marginTop: 4, flexWrap: "wrap" }}>
-                                <span style={{ fontSize: 10, color: "var(--amber)" }}>{fmtMXN(d.spend)}</span>
-                                <span style={{ fontSize: 10, color: "var(--emerald)" }}>{Math.round(d.results)} result.</span>
-                                <span style={{ fontSize: 10, color: "var(--cyan)" }}>{d.results > 0 ? fmtMXN(d.spend / d.results) : "—"} CPR</span>
-                                <span style={{ fontSize: 10, color: "var(--text-secondary)" }}>{d.count} anuncios</span>
+                                <span style={{ fontSize: 10, color: "var(--fc-warning)" }}>{fmtMXN(d.spend)}</span>
+                                <span style={{ fontSize: 10, color: "var(--fc-success)" }}>{Math.round(d.results)} result.</span>
+                                <span style={{ fontSize: 10, color: "var(--fc-accent)" }}>{d.results > 0 ? fmtMXN(d.spend / d.results) : "—"} CPR</span>
+                                <span style={{ fontSize: 10, color: "var(--fc-text-secondary)" }}>{d.count} anuncios</span>
                               </div>
                             </div>
                           </div>
@@ -1996,7 +1996,7 @@ export default function ProjectDashboardPage() {
                   });
                   const d = Object.values(formatMap).filter(f => f.spend > 0);
                   if (!d.length) return <NoData msg="Sin datos de formato" />;
-                  const formatColors = ["var(--cyan)", "#9b7be8", "var(--amber)", "var(--emerald)"];
+                  const formatColors = ["var(--fc-accent)", "#9b7be8", "var(--fc-warning)", "var(--fc-success)"];
                   return (
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -2031,13 +2031,13 @@ export default function ProjectDashboardPage() {
                   });
                   return Object.entries(formatStats).map(([fmt, s]) => (
                     <div key={fmt} style={{ background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: 6, padding: "10px 12px" }}>
-                      <p style={{ fontSize: 10, color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 4 }}>{fmt}</p>
+                      <p style={{ fontSize: 10, color: "var(--fc-text-secondary)", textTransform: "uppercase", marginBottom: 4 }}>{fmt}</p>
                       <div style={{ display: "flex", gap: 12, fontSize: 11 }}>
-                        <span style={{ color: "var(--amber)" }}>{fmtMXN(s.spend)}</span>
-                        <span style={{ color: "var(--emerald)" }}>{Math.round(s.results)} res.</span>
-                        <span style={{ color: "var(--cyan)" }}>{s.results > 0 ? fmtMXN(s.spend / s.results) : "—"} CPR</span>
+                        <span style={{ color: "var(--fc-warning)" }}>{fmtMXN(s.spend)}</span>
+                        <span style={{ color: "var(--fc-success)" }}>{Math.round(s.results)} res.</span>
+                        <span style={{ color: "var(--fc-accent)" }}>{s.results > 0 ? fmtMXN(s.spend / s.results) : "—"} CPR</span>
                       </div>
-                      <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>{s.count} anuncios</p>
+                      <p style={{ fontSize: 9, color: "var(--fc-text-muted)", marginTop: 4 }}>{s.count} anuncios</p>
                     </div>
                   ));
                 })()}
@@ -2072,10 +2072,10 @@ export default function ProjectDashboardPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
-                        <XAxis type="number" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v.toFixed(1)}%`} />
-                        <YAxis type="category" dataKey="name" stroke="var(--text-secondary)" fontSize={8} tickLine={false} axisLine={false} width={140} />
+                        <XAxis type="number" stroke="var(--fc-text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v.toFixed(1)}%`} />
+                        <YAxis type="category" dataKey="name" stroke="var(--fc-text-secondary)" fontSize={8} tickLine={false} axisLine={false} width={140} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "ctr" ? `${Number(v).toFixed(2)}%` : fmtMXN(Number(v)), name === "ctr" ? "CTR" : "Inversión"]} />
-                        <Bar dataKey="ctr" fill="var(--emerald)" radius={[0, 4, 4, 0]} barSize={12} />
+                        <Bar dataKey="ctr" fill="var(--fc-success)" radius={[0, 4, 4, 0]} barSize={12} />
                       </BarChart>
                     </ResponsiveContainer>
                   );
@@ -2097,8 +2097,8 @@ export default function ProjectDashboardPage() {
             borderTop: "2px solid rgba(253,171,61,0.3)",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(253,171,61,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Zap style={{ width: 16, height: 16, color: "var(--amber)" }} />
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--fc-surface)", border: "1px solid rgba(253,171,61,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Zap style={{ width: 16, height: 16, color: "var(--fc-warning)" }} />
               </div>
               <div>
                 <h3 style={headingStyle}>Combinación Ganadora</h3>
@@ -2114,25 +2114,25 @@ export default function ProjectDashboardPage() {
                     border: "1px solid rgba(253,171,61,0.2)", borderRadius: 12, padding: 18,
                     position: "relative", overflow: "hidden",
                   }}>
-                    <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "var(--surface)" }} />
+                    <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "var(--fc-surface)" }} />
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}></div>
-                      <p style={{ fontSize: 9, color: "var(--amber)", fontWeight: 800, letterSpacing: "0.12em" }}>CAMPAÑA GANADORA</p>
+                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--fc-surface)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}></div>
+                      <p style={{ fontSize: 9, color: "var(--fc-warning)", fontWeight: 800, letterSpacing: "0.12em" }}>CAMPAÑA GANADORA</p>
                     </div>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-text)", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                      <div style={{ padding: "4px 10px", background: "var(--surface)", border: "1px solid rgba(0,200,117,0.2)", borderRadius: 20, fontSize: 10 }}>
-                        <span style={{ color: "var(--text-secondary)" }}>Resultados: </span><span style={{ color: "var(--emerald)", fontWeight: 700 }}>{top.results}</span>
+                      <div style={{ padding: "4px 10px", background: "var(--fc-surface)", border: "1px solid rgba(0,200,117,0.2)", borderRadius: 20, fontSize: 10 }}>
+                        <span style={{ color: "var(--fc-text-secondary)" }}>Resultados: </span><span style={{ color: "var(--fc-success)", fontWeight: 700 }}>{top.results}</span>
                       </div>
-                      <div style={{ padding: "4px 10px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 20, fontSize: 10 }}>
-                        <span style={{ color: "var(--text-secondary)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
+                      <div style={{ padding: "4px 10px", background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 20, fontSize: 10 }}>
+                        <span style={{ color: "var(--fc-text-secondary)" }}>CPA: </span><span style={{ color: "var(--fc-accent)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
                       </div>
-                      <div style={{ padding: "4px 10px", background: "var(--surface)", border: "1px solid rgba(253,171,61,0.2)", borderRadius: 20, fontSize: 10 }}>
-                        <span style={{ color: "var(--text-secondary)" }}>Inversión: </span><span style={{ color: "var(--amber)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
+                      <div style={{ padding: "4px 10px", background: "var(--fc-surface)", border: "1px solid rgba(253,171,61,0.2)", borderRadius: 20, fontSize: 10 }}>
+                        <span style={{ color: "var(--fc-text-secondary)" }}>Inversión: </span><span style={{ color: "var(--fc-warning)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
                       </div>
                     </div>
                   </div>
-                ) : <div style={{ padding: 20, color: "var(--text-muted)", fontSize: 12, textAlign: "center", border: "1px dashed var(--border)", borderRadius: 12 }}>Sin datos de campaña</div>;
+                ) : <div style={{ padding: 20, color: "var(--fc-text-muted)", fontSize: 12, textAlign: "center", border: "1px dashed var(--fc-border)", borderRadius: 12 }}>Sin datos de campaña</div>;
               })()}
               {(() => {
                 const top = (insights?.adsets || []).map((a: any) => { const s = parseFloat(a.spend || "0"); const ra = findResultAction(a.actions, ch?.goal, getObjective(a, insights)); const r = ra ? parseInt(ra.value, 10) : 0; return { name: a.adset_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
@@ -2142,25 +2142,25 @@ export default function ProjectDashboardPage() {
                     border: "1px solid rgba(139,141,242,0.2)", borderRadius: 12, padding: 18,
                     position: "relative", overflow: "hidden",
                   }}>
-                    <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "var(--surface)" }} />
+                    <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "var(--fc-surface)" }} />
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}></div>
-                      <p style={{ fontSize: 9, color: "var(--purple)", fontWeight: 800, letterSpacing: "0.12em" }}>ADSET GANADOR</p>
+                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--fc-surface)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}></div>
+                      <p style={{ fontSize: 9, color: "var(--fc-module-aria)", fontWeight: 800, letterSpacing: "0.12em" }}>ADSET GANADOR</p>
                     </div>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-text)", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                      <div style={{ padding: "4px 10px", background: "var(--surface)", border: "1px solid rgba(0,200,117,0.2)", borderRadius: 20, fontSize: 10 }}>
-                        <span style={{ color: "var(--text-secondary)" }}>Resultados: </span><span style={{ color: "var(--emerald)", fontWeight: 700 }}>{top.results}</span>
+                      <div style={{ padding: "4px 10px", background: "var(--fc-surface)", border: "1px solid rgba(0,200,117,0.2)", borderRadius: 20, fontSize: 10 }}>
+                        <span style={{ color: "var(--fc-text-secondary)" }}>Resultados: </span><span style={{ color: "var(--fc-success)", fontWeight: 700 }}>{top.results}</span>
                       </div>
-                      <div style={{ padding: "4px 10px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 20, fontSize: 10 }}>
-                        <span style={{ color: "var(--text-secondary)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
+                      <div style={{ padding: "4px 10px", background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 20, fontSize: 10 }}>
+                        <span style={{ color: "var(--fc-text-secondary)" }}>CPA: </span><span style={{ color: "var(--fc-accent)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
                       </div>
-                      <div style={{ padding: "4px 10px", background: "var(--surface)", border: "1px solid rgba(139,141,242,0.2)", borderRadius: 20, fontSize: 10 }}>
-                        <span style={{ color: "var(--text-secondary)" }}>Inversión: </span><span style={{ color: "var(--purple)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
+                      <div style={{ padding: "4px 10px", background: "var(--fc-surface)", border: "1px solid rgba(139,141,242,0.2)", borderRadius: 20, fontSize: 10 }}>
+                        <span style={{ color: "var(--fc-text-secondary)" }}>Inversión: </span><span style={{ color: "var(--fc-module-aria)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
                       </div>
                     </div>
                   </div>
-                ) : <div style={{ padding: 20, color: "var(--text-muted)", fontSize: 12, textAlign: "center", border: "1px dashed var(--border)", borderRadius: 12 }}>Sin datos de adset</div>;
+                ) : <div style={{ padding: 20, color: "var(--fc-text-muted)", fontSize: 12, textAlign: "center", border: "1px dashed var(--fc-border)", borderRadius: 12 }}>Sin datos de adset</div>;
               })()}
             </div>
           </div>
@@ -2223,7 +2223,7 @@ export default function ProjectDashboardPage() {
 
             const healthScore = Math.round(cprScore * 0.25 + freqScore * 0.20 + ctrScore * 0.15 + convScore * 0.15 + paceScore * 0.15 + trendScore * 0.10);
             const healthLabel = healthScore >= 80 ? "Excelente" : healthScore >= 60 ? "Buena" : healthScore >= 40 ? "En Riesgo" : "Crítica";
-            const healthColor = healthScore >= 80 ? "var(--emerald)" : healthScore >= 60 ? "var(--amber)" : "var(--red)";
+            const healthColor = healthScore >= 80 ? "var(--fc-success)" : healthScore >= 60 ? "var(--fc-warning)" : "var(--fc-danger)";
 
             // SVG gauge params
             const radius = 80; const circumference = 2 * Math.PI * radius;
@@ -2231,12 +2231,12 @@ export default function ProjectDashboardPage() {
 
             // Indicators
             const indicators = [
-              { name: "Eficiencia CPR", icon: <DollarSign style={{ width: 14, height: 14 }} />, score: cprScore, value: fmtMXN(cpr), bench: cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Sin meta", color: cprScore >= 70 ? "var(--emerald)" : cprScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "Frecuencia", icon: <RefreshCw style={{ width: 14, height: 14 }} />, score: freqScore, value: frequency.toFixed(2), bench: "Ideal: 1.0 - 2.5", color: freqScore >= 70 ? "var(--emerald)" : freqScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "CTR", icon: <MousePointer style={{ width: 14, height: 14 }} />, score: ctrScore, value: pct(ctr), bench: "Ideal: > 1.5%", color: ctrScore >= 70 ? "var(--emerald)" : ctrScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "Tasa Conversión", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "var(--emerald)" : convScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "Ritmo de Gasto", icon: <TrendingUp style={{ width: 14, height: 14 }} />, score: paceScore, value: pct(spendPaceRatio * 100), bench: "Ideal: 100%", color: paceScore >= 70 ? "var(--emerald)" : paceScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "↓" : "↑"} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "—", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--emerald)" : trendScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Eficiencia CPR", icon: <DollarSign style={{ width: 14, height: 14 }} />, score: cprScore, value: fmtMXN(cpr), bench: cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Sin meta", color: cprScore >= 70 ? "var(--fc-success)" : cprScore >= 40 ? "var(--fc-warning)" : "var(--fc-danger)" },
+              { name: "Frecuencia", icon: <RefreshCw style={{ width: 14, height: 14 }} />, score: freqScore, value: frequency.toFixed(2), bench: "Ideal: 1.0 - 2.5", color: freqScore >= 70 ? "var(--fc-success)" : freqScore >= 40 ? "var(--fc-warning)" : "var(--fc-danger)" },
+              { name: "CTR", icon: <MousePointer style={{ width: 14, height: 14 }} />, score: ctrScore, value: pct(ctr), bench: "Ideal: > 1.5%", color: ctrScore >= 70 ? "var(--fc-success)" : ctrScore >= 40 ? "var(--fc-warning)" : "var(--fc-danger)" },
+              { name: "Tasa Conversión", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "var(--fc-success)" : convScore >= 40 ? "var(--fc-warning)" : "var(--fc-danger)" },
+              { name: "Ritmo de Gasto", icon: <TrendingUp style={{ width: 14, height: 14 }} />, score: paceScore, value: pct(spendPaceRatio * 100), bench: "Ideal: 100%", color: paceScore >= 70 ? "var(--fc-success)" : paceScore >= 40 ? "var(--fc-warning)" : "var(--fc-danger)" },
+              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "↓" : "↑"} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "—", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--fc-success)" : trendScore >= 40 ? "var(--fc-warning)" : "var(--fc-danger)" },
             ];
 
             // Recommendations (Cross-diagnostic logic)
@@ -2282,11 +2282,11 @@ export default function ProjectDashboardPage() {
                   {/* Health Score Gauge (Pulse) */}
                   <div style={{ ...panelStyle, display: "flex", alignItems: "center", justifyContent: "space-between", padding: 20, minHeight: 140 }}>
                     <div>
-                      <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 }}>Pulse Check</h3>
-                      <p style={{ fontSize: 11, color: "var(--text-secondary)" }}>Estado general de la campaña</p>
+                      <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-text)", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 }}>Pulse Check</h3>
+                      <p style={{ fontSize: 11, color: "var(--fc-text-secondary)" }}>Estado general de la campaña</p>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
                          <div style={{ width: 12, height: 12, borderRadius: "50%", background: healthColor, boxShadow: `0 0 10px ${healthColor}` }} />
-                         <span style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", textTransform: "uppercase" }}>{healthLabel}</span>
+                         <span style={{ fontSize: 16, fontWeight: 700, color: "var(--fc-text)", textTransform: "uppercase" }}>{healthLabel}</span>
                       </div>
                     </div>
                     
@@ -2311,12 +2311,12 @@ export default function ProjectDashboardPage() {
                          <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>Eficiencia General (Costo por Resultado)</span>
                        </div>
                        <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-                          <span style={{ fontSize: 42, fontWeight: 800, color: "var(--foreground)", fontFamily: "var(--font-display)" }}>{indicators[0].value}</span>
-                          <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>{indicators[0].bench}</span>
+                          <span style={{ fontSize: 42, fontWeight: 800, color: "var(--fc-text)", fontFamily: "var(--font-display)" }}>{indicators[0].value}</span>
+                          <span style={{ fontSize: 14, color: "var(--fc-text-secondary)" }}>{indicators[0].bench}</span>
                        </div>
                     </div>
                     <div style={{ zIndex: 2, textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                       <span style={{ fontSize: 10, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>Score de Eficiencia</span>
+                       <span style={{ fontSize: 10, color: "var(--fc-text-secondary)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>Score de Eficiencia</span>
                        <span style={{ fontSize: 32, fontWeight: 800, color: indicators[0].color, fontFamily: "var(--font-display)" }}>{indicators[0].score}</span>
                        <div style={{ width: 100, height: 4, background: "var(--surface-hover)", borderRadius: 2, marginTop: 8, overflow: "hidden" }}>
                           <div style={{ height: "100%", width: `${indicators[0].score}%`, background: indicators[0].color, borderRadius: 2 }} />
@@ -2356,7 +2356,7 @@ export default function ProjectDashboardPage() {
 
             const healthScore = Math.round(cprScore * 0.25 + freqScore * 0.20 + ctrScore * 0.15 + convScore * 0.15 + paceScore * 0.15 + trendScore * 0.10);
             const healthLabel = healthScore >= 80 ? "Excelente" : healthScore >= 60 ? "Buena" : healthScore >= 40 ? "En Riesgo" : "Crítica";
-            const healthColor = healthScore >= 80 ? "var(--emerald)" : healthScore >= 60 ? "var(--amber)" : "var(--red)";
+            const healthColor = healthScore >= 80 ? "var(--fc-success)" : healthScore >= 60 ? "var(--fc-warning)" : "var(--fc-danger)";
 
             // SVG gauge params
             const radius = 80; const circumference = 2 * Math.PI * radius;
@@ -2364,12 +2364,12 @@ export default function ProjectDashboardPage() {
 
             // Indicators
             const indicators = [
-              { name: "Eficiencia CPR", icon: <DollarSign style={{ width: 14, height: 14 }} />, score: cprScore, value: fmtMXN(cpr), bench: cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Sin meta", color: cprScore >= 70 ? "var(--emerald)" : cprScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "Frecuencia", icon: <RefreshCw style={{ width: 14, height: 14 }} />, score: freqScore, value: frequency.toFixed(2), bench: "Ideal: 1.0 - 2.5", color: freqScore >= 70 ? "var(--emerald)" : freqScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "CTR", icon: <MousePointer style={{ width: 14, height: 14 }} />, score: ctrScore, value: pct(ctr), bench: "Ideal: > 1.5%", color: ctrScore >= 70 ? "var(--emerald)" : ctrScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "Tasa Conversión", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "var(--emerald)" : convScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "Ritmo de Gasto", icon: <TrendingUp style={{ width: 14, height: 14 }} />, score: paceScore, value: pct(spendPaceRatio * 100), bench: "Ideal: 100%", color: paceScore >= 70 ? "var(--emerald)" : paceScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "↓" : "↑"} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "—", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--emerald)" : trendScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Eficiencia CPR", icon: <DollarSign style={{ width: 14, height: 14 }} />, score: cprScore, value: fmtMXN(cpr), bench: cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Sin meta", color: cprScore >= 70 ? "var(--fc-success)" : cprScore >= 40 ? "var(--fc-warning)" : "var(--fc-danger)" },
+              { name: "Frecuencia", icon: <RefreshCw style={{ width: 14, height: 14 }} />, score: freqScore, value: frequency.toFixed(2), bench: "Ideal: 1.0 - 2.5", color: freqScore >= 70 ? "var(--fc-success)" : freqScore >= 40 ? "var(--fc-warning)" : "var(--fc-danger)" },
+              { name: "CTR", icon: <MousePointer style={{ width: 14, height: 14 }} />, score: ctrScore, value: pct(ctr), bench: "Ideal: > 1.5%", color: ctrScore >= 70 ? "var(--fc-success)" : ctrScore >= 40 ? "var(--fc-warning)" : "var(--fc-danger)" },
+              { name: "Tasa Conversión", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "var(--fc-success)" : convScore >= 40 ? "var(--fc-warning)" : "var(--fc-danger)" },
+              { name: "Ritmo de Gasto", icon: <TrendingUp style={{ width: 14, height: 14 }} />, score: paceScore, value: pct(spendPaceRatio * 100), bench: "Ideal: 100%", color: paceScore >= 70 ? "var(--fc-success)" : paceScore >= 40 ? "var(--fc-warning)" : "var(--fc-danger)" },
+              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "↓" : "↑"} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "—", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--fc-success)" : trendScore >= 40 ? "var(--fc-warning)" : "var(--fc-danger)" },
             ];
 
             // Recommendations (Cross-diagnostic logic)
@@ -2412,7 +2412,7 @@ export default function ProjectDashboardPage() {
 
                 return (
                 <div style={panelStyle}>
-                  <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
+                  <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--fc-border)" }}>
                     <h3 style={headingStyle}>Análisis del Embudo de Conversión</h3>
                     <p style={subStyle}>Diagnóstico del viaje del usuario: Atracción, Interacción, Conversión y Gasto.</p>
                   </div>
@@ -2420,23 +2420,23 @@ export default function ProjectDashboardPage() {
                     {funnelSteps.map((step, i) => (
                       <div key={i} style={{ padding: 20, position: "relative", borderRight: i < funnelSteps.length - 1 ? "1px dashed rgba(255,255,255,0.1)" : "none" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                          <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.1em" }}>{step.step}</span>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: "var(--fc-text-secondary)", textTransform: "uppercase", letterSpacing: "0.1em" }}>{step.step}</span>
                           <div style={{ color: step.color, padding: 4, background: `${step.color}15`, borderRadius: 6 }}>
                             {step.icon}
                           </div>
                         </div>
-                        <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>{step.name}</p>
-                        <div style={{ fontSize: 24, fontWeight: 700, color: "var(--foreground)", fontFamily: "var(--font-display)", marginBottom: 8 }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: "var(--fc-text)", marginBottom: 4 }}>{step.name}</p>
+                        <div style={{ fontSize: 24, fontWeight: 700, color: "var(--fc-text)", fontFamily: "var(--font-display)", marginBottom: 8 }}>
                           {step.value}
                         </div>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{step.bench}</span>
+                          <span style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>{step.bench}</span>
                           <span style={{ fontSize: 13, fontWeight: 700, color: step.color, fontFamily: "var(--font-display)" }}>{step.score}</span>
                         </div>
                         <div style={{ height: 4, background: "var(--surface-hover)", borderRadius: 2, overflow: "hidden", marginBottom: 10 }}>
                           <div style={{ height: "100%", width: `${step.score}%`, background: step.color, borderRadius: 2 }} />
                         </div>
-                        <p style={{ fontSize: 10, color: "var(--text-muted)", lineHeight: 1.4 }}>{step.desc}</p>
+                        <p style={{ fontSize: 10, color: "var(--fc-text-muted)", lineHeight: 1.4 }}>{step.desc}</p>
                       </div>
                     ))}
                   </div>
@@ -2472,7 +2472,7 @@ export default function ProjectDashboardPage() {
 
             const healthScore = Math.round(cprScore * 0.25 + freqScore * 0.20 + ctrScore * 0.15 + convScore * 0.15 + paceScore * 0.15 + trendScore * 0.10);
             const healthLabel = healthScore >= 80 ? "Excelente" : healthScore >= 60 ? "Buena" : healthScore >= 40 ? "En Riesgo" : "Crítica";
-            const healthColor = healthScore >= 80 ? "var(--emerald)" : healthScore >= 60 ? "var(--amber)" : "var(--red)";
+            const healthColor = healthScore >= 80 ? "var(--fc-success)" : healthScore >= 60 ? "var(--fc-warning)" : "var(--fc-danger)";
 
             // SVG gauge params
             const radius = 80; const circumference = 2 * Math.PI * radius;
@@ -2480,12 +2480,12 @@ export default function ProjectDashboardPage() {
 
             // Indicators
             const indicators = [
-              { name: "Eficiencia CPR", icon: <DollarSign style={{ width: 14, height: 14 }} />, score: cprScore, value: fmtMXN(cpr), bench: cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Sin meta", color: cprScore >= 70 ? "var(--emerald)" : cprScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "Frecuencia", icon: <RefreshCw style={{ width: 14, height: 14 }} />, score: freqScore, value: frequency.toFixed(2), bench: "Ideal: 1.0 - 2.5", color: freqScore >= 70 ? "var(--emerald)" : freqScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "CTR", icon: <MousePointer style={{ width: 14, height: 14 }} />, score: ctrScore, value: pct(ctr), bench: "Ideal: > 1.5%", color: ctrScore >= 70 ? "var(--emerald)" : ctrScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "Tasa Conversión", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "var(--emerald)" : convScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "Ritmo de Gasto", icon: <TrendingUp style={{ width: 14, height: 14 }} />, score: paceScore, value: pct(spendPaceRatio * 100), bench: "Ideal: 100%", color: paceScore >= 70 ? "var(--emerald)" : paceScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "↓" : "↑"} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "—", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--emerald)" : trendScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Eficiencia CPR", icon: <DollarSign style={{ width: 14, height: 14 }} />, score: cprScore, value: fmtMXN(cpr), bench: cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Sin meta", color: cprScore >= 70 ? "var(--fc-success)" : cprScore >= 40 ? "var(--fc-warning)" : "var(--fc-danger)" },
+              { name: "Frecuencia", icon: <RefreshCw style={{ width: 14, height: 14 }} />, score: freqScore, value: frequency.toFixed(2), bench: "Ideal: 1.0 - 2.5", color: freqScore >= 70 ? "var(--fc-success)" : freqScore >= 40 ? "var(--fc-warning)" : "var(--fc-danger)" },
+              { name: "CTR", icon: <MousePointer style={{ width: 14, height: 14 }} />, score: ctrScore, value: pct(ctr), bench: "Ideal: > 1.5%", color: ctrScore >= 70 ? "var(--fc-success)" : ctrScore >= 40 ? "var(--fc-warning)" : "var(--fc-danger)" },
+              { name: "Tasa Conversión", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "var(--fc-success)" : convScore >= 40 ? "var(--fc-warning)" : "var(--fc-danger)" },
+              { name: "Ritmo de Gasto", icon: <TrendingUp style={{ width: 14, height: 14 }} />, score: paceScore, value: pct(spendPaceRatio * 100), bench: "Ideal: 100%", color: paceScore >= 70 ? "var(--fc-success)" : paceScore >= 40 ? "var(--fc-warning)" : "var(--fc-danger)" },
+              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "↓" : "↑"} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "—", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--fc-success)" : trendScore >= 40 ? "var(--fc-warning)" : "var(--fc-danger)" },
             ];
 
             // Recommendations (Cross-diagnostic logic)
@@ -2538,16 +2538,16 @@ export default function ProjectDashboardPage() {
                           <ComposedChart data={tsd} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
                             <defs>
                               <linearGradient id="gcpr" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="var(--cyan)" stopOpacity={0.3} />
-                                <stop offset="95%" stopColor="var(--cyan)" stopOpacity={0} />
+                                <stop offset="5%" stopColor="var(--fc-accent)" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="var(--fc-accent)" stopOpacity={0} />
                               </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                            <XAxis dataKey="date" stroke="var(--text-secondary)" fontSize={9} tickLine={false} axisLine={false} />
-                            <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${v}`} />
+                            <XAxis dataKey="date" stroke="var(--fc-text-secondary)" fontSize={9} tickLine={false} axisLine={false} />
+                            <YAxis stroke="var(--fc-text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${v}`} />
                             <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(v), ""]} />
-                            <Area type="monotone" dataKey="cpr" name="CPR" stroke="var(--cyan)" strokeWidth={2} fillOpacity={1} fill="url(#gcpr)" />
-                            {cprTarget > 0 && <ReferenceLine y={cprTarget} stroke="var(--red)" strokeDasharray="5 5" label={{ value: `Meta: ${fmtMXN(cprTarget)}`, position: "right", fill: "var(--red)", fontSize: 10 }} />}
+                            <Area type="monotone" dataKey="cpr" name="CPR" stroke="var(--fc-accent)" strokeWidth={2} fillOpacity={1} fill="url(#gcpr)" />
+                            {cprTarget > 0 && <ReferenceLine y={cprTarget} stroke="var(--fc-danger)" strokeDasharray="5 5" label={{ value: `Meta: ${fmtMXN(cprTarget)}`, position: "right", fill: "var(--fc-danger)", fontSize: 10 }} />}
                           </ComposedChart>
                         </ResponsiveContainer>
                       ) : <NoData />}
@@ -2562,9 +2562,9 @@ export default function ProjectDashboardPage() {
                       {recs.map((r, i) => (
                         <div key={i} style={{ display: "flex", gap: 10, padding: "12px", background: r.severity === "critical" ? "rgba(226,68,92,0.06)" : r.severity === "warning" ? "rgba(253,171,61,0.06)" : "rgba(0,200,117,0.06)", border: `1px solid ${r.severity === "critical" ? "rgba(226,68,92,0.12)" : r.severity === "warning" ? "rgba(253,171,61,0.12)" : "rgba(0,200,117,0.12)"}`, borderRadius: 8 }}>
                           <div style={{ flexShrink: 0, marginTop: 2 }}>
-                            {r.severity === "critical" ? <AlertTriangle style={{ width: 16, height: 16, color: "var(--red)" }} /> : r.severity === "warning" ? <AlertTriangle style={{ width: 16, height: 16, color: "var(--amber)" }} /> : <CheckCircle style={{ width: 16, height: 16, color: "var(--emerald)" }} />}
+                            {r.severity === "critical" ? <AlertTriangle style={{ width: 16, height: 16, color: "var(--fc-danger)" }} /> : r.severity === "warning" ? <AlertTriangle style={{ width: 16, height: 16, color: "var(--fc-warning)" }} /> : <CheckCircle style={{ width: 16, height: 16, color: "var(--fc-success)" }} />}
                           </div>
-                          <p style={{ fontSize: 12, color: "var(--foreground)", lineHeight: 1.5 }}>{r.text}</p>
+                          <p style={{ fontSize: 12, color: "var(--fc-text)", lineHeight: 1.5 }}>{r.text}</p>
                         </div>
                       ))}
                     </div>
@@ -2599,7 +2599,7 @@ export default function ProjectDashboardPage() {
                 flex: 1,
                 border: "1px solid var(--hairline)",
                 borderRadius: 8,
-                background: "var(--background)",
+                background: "var(--fc-bg)",
               }}
               title="Ads Manager"
             />
@@ -2627,7 +2627,7 @@ export default function ProjectDashboardPage() {
           {/* ─── Google Sources Panel ─── */}
           <div style={{ ...panelStyle, gridColumn: "1 / -1" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-              <div style={{ width: 30, height: 30, borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(66,133,244,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 30, height: 30, borderRadius: 8, background: "var(--fc-surface)", border: "1px solid rgba(66,133,244,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <svg viewBox="0 0 24 24" width={14} height={14} fill="#4285F4"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
               </div>
               <div>
@@ -2641,26 +2641,26 @@ export default function ProjectDashboardPage() {
           <div style={panelStyle}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ width: 30, height: 30, borderRadius: 8, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Settings style={{ width: 14, height: 14, color: "var(--cyan)" }} />
+                <div style={{ width: 30, height: 30, borderRadius: 8, background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Settings style={{ width: 14, height: 14, color: "var(--fc-accent)" }} />
                 </div>
                 <h3 style={headingStyle}>Información General</h3>
               </div>
               {!isEditing ? (
                 <button onClick={() => setIsEditing(true)} style={{
                   display: "flex", alignItems: "center", gap: 6, padding: "6px 14px",
-                  background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)",
-                  color: "var(--cyan)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 600,
+                  background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.2)",
+                  color: "var(--fc-accent)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 600,
                   transition: "all 0.15s",
                 }}>
                   <Edit3 style={{ width: 12, height: 12 }} /> Editar
                 </button>
               ) : (
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => { setIsEditing(false); setEditForm(project); }} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", background: "var(--surface)", border: "1px solid rgba(226,68,92,0.2)", color: "var(--red)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>
+                  <button onClick={() => { setIsEditing(false); setEditForm(project); }} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", background: "var(--fc-surface)", border: "1px solid rgba(226,68,92,0.2)", color: "var(--fc-danger)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>
                     <X style={{ width: 12, height: 12 }} /> Cancelar
                   </button>
-                  <button onClick={saveChanges} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 14px", background: "var(--surface)", border: "1px solid rgba(0,200,117,0.2)", color: "var(--emerald)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 700 }}>
+                  <button onClick={saveChanges} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 14px", background: "var(--fc-surface)", border: "1px solid rgba(0,200,117,0.2)", color: "var(--fc-success)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 700 }}>
                     <Save style={{ width: 12, height: 12 }} /> Guardar
                   </button>
                 </div>
@@ -2683,15 +2683,15 @@ export default function ProjectDashboardPage() {
                 onMouseEnter={e => !isEditing && (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
                 onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                 >
-                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--text-muted)" }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--fc-text-muted)" }}>
                     {f.icon}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ ...labelStyle, marginBottom: 2 }}>{f.label}</p>
                     {isEditing ? (
-                      <input value={(editForm as any)[f.key] || ""} onChange={e => setEditForm({ ...editForm, [f.key]: e.target.value })} style={{ width: "100%", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--foreground)", fontSize: 12, padding: "6px 10px", borderRadius: 6, outline: "none" }} />
+                      <input value={(editForm as any)[f.key] || ""} onChange={e => setEditForm({ ...editForm, [f.key]: e.target.value })} style={{ width: "100%", background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--fc-text)", fontSize: 12, padding: "6px 10px", borderRadius: 6, outline: "none" }} />
                     ) : (
-                      <p style={{ fontSize: 13, color: (project as any)[f.key] ? "var(--foreground)" : "rgba(108,124,147,0.5)", fontStyle: (project as any)[f.key] ? "normal" : "italic" }}>
+                      <p style={{ fontSize: 13, color: (project as any)[f.key] ? "var(--fc-text)" : "rgba(108,124,147,0.5)", fontStyle: (project as any)[f.key] ? "normal" : "italic" }}>
                         {(project as any)[f.key] || "Sin configurar"}
                       </p>
                     )}
@@ -2700,13 +2700,13 @@ export default function ProjectDashboardPage() {
               ))}
               {/* Estado */}
               <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 8, border: "1px solid var(--hairline)" }}>
-                <div style={{ width: 28, height: 28, borderRadius: 6, background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--text-muted)" }}>
+                <div style={{ width: 28, height: 28, borderRadius: 6, background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--fc-text-muted)" }}>
                   <Activity style={{ width: 12, height: 12 }} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <p style={{ ...labelStyle, marginBottom: 2 }}>Estado</p>
                   {isEditing ? (
-                    <select value={editForm.status || project.status} onChange={e => setEditForm({ ...editForm, status: e.target.value as any })} style={{ width: "100%", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--foreground)", fontSize: 12, padding: "6px 10px", borderRadius: 6, cursor: "pointer" }}>
+                    <select value={editForm.status || project.status} onChange={e => setEditForm({ ...editForm, status: e.target.value as any })} style={{ width: "100%", background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--fc-text)", fontSize: 12, padding: "6px 10px", borderRadius: 6, cursor: "pointer" }}>
                       <option value="Activo">Activo</option><option value="Pausado">Pausado</option><option value="Draft">Draft</option><option value="Completado">Completado</option>
                     </select>
                   ) : (
@@ -2717,21 +2717,21 @@ export default function ProjectDashboardPage() {
               {/* Fechas */}
               <div className="grid grid-cols-2 gap-3" style={{ padding: "10px 0" }}>
                 <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--text-muted)", marginLeft: 12 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--fc-text-muted)", marginLeft: 12 }}>
                     <Calendar style={{ width: 12, height: 12 }} />
                   </div>
                   <div>
                     <p style={labelStyle}>Fecha Inicio</p>
-                    {isEditing ? <input type="date" value={editForm.dateStart || ""} onChange={e => setEditForm({ ...editForm, dateStart: e.target.value })} style={{ width: "100%", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--foreground)", fontSize: 11, padding: "6px", borderRadius: 6 }} /> : <p style={{ fontSize: 12, color: project.dateStart ? "var(--foreground)" : "rgba(108,124,147,0.5)", fontStyle: project.dateStart ? "normal" : "italic" }}>{project.dateStart ? new Date(project.dateStart).toLocaleDateString("es-MX") : "Sin fecha"}</p>}
+                    {isEditing ? <input type="date" value={editForm.dateStart || ""} onChange={e => setEditForm({ ...editForm, dateStart: e.target.value })} style={{ width: "100%", background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--fc-text)", fontSize: 11, padding: "6px", borderRadius: 6 }} /> : <p style={{ fontSize: 12, color: project.dateStart ? "var(--fc-text)" : "rgba(108,124,147,0.5)", fontStyle: project.dateStart ? "normal" : "italic" }}>{project.dateStart ? new Date(project.dateStart).toLocaleDateString("es-MX") : "Sin fecha"}</p>}
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--text-muted)" }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--fc-text-muted)" }}>
                     <Calendar style={{ width: 12, height: 12 }} />
                   </div>
                   <div>
                     <p style={labelStyle}>Fecha Fin</p>
-                    {isEditing ? <input type="date" value={editForm.dateEnd || ""} onChange={e => setEditForm({ ...editForm, dateEnd: e.target.value })} style={{ width: "100%", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--foreground)", fontSize: 11, padding: "6px", borderRadius: 6 }} /> : <p style={{ fontSize: 12, color: project.dateEnd ? "var(--foreground)" : "rgba(108,124,147,0.5)", fontStyle: project.dateEnd ? "normal" : "italic" }}>{project.dateEnd ? new Date(project.dateEnd).toLocaleDateString("es-MX") : "Sin fecha"}</p>}
+                    {isEditing ? <input type="date" value={editForm.dateEnd || ""} onChange={e => setEditForm({ ...editForm, dateEnd: e.target.value })} style={{ width: "100%", background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--fc-text)", fontSize: 11, padding: "6px", borderRadius: 6 }} /> : <p style={{ fontSize: 12, color: project.dateEnd ? "var(--fc-text)" : "rgba(108,124,147,0.5)", fontStyle: project.dateEnd ? "normal" : "italic" }}>{project.dateEnd ? new Date(project.dateEnd).toLocaleDateString("es-MX") : "Sin fecha"}</p>}
                   </div>
                 </div>
               </div>
@@ -2749,7 +2749,7 @@ export default function ProjectDashboardPage() {
               <select 
                 value={editingMonth} 
                 onChange={e => setEditingMonth(e.target.value)}
-                style={{ background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--cyan)", fontSize: 11, padding: "4px 8px", borderRadius: 4, cursor: "pointer", outline: "none" }}
+                style={{ background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--fc-accent)", fontSize: 11, padding: "4px 8px", borderRadius: 4, cursor: "pointer", outline: "none" }}
               >
                 <option value="global">Meta Global (Por Defecto)</option>
                 <option value="2026-05">Mayo 2026</option>
@@ -2776,14 +2776,14 @@ export default function ProjectDashboardPage() {
 
               const bk2 = getBudgetBreakdown(parseBudget(currentBudget), c.period);
               return (
-                <div key={i} style={{ padding: 16, background: "var(--surface)", border: "1px solid var(--hairline)", borderRadius: 6, marginBottom: 8, borderLeft: `3px solid ${pl.color}` }}>
+                <div key={i} style={{ padding: 16, background: "var(--fc-surface)", border: "1px solid var(--hairline)", borderRadius: 6, marginBottom: 8, borderLeft: `3px solid ${pl.color}` }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <div style={{ width: 8, height: 8, borderRadius: "50%", background: pl.color }} />
-                      <span style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{pl.name}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "var(--fc-text)" }}>{pl.name}</span>
                     </div>
                     {!isGlobal && isOverridden && !isEditing && (
-                      <span style={{ fontSize: 10, background: "var(--cyan-dim)", color: "var(--cyan)", padding: "2px 6px", borderRadius: 4 }}>Meta Mensual Activa</span>
+                      <span style={{ fontSize: 10, background: "var(--fc-accent-wash)", color: "var(--fc-accent)", padding: "2px 6px", borderRadius: 4 }}>Meta Mensual Activa</span>
                     )}
                   </div>
                   {isEditing ? (
@@ -2799,11 +2799,11 @@ export default function ProjectDashboardPage() {
                             ch2[i] = { ...ch2[i], monthlyOverrides: overrides };
                           }
                           setEditForm({ ...editForm, channels: ch2 });
-                        }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(59,130,246,0.15)", color: "var(--foreground)", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} />
+                        }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(59,130,246,0.15)", color: "var(--fc-text)", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} />
                       </div>
                       <div>
                         <p style={labelStyle}>Período {isGlobal ? "" : "(Global)"}</p>
-                        <select value={editForm.channels?.[i]?.period || c.period} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], period: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} disabled={!isGlobal} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--foreground)", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: isGlobal ? "pointer" : "not-allowed", opacity: isGlobal ? 1 : 0.6 }}><option value="Diario">Diario</option><option value="Semanal">Semanal</option><option value="Mensual">Mensual</option><option value="Anual">Anual</option></select>
+                        <select value={editForm.channels?.[i]?.period || c.period} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], period: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} disabled={!isGlobal} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--fc-text)", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: isGlobal ? "pointer" : "not-allowed", opacity: isGlobal ? 1 : 0.6 }}><option value="Diario">Diario</option><option value="Semanal">Semanal</option><option value="Mensual">Mensual</option><option value="Anual">Anual</option></select>
                       </div>
                       <div>
                         <p style={labelStyle}>Objetivo</p>
@@ -2816,7 +2816,7 @@ export default function ProjectDashboardPage() {
                             ch2[i] = { ...ch2[i], monthlyOverrides: overrides };
                           }
                           setEditForm({ ...editForm, channels: ch2 });
-                        }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--foreground)", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} />
+                        }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--fc-text)", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} />
                       </div>
                       <div>
                         <p style={labelStyle}>CPR Meta</p>
@@ -2829,7 +2829,7 @@ export default function ProjectDashboardPage() {
                             ch2[i] = { ...ch2[i], monthlyOverrides: overrides };
                           }
                           setEditForm({ ...editForm, channels: ch2 });
-                        }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--foreground)", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} />
+                        }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--fc-text)", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} />
                       </div>
                       {!isGlobal && (
                         <div className="col-span-2 flex justify-end">
@@ -2839,18 +2839,18 @@ export default function ProjectDashboardPage() {
                             delete overrides[editingMonth];
                             ch2[i] = { ...ch2[i], monthlyOverrides: overrides };
                             setEditForm({ ...editForm, channels: ch2 });
-                          }} style={{ fontSize: 10, color: "var(--red)", background: "transparent", border: "none", cursor: "pointer", textDecoration: "underline" }}>Eliminar Meta Mensual</button>
+                          }} style={{ fontSize: 10, color: "var(--fc-danger)", background: "transparent", border: "none", cursor: "pointer", textDecoration: "underline" }}>Eliminar Meta Mensual</button>
                         </div>
                       )}
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-y-3 gap-x-6" style={{ fontSize: 12 }}>
-                      <div><span style={{ color: "var(--text-secondary)" }}>Presupuesto:</span> <span style={{ color: "var(--foreground)", fontWeight: 600 }}>{currentBudget || "—"}</span></div>
-                      <div><span style={{ color: "var(--text-secondary)" }}>Período:</span> <span style={{ color: "var(--foreground)" }}>{c.period || "—"}</span></div>
-                      <div><span style={{ color: "var(--text-secondary)" }}>Objetivo:</span> <span style={{ color: "var(--emerald)", fontWeight: 600 }}>{currentGoal || "—"}</span></div>
-                      <div><span style={{ color: "var(--text-secondary)" }}>CPR Meta:</span> <span style={{ color: "var(--cyan)", fontWeight: 600 }}>{currentCpr || "—"}</span></div>
-                      <div><span style={{ color: "var(--text-secondary)" }}>Diario ideal:</span> <span style={{ color: "var(--foreground)" }}>{fmtMXN(bk2.daily)}</span></div>
-                      <div><span style={{ color: "var(--text-secondary)" }}>Cuentas:</span> <span style={{ color: "var(--foreground)" }}>{c.adAccounts?.length || 0}</span></div>
+                      <div><span style={{ color: "var(--fc-text-secondary)" }}>Presupuesto:</span> <span style={{ color: "var(--fc-text)", fontWeight: 600 }}>{currentBudget || "—"}</span></div>
+                      <div><span style={{ color: "var(--fc-text-secondary)" }}>Período:</span> <span style={{ color: "var(--fc-text)" }}>{c.period || "—"}</span></div>
+                      <div><span style={{ color: "var(--fc-text-secondary)" }}>Objetivo:</span> <span style={{ color: "var(--fc-success)", fontWeight: 600 }}>{currentGoal || "—"}</span></div>
+                      <div><span style={{ color: "var(--fc-text-secondary)" }}>CPR Meta:</span> <span style={{ color: "var(--fc-accent)", fontWeight: 600 }}>{currentCpr || "—"}</span></div>
+                      <div><span style={{ color: "var(--fc-text-secondary)" }}>Diario ideal:</span> <span style={{ color: "var(--fc-text)" }}>{fmtMXN(bk2.daily)}</span></div>
+                      <div><span style={{ color: "var(--fc-text-secondary)" }}>Cuentas:</span> <span style={{ color: "var(--fc-text)" }}>{c.adAccounts?.length || 0}</span></div>
                     </div>
                   )}
                 </div>

@@ -40,7 +40,7 @@ export function ProfileSettings() {
 
   useEffect(() => {
     let active = true;
-    fetchAuthProviders().then((p: any) => { if (active) setAvailable(p); });
+    fetchAuthProviders().then((p) => { if (active) setAvailable(p); });
     return () => { active = false; };
   }, []);
 
@@ -162,7 +162,7 @@ export function ProfileSettings() {
       <SettingsCard
         title="Perfil"
         description="Cómo te ven tus compañeros dentro de Sodare."
-        icon={<User className="w-5 h-5 text-[var(--cyan)]" />}
+        icon={<User className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
         {/* Identidad + avatar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6 mb-8 pb-8 border-b border-[var(--hairline)]">
@@ -175,7 +175,7 @@ export function ProfileSettings() {
                 className="w-20 h-20 rounded-full border border-blue-500/20 object-cover"
               />
             ) : (
-              <div className="w-20 h-20 rounded-full bg-[var(--surface)] border border-blue-500/20 flex items-center justify-center font-display text-3xl text-[var(--cyan)]">
+              <div className="w-20 h-20 rounded-full bg-[var(--fc-surface)] border border-blue-500/20 flex items-center justify-center font-display text-3xl text-[var(--fc-accent)]">
                 {initial}
               </div>
             )}
@@ -199,12 +199,12 @@ export function ProfileSettings() {
           </div>
 
           <div className="min-w-0">
-            <div className="text-base font-semibold text-[var(--foreground)]">
+            <div className="text-base font-semibold text-[var(--fc-text)]">
               {profile?.name || "Sin nombre"}
             </div>
-            <div className="text-sm text-[var(--text-muted)] truncate">{profile?.email}</div>
+            <div className="text-sm text-[var(--fc-text-muted)] truncate">{profile?.email}</div>
 
-            <div className="text-xs text-[var(--text-secondary)] mt-2 flex items-center gap-1.5 flex-wrap">
+            <div className="text-xs text-[var(--fc-text-secondary)] mt-2 flex items-center gap-1.5 flex-wrap">
               <span>{workspace?.name ? `En ${workspace.name}:` : "Rol:"}</span>
               <span
                 className="px-2 py-0.5 rounded-full bg-[var(--surface-hover)] font-semibold text-[10px] uppercase tracking-wider"
@@ -213,7 +213,7 @@ export function ProfileSettings() {
                 {roleInfo.label}
               </span>
             </div>
-            <p className="text-[11px] text-[var(--text-muted)] mt-1.5 max-w-md leading-relaxed">
+            <p className="text-[11px] text-[var(--fc-text-muted)] mt-1.5 max-w-md leading-relaxed">
               {roleInfo.hint}
             </p>
 
@@ -222,7 +222,7 @@ export function ProfileSettings() {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="text-[11px] font-medium text-[var(--cyan)] hover:underline disabled:opacity-50"
+                className="text-[11px] font-medium text-[var(--fc-accent)] hover:underline disabled:opacity-50"
               >
                 Cambiar foto
               </button>
@@ -231,7 +231,7 @@ export function ProfileSettings() {
                   type="button"
                   onClick={handleRemoveAvatar}
                   disabled={uploading}
-                  className="text-[11px] font-medium text-[var(--text-muted)] hover:text-[var(--red)] flex items-center gap-1 disabled:opacity-50"
+                  className="text-[11px] font-medium text-[var(--fc-text-muted)] hover:text-[var(--fc-danger)] flex items-center gap-1 disabled:opacity-50"
                 >
                   <Trash2 className="w-3 h-3" /> Quitar
                 </button>
@@ -284,7 +284,7 @@ export function ProfileSettings() {
               {updateProfileMutation.isPending ? "Guardando..." : "Guardar cambios"}
             </button>
             {dirty && (
-              <span className="text-[11px] text-[var(--amber)]">Cambios sin guardar</span>
+              <span className="text-[11px] text-[var(--fc-warning)]">Cambios sin guardar</span>
             )}
           </div>
         </div>
@@ -293,7 +293,7 @@ export function ProfileSettings() {
       <SettingsCard
         title="Cuentas vinculadas"
         description="Vincula proveedores para iniciar sesión más rápido. Tu correo siempre identifica la cuenta."
-        icon={<Plug className="w-5 h-5 text-[var(--cyan)]" />}
+        icon={<Plug className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
         <div className="flex flex-col gap-3 max-w-xl">
           <ProviderRow
@@ -303,7 +303,7 @@ export function ProfileSettings() {
             disconnectedLabel="Sin contraseña"
             icon={
               <div className="p-2 bg-black/20 rounded-lg">
-                <Mail className="w-5 h-5 text-[var(--text-secondary)]" />
+                <Mail className="w-5 h-5 text-[var(--fc-text-secondary)]" />
               </div>
             }
           />
@@ -364,8 +364,8 @@ function ProviderRow({
       <div className="flex items-center gap-4 min-w-0">
         {icon}
         <div className="min-w-0">
-          <p className="text-sm text-[var(--foreground)] font-medium">{name}</p>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5 truncate">{detail}</p>
+          <p className="text-sm text-[var(--fc-text)] font-medium">{name}</p>
+          <p className="text-xs text-[var(--fc-text-muted)] mt-0.5 truncate">{detail}</p>
         </div>
       </div>
 
@@ -378,7 +378,7 @@ function ProviderRow({
           Vincular
         </button>
       ) : (
-        <span className="text-xs font-semibold text-[var(--text-secondary)] bg-slate-400/10 px-2.5 py-1 rounded-md shrink-0">
+        <span className="text-xs font-semibold text-[var(--fc-text-secondary)] bg-slate-400/10 px-2.5 py-1 rounded-md shrink-0">
           {disconnectedLabel}
         </span>
       )}

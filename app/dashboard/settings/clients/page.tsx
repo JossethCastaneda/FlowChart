@@ -15,7 +15,7 @@ export default function ClientsPage() {
       <SettingsCard
         title="Portal de clientes"
         description="Enlaces públicos por proyecto para que tus clientes vean avances y aprueben contenido sin crear cuenta."
-        icon={<Share2 className="w-5 h-5 text-[var(--cyan)]" />}
+        icon={<Share2 className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
         <ClientPortalsManager workspaceId={workspaceId} />
       </SettingsCard>

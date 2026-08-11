@@ -36,16 +36,16 @@ interface AuditPage {
  * lib/audit; lo que no esté aquí se muestra tal cual en vez de ocultarse.
  */
 const ACTION_META: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  member_invited: { label: "invitó a alguien al workspace", icon: UserPlus, color: "var(--cyan)" },
-  member_removed: { label: "removió a un miembro", icon: UserMinus, color: "var(--red)" },
-  member_left: { label: "abandonó el workspace", icon: UserMinus, color: "var(--amber)" },
-  member_role_changed: { label: "cambió el rol de un miembro", icon: Shield, color: "var(--amber)" },
-  member_permissions_changed: { label: "cambió permisos de un miembro", icon: Shield, color: "var(--amber)" },
-  settings_updated: { label: "actualizó la configuración del workspace", icon: Settings2, color: "var(--cyan)" },
-  workspace_updated: { label: "actualizó los datos del workspace", icon: Settings2, color: "var(--cyan)" },
-  subscribe_webhooks: { label: "conectó una integración", icon: Plug, color: "var(--emerald)" },
-  resubscribe_webhooks: { label: "reconectó los webhooks", icon: Plug, color: "var(--emerald)" },
-  project_deleted: { label: "eliminó un proyecto", icon: Trash2, color: "var(--red)" },
+  member_invited: { label: "invitó a alguien al workspace", icon: UserPlus, color: "var(--fc-accent)" },
+  member_removed: { label: "removió a un miembro", icon: UserMinus, color: "var(--fc-danger)" },
+  member_left: { label: "abandonó el workspace", icon: UserMinus, color: "var(--fc-warning)" },
+  member_role_changed: { label: "cambió el rol de un miembro", icon: Shield, color: "var(--fc-warning)" },
+  member_permissions_changed: { label: "cambió permisos de un miembro", icon: Shield, color: "var(--fc-warning)" },
+  settings_updated: { label: "actualizó la configuración del workspace", icon: Settings2, color: "var(--fc-accent)" },
+  workspace_updated: { label: "actualizó los datos del workspace", icon: Settings2, color: "var(--fc-accent)" },
+  subscribe_webhooks: { label: "conectó una integración", icon: Plug, color: "var(--fc-success)" },
+  resubscribe_webhooks: { label: "reconectó los webhooks", icon: Plug, color: "var(--fc-success)" },
+  project_deleted: { label: "eliminó un proyecto", icon: Trash2, color: "var(--fc-danger)" },
 };
 
 /** Acciones del portal público: llegan como client_portal_<evento>. */
@@ -112,7 +112,7 @@ export default function ActividadPage() {
       <SettingsCard
         title="Registro de actividad"
         description="Quién cambió qué y cuándo: roles, permisos, integraciones y ajustes del workspace."
-        icon={<History className="w-5 h-5 text-[var(--cyan)]" />}
+        icon={<History className="w-5 h-5 text-[var(--fc-accent)]" />}
         aside={
           <select
             value={action}
@@ -130,7 +130,7 @@ export default function ActividadPage() {
       >
         {query.isLoading ? (
           <div className="flex justify-center p-10">
-            <Loader2 className="w-5 h-5 text-[var(--text-muted)] animate-spin" />
+            <Loader2 className="w-5 h-5 text-[var(--fc-text-muted)] animate-spin" />
           </div>
         ) : query.isError ? (
           <SettingsEmpty
@@ -155,7 +155,7 @@ export default function ActividadPage() {
               {events.map((event, index) => {
                 const meta = ACTION_META[event.action];
                 const Icon = meta?.icon ?? Settings2;
-                const color = meta?.color ?? "var(--text-muted)";
+                const color = meta?.color ?? "var(--fc-text-muted)";
                 const last = index === events.length - 1;
 
                 return (
@@ -169,7 +169,7 @@ export default function ActividadPage() {
                     )}
 
                     <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border relative z-10 bg-[var(--surface)]"
+                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border relative z-10 bg-[var(--fc-surface)]"
                       style={{ borderColor: `${color}40` }}
                     >
                       <Icon className="w-4 h-4" style={{ color }} />
@@ -177,25 +177,25 @@ export default function ActividadPage() {
 
                     <div className="min-w-0 flex-1 pt-1">
                       <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
-                        <p className="text-[13px] text-[var(--foreground)]">
+                        <p className="text-[13px] text-[var(--fc-text)]">
                           <span className="font-medium">
                             {event.actor?.name || event.actor?.email || "Sistema"}
                           </span>{" "}
-                          <span className="text-[var(--text-secondary)]">
+                          <span className="text-[var(--fc-text-secondary)]">
                             {meta?.label ?? portalLabel(event.action) ?? event.action.replace(/_/g, " ")}
                           </span>
                         </p>
                         <time
                           dateTime={event.createdAt}
                           title={new Date(event.createdAt).toLocaleString("es-MX")}
-                          className="text-[11px] text-[var(--text-muted)] shrink-0 tabular-nums"
+                          className="text-[11px] text-[var(--fc-text-muted)] shrink-0 tabular-nums"
                         >
                           {formatWhen(event.createdAt)}
                         </time>
                       </div>
 
                       {event.resourceType && (
-                        <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
+                        <p className="text-[11px] text-[var(--fc-text-muted)] mt-0.5">
                           {event.resourceType}
                           {event.resourceId ? ` · ${event.resourceId.slice(0, 12)}` : ""}
                         </p>
@@ -203,10 +203,10 @@ export default function ActividadPage() {
 
                       {!!event.details && typeof event.details === "object" && (
                         <details className="mt-1.5">
-                          <summary className="text-[10px] text-[var(--text-muted)] cursor-pointer hover:text-[var(--cyan)] transition-colors list-none">
+                          <summary className="text-[10px] text-[var(--fc-text-muted)] cursor-pointer hover:text-[var(--fc-accent)] transition-colors list-none">
                             Ver detalle
                           </summary>
-                          <pre className="mt-1.5 text-[10px] text-[var(--text-secondary)] bg-black/20 border border-[var(--hairline)] rounded-lg p-2.5 overflow-x-auto">
+                          <pre className="mt-1.5 text-[10px] text-[var(--fc-text-secondary)] bg-black/20 border border-[var(--hairline)] rounded-lg p-2.5 overflow-x-auto">
                             {JSON.stringify(event.details, null, 2)}
                           </pre>
                         </details>

@@ -7,8 +7,8 @@ export default function AvisoDePrivacidad() {
   return (
     <div style={{
       minHeight: "100vh",
-      background: "linear-gradient(135deg, var(--background) 0%, var(--background) 100%)",
-      color: "var(--foreground)",
+      background: "linear-gradient(135deg, var(--fc-bg) 0%, var(--fc-bg) 100%)",
+      color: "var(--fc-text)",
       fontFamily: "Inter, system-ui, sans-serif",
       padding: "80px 20px 40px",
       display: "flex",
@@ -18,7 +18,7 @@ export default function AvisoDePrivacidad() {
       <div style={{
         maxWidth: "800px",
         width: "100%",
-        background: "var(--surface)",
+        background: "var(--fc-surface)",
         border: "1px solid var(--hairline)",
         borderRadius: "16px",
         padding: "40px",
@@ -26,18 +26,18 @@ export default function AvisoDePrivacidad() {
         
       }}>
         {/* Header */}
-        <div style={{ border: "1px solid var(--border)", paddingBottom: "24px", marginBottom: "32px" }}>
+        <div style={{ border: "1px solid var(--fc-border)", paddingBottom: "24px", marginBottom: "32px" }}>
           <h1 style={{
             fontFamily: "var(--font-display)",
             fontSize: "28px",
             fontWeight: 700,
-            color: "var(--foreground)",
+            color: "var(--fc-text)",
             letterSpacing: "0.05em",
             marginBottom: "8px",
           }}>
             Aviso de Privacidad
           </h1>
-          <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>
+          <p style={{ fontSize: "14px", color: "var(--fc-text-secondary)" }}>
             Última actualización: 2 de junio de 2026
           </p>
         </div>
@@ -51,7 +51,7 @@ export default function AvisoDePrivacidad() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: "18px", color: "var(--foreground)", fontWeight: 600, marginBottom: "12px" }}>
+            <h2 style={{ fontSize: "18px", color: "var(--fc-text)", fontWeight: 600, marginBottom: "12px" }}>
               1. Datos que Recopilamos
             </h2>
             <p style={{ marginBottom: "8px" }}>
@@ -65,7 +65,7 @@ export default function AvisoDePrivacidad() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: "18px", color: "var(--foreground)", fontWeight: 600, marginBottom: "12px" }}>
+            <h2 style={{ fontSize: "18px", color: "var(--fc-text)", fontWeight: 600, marginBottom: "12px" }}>
               2. Uso de la Información
             </h2>
             <p style={{ marginBottom: "8px" }}>
@@ -80,7 +80,7 @@ export default function AvisoDePrivacidad() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: "18px", color: "var(--foreground)", fontWeight: 600, marginBottom: "12px" }}>
+            <h2 style={{ fontSize: "18px", color: "var(--fc-text)", fontWeight: 600, marginBottom: "12px" }}>
               3. Protección de tus Datos
             </h2>
             <p>
@@ -89,7 +89,7 @@ export default function AvisoDePrivacidad() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: "18px", color: "var(--foreground)", fontWeight: 600, marginBottom: "12px" }}>
+            <h2 style={{ fontSize: "18px", color: "var(--fc-text)", fontWeight: 600, marginBottom: "12px" }}>
               4. Eliminación de Datos del Usuario (Instrucciones de Eliminación)
             </h2>
             <p style={{ marginBottom: "12px" }}>
@@ -102,7 +102,7 @@ export default function AvisoDePrivacidad() {
               <li>Ve a la sección de Configuración de tu cuenta de Facebook (Configuración y Privacidad &gt; Configuración).</li>
               <li>Busca la sección de <strong>"Aplicaciones y sitios web"</strong>.</li>
               <li>Busca la aplicación <strong>FLOWCHART</strong> y haz clic en <strong>"Eliminar"</strong>.</li>
-              <li>Si deseas iniciar una solicitud formal de eliminación de datos de nuestros servidores inmediatamente, puedes hacerlo a través de nuestra herramienta de autoservicio ingresando aquí: <Link href="/data-deletion" style={{ color: "var(--cyan)", textDecoration: "underline" }}>Página de Solicitud de Eliminación de Datos</Link>.</li>
+              <li>Si deseas iniciar una solicitud formal de eliminación de datos de nuestros servidores inmediatamente, puedes hacerlo a través de nuestra herramienta de autoservicio ingresando aquí: <Link href="/data-deletion" style={{ color: "var(--fc-accent)", textDecoration: "underline" }}>Página de Solicitud de Eliminación de Datos</Link>.</li>
             </ol>
             <p>
               Una vez recibida la solicitud (ya sea vía la callback de Meta o mediante el formulario web), procesaremos la eliminación definitiva de tu perfil, tokens de acceso e historial en un plazo no mayor a 90 días, entregándote un código de confirmación de eliminación para tu seguimiento.
@@ -110,7 +110,7 @@ export default function AvisoDePrivacidad() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: "18px", color: "var(--foreground)", fontWeight: 600, marginBottom: "12px" }}>
+            <h2 style={{ fontSize: "18px", color: "var(--fc-text)", fontWeight: 600, marginBottom: "12px" }}>
               5. Uso de datos de Google (Divulgación de Uso Limitado)
             </h2>
             <p style={{ marginBottom: "12px" }}>
@@ -119,7 +119,7 @@ export default function AvisoDePrivacidad() {
                 href="https://developers.google.com/terms/api-services-user-data-policy"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ color: "var(--cyan)", textDecoration: "underline" }}
+                style={{ color: "var(--fc-accent)", textDecoration: "underline" }}
               >
                 Política de Datos de Usuario de los Servicios API de Google
               </a>
@@ -139,7 +139,7 @@ export default function AvisoDePrivacidad() {
                 href="https://myaccount.google.com/permissions"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ color: "var(--cyan)", textDecoration: "underline" }}
+                style={{ color: "var(--fc-accent)", textDecoration: "underline" }}
               >
                 los permisos de tu cuenta de Google
               </a>
@@ -148,12 +148,12 @@ export default function AvisoDePrivacidad() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: "18px", color: "var(--foreground)", fontWeight: 600, marginBottom: "12px" }}>
+            <h2 style={{ fontSize: "18px", color: "var(--fc-text)", fontWeight: 600, marginBottom: "12px" }}>
               6. Contacto
             </h2>
             <p>
               Si tienes alguna duda o comentario sobre este Aviso de Privacidad o deseas ejercer tus derechos ARCO, por favor contáctanos vía correo electrónico a:{" "}
-              <a href="mailto:soporte@flowchart.lat" style={{ color: "var(--cyan)", textDecoration: "none" }}>
+              <a href="mailto:soporte@flowchart.lat" style={{ color: "var(--fc-accent)", textDecoration: "none" }}>
                 soporte@flowchart.lat
               </a>
             </p>
@@ -161,14 +161,14 @@ export default function AvisoDePrivacidad() {
         </div>
 
         {/* Footer */}
-        <div style={{ marginTop: "40px", paddingTop: "24px", border: "1px solid var(--border)", textAlign: "center" }}>
+        <div style={{ marginTop: "40px", paddingTop: "24px", border: "1px solid var(--fc-border)", textAlign: "center" }}>
           <Link href="/" style={{
             display: "inline-block",
             padding: "10px 24px",
             background: "var(--surface-hover)",
-            border: "1px solid var(--border)",
+            border: "1px solid var(--fc-border)",
             borderRadius: "8px",
-            color: "var(--foreground)",
+            color: "var(--fc-text)",
             fontSize: "14px",
             textDecoration: "none",
             transition: "all 0.2s ease",

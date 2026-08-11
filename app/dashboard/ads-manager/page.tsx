@@ -1409,7 +1409,7 @@ function AdsManagerContent() {
           <button
             onClick={() => setShowCreateAdSet(true)}
             title="Crear un conjunto de anuncios (se crea en pausa)"
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "var(--fc-surface)", border: "1px solid rgba(139,141,242,0.35)", color: "var(--purple)", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "var(--fc-surface)", border: "1px solid rgba(139,141,242,0.35)", color: "var(--fc-module-aria)", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
           >
             <Plus style={{ width: 14, height: 14 }} /> Crear conjunto
           </button>
@@ -1549,7 +1549,7 @@ function AdsManagerContent() {
         level={activeLevel}
       />
       {error && (
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 10px", background: "var(--red-dim)", border: "1px solid var(--red-dim)", borderRadius: "4px", color: "var(--fc-danger)", fontSize: "10px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 10px", background: "var(--fc-danger-wash)", border: "1px solid var(--fc-danger-wash)", borderRadius: "4px", color: "var(--fc-danger)", fontSize: "10px" }}>
           <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
           <span>{error}</span>
         </div>

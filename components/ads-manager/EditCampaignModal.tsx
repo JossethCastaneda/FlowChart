@@ -1,4 +1,4 @@
-ï»¿"use client";
+"use client";
 import React, { useState, useEffect, useRef } from "react";
 import { X, Save, Loader2, AlertCircle, TrendingUp } from "lucide-react";
 import { useMetaUpdate } from "@/hooks/useMetaUpdate";
@@ -11,18 +11,18 @@ interface EditCampaignModalProps {
 }
 
 const BID_STRATEGIES = [
-  { value: "LOWEST_COST_WITHOUT_CAP", label: "Costo mÃ¡s bajo (sin lÃ­mite)" },
-  { value: "LOWEST_COST_WITH_BID_CAP", label: "Costo mÃ¡s bajo (con lÃ­mite de puja)" },
-  { value: "COST_CAP", label: "LÃ­mite de costo" },
-  { value: "LOWEST_COST_WITH_MIN_ROAS", label: "ROAS mÃ­nimo" },
+  { value: "LOWEST_COST_WITHOUT_CAP", label: "Costo más bajo (sin límite)" },
+  { value: "LOWEST_COST_WITH_BID_CAP", label: "Costo más bajo (con límite de puja)" },
+  { value: "COST_CAP", label: "Límite de costo" },
+  { value: "LOWEST_COST_WITH_MIN_ROAS", label: "ROAS mínimo" },
 ];
 
 const SPECIAL_CATEGORIES = [
   { value: "", label: "Ninguna" },
   { value: "EMPLOYMENT", label: "Empleo" },
   { value: "HOUSING", label: "Vivienda" },
-  { value: "CREDIT", label: "CrÃ©dito" },
-  { value: "ISSUES_ELECTIONS_POLITICS", label: "PolÃ­tica / Elecciones" },
+  { value: "CREDIT", label: "Crédito" },
+  { value: "ISSUES_ELECTIONS_POLITICS", label: "Política / Elecciones" },
 ];
 
 export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignModalProps) {
@@ -31,7 +31,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
   const [saved, setSaved] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  // Form state â€” pre-fill from campaign data
+  // Form state — pre-fill from campaign data
   const [name, setName] = useState(campaign.name || "");
   const [status, setStatus] = useState<"ACTIVE" | "PAUSED">(campaign.status === "ACTIVE" ? "ACTIVE" : "PAUSED");
   const hasDailyBudget = campaign.daily_budget !== undefined;
@@ -54,9 +54,9 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  // CampaÃ±as ABO (presupuesto a nivel de ad set) NO tienen daily/lifetime a nivel
-  // campaÃ±a: el input de presupuesto ni se renderiza. Sin este flag, la validaciÃ³n
-  // budget>0 bloqueaba guardar nombre/estado/bid en esas campaÃ±as (muy comunes).
+  // Campañas ABO (presupuesto a nivel de ad set) NO tienen daily/lifetime a nivel
+  // campaña: el input de presupuesto ni se renderiza. Sin este flag, la validación
+  // budget>0 bloqueaba guardar nombre/estado/bid en esas campañas (muy comunes).
   const hasCampaignBudget = hasDailyBudget || hasLifetimeBudget;
 
   const handleSave = async () => {
@@ -95,8 +95,8 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
     >
       <div
         style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
+          background: "var(--fc-surface)",
+          border: "1px solid var(--fc-border)",
           borderRadius: 12,
           width: "100%", maxWidth: 520,
           boxShadow: "0 24px 64px -12px rgba(0,0,0,0.8)",
@@ -108,29 +108,29 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
         <div
           style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "18px 20px", borderBottom: "1px solid var(--border)",
+            padding: "18px 20px", borderBottom: "1px solid var(--fc-border)",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div
               style={{
                 width: 32, height: 32, borderRadius: 8,
-                background: "var(--surface)",
+                background: "var(--fc-surface)",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}
             >
               <TrendingUp className="w-4 h-4 text-cyan-400" />
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--foreground)" }}>Editar CampaÃ±a</div>
-              <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>ID: {campaign.id}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--fc-text)" }}>Editar Campaña</div>
+              <div style={{ fontSize: 11, color: "var(--fc-text-secondary)" }}>ID: {campaign.id}</div>
             </div>
           </div>
           <button
             onClick={onClose}
             style={{
               background: "none", border: "none", cursor: "pointer",
-              color: "var(--text-secondary)", padding: 4, borderRadius: 6,
+              color: "var(--fc-text-secondary)", padding: 4, borderRadius: 6,
               display: "flex", alignItems: "center", justifyContent: "center",
             }}
           >
@@ -144,11 +144,11 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
           style={{ padding: 20, overflowY: "auto", display: "flex", flexDirection: "column", gap: 16 }}
         >
           {/* Name */}
-          <FormGroup label="Nombre de campaÃ±a">
+          <FormGroup label="Nombre de campaña">
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Nombre de la campaÃ±a"
+              placeholder="Nombre de la campaña"
               style={inputStyle}
             />
           </FormGroup>
@@ -166,11 +166,11 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
                       ? s === "ACTIVE" ? "rgba(52,183,124,0.15)" : "rgba(224,168,60,0.1)"
                       : "rgba(255,255,255,0.09)",
                     borderColor: status === s
-                      ? s === "ACTIVE" ? "var(--emerald)" : "var(--amber)"
-                      : "var(--border)",
+                      ? s === "ACTIVE" ? "var(--fc-success)" : "var(--fc-warning)"
+                      : "var(--fc-border)",
                     color: status === s
-                      ? s === "ACTIVE" ? "var(--emerald)" : "var(--amber)"
-                      : "var(--text-secondary)",
+                      ? s === "ACTIVE" ? "var(--fc-success)" : "var(--fc-warning)"
+                      : "var(--fc-text-secondary)",
                   }}
                 >
                   {s === "ACTIVE" ? "? Activa" : "? Pausada"}
@@ -190,8 +190,8 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
                     style={{
                       ...toggleStyle,
                       background: budgetType === t ? "rgba(0,129,251,0.15)" : "rgba(255,255,255,0.09)",
-                      borderColor: budgetType === t ? "var(--cyan)" : "var(--border)",
-                      color: budgetType === t ? "var(--cyan)" : "var(--text-secondary)",
+                      borderColor: budgetType === t ? "var(--fc-accent)" : "var(--fc-border)",
+                      color: budgetType === t ? "var(--fc-accent)" : "var(--fc-text-secondary)",
                     }}
                   >
                     {t === "daily" ? "Diario" : "Total"}
@@ -199,7 +199,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
                 ))}
               </div>
               <div style={{ position: "relative" }}>
-                <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)", fontSize: 13 }}>$</span>
+                <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--fc-text-secondary)", fontSize: 13 }}>$</span>
                 <input
                   type="number"
                   value={budget}
@@ -222,7 +222,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
           </FormGroup>
 
           {/* Special Ad Categories */}
-          <FormGroup label="CategorÃ­a especial">
+          <FormGroup label="Categoría especial">
             <select value={specialCategory} onChange={(e) => setSpecialCategory(e.target.value)} style={selectStyle}>
               {SPECIAL_CATEGORIES.map((c) => (
                 <option key={c.value} value={c.value}>{c.label}</option>
@@ -232,9 +232,9 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
 
           {/* Objective (read-only) */}
           <FormGroup label="Objetivo">
-            <div style={{ ...inputStyle, color: "var(--text-muted)", display: "flex", alignItems: "center" }}>
-              {campaign.objective || "â€”"}
-              <span style={{ marginLeft: "auto", fontSize: 10, color: "var(--text-muted)", fontStyle: "italic" }}>
+            <div style={{ ...inputStyle, color: "var(--fc-text-muted)", display: "flex", alignItems: "center" }}>
+              {campaign.objective || "—"}
+              <span style={{ marginLeft: "auto", fontSize: 10, color: "var(--fc-text-muted)", fontStyle: "italic" }}>
                 No editable
               </span>
             </div>
@@ -242,7 +242,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
 
           {/* Error */}
           {localError && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.3)", borderRadius: 8, fontSize: 12, color: "var(--red)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "var(--fc-danger-wash)", border: "1px solid rgba(229,72,77,0.3)", borderRadius: 8, fontSize: 12, color: "var(--fc-danger)" }}>
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               {localError}
             </div>
@@ -250,7 +250,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
         </div>
 
         {/* Footer */}
-        <div style={{ padding: "14px 20px", borderTop: "1px solid var(--border)", display: "flex", gap: 10, justifyContent: "flex-end" }}>
+        <div style={{ padding: "14px 20px", borderTop: "1px solid var(--fc-border)", display: "flex", gap: 10, justifyContent: "flex-end" }}>
           <button onClick={onClose} style={cancelBtnStyle}>Cancelar</button>
           <button onClick={handleSave} disabled={loading || saved} style={saveBtnStyle(saved)}>
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? "? Guardado" : <><Save className="w-4 h-4" /> Guardar</>}
@@ -266,7 +266,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
 function FormGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+      <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--fc-text-secondary)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
         {label}
       </label>
       {children}
@@ -277,10 +277,10 @@ function FormGroup({ label, children }: { label: string; children: React.ReactNo
 export const inputStyle: React.CSSProperties = {
   width: "100%",
   background: "var(--surface-hover)",
-  border: "1px solid var(--border)",
+  border: "1px solid var(--fc-border)",
   borderRadius: 8,
   padding: "9px 12px",
-  color: "var(--foreground)",
+  color: "var(--fc-text)",
   fontSize: 13,
   outline: "none",
   boxSizing: "border-box",
@@ -291,7 +291,7 @@ export const selectStyle: React.CSSProperties = {
   ...inputStyle as any,
   cursor: "pointer",
   appearance: "none",
-  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='var(--text-secondary)' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='var(--fc-text-secondary)' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
   backgroundRepeat: "no-repeat",
   backgroundPosition: "right 10px center",
   backgroundSize: 16,
@@ -300,7 +300,7 @@ export const selectStyle: React.CSSProperties = {
 
 export const toggleStyle: React.CSSProperties = {
   padding: "7px 14px",
-  border: "1px solid var(--border)",
+  border: "1px solid var(--fc-border)",
   borderRadius: 6,
   fontSize: 12,
   fontWeight: 600,
@@ -311,9 +311,9 @@ export const toggleStyle: React.CSSProperties = {
 const cancelBtnStyle: React.CSSProperties = {
   padding: "9px 18px",
   background: "transparent",
-  border: "1px solid var(--border)",
+  border: "1px solid var(--fc-border)",
   borderRadius: 8,
-  color: "var(--text-secondary)",
+  color: "var(--fc-text-secondary)",
   fontSize: 13,
   fontWeight: 600,
   cursor: "pointer",
@@ -323,9 +323,9 @@ const saveBtnStyle = (saved: boolean): React.CSSProperties => ({
   display: "flex", alignItems: "center", gap: 6,
   padding: "9px 18px",
   background: saved ? "rgba(52,183,124,0.2)" : "rgba(0,129,251,0.2)",
-  border: `1px solid ${saved ? "var(--emerald)" : "var(--cyan)"}`,
+  border: `1px solid ${saved ? "var(--fc-success)" : "var(--fc-accent)"}`,
   borderRadius: 8,
-  color: saved ? "var(--emerald)" : "var(--cyan)",
+  color: saved ? "var(--fc-success)" : "var(--fc-accent)",
   fontSize: 13,
   fontWeight: 600,
   cursor: "pointer",

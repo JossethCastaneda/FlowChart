@@ -27,10 +27,10 @@ const NEEDS_PIXEL = ["OUTCOME_SALES"];
 
 const inp: React.CSSProperties = {
   width: "100%", padding: "9px 12px", background: "var(--surface-hover)",
-  border: "1px solid var(--hairline)", borderRadius: 6, color: "var(--foreground)",
+  border: "1px solid var(--hairline)", borderRadius: 6, color: "var(--fc-text)",
   fontSize: 13, outline: "none", fontFamily: "inherit",
 };
-const lbl: React.CSSProperties = { fontSize: 11, color: "var(--text-secondary)", display: "block", marginBottom: 5, fontWeight: 500 };
+const lbl: React.CSSProperties = { fontSize: 11, color: "var(--fc-text-secondary)", display: "block", marginBottom: 5, fontWeight: 500 };
 
 export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }: Props) {
   const [campaignId, setCampaignId] = useState(campaigns[0]?.id || "");
@@ -129,12 +129,12 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--overlay-dark)" }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 540, background: "var(--surface)", border: "1px solid rgba(139,141,242,0.25)", borderRadius: 10, animation: "fadeInScale 0.2s ease-out" }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 540, background: "var(--fc-surface)", border: "1px solid rgba(139,141,242,0.25)", borderRadius: 10, animation: "fadeInScale 0.2s ease-out" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 22px", border: "1px solid var(--hairline)" }}>
-          <span style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>
-            <Layers style={{ width: 16, height: 16, color: "var(--purple)" }} /> Crear conjunto de anuncios
+          <span style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 14, fontWeight: 700, color: "var(--fc-text)" }}>
+            <Layers style={{ width: 16, height: 16, color: "var(--fc-module-aria)" }} /> Crear conjunto de anuncios
           </span>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}><X style={{ width: 18, height: 18 }} /></button>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--fc-text-muted)", cursor: "pointer" }}><X style={{ width: 18, height: 18 }} /></button>
         </div>
 
         <div style={{ padding: 22, display: "grid", gap: 16 }}>
@@ -144,16 +144,16 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
               {campaigns.map((c) => <option key={c.id} value={c.id}>{c.name}{c.objective === "OUTCOME_APP_PROMOTION" ? " ⚠ (App no soportada aún)" : ""}</option>)}
             </select>
             {campaign && objLabel && (
-              <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
+              <div style={{ fontSize: 10, color: "var(--fc-text-muted)", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
                 <Info style={{ width: 11, height: 11 }} /> {objLabel}
               </div>
             )}
           </div>
 
           {isAppPromo && (
-            <div style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "10px 12px", borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(251,191,36,0.18)" }}>
-              <AlertTriangle style={{ width: 15, height: 15, color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
-              <div style={{ fontSize: 11, color: "var(--amber)" }}>La promoción de app aún no está soportada desde FlowChart. Créalo directamente en Meta.</div>
+            <div style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "10px 12px", borderRadius: 8, background: "var(--fc-surface)", border: "1px solid rgba(251,191,36,0.18)" }}>
+              <AlertTriangle style={{ width: 15, height: 15, color: "var(--fc-warning)", flexShrink: 0, marginTop: 1 }} />
+              <div style={{ fontSize: 11, color: "var(--fc-warning)" }}>La promoción de app aún no está soportada desde FlowChart. Créalo directamente en Meta.</div>
             </div>
           )}
 
@@ -162,7 +162,7 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
             <div>
               <label style={lbl}>Página de Facebook * (para leads)</label>
               {loadingPages ? (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-muted)", padding: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--fc-text-muted)", padding: 8 }}>
                   <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> Cargando páginas…
                 </div>
               ) : pages.length > 0 ? (
@@ -170,7 +170,7 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
                   {pages.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
               ) : (
-                <div style={{ fontSize: 11, color: "var(--amber)", padding: 8 }}>No se encontraron páginas. Conecta una página en Integraciones.</div>
+                <div style={{ fontSize: 11, color: "var(--fc-warning)", padding: 8 }}>No se encontraron páginas. Conecta una página en Integraciones.</div>
               )}
             </div>
           )}
@@ -180,7 +180,7 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
             <div>
               <label style={lbl}>Pixel ID * (para conversiones)</label>
               <input style={inp} value={pixelId} onChange={(e) => setPixelId(e.target.value)} placeholder="Ej. 123456789012345" />
-              <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3 }}>Encuéntralo en Meta Business Suite → Orígenes de datos → Píxeles.</div>
+              <div style={{ fontSize: 10, color: "var(--fc-text-muted)", marginTop: 3 }}>Encuéntralo en Meta Business Suite → Orígenes de datos → Píxeles.</div>
             </div>
           )}
 
@@ -191,7 +191,7 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div>
-              <label style={lbl}>Presupuesto diario (MXN) <span style={{fontWeight: "normal", color: "var(--text-muted)"}}>(Opcional con CBO)</span></label>
+              <label style={lbl}>Presupuesto diario (MXN) <span style={{fontWeight: "normal", color: "var(--fc-text-muted)"}}>(Opcional con CBO)</span></label>
               <input style={inp} type="number" min={1} value={dailyBudget} onChange={(e) => setDailyBudget(e.target.value)} placeholder="Ej. 200" />
             </div>
             <div>
@@ -214,7 +214,7 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
           </div>
           
           {advantageAudience && (
-            <div style={{ fontSize: 10, color: "var(--purple)", marginTop: "-6px" }}>
+            <div style={{ fontSize: 10, color: "var(--fc-module-aria)", marginTop: "-6px" }}>
               * Advantage+ tomará control de la edad y el género basado en el rendimiento.
             </div>
           )}
@@ -231,39 +231,39 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 4 }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--foreground)", cursor: "pointer", background: "var(--row-hover)", padding: "10px", borderRadius: 8, border: "1px solid var(--hairline)" }}>
-              <input type="checkbox" checked={advantageAudience} onChange={(e) => setAdvantageAudience(e.target.checked)} style={{ width: 16, height: 16, accentColor: "var(--purple)" }} />
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--fc-text)", cursor: "pointer", background: "var(--row-hover)", padding: "10px", borderRadius: 8, border: "1px solid var(--hairline)" }}>
+              <input type="checkbox" checked={advantageAudience} onChange={(e) => setAdvantageAudience(e.target.checked)} style={{ width: 16, height: 16, accentColor: "var(--fc-module-aria)" }} />
               <div>
                 <div style={{ fontWeight: 600 }}>Advantage+ Audience</div>
-                <div style={{ fontSize: 10, color: "var(--text-secondary)", marginTop: 2 }}>Recomendado por Meta</div>
+                <div style={{ fontSize: 10, color: "var(--fc-text-secondary)", marginTop: 2 }}>Recomendado por Meta</div>
               </div>
             </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--foreground)", cursor: "pointer", background: "var(--row-hover)", padding: "10px", borderRadius: 8, border: "1px solid var(--hairline)" }}>
-              <input type="checkbox" checked={advantagePlacements} onChange={(e) => setAdvantagePlacements(e.target.checked)} style={{ width: 16, height: 16, accentColor: "var(--purple)" }} />
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--fc-text)", cursor: "pointer", background: "var(--row-hover)", padding: "10px", borderRadius: 8, border: "1px solid var(--hairline)" }}>
+              <input type="checkbox" checked={advantagePlacements} onChange={(e) => setAdvantagePlacements(e.target.checked)} style={{ width: 16, height: 16, accentColor: "var(--fc-module-aria)" }} />
               <div>
                 <div style={{ fontWeight: 600 }}>Advantage+ Placements</div>
-                <div style={{ fontSize: 10, color: "var(--text-secondary)", marginTop: 2 }}>Todas las ubicaciones automáticas</div>
+                <div style={{ fontSize: 10, color: "var(--fc-text-secondary)", marginTop: 2 }}>Todas las ubicaciones automáticas</div>
               </div>
             </label>
           </div>
 
-          <div style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "10px 12px", borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(251,191,36,0.18)" }}>
-            <PauseCircle style={{ width: 16, height: 16, color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
-            <div style={{ fontSize: 11, color: "var(--amber)" }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "10px 12px", borderRadius: 8, background: "var(--fc-surface)", border: "1px solid rgba(251,191,36,0.18)" }}>
+            <PauseCircle style={{ width: 16, height: 16, color: "var(--fc-warning)", flexShrink: 0, marginTop: 1 }} />
+            <div style={{ fontSize: 11, color: "var(--fc-warning)" }}>
               El conjunto se crea <strong>en pausa</strong>. No entrega ni gasta hasta que le agregues anuncios y lo actives en Meta. Si la campaña usa <strong>CBO</strong>, ajusta el presupuesto allí.
             </div>
           </div>
 
           {error && (
-            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 12px", borderRadius: 6, background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.2)" }}>
-              <AlertTriangle style={{ width: 14, height: 14, color: "var(--red)", flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: "var(--red)" }}>{error}</span>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 12px", borderRadius: 6, background: "var(--fc-danger-wash)", border: "1px solid rgba(229,72,77,0.2)" }}>
+              <AlertTriangle style={{ width: 14, height: 14, color: "var(--fc-danger)", flexShrink: 0 }} />
+              <span style={{ fontSize: 12, color: "var(--fc-danger)" }}>{error}</span>
             </div>
           )}
         </div>
 
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "14px 22px", border: "1px solid var(--hairline)" }}>
-          <button onClick={onClose} style={{ padding: "9px 18px", background: "transparent", border: "1px solid var(--border)", color: "var(--text-secondary)", cursor: "pointer", fontSize: 12, borderRadius: 6, fontFamily: "inherit" }}>Cancelar</button>
+          <button onClick={onClose} style={{ padding: "9px 18px", background: "transparent", border: "1px solid var(--fc-border)", color: "var(--fc-text-secondary)", cursor: "pointer", fontSize: 12, borderRadius: 6, fontFamily: "inherit" }}>Cancelar</button>
           <button onClick={submit} disabled={saving || !canSubmit} className="btn-primary" style={{ padding: "9px 22px", opacity: saving || !canSubmit ? 0.5 : 1, display: "inline-flex", alignItems: "center", gap: 7 }}>
             {saving ? <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> : <PauseCircle style={{ width: 14, height: 14 }} />}
             Crear en pausa

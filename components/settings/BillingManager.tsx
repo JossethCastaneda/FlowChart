@@ -56,20 +56,20 @@ export function BillingManager() {
   }
 
   if (!status) return (
-    <div className="flex items-center justify-center py-10 gap-2 text-[var(--text-muted)] text-sm">
+    <div className="flex items-center justify-center py-10 gap-2 text-[var(--fc-text-muted)] text-sm">
       <Loader2 size={16} className="animate-spin" /> Consultando facturación...
     </div>
   );
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="flex flex-col gap-5 mt-2">
-      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl glass-panel bg-[var(--surface)] border border-[var(--border)]">
+      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl glass-panel bg-[var(--fc-surface)] border border-[var(--fc-border)]">
         <div>
-          <p className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2">
+          <p className="text-sm font-semibold text-[var(--fc-text)] flex items-center gap-2">
             Estado de Suscripción 
-            {status.status && <span className="text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full bg-[var(--cyan)]/10 text-[var(--cyan)] border border-[var(--cyan)]/20">{status.status}</span>}
+            {status.status && <span className="text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full bg-[var(--fc-accent)]/10 text-[var(--fc-accent)] border border-[var(--fc-accent)]/20">{status.status}</span>}
           </p>
-          <p className="text-xs text-[var(--text-secondary)] mt-1">
+          <p className="text-xs text-[var(--fc-text-secondary)] mt-1">
             {status.currentPeriodEnd ? `${status.cancelAtPeriodEnd ? "Finaliza" : "Se renueva"} el ${new Date(status.currentPeriodEnd).toLocaleDateString("es-MX")}` : "El plan Gratis no requiere método de pago."}
           </p>
         </div>
@@ -82,7 +82,7 @@ export function BillingManager() {
       </motion.div>
 
       {!status.configured ? (
-        <motion.div variants={itemVariants} className="rounded-xl border border-[var(--amber)]/20 bg-[var(--amber)]/5 p-4 text-xs text-[var(--amber)]">
+        <motion.div variants={itemVariants} className="rounded-xl border border-[var(--fc-warning)]/20 bg-[var(--fc-warning)]/5 p-4 text-xs text-[var(--fc-warning)]">
           Los pagos aún no están configurados en este entorno. Define las claves y precios de Stripe para activar el autoservicio.
         </motion.div>
       ) : (
@@ -90,17 +90,17 @@ export function BillingManager() {
           {plans.map((plan) => {
             const isCurrent = status.plan === plan.id;
             return (
-              <motion.div key={plan.id} variants={itemVariants} className="rounded-xl border border-[var(--border)] p-5 glass-panel transition-all hover:border-[var(--cyan)]/30 relative overflow-hidden">
-                {isCurrent && <div className="absolute top-0 right-0 w-16 h-16 bg-[var(--cyan)]/10 rounded-bl-full" />}
+              <motion.div key={plan.id} variants={itemVariants} className="rounded-xl border border-[var(--fc-border)] p-5 glass-panel transition-all hover:border-[var(--fc-accent)]/30 relative overflow-hidden">
+                {isCurrent && <div className="absolute top-0 right-0 w-16 h-16 bg-[var(--fc-accent)]/10 rounded-bl-full" />}
                 <div className="mb-3 flex items-center justify-between relative z-10">
-                  <p className="text-lg font-black text-[var(--foreground)] tracking-tight">{plan.name}</p>
-                  {isCurrent && <span className="rounded-full bg-[var(--emerald)]/10 border border-[var(--emerald)]/20 px-2 py-1 text-[10px] font-bold text-[var(--emerald)] flex items-center gap-1"><CheckCircle2 size={12} /> PLAN ACTUAL</span>}
+                  <p className="text-lg font-black text-[var(--fc-text)] tracking-tight">{plan.name}</p>
+                  {isCurrent && <span className="rounded-full bg-[var(--fc-success)]/10 border border-[var(--fc-success)]/20 px-2 py-1 text-[10px] font-bold text-[var(--fc-success)] flex items-center gap-1"><CheckCircle2 size={12} /> PLAN ACTUAL</span>}
                 </div>
-                <p className="mb-6 text-[13px] text-[var(--text-secondary)] leading-relaxed h-10 relative z-10">{plan.description}</p>
+                <p className="mb-6 text-[13px] text-[var(--fc-text-secondary)] leading-relaxed h-10 relative z-10">{plan.description}</p>
                 <button 
                   disabled={busy !== null || isCurrent || status.hasBillingAccount} 
                   onClick={() => open("checkout", plan.id)} 
-                  className={`w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-xs font-bold transition-all relative z-10 ${isCurrent ? 'bg-[var(--surface-hover)] text-[var(--text-muted)] cursor-default' : 'bg-[var(--foreground)] text-[var(--background)] hover:bg-[var(--text-secondary)]'}`}
+                  className={`w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-xs font-bold transition-all relative z-10 ${isCurrent ? 'bg-[var(--surface-hover)] text-[var(--fc-text-muted)] cursor-default' : 'bg-[var(--fc-text)] text-[var(--fc-bg)] hover:bg-[var(--fc-text-secondary)]'}`}
                   style={{ opacity: busy !== null && busy !== plan.id ? 0.5 : 1 }}
                 >
                   {busy === plan.id ? <Loader2 size={14} className="animate-spin" /> : !isCurrent && <CreditCard size={14} />}
@@ -113,7 +113,7 @@ export function BillingManager() {
       )}
       <AnimatePresence>
         {error && (
-          <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="text-xs text-[var(--red)] m-0">
+          <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="text-xs text-[var(--fc-danger)] m-0">
             {error}
           </motion.p>
         )}

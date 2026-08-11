@@ -1,4 +1,4 @@
-ï»¿"use client";
+"use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -16,10 +16,10 @@ interface Notification {
 }
 
 const TYPE_ICONS: Record<string, { icon: typeof Bell; color: string }> = {
-  task_assigned: { icon: UserPlus, color: "var(--cyan)" },
-  sla_warning: { icon: Clock, color: "var(--amber)" },
-  sla_expired: { icon: AlertTriangle, color: "var(--red)" },
-  status_changed: { icon: Check, color: "var(--emerald)" },
+  task_assigned: { icon: UserPlus, color: "var(--fc-accent)" },
+  sla_warning: { icon: Clock, color: "var(--fc-warning)" },
+  sla_expired: { icon: AlertTriangle, color: "var(--fc-danger)" },
+  status_changed: { icon: Check, color: "var(--fc-success)" },
 };
 
 export function NotificationBell() {
@@ -43,7 +43,7 @@ export function NotificationBell() {
 
   // Poll every 30 seconds
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrÃ³n
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
@@ -61,7 +61,7 @@ export function NotificationBell() {
     if (unreadCount > 0 && typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
       const latest = notifications.find(n => !n.read);
       if (latest) {
-        const bNotif = new window.Notification(`FLOWCHART â€” ${latest.title}`, {
+        const bNotif = new window.Notification(`FLOWCHART — ${latest.title}`, {
           body: latest.message,
           icon: "/icon.svg",
           tag: latest.id,
@@ -123,7 +123,7 @@ export function NotificationBell() {
   };
 
   const timeAgo = (d: string) => {
-    // eslint-disable-next-line react-hooks/purity -- TODO: [React] Refactor de hooks anti-patrÃ³n
+    // eslint-disable-next-line react-hooks/purity -- TODO: [React] Refactor de hooks anti-patrón
     const mins = Math.floor((Date.now() - new Date(d).getTime()) / 60000);
     if (mins < 1) return "ahora";
     if (mins < 60) return `${mins}m`;
@@ -142,10 +142,10 @@ export function NotificationBell() {
         aria-expanded={open}
         style={{
           position: "relative", background: "none", border: "none", cursor: "pointer",
-          padding: 6, color: unreadCount > 0 ? "var(--cyan)" : "rgba(148,163,184,0.65)",
+          padding: 6, color: unreadCount > 0 ? "var(--fc-accent)" : "rgba(148,163,184,0.65)",
           transition: "color 0.2s",
         }}
-        onMouseEnter={e => e.currentTarget.style.color = "var(--cyan)"}
+        onMouseEnter={e => e.currentTarget.style.color = "var(--fc-accent)"}
         onMouseLeave={e => { if (unreadCount === 0) e.currentTarget.style.color = "rgba(148,163,184,0.65)"; }}
       >
         <Bell style={{ width: 18, height: 18 }} />
@@ -153,8 +153,8 @@ export function NotificationBell() {
         {unreadCount > 0 && (
           <span style={{
             position: "absolute", top: 0, right: 0, minWidth: 16, height: 16,
-            background: "var(--red)", borderRadius: 8, fontSize: 9, fontWeight: 700,
-            color: "var(--foreground)", display: "flex", alignItems: "center", justifyContent: "center",
+            background: "var(--fc-danger)", borderRadius: 8, fontSize: 9, fontWeight: 700,
+            color: "var(--fc-text)", display: "flex", alignItems: "center", justifyContent: "center",
             padding: "0 4px", boxShadow: "0 0 8px rgba(226,68,92,0.5)",
             animation: "status-pulse 2s infinite",
           }}>
@@ -163,7 +163,7 @@ export function NotificationBell() {
         )}
       </button>
 
-      {/* Portal-rendered notification panel â€” always on top */}
+      {/* Portal-rendered notification panel — always on top */}
       {open && typeof document !== "undefined" && createPortal(
         <div
           ref={panelRef}
@@ -176,7 +176,7 @@ export function NotificationBell() {
             width: 370,
             maxWidth: "calc(100vw - 24px)",
             maxHeight: "min(480px, calc(100vh - 80px))",
-            background: "var(--background)",
+            background: "var(--fc-bg)",
             border: "1px solid rgba(59,130,246,0.18)",
             borderRadius: 10,
             overflow: "hidden",
@@ -191,17 +191,17 @@ export function NotificationBell() {
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "14px 18px", borderBottom: "1px solid rgba(59,130,246,0.08)",
-            background: "var(--cyan-dim)", flexShrink: 0,
+            background: "var(--fc-accent-wash)", flexShrink: 0,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Bell style={{ width: 14, height: 14, color: "var(--cyan)" }} />
+              <Bell style={{ width: 14, height: 14, color: "var(--fc-accent)" }} />
               <span style={{
                 fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 700,
-                color: "var(--foreground)", letterSpacing: "0.1em",
+                color: "var(--fc-text)", letterSpacing: "0.1em",
               }}>NOTIFICACIONES</span>
               {unreadCount > 0 && (
                 <span style={{
-                  fontSize: 9, fontWeight: 700, color: "var(--foreground)", background: "var(--red)",
+                  fontSize: 9, fontWeight: 700, color: "var(--fc-text)", background: "var(--fc-danger)",
                   borderRadius: 8, padding: "1px 6px", minWidth: 16, textAlign: "center",
                 }}>{unreadCount}</span>
               )}
@@ -209,15 +209,15 @@ export function NotificationBell() {
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {unreadCount > 0 && (
                 <button onClick={markAllRead} disabled={loading} style={{
-                  fontSize: 10, color: "var(--cyan)", background: "none", border: "none",
+                  fontSize: 10, color: "var(--fc-accent)", background: "none", border: "none",
                   cursor: "pointer", opacity: loading ? 0.5 : 1, fontFamily: "inherit",
                   whiteSpace: "nowrap",
                 }}>
-                  Marcar todo leÃ­do
+                  Marcar todo leído
                 </button>
               )}
               <button onClick={() => setOpen(false)} aria-label="Cerrar notificaciones" style={{
-                background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)",
+                background: "none", border: "none", cursor: "pointer", color: "var(--fc-text-muted)",
                 padding: 2, display: "flex",
               }}>
                 <X style={{ width: 14, height: 14 }} />
@@ -230,7 +230,7 @@ export function NotificationBell() {
             {notifications.length === 0 ? (
               <div style={{ padding: "40px 16px", textAlign: "center" }}>
                 <Bell style={{ width: 28, height: 28, color: "rgba(100,116,139,0.4)", margin: "0 auto 10px" }} />
-                <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>Sin notificaciones</p>
+                <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", margin: 0 }}>Sin notificaciones</p>
               </div>
             ) : (
               notifications.slice(0, 20).map(n => {
@@ -256,10 +256,10 @@ export function NotificationBell() {
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 3 }}>
                         <span style={{
                           fontSize: 12, fontWeight: n.read ? 500 : 700,
-                          color: n.read ? "var(--text-secondary)" : "var(--foreground)",
+                          color: n.read ? "var(--fc-text-secondary)" : "var(--fc-text)",
                           lineHeight: 1.3,
                         }}>{n.title}</span>
-                        <span style={{ fontSize: 9, color: "var(--text-muted)", flexShrink: 0, marginTop: 2 }}>{timeAgo(n.createdAt)}</span>
+                        <span style={{ fontSize: 9, color: "var(--fc-text-muted)", flexShrink: 0, marginTop: 2 }}>{timeAgo(n.createdAt)}</span>
                       </div>
                       <p style={{
                         fontSize: 11, color: n.read ? "rgba(148,163,184,0.5)" : "rgba(148,163,184,0.8)",
@@ -267,7 +267,7 @@ export function NotificationBell() {
                         WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
                       }}>{n.message}</p>
                     </div>
-                    {!n.read && <div style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--cyan)", flexShrink: 0, alignSelf: "center", boxShadow: "0 0 8px rgba(59,130,246,0.5)" }} />}
+                    {!n.read && <div style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--fc-accent)", flexShrink: 0, alignSelf: "center", boxShadow: "0 0 8px rgba(59,130,246,0.5)" }} />}
                   </div>
                 );
               })

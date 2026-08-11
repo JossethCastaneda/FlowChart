@@ -40,7 +40,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
     || findActionValue(ins.actions, "purchase")
     || findActionValue(ins.actions, "link_click");
   const objInfo = OBJECTIVE_MAP[item.objective] || null;
-  const swStatus = SW_STATUS[item.effective_status || item.status] || SW_STATUS[item.status] || { label: item.status, color: "var(--text-muted)" };
+  const swStatus = SW_STATUS[item.effective_status || item.status] || SW_STATUS[item.status] || { label: item.status, color: "var(--fc-text-muted)" };
   const isActive = item.status === "ACTIVE";
   const advPlus = isAdvantagePlus(item);
   const learningMapped = LEARNING_PHASE_MAP[item.learning_phase_info?.status || ""] || null;
@@ -104,11 +104,11 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
   };
 
   const chartColors: Record<ChartMetric, string> = {
-    spend: "var(--cyan)",
-    results: "var(--emerald)",
-    roas: "var(--amber)",
-    impressions: "var(--purple)",
-    clicks: "var(--cyan)",
+    spend: "var(--fc-accent)",
+    results: "var(--fc-success)",
+    roas: "var(--fc-warning)",
+    impressions: "var(--fc-module-aria)",
+    clicks: "var(--fc-accent)",
     ctr: "#bc5fb2",
   };
 
@@ -137,7 +137,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
         style={{
           position: "fixed", top: 0, right: 0, bottom: 0,
           width: "440px", maxWidth: "100vw", zIndex: 90,
-          background: "var(--surface)", 
+          background: "var(--fc-surface)", 
           borderLeft: "1px solid rgba(59,130,246,0.12)",
           display: "flex", flexDirection: "column",
           animation: "slideInRight 0.25s ease-out",
@@ -146,12 +146,12 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
       >
         {/* -- Header -- */}
         <div style={{
-          padding: "20px", borderBottom: "1px solid var(--border)",
-          background: "var(--surface)",
+          padding: "20px", borderBottom: "1px solid var(--fc-border)",
+          background: "var(--fc-surface)",
         }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--foreground)", marginBottom: "6px", lineHeight: "1.3" }}>
+              <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--fc-text)", marginBottom: "6px", lineHeight: "1.3" }}>
                 {item.name}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
@@ -174,7 +174,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                 {advPlus && (
                   <span style={{
                     fontSize: "8px", fontWeight: 700, padding: "2px 6px", borderRadius: 4,
-                    background: "var(--surface)", color: "var(--purple)",
+                    background: "var(--fc-surface)", color: "var(--fc-module-aria)",
                   }}>
                     ? ADV+
                   </span>
@@ -188,7 +188,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                   </span>
                 )}
               </div>
-              <div style={{ fontSize: "9px", color: "var(--text-muted)", marginTop: "6px" }}>
+              <div style={{ fontSize: "9px", color: "var(--fc-text-muted)", marginTop: "6px" }}>
                 ID: {item.id}
               </div>
             </div>
@@ -196,12 +196,12 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
               onClick={onClose}
               style={{
                 background: "var(--surface-hover)", border: "1px solid var(--hairline)",
-                borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer",
+                borderRadius: "6px", color: "var(--fc-text-secondary)", cursor: "pointer",
                 width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center",
                 transition: "all 0.15s",
               }}
               onMouseEnter={e => { e.currentTarget.style.color = "white"; e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
-              onMouseLeave={e => { e.currentTarget.style.color = "var(--text-secondary)"; e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "var(--fc-text-secondary)"; e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
             >
               <X className="w-4 h-4" />
             </button>
@@ -217,7 +217,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                 fontSize: "10px", fontWeight: 600, borderRadius: "5px", cursor: "pointer",
                 background: isActive ? "rgba(251,191,36,0.1)" : "rgba(52,211,153,0.1)",
                 border: `1px solid ${isActive ? "rgba(251,191,36,0.25)" : "rgba(52,211,153,0.25)"}`,
-                color: isActive ? "var(--amber)" : "var(--emerald)",
+                color: isActive ? "var(--fc-warning)" : "var(--fc-success)",
               }}
             >
               {isActive ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
@@ -228,8 +228,8 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
               style={{
                 display: "flex", alignItems: "center", gap: "4px", padding: "5px 10px",
                 fontSize: "10px", fontWeight: 600, borderRadius: "5px", cursor: "pointer",
-                background: "var(--surface)", border: "1px solid rgba(0,129,251,0.25)",
-                color: "var(--cyan)",
+                background: "var(--fc-surface)", border: "1px solid rgba(0,129,251,0.25)",
+                color: "var(--fc-accent)",
               }}
             >
               <Pencil className="w-3 h-3" /> Editar
@@ -242,7 +242,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                 display: "flex", alignItems: "center", gap: "4px", padding: "5px 10px",
                 fontSize: "10px", fontWeight: 600, borderRadius: "5px", cursor: "pointer",
                 background: "var(--row-hover)", border: "1px solid var(--hairline)",
-                color: "var(--text-secondary)", textDecoration: "none",
+                color: "var(--fc-text-secondary)", textDecoration: "none",
               }}
             >
               <ExternalLink className="w-3 h-3" /> Meta
@@ -255,9 +255,9 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
           {/* KPIs Grid */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "20px" }}>
             {[
-              { label: "Gasto Total", value: fmt$(ins.spend || 0), color: "var(--cyan)", icon: "??" },
-              { label: "ROAS", value: roas > 0 ? fmtROAS(roas) : "—", color: roas >= 3 ? "var(--emerald)" : roas >= 1 ? "var(--amber)" : "var(--red)", icon: "??" },
-              { label: "Resultados", value: fmtNum(resultsCount), color: "var(--purple)", icon: "??" },
+              { label: "Gasto Total", value: fmt$(ins.spend || 0), color: "var(--fc-accent)", icon: "??" },
+              { label: "ROAS", value: roas > 0 ? fmtROAS(roas) : "—", color: roas >= 3 ? "var(--fc-success)" : roas >= 1 ? "var(--fc-warning)" : "var(--fc-danger)", icon: "??" },
+              { label: "Resultados", value: fmtNum(resultsCount), color: "var(--fc-module-aria)", icon: "??" },
               { label: cpa.label, value: cpa.value > 0 ? fmt$(cpa.value) : "—", color: "#bc5fb2", icon: "??" },
             ].map((kpi, i) => (
               <div key={i} style={{
@@ -265,7 +265,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                 background: "var(--surface-hover)",
                 border: "1px solid var(--hairline)",
               }}>
-                <div style={{ fontSize: "9px", color: "var(--text-muted)", marginBottom: "6px", letterSpacing: "0.05em", fontWeight: 600 }}>
+                <div style={{ fontSize: "9px", color: "var(--fc-text-muted)", marginBottom: "6px", letterSpacing: "0.05em", fontWeight: 600 }}>
                   {kpi.icon} {kpi.label}
                 </div>
                 <div style={{ fontSize: "20px", fontWeight: 800, color: kpi.color, letterSpacing: "-0.02em" }}>
@@ -293,10 +293,10 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                 border: "1px solid var(--hairline)",
                 textAlign: "center",
               }}>
-                <div style={{ fontSize: "8px", color: "var(--text-muted)", marginBottom: "3px", fontWeight: 600, letterSpacing: "0.04em" }}>
+                <div style={{ fontSize: "8px", color: "var(--fc-text-muted)", marginBottom: "3px", fontWeight: 600, letterSpacing: "0.04em" }}>
                   {m.label}
                 </div>
-                <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)" }}>
+                <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--fc-text-secondary)" }}>
                   {m.value}
                 </div>
               </div>
@@ -325,7 +325,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                     borderRadius: "4px", cursor: "pointer",
                     background: breakdownTab === tab.key ? "rgba(59,130,246,0.1)" : "transparent",
                     border: `1px solid ${breakdownTab === tab.key ? "rgba(59,130,246,0.2)" : "transparent"}`,
-                    color: breakdownTab === tab.key ? "var(--cyan)" : "var(--text-muted)",
+                    color: breakdownTab === tab.key ? "var(--fc-accent)" : "var(--fc-text-muted)",
                     transition: "all 0.15s",
                   }}
                 >
@@ -347,7 +347,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                         borderRadius: "10px", cursor: "pointer",
                         background: chartMetric === mb.key ? `${chartColors[mb.key]}20` : "transparent",
                         border: `1px solid ${chartMetric === mb.key ? `${chartColors[mb.key]}40` : "rgba(148,163,184,0.18)"}`,
-                        color: chartMetric === mb.key ? chartColors[mb.key] : "var(--text-muted)",
+                        color: chartMetric === mb.key ? chartColors[mb.key] : "var(--fc-text-muted)",
                         transition: "all 0.15s",
                       }}
                     >
@@ -357,7 +357,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                 </div>
 
                 {loadingDaily ? (
-                  <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", fontSize: "11px" }}>
+                  <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fc-text-muted)", fontSize: "11px" }}>
                     Cargando datos de tendencia...
                   </div>
                 ) : dailyData.length > 0 ? (
@@ -366,21 +366,21 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                       <CartesianGrid stroke="rgba(255,255,255,0.09)" strokeDasharray="3 3" />
                       <XAxis
                         dataKey="date"
-                        tick={{ fontSize: 8, fill: "var(--text-muted)" }}
+                        tick={{ fontSize: 8, fill: "var(--fc-text-muted)" }}
                         axisLine={false}
                         tickLine={false}
                         interval="preserveStartEnd"
                       />
                       <YAxis
-                        tick={{ fontSize: 8, fill: "var(--text-muted)" }}
+                        tick={{ fontSize: 8, fill: "var(--fc-text-muted)" }}
                         axisLine={false}
                         tickLine={false}
                         width={40}
                       />
                       <Tooltip
                         contentStyle={{
-                          background: "var(--surface)", border: "1px solid rgba(59,130,246,0.15)",
-                          borderRadius: "6px", fontSize: "10px", color: "var(--foreground)",
+                          background: "var(--fc-surface)", border: "1px solid rgba(59,130,246,0.15)",
+                          borderRadius: "6px", fontSize: "10px", color: "var(--fc-text)",
                         }}
                       />
                       <Line
@@ -394,7 +394,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                     </LineChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", fontSize: "11px" }}>
+                  <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fc-text-muted)", fontSize: "11px" }}>
                     Sin datos de tendencia para este período
                   </div>
                 )}
@@ -404,7 +404,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
             {breakdownTab !== "time" && (
               <>
                 {loadingBreakdown ? (
-                  <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", fontSize: "11px" }}>
+                  <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fc-text-muted)", fontSize: "11px" }}>
                     Cargando breakdown...
                   </div>
                 ) : breakdownData.length > 0 ? (
@@ -412,10 +412,10 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "10px" }}>
                       <thead>
                         <tr style={{ border: "1px solid var(--hairline)" }}>
-                          <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--text-muted)", fontWeight: 700 }}>Segmento</th>
-                          <th style={{ padding: "6px 8px", textAlign: "right", color: "var(--text-muted)", fontWeight: 700 }}>Gasto</th>
-                          <th style={{ padding: "6px 8px", textAlign: "right", color: "var(--text-muted)", fontWeight: 700 }}>Clics</th>
-                          <th style={{ padding: "6px 8px", textAlign: "right", color: "var(--text-muted)", fontWeight: 700 }}>CTR</th>
+                          <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--fc-text-muted)", fontWeight: 700 }}>Segmento</th>
+                          <th style={{ padding: "6px 8px", textAlign: "right", color: "var(--fc-text-muted)", fontWeight: 700 }}>Gasto</th>
+                          <th style={{ padding: "6px 8px", textAlign: "right", color: "var(--fc-text-muted)", fontWeight: 700 }}>Clics</th>
+                          <th style={{ padding: "6px 8px", textAlign: "right", color: "var(--fc-text-muted)", fontWeight: 700 }}>CTR</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -427,10 +427,10 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                             : row.impression_device || "?";
                           return (
                             <tr key={idx} style={{ border: "1px solid var(--hairline)" }}>
-                              <td style={{ padding: "6px 8px", color: "var(--text-secondary)" }}>{segLabel}</td>
-                              <td style={{ padding: "6px 8px", textAlign: "right", color: "var(--cyan)" }}>{fmt$(row.spend)}</td>
-                              <td style={{ padding: "6px 8px", textAlign: "right", color: "var(--text-secondary)" }}>{fmtNum(row.clicks)}</td>
-                              <td style={{ padding: "6px 8px", textAlign: "right", color: "var(--text-secondary)" }}>{fmtPct(row.ctr)}</td>
+                              <td style={{ padding: "6px 8px", color: "var(--fc-text-secondary)" }}>{segLabel}</td>
+                              <td style={{ padding: "6px 8px", textAlign: "right", color: "var(--fc-accent)" }}>{fmt$(row.spend)}</td>
+                              <td style={{ padding: "6px 8px", textAlign: "right", color: "var(--fc-text-secondary)" }}>{fmtNum(row.clicks)}</td>
+                              <td style={{ padding: "6px 8px", textAlign: "right", color: "var(--fc-text-secondary)" }}>{fmtPct(row.ctr)}</td>
                             </tr>
                           );
                         })}
@@ -438,7 +438,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                     </table>
                   </div>
                 ) : (
-                  <div style={{ height: 120, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", fontSize: "11px" }}>
+                  <div style={{ height: 120, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fc-text-muted)", fontSize: "11px" }}>
                     Sin datos de breakdown disponibles
                   </div>
                 )}

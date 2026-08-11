@@ -7,8 +7,8 @@ export default function CondicionesDelServicio() {
   return (
     <div style={{
       minHeight: "100vh",
-      background: "linear-gradient(135deg, var(--background) 0%, var(--background) 100%)",
-      color: "var(--foreground)",
+      background: "linear-gradient(135deg, var(--fc-bg) 0%, var(--fc-bg) 100%)",
+      color: "var(--fc-text)",
       fontFamily: "Inter, system-ui, sans-serif",
       padding: "80px 20px 40px",
       display: "flex",
@@ -18,7 +18,7 @@ export default function CondicionesDelServicio() {
       <div style={{
         maxWidth: "800px",
         width: "100%",
-        background: "var(--surface)",
+        background: "var(--fc-surface)",
         border: "1px solid var(--hairline)",
         borderRadius: "16px",
         padding: "40px",
@@ -26,18 +26,18 @@ export default function CondicionesDelServicio() {
         
       }}>
         {/* Header */}
-        <div style={{ border: "1px solid var(--border)", paddingBottom: "24px", marginBottom: "32px" }}>
+        <div style={{ border: "1px solid var(--fc-border)", paddingBottom: "24px", marginBottom: "32px" }}>
           <h1 style={{
             fontFamily: "var(--font-display)",
             fontSize: "28px",
             fontWeight: 700,
-            color: "var(--foreground)",
+            color: "var(--fc-text)",
             letterSpacing: "0.05em",
             marginBottom: "8px",
           }}>
             Condiciones del Servicio
           </h1>
-          <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>
+          <p style={{ fontSize: "14px", color: "var(--fc-text-secondary)" }}>
             Última actualización: 2 de junio de 2026
           </p>
         </div>
@@ -51,7 +51,7 @@ export default function CondicionesDelServicio() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: "18px", color: "var(--foreground)", fontWeight: 600, marginBottom: "12px" }}>
+            <h2 style={{ fontSize: "18px", color: "var(--fc-text)", fontWeight: 600, marginBottom: "12px" }}>
               1. Aceptación de los Términos
             </h2>
             <p>
@@ -60,7 +60,7 @@ export default function CondicionesDelServicio() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: "18px", color: "var(--foreground)", fontWeight: 600, marginBottom: "12px" }}>
+            <h2 style={{ fontSize: "18px", color: "var(--fc-text)", fontWeight: 600, marginBottom: "12px" }}>
               2. Descripción del Servicio
             </h2>
             <p>
@@ -69,7 +69,7 @@ export default function CondicionesDelServicio() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: "18px", color: "var(--foreground)", fontWeight: 600, marginBottom: "12px" }}>
+            <h2 style={{ fontSize: "18px", color: "var(--fc-text)", fontWeight: 600, marginBottom: "12px" }}>
               3. Integración con Meta (Facebook) API
             </h2>
             <p style={{ marginBottom: "8px" }}>
@@ -83,7 +83,7 @@ export default function CondicionesDelServicio() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: "18px", color: "var(--foreground)", fontWeight: 600, marginBottom: "12px" }}>
+            <h2 style={{ fontSize: "18px", color: "var(--fc-text)", fontWeight: 600, marginBottom: "12px" }}>
               4. Responsabilidades del Usuario
             </h2>
             <p>
@@ -92,7 +92,7 @@ export default function CondicionesDelServicio() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: "18px", color: "var(--foreground)", fontWeight: 600, marginBottom: "12px" }}>
+            <h2 style={{ fontSize: "18px", color: "var(--fc-text)", fontWeight: 600, marginBottom: "12px" }}>
               5. Limitación de Responsabilidad
             </h2>
             <p>
@@ -101,7 +101,7 @@ export default function CondicionesDelServicio() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: "18px", color: "var(--foreground)", fontWeight: 600, marginBottom: "12px" }}>
+            <h2 style={{ fontSize: "18px", color: "var(--fc-text)", fontWeight: 600, marginBottom: "12px" }}>
               6. Modificaciones de los Términos
             </h2>
             <p>
@@ -110,12 +110,12 @@ export default function CondicionesDelServicio() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: "18px", color: "var(--foreground)", fontWeight: 600, marginBottom: "12px" }}>
+            <h2 style={{ fontSize: "18px", color: "var(--fc-text)", fontWeight: 600, marginBottom: "12px" }}>
               7. Contacto y Soporte
             </h2>
             <p>
               Si tienes alguna pregunta acerca de estas Condiciones del Servicio, puedes contactarnos a través de:{" "}
-              <a href="mailto:soporte@flowchart.lat" style={{ color: "var(--cyan)", textDecoration: "none" }}>
+              <a href="mailto:soporte@flowchart.lat" style={{ color: "var(--fc-accent)", textDecoration: "none" }}>
                 soporte@flowchart.lat
               </a>
             </p>
@@ -123,14 +123,14 @@ export default function CondicionesDelServicio() {
         </div>
 
         {/* Footer */}
-        <div style={{ marginTop: "40px", paddingTop: "24px", border: "1px solid var(--border)", textAlign: "center" }}>
+        <div style={{ marginTop: "40px", paddingTop: "24px", border: "1px solid var(--fc-border)", textAlign: "center" }}>
           <Link href="/" style={{
             display: "inline-block",
             padding: "10px 24px",
             background: "var(--surface-hover)",
-            border: "1px solid var(--border)",
+            border: "1px solid var(--fc-border)",
             borderRadius: "8px",
-            color: "var(--foreground)",
+            color: "var(--fc-text)",
             fontSize: "14px",
             textDecoration: "none",
             transition: "all 0.2s ease",

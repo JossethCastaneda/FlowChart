@@ -46,7 +46,7 @@ export function GanttView({ tasks, onEditTask }: { tasks: Task[]; onEditTask: (t
         
         {/* Left Column (Task List) */}
         <div style={{ width: 300, borderRight: "1px solid var(--fc-border)", flexShrink: 0 }}>
-          <div style={{ height: 40, borderBottom: "1px solid var(--fc-border)", padding: "0 16px", display: "flex", alignItems: "center", fontSize: 11, fontWeight: 700, color: "var(--fc-text-secondary)", background: "var(--fc-surface-hover)" }}>
+          <div style={{ height: 40, borderBottom: "1px solid var(--fc-border)", padding: "0 16px", display: "flex", alignItems: "center", fontSize: 11, fontWeight: 700, color: "var(--fc-text-secondary)", background: "var(--surface-hover)" }}>
             {lang === "es" ? "Tarea" : "Task"}
           </div>
           {taskTimeline.map(({ task }) => (
@@ -58,7 +58,7 @@ export function GanttView({ tasks, onEditTask }: { tasks: Task[]; onEditTask: (t
                 display: "flex", alignItems: "center", fontSize: 12, color: "var(--fc-text)",
                 cursor: "pointer", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis"
               }}
-              onMouseEnter={e => e.currentTarget.style.background = "var(--fc-surface-hover)"}
+              onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
               onMouseLeave={e => e.currentTarget.style.background = "transparent"}
             >
               {task.title}
@@ -68,14 +68,14 @@ export function GanttView({ tasks, onEditTask }: { tasks: Task[]; onEditTask: (t
 
         {/* Right Column (Timeline Grid) */}
         <div style={{ flex: 1, position: "relative" }}>
-          <div style={{ display: "flex", height: 40, borderBottom: "1px solid var(--fc-border)", background: "var(--fc-surface-hover)" }}>
+          <div style={{ display: "flex", height: 40, borderBottom: "1px solid var(--fc-border)", background: "var(--surface-hover)" }}>
             {days.map((d, i) => {
               const isToday = d.toDateString() === new Date().toDateString();
               return (
                 <div key={i} style={{
                   width: DAY_WIDTH, flexShrink: 0, borderRight: "1px solid var(--fc-border)",
                   display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                  background: isToday ? "rgba(0, 212, 255, 0.1)" : "transparent"
+                  background: isToday ? "var(--fc-accent-wash)" : "transparent"
                 }}>
                   <span style={{ fontSize: 9, color: "var(--fc-text-muted)" }}>{d.toLocaleDateString(lang === "es" ? "es-MX" : "en-US", { weekday: "short" })}</span>
                   <span style={{ fontSize: 11, fontWeight: isToday ? 700 : 500, color: isToday ? "var(--fc-accent)" : "var(--fc-text)" }}>{d.getDate()}</span>

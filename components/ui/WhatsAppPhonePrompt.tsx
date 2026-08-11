@@ -211,10 +211,10 @@ export function WhatsAppPhonePrompt() {
                 </svg>
               </div>
               <div>
-                <p style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", margin: 0, lineHeight: 1.3 }}>
+                <p style={{ fontSize: 16, fontWeight: 700, color: "var(--fc-text)", margin: 0, lineHeight: 1.3 }}>
                   Activa notificaciones por WhatsApp
                 </p>
-                <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, marginTop: 3 }}>
+                <p style={{ fontSize: 12, color: "var(--fc-text-muted)", margin: 0, marginTop: 3 }}>
                   Recibe alertas de tareas directamente en tu WhatsApp
                 </p>
               </div>
@@ -223,7 +223,7 @@ export function WhatsAppPhonePrompt() {
             {/* Benefits */}
             <div
               style={{
-                background: "var(--emerald-dim)",
+                background: "var(--fc-success-wash)",
                 border: "1px solid rgba(37,211,102,0.1)",
                 borderRadius: 12,
                 padding: "12px 14px",
@@ -241,7 +241,7 @@ export function WhatsAppPhonePrompt() {
               ].map(({ icon: Icon, text }) => (
                 <div key={text} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <Icon size={13} style={{ color: "#25D366", flexShrink: 0 }} />
-                  <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{text}</span>
+                  <span style={{ fontSize: 12, color: "var(--fc-text-secondary)" }}>{text}</span>
                 </div>
               ))}
             </div>
@@ -256,7 +256,7 @@ export function WhatsAppPhonePrompt() {
                   gap: 10,
                   padding: "16px",
                   borderRadius: 10,
-                  background: "var(--emerald-dim)",
+                  background: "var(--fc-success-wash)",
                   border: "1px solid rgba(37,211,102,0.25)",
                 }}
               >
@@ -269,7 +269,7 @@ export function WhatsAppPhonePrompt() {
               <>
                 <label
                   htmlFor="wa-phone-input"
-                  style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginBottom: 6 }}
+                  style={{ fontSize: 11, color: "var(--fc-text-muted)", display: "block", marginBottom: 6 }}
                 >
                   Tu número de WhatsApp (con código de país, sin +)
                 </label>
@@ -308,7 +308,7 @@ export function WhatsAppPhonePrompt() {
                         borderRadius: 10,
                         background: "var(--surface-hover)",
                         border: `1px solid ${error ? "rgba(229,72,77,0.5)" : "rgba(37,211,102,0.2)"}`,
-                        color: "var(--foreground)",
+                        color: "var(--fc-text)",
                         fontSize: 14,
                         outline: "none",
                         fontFamily: "inherit",
@@ -333,7 +333,7 @@ export function WhatsAppPhonePrompt() {
                         ? "rgba(37,211,102,0.3)"
                         : "linear-gradient(135deg, #25D366, #128C7E)",
                       border: "none",
-                      color: "var(--foreground)",
+                      color: "var(--fc-text)",
                       fontSize: 13,
                       fontWeight: 700,
                       cursor: saving || !phone.trim() ? "not-allowed" : "pointer",
@@ -351,7 +351,7 @@ export function WhatsAppPhonePrompt() {
                           width: 14,
                           height: 14,
                           border: "2px solid rgba(255,255,255,0.4)",
-                          borderTopColor: "var(--foreground)",
+                          borderTopColor: "var(--fc-text)",
                           borderRadius: "50%",
                           animation: "spin 0.7s linear infinite",
                           display: "inline-block",

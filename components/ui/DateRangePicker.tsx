@@ -285,12 +285,12 @@ export default function DateRangePicker({
         style={{
           display: "flex", alignItems: "center", gap: "8px",
           background: showDatePicker ? "rgba(59,130,246,0.08)" : "rgba(10,15,30,0.6)",
-          border: showDatePicker ? "1px solid rgba(59,130,246,0.3)" : "1px solid var(--border)",
-          padding: "7px 14px", borderRadius: "8px", fontSize: "12px", color: "var(--foreground)",
+          border: showDatePicker ? "1px solid rgba(59,130,246,0.3)" : "1px solid var(--fc-border)",
+          padding: "7px 14px", borderRadius: "8px", fontSize: "12px", color: "var(--fc-text)",
           cursor: "pointer", transition: "all 0.2s", whiteSpace: "nowrap", fontWeight: 500
         }}
       >
-        <Calendar className="w-3.5 h-3.5" style={{ color: "var(--cyan)" }} />
+        <Calendar className="w-3.5 h-3.5" style={{ color: "var(--fc-accent)" }} />
         <span>{buttonLabel}</span>
         <ChevronRight
           className="w-3 h-3"
@@ -320,7 +320,7 @@ export default function DateRangePicker({
                       width: "100%", textAlign: "left", padding: "8px 14px",
                       fontSize: "12px", border: "none", cursor: "pointer",
                       background: active ? "rgba(59,130,246,0.06)" : "transparent",
-                      color: active ? "var(--cyan)" : "rgba(255,255,255,0.7)",
+                      color: active ? "var(--fc-accent)" : "rgba(255,255,255,0.7)",
                       fontWeight: active ? 600 : 400,
                       transition: "all 0.15s"
                     }}
@@ -328,14 +328,14 @@ export default function DateRangePicker({
                     {/* Radio button */}
                     <div style={{
                       width: "14px", height: "14px", borderRadius: "50%",
-                      border: active ? "2px solid var(--cyan)" : "2px solid rgba(148,163,184,0.65)",
+                      border: active ? "2px solid var(--fc-accent)" : "2px solid rgba(148,163,184,0.65)",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       flexShrink: 0, transition: "all 0.15s"
                     }}>
                       {active && (
                         <div style={{
                           width: "7px", height: "7px", borderRadius: "50%",
-                          background: "var(--cyan)"
+                          background: "var(--fc-accent)"
                         }} />
                       )}
                     </div>
@@ -352,8 +352,8 @@ export default function DateRangePicker({
                 <button
                   onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1))}
                   style={{
-                    background: "none", border: "1px solid var(--border)", borderRadius: "6px",
-                    padding: "4px", cursor: "pointer", color: "var(--text-secondary)", display: "flex",
+                    background: "none", border: "1px solid var(--fc-border)", borderRadius: "6px",
+                    padding: "4px", cursor: "pointer", color: "var(--fc-text-secondary)", display: "flex",
                     transition: "all 0.15s"
                   }}
                 >
@@ -372,8 +372,8 @@ export default function DateRangePicker({
                 <button
                   onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1))}
                   style={{
-                    background: "none", border: "1px solid var(--border)", borderRadius: "6px",
-                    padding: "4px", cursor: "pointer", color: "var(--text-secondary)", display: "flex",
+                    background: "none", border: "1px solid var(--fc-border)", borderRadius: "6px",
+                    padding: "4px", cursor: "pointer", color: "var(--fc-text-secondary)", display: "flex",
                     transition: "all 0.15s"
                   }}
                 >
@@ -415,21 +415,21 @@ export default function DateRangePicker({
               <div style={{
                 display: "flex", alignItems: "center", gap: "12px",
                 marginTop: "16px", paddingTop: "12px",
-                border: "1px solid var(--border-neutral)"
+                border: "1px solid var(--fc-border-subtle)"
               }}>
                 <div style={{
                   display: "flex", alignItems: "center", gap: "8px",
-                  background: "var(--surface)", border: "1px solid var(--border)",
-                  borderRadius: "6px", padding: "6px 12px", fontSize: "11px", color: "var(--text-secondary)",
+                  background: "var(--fc-surface)", border: "1px solid var(--fc-border)",
+                  borderRadius: "6px", padding: "6px 12px", fontSize: "11px", color: "var(--fc-text-secondary)",
                   flex: 1
                 }}>
                   {selStart ? fmtDisplay(selStart) : "Fecha inicio"}
                 </div>
-                <span style={{ color: "var(--text-muted)", fontSize: "11px" }}>–</span>
+                <span style={{ color: "var(--fc-text-muted)", fontSize: "11px" }}>–</span>
                 <div style={{
                   display: "flex", alignItems: "center", gap: "8px",
-                  background: "var(--surface)", border: "1px solid var(--border)",
-                  borderRadius: "6px", padding: "6px 12px", fontSize: "11px", color: "var(--text-secondary)",
+                  background: "var(--fc-surface)", border: "1px solid var(--fc-border)",
+                  borderRadius: "6px", padding: "6px 12px", fontSize: "11px", color: "var(--fc-text-secondary)",
                   flex: 1
                 }}>
                   {selEnd ? fmtDisplay(selEnd) : "Fecha fin"}
@@ -442,10 +442,10 @@ export default function DateRangePicker({
           <div style={{
             display: "flex", justifyContent: "space-between", alignItems: "center",
             padding: "12px 20px",
-            border: "1px solid var(--border-neutral)",
-            background: "var(--surface)"
+            border: "1px solid var(--fc-border-subtle)",
+            background: "var(--fc-surface)"
           }}>
-            <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>
+            <span style={{ fontSize: "10px", color: "var(--fc-text-muted)" }}>
               Las fechas se muestran en la Hora de Ciudad de México (Centro)
             </span>
             <div style={{ display: "flex", gap: "8px" }}>
@@ -453,8 +453,8 @@ export default function DateRangePicker({
                 onClick={handleCancel}
                 style={{
                   padding: "7px 20px", fontSize: "12px", fontWeight: 500, borderRadius: "6px",
-                  background: "transparent", border: "1px solid var(--border)",
-                  color: "var(--text-secondary)", cursor: "pointer", transition: "all 0.15s"
+                  background: "transparent", border: "1px solid var(--fc-border)",
+                  color: "var(--fc-text-secondary)", cursor: "pointer", transition: "all 0.15s"
                 }}
               >
                 Cancelar
@@ -464,8 +464,8 @@ export default function DateRangePicker({
                 disabled={pendingPreset === "custom" && (!selStart || !selEnd)}
                 style={{
                   padding: "7px 20px", fontSize: "12px", fontWeight: 600, borderRadius: "6px",
-                  background: (pendingPreset !== "custom" || (selStart && selEnd)) ? "var(--cyan)" : "rgba(148,163,184,0.22)",
-                  color: (pendingPreset !== "custom" || (selStart && selEnd)) ? "var(--background)" : "rgba(148,163,184,0.65)",
+                  background: (pendingPreset !== "custom" || (selStart && selEnd)) ? "var(--fc-accent)" : "rgba(148,163,184,0.22)",
+                  color: (pendingPreset !== "custom" || (selStart && selEnd)) ? "var(--fc-bg)" : "rgba(148,163,184,0.65)",
                   border: "none", cursor: (pendingPreset !== "custom" || (selStart && selEnd)) ? "pointer" : "default",
                   transition: "all 0.15s", letterSpacing: "0.02em"
                 }}
@@ -516,7 +516,7 @@ function MonthGrid({
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "0" }}>
         {DAY_LABELS.map(d => (
           <div key={d} style={{
-            textAlign: "center", fontSize: "10px", color: "var(--text-muted)",
+            textAlign: "center", fontSize: "10px", color: "var(--fc-text-muted)",
             padding: "0 0 8px 0", fontWeight: 600
           }}>
             {d}
@@ -553,9 +553,9 @@ function MonthGrid({
                 style={{
                   width: "28px", height: "28px", fontSize: "12px",
                   borderRadius: "6px", cursor: isFuture ? "default" : "pointer",
-                  border: isToday && !isEdge ? "1px solid var(--cyan)" : "1px solid transparent",
-                  background: isEdge ? "var(--cyan)" : "transparent",
-                  color: isFuture ? "rgba(148,163,184,0.22)" : isEdge ? "var(--background)" : isToday ? "var(--cyan)" : inRange ? "var(--cyan)" : "rgba(255,255,255,0.8)",
+                  border: isToday && !isEdge ? "1px solid var(--fc-accent)" : "1px solid transparent",
+                  background: isEdge ? "var(--fc-accent)" : "transparent",
+                  color: isFuture ? "rgba(148,163,184,0.22)" : isEdge ? "var(--fc-bg)" : isToday ? "var(--fc-accent)" : inRange ? "var(--fc-accent)" : "rgba(255,255,255,0.8)",
                   fontWeight: isEdge || isToday ? 700 : 400,
                   transition: "all 0.1s", display: "flex", alignItems: "center", justifyContent: "center",
                   padding: 0

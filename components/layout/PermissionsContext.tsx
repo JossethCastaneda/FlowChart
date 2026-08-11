@@ -84,8 +84,8 @@ export function AdminGuard({
     if (fallback !== undefined) return <>{fallback}</>;
     return (
       <div style={{ padding: 40, textAlign: "center" }}>
-        <h2 style={{ fontSize: 20, color: "var(--foreground)", marginBottom: 10 }}>Acceso denegado</h2>
-        <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>Esta sección es exclusiva para administradores del Workspace.</p>
+        <h2 style={{ fontSize: 20, color: "var(--fc-text)", marginBottom: 10 }}>Acceso denegado</h2>
+        <p style={{ color: "var(--fc-text-secondary)", fontSize: 14 }}>Esta sección es exclusiva para administradores del Workspace.</p>
       </div>
     );
   }

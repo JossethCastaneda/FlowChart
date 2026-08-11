@@ -32,7 +32,7 @@ export const settingsItemVariants: import("framer-motion").Variants = {
 };
 
 export const inputClass =
-  "w-full bg-[var(--surface-hover)] border border-white/5 text-[var(--foreground)] text-[13px] rounded-lg px-3 py-2.5 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] disabled:opacity-60 disabled:cursor-not-allowed";
+  "w-full bg-[var(--surface-hover)] border border-white/5 text-[var(--fc-text)] text-[13px] rounded-lg px-3 py-2.5 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] disabled:opacity-60 disabled:cursor-not-allowed";
 
 // ── Contenedor de página ────────────────────────────────────────────────────
 
@@ -111,7 +111,7 @@ export function SettingsCard({
               {description && (
                 <p
                   className={`text-xs mt-1 leading-relaxed max-w-2xl ${
-                    danger ? "text-red-400/80" : "text-[var(--text-muted)]"
+                    danger ? "text-red-400/80" : "text-[var(--fc-text-muted)]"
                   }`}
                 >
                   {description}
@@ -158,12 +158,12 @@ export function SettingsRow({
       <div className="min-w-0 sm:pr-4">
         <label
           htmlFor={htmlFor}
-          className="text-[13px] font-medium text-[var(--foreground)] block"
+          className="text-[13px] font-medium text-[var(--fc-text)] block"
         >
           {label}
         </label>
         {description && (
-          <div className="text-xs text-[var(--text-muted)] mt-1 leading-relaxed max-w-xl">
+          <div className="text-xs text-[var(--fc-text-muted)] mt-1 leading-relaxed max-w-xl">
             {description}
           </div>
         )}
@@ -201,7 +201,7 @@ export function Toggle({
       aria-label={label}
       disabled={disabled}
       onClick={() => !disabled && onChange(!checked)}
-      className={`relative flex items-center shrink-0 ${track} rounded-full transition-colors duration-300 ease-in-out p-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cyan)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] ${
+      className={`relative flex items-center shrink-0 ${track} rounded-full transition-colors duration-300 ease-in-out p-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--fc-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--fc-bg)] ${
         disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
       } ${
         checked
@@ -256,7 +256,7 @@ export function Field({ label, hint, error, trailing, id, ...inputProps }: Field
 
   return (
     <div>
-      <label htmlFor={fieldId} className="text-xs font-medium text-[var(--text-secondary)] mb-2 flex items-center gap-1.5">
+      <label htmlFor={fieldId} className="text-xs font-medium text-[var(--fc-text-secondary)] mb-2 flex items-center gap-1.5">
         {label}
       </label>
       <div className={trailing ? "flex flex-col sm:flex-row gap-3" : ""}>
@@ -265,16 +265,16 @@ export function Field({ label, hint, error, trailing, id, ...inputProps }: Field
           {...inputProps}
           aria-invalid={!!error}
           className={inputClass}
-          style={error ? { borderColor: "var(--red)" } : undefined}
+          style={error ? { borderColor: "var(--fc-danger)" } : undefined}
         />
         {trailing}
       </div>
       {error ? (
-        <p className="text-[11px] text-[var(--red)] mt-2 flex items-center gap-1.5">
+        <p className="text-[11px] text-[var(--fc-danger)] mt-2 flex items-center gap-1.5">
           <AlertTriangle className="w-3 h-3 shrink-0" /> {error}
         </p>
       ) : (
-        hint && <p className="text-[11px] text-[var(--text-secondary)] mt-2 leading-relaxed">{hint}</p>
+        hint && <p className="text-[11px] text-[var(--fc-text-secondary)] mt-2 leading-relaxed">{hint}</p>
       )}
     </div>
   );
@@ -292,12 +292,12 @@ export function ReadOnlyStat({
 }) {
   return (
     <div className="flex-1 p-4 rounded-xl bg-[var(--surface-hover)] border border-[var(--hairline)]">
-      <div className="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">
+      <div className="text-[11px] font-semibold text-[var(--fc-text-muted)] uppercase tracking-wider mb-2">
         {label}
       </div>
       <div
         className={`text-sm font-mono ${
-          accent ? "text-[var(--cyan)] font-semibold capitalize" : "text-[var(--text-secondary)]"
+          accent ? "text-[var(--fc-accent)] font-semibold capitalize" : "text-[var(--fc-text-secondary)]"
         }`}
       >
         {value}
@@ -332,7 +332,7 @@ export function SaveBar({
   if (!dirty) {
     return saved ? (
       <div className="flex justify-end">
-        <span className="text-[11px] text-[var(--emerald)] flex items-center gap-1 font-medium">
+        <span className="text-[11px] text-[var(--fc-success)] flex items-center gap-1 font-medium">
           <Check className="w-3.5 h-3.5" /> Guardado
         </span>
       </div>
@@ -344,10 +344,10 @@ export function SaveBar({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 12 }}
-      className="sticky bottom-4 z-30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 pl-4 rounded-xl border border-[rgba(59,130,246,0.25)] bg-[var(--surface)]/95 backdrop-blur-md shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
+      className="sticky bottom-4 z-30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 pl-4 rounded-xl border border-[rgba(59,130,246,0.25)] bg-[var(--fc-surface)]/95 backdrop-blur-md shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
     >
-      <span className="text-[13px] text-[var(--text-secondary)] flex items-center gap-2">
-        <span className="w-1.5 h-1.5 rounded-full bg-[var(--amber)] animate-pulse" />
+      <span className="text-[13px] text-[var(--fc-text-secondary)] flex items-center gap-2">
+        <span className="w-1.5 h-1.5 rounded-full bg-[var(--fc-warning)] animate-pulse" />
         Tienes cambios sin guardar
       </span>
       <div className="flex items-center gap-2">
@@ -378,7 +378,7 @@ export function SettingsSkeleton({ cards = 2 }: { cards?: number }) {
       {Array.from({ length: cards }).map((_, i) => (
         <div
           key={i}
-          className="h-40 bg-[var(--surface)] rounded-2xl border border-[var(--surface-hover)]"
+          className="h-40 bg-[var(--fc-surface)] rounded-2xl border border-[var(--surface-hover)]"
         />
       ))}
     </div>
@@ -397,10 +397,10 @@ export function SettingsEmpty({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="text-center p-8 border border-dashed border-[var(--border)] rounded-xl bg-[var(--surface-hover)]/30">
-      {icon && <div className="flex justify-center mb-3 text-[var(--text-muted)]">{icon}</div>}
-      <p className="text-[13px] text-[var(--text-secondary)] mb-1">{title}</p>
-      {description && <p className="text-[11px] text-[var(--text-muted)]">{description}</p>}
+    <div className="text-center p-8 border border-dashed border-[var(--fc-border)] rounded-xl bg-[var(--surface-hover)]/30">
+      {icon && <div className="flex justify-center mb-3 text-[var(--fc-text-muted)]">{icon}</div>}
+      <p className="text-[13px] text-[var(--fc-text-secondary)] mb-1">{title}</p>
+      {description && <p className="text-[11px] text-[var(--fc-text-muted)]">{description}</p>}
       {action && <div className="mt-4 flex gap-2 justify-center flex-wrap">{action}</div>}
     </div>
   );
@@ -410,8 +410,8 @@ export function SettingsEmpty({
 export function SettingsRestricted({ message }: { message: string }) {
   return (
     <div className="glass-panel p-8 text-center rounded-2xl border border-white/5">
-      <AlertTriangle className="w-6 h-6 text-[var(--amber)] mx-auto mb-3" />
-      <p className="text-sm text-[var(--text-secondary)]">{message}</p>
+      <AlertTriangle className="w-6 h-6 text-[var(--fc-warning)] mx-auto mb-3" />
+      <p className="text-sm text-[var(--fc-text-secondary)]">{message}</p>
     </div>
   );
 }
