@@ -15,9 +15,9 @@
 3. No hagas commits automáticamente.
 4. No hagas push automáticamente. Está prohibido enviar cambios al repositorio remoto sin autorización explícita.
 5. No cambies de rama automáticamente.
-6. No publiques cambios directamente en main.
-7. La integración debe realizarse mediante Pull Request o revisión humana explícita.
-8. Antes de cualquier commit, push, merge o despliegue, informa el diff y espera aprobación.
+6. **NUNCA publiques, mezcles (merge) ni hagas push directamente en `main`**, ni siquiera si el usuario pide "subir a producción".
+7. La integración de los cambios autorizados para "producción" debe realizarse EXCLUSIVAMENTE en la rama `staging`.
+8. Antes de cualquier commit, push, merge o despliegue a `staging`, informa el diff y espera aprobación.
 
 ### Regla de oro:
-> **Ningún agente puede integrar cambios en main ni desplegar sin autorización humana explícita.**
+> **Ningún agente puede integrar cambios en `main` bajo NINGUNA circunstancia. Todo pase a "producción" autorizado por humanos se enviará siempre a la rama `staging` y se mantendrá controlado ahí.**
