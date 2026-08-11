@@ -89,30 +89,36 @@ model Workspace {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  members            WorkspaceMember[]
-  projects           Project[]
-  invites            WorkspaceInvite[]
-  tasks              Task[]
-  briefs             Brief[]
-  posts              ScheduledPost[]
-  integrations       Integration[]
-  conversations      InboxConversation[]
-  streamBoards       StreamBoard[]
-  trackedKeywords    TrackedKeyword[]
-  settings           WorkspaceSettings?
-  waPhoneSources     WaPhoneSource[]
-  metaAnalyticsCache MetaAnalyticsCache[]
-  mediaAssets        MediaAsset[]
-  drafts             DraftPost[]
-  transmissions      Transmission[]
-  auditLogs          AuditLog[]
-  objectives         Objective[]
-  ariaDatasets       AriaDataset[]
-  centurionModels    CenturionModel[]
-  mmmWeeklySpend     MmmWeeklySpend[]
-  reports            Report[]
-  aiUsages           AiUsage[]
-  contacts           Contact[]
+  members                 WorkspaceMember[]
+  projects                Project[]
+  invites                 WorkspaceInvite[]
+  tasks                   Task[]
+  briefs                  Brief[]
+  posts                   ScheduledPost[]
+  integrations            Integration[]
+  conversations           InboxConversation[]
+  streamBoards            StreamBoard[]
+  trackedKeywords         TrackedKeyword[]
+  settings                WorkspaceSettings?
+  waPhoneSources          WaPhoneSource[]
+  metaAnalyticsCache      MetaAnalyticsCache[]
+  mediaAssets             MediaAsset[]
+  drafts                  DraftPost[]
+  transmissions           Transmission[]
+  auditLogs               AuditLog[]
+  objectives              Objective[]
+  ariaDatasets            AriaDataset[]
+  centurionModels         CenturionModel[]
+  mmmWeeklySpend          MmmWeeklySpend[]
+  reports                 Report[]
+  aiUsages                AiUsage[]
+  contacts                Contact[]
+  optimizationClients     OptimizationClient[]
+  optimizationObjectives  OptimizationObjective[]
+  optimizationSnapshots   OptimizationSnapshot[]
+  optimizationResults     OptimizationAnalysisResult[]
+  optimizationActions     OptimizationProposedAction[]
+  optimizationAuditEvents OptimizationAuditEvent[]
 }
 
 // ------------------------------------------------------
@@ -201,32 +207,35 @@ model Project {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  workspace         Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  members           ProjectMember[]
-  channels          Channel[]
-  briefs            Brief[]
-  alerts            ProjectAlert[]
-  metaSources       MetaSource[]
-  waPhoneSources    WaPhoneSource[]
-  drafts            DraftPost[]
-  alertsEnabled     Boolean         @default(true)
-  alertEmails       String[]
-  crmIntegrationId  String? // Legacy: single analytics integration (kept for back-compat)
-  crmType           String? // custom_crm, botmaker, etc.
+  workspace               Workspace                   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  members                 ProjectMember[]
+  channels                Channel[]
+  briefs                  Brief[]
+  alerts                  ProjectAlert[]
+  metaSources             MetaSource[]
+  waPhoneSources          WaPhoneSource[]
+  drafts                  DraftPost[]
+  alertsEnabled           Boolean                     @default(true)
+  alertEmails             String[]
+  crmIntegrationId        String? // Legacy: single analytics integration (kept for back-compat)
+  crmType                 String? // custom_crm, botmaker, etc.
   /// Tipo de flujo del bot (metodología BAIT) para el Funnel 2 por bot:
   /// prepago | pospago_alineado | pospago_simplificado | google_bait. Vacío = auto.
-  botFlowType       String?
+  botFlowType             String?
   /// CRMs conectados al proyecto (ids de Integration). Un proyecto puede enviar
   /// tráfico a varias herramientas (ej. botmaker + cari) y el análisis de
   /// resultados se segmenta por cada una de forma independiente.
-  crmIntegrationIds String[]        @default([])
+  crmIntegrationIds       String[]                    @default([])
   /// Recursos de Google vinculados a este proyecto (por proyecto, no por workspace).
   /// Estructura: { adsCustomerId, ga4PropertyId, gtmAccountId, gtmContainerId }
   /// Permite que cada proyecto del cliente use sus propias cuentas de Google.
-  googleSources     Json?           @default("{}")
-  googleSourceLinks GoogleSource[]  @relation("ProjectGoogleSources")
-  ariaDatasets      AriaDataset[]
-  reports           Report[]
+  googleSources           Json?                       @default("{}")
+  googleSourceLinks       GoogleSource[]              @relation("ProjectGoogleSources")
+  ariaDatasets            AriaDataset[]
+  reports                 Report[]
+  optimizationClientLinks OptimizationClientProject[]
+
+  @@unique([workspaceId, id])
 }
 
 // Cache de resolución para webhooks de Meta: externalId (pageId / igAccountId /
@@ -1676,6 +1685,234 @@ model MmmWeeklySpend {
 
   @@unique([workspaceId, clientName, week, channel])
   @@index([workspaceId, clientName])
+}
+
+// ------------------------------------------------------
+// OPTIMIZATION CENTER — PHASE 1 (read-only foundations)
+// ------------------------------------------------------
+
+/// Stable client identity for optimization. Project.client remains a legacy
+/// display field; analytical data must use this id instead of a mutable name.
+model OptimizationClient {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  key             String
+  displayName     String
+  status          String   @default("active") // active | paused | archived
+  environment     String   @default("production") // production | test | demo | legacy
+  defaultCurrency String
+  timezone        String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  workspace   Workspace                    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  projects    OptimizationClientProject[]
+  adAccounts  OptimizationAdAccount[]
+  objectives  OptimizationObjective[]
+  snapshots   OptimizationSnapshot[]
+  results     OptimizationAnalysisResult[]
+  actions     OptimizationProposedAction[]
+  auditEvents OptimizationAuditEvent[]
+
+  @@unique([workspaceId, key])
+  @@unique([workspaceId, id])
+  @@index([workspaceId, environment, status])
+}
+
+/// A project can belong to only one optimization client. workspaceId is kept
+/// explicitly so every lookup can include the tenant boundary.
+model OptimizationClientProject {
+  id          String   @id @default(cuid())
+  workspaceId String
+  clientId    String
+  projectId   String   @unique
+  createdAt   DateTime @default(now())
+
+  client  OptimizationClient @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
+  project Project            @relation(fields: [workspaceId, projectId], references: [workspaceId, id], onDelete: Cascade)
+
+  @@unique([workspaceId, clientId, projectId])
+  @@index([workspaceId, clientId])
+}
+
+/// Explicit allow-list of advertising accounts available to one client.
+model OptimizationAdAccount {
+  id                String   @id @default(cuid())
+  workspaceId       String
+  clientId          String
+  provider          String
+  externalAccountId String
+  displayName       String?
+  currency          String
+  timezone          String
+  attributionWindow String
+  authorized        Boolean  @default(false)
+  configuration     Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  client OptimizationClient @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
+
+  @@unique([clientId, provider, externalAccountId])
+  @@index([workspaceId, clientId, authorized])
+}
+
+/// Versioned quantitative goal. The service activates at most one objective
+/// per client and records the transition in the optimization audit ledger.
+model OptimizationObjective {
+  id                   String    @id @default(cuid())
+  workspaceId          String
+  clientId             String
+  version              Int
+  status               String    @default("draft") // draft | active | retired
+  primaryKpi           String
+  direction            String
+  targetValue          Float
+  windowType           String
+  windowStart          DateTime?
+  windowEnd            DateTime?
+  currency             String
+  timezone             String
+  hardConstraints      Json
+  softPreferences      Json
+  guardrails           Json
+  riskTolerance        String
+  maxChangePctPerCycle Float
+  approvalPolicy       Json
+  effectiveFrom        DateTime?
+  effectiveTo          DateTime?
+  createdById          String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  workspace Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client    OptimizationClient @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
+
+  @@unique([clientId, version])
+  @@index([workspaceId, clientId, status])
+}
+
+/// Immutable analytical input. There are intentionally no update/delete APIs.
+model OptimizationSnapshot {
+  id                   String   @id @default(cuid())
+  workspaceId          String
+  clientId             String
+  schemaVersion        String
+  contentHash          String
+  periodStart          DateTime
+  periodEnd            DateTime
+  cutoffAt             DateTime
+  currency             String
+  timezone             String
+  authorizedAdAccounts Json
+  sources              Json
+  freshness            Json
+  normalizedMetrics    Json
+  activeObjective      Json
+  dataQuality          Json
+  modelVersions        Json
+  configuration        Json
+  status               String // valid | degraded | invalid
+  createdById          String?
+  createdAt            DateTime @default(now())
+
+  workspace   Workspace                    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client      OptimizationClient           @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
+  results     OptimizationAnalysisResult[]
+  actions     OptimizationProposedAction[]
+  auditEvents OptimizationAuditEvent[]
+
+  @@unique([workspaceId, clientId, contentHash])
+  @@unique([workspaceId, clientId, id])
+  @@index([workspaceId, clientId, cutoffAt])
+}
+
+/// Immutable structured output from a quantitative or contextual service.
+model OptimizationAnalysisResult {
+  id                       String   @id @default(cuid())
+  workspaceId              String
+  clientId                 String
+  snapshotId               String
+  analysisType             String
+  observations             Json
+  inferences               Json
+  predictions              Json
+  candidateRecommendations Json
+  evidence                 Json
+  confidence               Json
+  limitations              Json
+  model                    Json
+  status                   String
+  createdAt                DateTime @default(now())
+
+  workspace Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client    OptimizationClient   @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
+  snapshot  OptimizationSnapshot @relation(fields: [workspaceId, clientId, snapshotId], references: [workspaceId, clientId, id], onDelete: Cascade)
+
+  @@index([workspaceId, clientId, createdAt])
+  @@index([snapshotId, analysisType])
+}
+
+/// Persisted proposal only. Phase 1 deliberately has no executor and no
+/// transition endpoint to an executable/approved state.
+model OptimizationProposedAction {
+  id                     String   @id @default(cuid())
+  workspaceId            String
+  clientId               String
+  snapshotId             String
+  provider               String
+  accountId              String
+  campaignId             String?
+  entity                 Json
+  field                  String
+  currentValue           Json
+  proposedValue          Json
+  unit                   String
+  currency               String?
+  expectedImpact         Json
+  uncertaintyInterval    Json
+  risk                   String
+  evidence               Json
+  rollbackCondition      Json
+  idempotencyKey         String   @unique
+  remoteStateFingerprint String
+  expiresAt              DateTime
+  requiredApproverRole   String
+  state                  String   @default("draft") // draft | requires_review | blocked | expired
+  createdById            String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  workspace   Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client      OptimizationClient       @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
+  snapshot    OptimizationSnapshot     @relation(fields: [workspaceId, clientId, snapshotId], references: [workspaceId, clientId, id], onDelete: Cascade)
+  auditEvents OptimizationAuditEvent[]
+
+  @@unique([workspaceId, clientId, id])
+  @@index([workspaceId, clientId, state])
+  @@index([snapshotId])
+}
+
+/// Append-only domain ledger. Application code exposes create/list only.
+model OptimizationAuditEvent {
+  id          String   @id @default(cuid())
+  workspaceId String
+  clientId    String
+  snapshotId  String?
+  actionId    String?
+  actorId     String?
+  eventType   String
+  payload     Json
+  createdAt   DateTime @default(now())
+
+  workspace Workspace                   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client    OptimizationClient          @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
+  snapshot  OptimizationSnapshot?       @relation(fields: [workspaceId, clientId, snapshotId], references: [workspaceId, clientId, id], onDelete: Restrict)
+  action    OptimizationProposedAction? @relation(fields: [workspaceId, clientId, actionId], references: [workspaceId, clientId, id], onDelete: Restrict)
+
+  @@index([workspaceId, clientId, createdAt])
+  @@index([snapshotId])
+  @@index([actionId])
 }
 
 // ------------------------------------------------------
