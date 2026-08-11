@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
 import { ConnectPlatformDropdown } from "@/components/projects/ConnectPlatformDropdown";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Orbi } from "@/components/ui/Orbi";
+import { Loader } from "@/components/ui/Loader";
 import { KpiCard } from "@/components/ui/KpiCard";
 import {
     FolderKanban, Plus, X, Users, Globe, DollarSign, Target, Rocket,
@@ -622,7 +622,7 @@ function ProyectosContent() {
         ) : projects.length === 0 ? (
           <div className="fc-glass" style={{ padding: "40px 24px" }}>
             <EmptyState
-              icon={<Orbi state="idle" scale={0.65} />}
+              icon={<Loader size={32} />}
               title="Ningún proyecto en radar"
               description="Aún no tienes misiones activas. Crea tu primer proyecto para empezar a gestionar campañas."
               actionLabel="NUEVA MISIÓN"
@@ -740,4 +740,6 @@ function MenuBtn({ icon, text, onClick, danger }: { icon: React.ReactNode; text:
     >{icon}{text}</button>
   );
 }
+
+
 

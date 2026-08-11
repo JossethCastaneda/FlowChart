@@ -45,6 +45,7 @@ export function FlowChartLogo({
       }}
     >
       <Image
+        className="flowchart-logo-mark"
         src="/logo/isotipo-claro.svg"
         alt="FlowChart Logo"
         width={h}
@@ -54,12 +55,12 @@ export function FlowChartLogo({
       />
 
       {showText && (
-        <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+        <div className="flowchart-logo-text" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
           <span style={{
-            fontFamily: "var(--font-inter, sans-serif)",
+            fontFamily: "var(--fc-font-sans)",
             fontSize: Math.max(14, Math.round(h * 0.5)),
             fontWeight: 800,
-            color: "var(--foreground)",
+            color: "var(--fc-text)",
             lineHeight: 1,
             whiteSpace: "nowrap",
           }}>
@@ -67,10 +68,10 @@ export function FlowChartLogo({
           </span>
           {showSubtitle && (
             <span style={{
-              fontFamily: "var(--font-inter, sans-serif)",
+              fontFamily: "var(--fc-font-sans)",
               fontSize: Math.max(8, Math.round(h * 0.2)),
               fontWeight: 400,
-              color: "var(--text-muted)",
+              color: "var(--fc-text-muted)",
               lineHeight: 1,
               whiteSpace: "nowrap",
               marginTop: "4px"

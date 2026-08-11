@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { Zap, Users, Loader2, CheckCircle } from "lucide-react";
-import { Orbi } from "@/components/ui/Orbi";
+import { Loader } from "@/components/ui/Loader";
 
 export default function InvitePage() {
   const params = useParams();
@@ -195,7 +195,7 @@ export default function InvitePage() {
   if (pageLoading) {
     return (
       <div style={{ ...page, flexDirection: "column", gap: "24px" }}>
-        <Orbi state="working" scale={0.8} />
+        <Loader size={24} />
         <p style={{ color: "var(--cyan)", fontFamily: "var(--font-display)", letterSpacing: "0.1em", fontSize: "14px" }}>CARGANDO INVITACIÓN...</p>
       </div>
     );
@@ -244,7 +244,7 @@ export default function InvitePage() {
     return (
       <div style={page}>
         <div style={{ ...card, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px", textAlign: "center" as const }}>
-          <Orbi state="working" scale={0.8} />
+          <Loader size={24} />
           <p style={{ ...fontDisplay, fontSize: "11px",
             color: "var(--cyan)", letterSpacing: "0.15em" }}>
             PROCESANDO INVITACIÓN...

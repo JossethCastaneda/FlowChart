@@ -240,6 +240,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // "sidebarPinned" persists across sessions — sidebar stays open without hover
   const [sidebarPinned, setSidebarPinned] = useState(false);
+  const [isDesktopViewport, setIsDesktopViewport] = useState(false);
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const { lang, setLang } = useLanguage();
@@ -250,14 +251,28 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
 
   // Load pinned preference on mount
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("flowchart:sidebar-pinned");
-      if (saved === "true") {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
-        setSidebarPinned(true);
-        setSidebarOpen(true);
+    // From 768px the desktop shell is active; CSS narrows it to compact mode
+    // only between 1024–1279px, per the design-system contract.
+    const media = window.matchMedia("(min-width: 768px)");
+    const syncViewport = () => {
+      const desktop = media.matches;
+      setIsDesktopViewport(desktop);
+      if (!desktop) {
+        setSidebarOpen(false);
+        return;
       }
-    } catch {}
+      try {
+        const saved = localStorage.getItem("flowchart:sidebar-pinned");
+        if (saved === "true") {
+          setSidebarPinned(true);
+          setSidebarOpen(true);
+        }
+      } catch {}
+    };
+    syncViewport();
+    media.addEventListener("change", syncViewport);
+
+    return () => media.removeEventListener("change", syncViewport);
   }, []);
   
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>(() => {
@@ -432,12 +447,12 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
 
   // ── Activity status ──
   const STATUS_OPTIONS = [
-    { key: "online_chat", dbStatus: "disponible" as const, label: "En línea (Recibe chat)", category: "recibe" as const, color: "var(--emerald)", icon: UserCheck },
-    { key: "online_no_chat", dbStatus: "ausente" as const, label: "En línea", category: "no_recibe" as const, color: "var(--amber)", icon: UserMinus },
-    { key: "break", dbStatus: "ausente" as const, label: "Break", category: "no_recibe" as const, color: "var(--amber)", icon: Coffee },
-    { key: "almuerzo", dbStatus: "ausente" as const, label: "Almuerzo", category: "no_recibe" as const, color: "var(--amber)", icon: Utensils },
-    { key: "coach", dbStatus: "ausente" as const, label: "Coach", category: "no_recibe" as const, color: "var(--amber)", icon: GraduationCap },
-    { key: "ocupado", dbStatus: "ocupado" as const, label: "Ocupado", category: "no_recibe" as const, color: "var(--red)", icon: MinusCircle },
+    { key: "online_chat", dbStatus: "disponible" as const, label: "En línea (Recibe chat)", category: "recibe" as const, color: "var(--fc-success)", icon: UserCheck },
+    { key: "online_no_chat", dbStatus: "ausente" as const, label: "En línea", category: "no_recibe" as const, color: "var(--fc-warning)", icon: UserMinus },
+    { key: "break", dbStatus: "ausente" as const, label: "Break", category: "no_recibe" as const, color: "var(--fc-warning)", icon: Coffee },
+    { key: "almuerzo", dbStatus: "ausente" as const, label: "Almuerzo", category: "no_recibe" as const, color: "var(--fc-warning)", icon: Utensils },
+    { key: "coach", dbStatus: "ausente" as const, label: "Coach", category: "no_recibe" as const, color: "var(--fc-warning)", icon: GraduationCap },
+    { key: "ocupado", dbStatus: "ocupado" as const, label: "Ocupado", category: "no_recibe" as const, color: "var(--fc-danger)", icon: MinusCircle },
   ];
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   const [activityStatus, setActivityStatus] = useState<"disponible" | "ocupado" | "ausente" | "offline">("disponible");
@@ -508,7 +523,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
     } catch {}
   };
 
-  const currentStatusCfg = STATUS_OPTIONS.find(s => s.key === subStatus) || { key: "online_chat", dbStatus: "disponible" as const, label: "En línea", category: "recibe" as const, color: "var(--emerald)", icon: UserCheck };
+  const currentStatusCfg = STATUS_OPTIONS.find(s => s.key === subStatus) || { key: "online_chat", dbStatus: "disponible" as const, label: "En línea", category: "recibe" as const, color: "var(--fc-success)", icon: UserCheck };
 
   if (!pathname?.startsWith("/dashboard")) {
     return <>{children}</>;
@@ -533,24 +548,25 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
       <div
         onMouseEnter={handleMouseEnterTrigger}
         onMouseLeave={handleMouseLeaveTrigger}
-        className="hidden lg:block"
+        className="hidden md:block"
         style={{
           position: "fixed",
           top: 0,
           left: 0,
           bottom: 0,
           width: sidebarPinned ? 0 : `${HOVER_TRIGGER_WIDTH}px`,
-          zIndex: 50,
+          zIndex: 190,
           background: "transparent",
         }}
       />
 
       {/* Mobile Sidebar via Sheet */}
       <Sheet
-        isOpen={sidebarOpen}
+        isOpen={sidebarOpen && (!isDesktopViewport || !sidebarPinned)}
         onClose={() => setSidebarOpen(false)}
         position="left"
-        className="lg:hidden"
+        className="md:hidden"
+        ariaLabel={lang === "es" ? "Navegación principal" : "Main navigation"}
       >
         <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
           <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: "1px solid var(--fc-border)" }}>
@@ -561,14 +577,23 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           <div style={{ padding: "12px 0 0" }}>
             <WorkspaceSwitcher />
           </div>
-          <nav className="flex-1 px-3 pb-4 space-y-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
+          <nav aria-label={lang === "es" ? "Navegación principal" : "Main navigation"} className="flex flex-1 flex-col px-3 pb-4 space-y-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
             {NAV_GROUPS.map((group) => {
               const isCollapsed = collapsedGroups[group.key];
               return (
-                <div key={group.key} className={group.key === "sistema" ? "mt-4 pt-4 border-t border-[var(--fc-border)]" : "mt-2"}>
+                <div key={group.key} className={group.key === "sistema" ? "mt-auto pt-4 border-t border-[var(--fc-border)]" : "mt-2"}>
                   <div 
-                    className="px-2 pb-2 flex items-center justify-between cursor-pointer group/nav"
+                    className="sidebar-group-header px-2 pb-2 flex items-center justify-between cursor-pointer group/nav"
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={!isCollapsed}
                     onClick={() => setCollapsedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setCollapsedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }));
+                      }
+                    }}
                   >
                     <span style={{
                       fontFamily: "var(--fc-font-mono)",
@@ -584,7 +609,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     <ChevronDown className={`w-3 h-3 text-[var(--fc-text-muted)] transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} />
                   </div>
                   
-                  <div style={{
+                  <div className="sidebar-group-content" style={{
                     display: "grid",
                     gridTemplateRows: isCollapsed ? "0fr" : "1fr",
                     transition: "grid-template-rows 0.2s ease-out",
@@ -600,21 +625,23 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                             href={m.route}
                             title={`✦ ${m.code} — ${m.tagline}`}
                             className={`nav-item ${isActive ? "active" : ""}`}
+                            aria-current={isActive ? "page" : undefined}
                             data-mod={m.key}
                             onClick={() => {
                               setSidebarOpen(false);
                             }}
-                            style={isActive ? { "--nav-color": m.color, borderLeftColor: m.color } as React.CSSProperties : {}}
+                            style={isActive ? { "--nav-color": m.color } as React.CSSProperties : {}}
                           >
                             <HoloIcon
                               icon={Icon}
                               isActive={isActive}
                               className="w-[18px] h-[18px]"
-                              style={isActive ? { color: m.color } : undefined}
+                              style={isActive ? { color: "var(--fc-text)" } : undefined}
                             />
-                            <span className="flex-1" style={{ color: isActive ? m.color : undefined }}>{m.label}</span>
+                            <span className="nav-full-name">{m.label}</span>
+                            <span className="nav-short-name" aria-hidden="true">{m.label.slice(0, 3)}</span>
                             {isActive && (
-                              <HoloIcon icon={ChevronRight} isActive={true} className="w-3 h-3" style={{ opacity: 0.5, color: m.color }} />
+                              <HoloIcon icon={ChevronRight} isActive={true} className="w-3 h-3" style={{ opacity: 0.5, color: "var(--fc-text-secondary)" }} />
                             )}
                           </Link>
                         );
@@ -631,13 +658,13 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
       {/* ─── Floating Sidebar (Desktop) / Sheet (Mobile) ─── */}
       <aside
         ref={sidebarRef}
-        className={`fc-sidebar ${sidebarVisible ? 'fc-sidebar--open' : ''} hidden lg:flex`}
+        className={`fc-sidebar sidebar-responsive ${sidebarVisible ? 'fc-sidebar--open' : ''} hidden md:flex`}
         onMouseEnter={handleMouseEnterSidebar}
         onMouseLeave={handleMouseLeaveSidebar}
       >
 
         {/* Logo */}
-        <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: "1px solid var(--fc-border)" }}>
+        <div className="sidebar-logo-row flex items-center justify-between px-5 py-5" style={{ borderBottom: "1px solid var(--fc-border)" }}>
           <Link href="/dashboard/resumen" className="flex items-center gap-3" aria-label="Inicio">
             <FlowChartLogo size="sm" showText={true} />
           </Link>
@@ -646,8 +673,8 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
             onClick={toggleSidebarPin}
             title={sidebarPinned ? t.colapsar : t.expandir}
             style={{
-              background: sidebarPinned ? "rgba(0,212,255,0.12)" : "transparent",
-              border: sidebarPinned ? "1px solid rgba(0,212,255,0.3)" : "1px solid transparent",
+              background: sidebarPinned ? "var(--fc-accent-wash)" : "transparent",
+              border: sidebarPinned ? "1px solid var(--fc-border-strong)" : "1px solid transparent",
               borderRadius: 6,
               padding: "4px 6px",
               cursor: "pointer",
@@ -655,7 +682,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
               alignItems: "center",
               justifyContent: "center",
               transition: "all 0.2s",
-              color: sidebarPinned ? "var(--cyan)" : "var(--text-muted)",
+              color: sidebarPinned ? "var(--fc-accent)" : "var(--fc-text-muted)",
             }}
           >
             {sidebarPinned ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -668,30 +695,39 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 pb-4 space-y-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
+          <nav aria-label={lang === "es" ? "Navegación principal" : "Main navigation"} className="flex flex-1 flex-col px-3 pb-4 space-y-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
           {NAV_GROUPS.map((group) => {
             const isCollapsed = collapsedGroups[group.key];
             return (
-              <div key={group.key} className={group.key === "sistema" ? "mt-4 pt-4 border-t border-[var(--fc-border-subtle)]" : "mt-2"}>
+              <div key={group.key} className={group.key === "sistema" ? "mt-auto pt-4 border-t border-[var(--fc-border-subtle)]" : "mt-2"}>
                 <div 
-                  className="px-2 pb-2 flex items-center justify-between cursor-pointer group/nav"
+                  className="sidebar-group-header px-2 pb-2 flex items-center justify-between cursor-pointer group/nav"
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={!isCollapsed}
                   onClick={() => setCollapsedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setCollapsedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }));
+                    }
+                  }}
                 >
                   <span style={{
-                    fontFamily: "var(--font-display)",
+                    fontFamily: "var(--fc-font-sans)",
                     fontSize: "9px",
                     fontWeight: 600,
                     letterSpacing: "0.3em",
                     textTransform: "uppercase",
-                    color: group.key === "sistema" ? "var(--text-muted)" : "var(--text-muted)",
+                    color: "var(--fc-text-muted)",
                     transition: "color 0.2s"
-                  }} className="group-hover/nav:text-[var(--foreground)]">
+                  }} className="group-hover/nav:text-[var(--fc-text)]">
                     {group.title}
                   </span>
-                  <ChevronDown className={`w-3 h-3 text-[var(--text-muted)] transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} />
+                  <ChevronDown className={`w-3 h-3 text-[var(--fc-text-muted)] transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} />
                 </div>
                 
-                <div style={{
+                <div className="sidebar-group-content" style={{
                   display: "grid",
                   gridTemplateRows: isCollapsed ? "0fr" : "1fr",
                   transition: "grid-template-rows 0.2s ease-out",
@@ -707,21 +743,23 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     href={m.route}
                     title={`✦ ${m.code} — ${m.tagline}`}
                     className={`nav-item ${isActive ? "active" : ""}`}
+                    aria-current={isActive ? "page" : undefined}
                     data-mod={m.key}
                     onClick={() => {
                       if (!sidebarPinned) setSidebarOpen(false);
                     }}
-                    style={isActive ? { "--nav-color": m.color, borderLeftColor: m.color } as React.CSSProperties : {}}
+                    style={isActive ? { "--nav-color": m.color } as React.CSSProperties : {}}
                   >
                     <HoloIcon
                       icon={Icon}
                       isActive={isActive}
                       className="w-[18px] h-[18px]"
-                      style={isActive ? { color: m.color } : undefined}
+                      style={isActive ? { color: "var(--fc-text)" } : undefined}
                     />
-                    <span className="flex-1" style={{ color: isActive ? m.color : undefined }}>{m.label}</span>
+                    <span className="nav-full-name">{m.label}</span>
+                    <span className="nav-short-name" aria-hidden="true">{m.label.slice(0, 3)}</span>
                     {isActive && (
-                      <HoloIcon icon={ChevronRight} isActive={true} className="w-3 h-3" style={{ opacity: 0.5, color: m.color }} />
+                      <HoloIcon icon={ChevronRight} isActive={true} className="w-3 h-3" style={{ opacity: 0.5, color: "var(--fc-text-secondary)" }} />
                     )}
                   </Link>
                 );
@@ -739,7 +777,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
       {/* ─── Main Content ─── */}
       <main className="flex-1 flex flex-col min-w-0 relative z-[1]">
         {/* Mobile header */}
-        <header className="lg:hidden flex items-center justify-between px-5 py-4 z-10"
+        <header className="md:hidden flex items-center justify-between px-5 py-4 z-10"
           style={{
             background: "var(--fc-surface-overlay)",
             borderBottom: "1px solid var(--fc-border)",
@@ -750,7 +788,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="flex items-center justify-center p-1 rounded-lg text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors cursor-pointer"
+              className="flex items-center justify-center p-1 rounded-lg text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] transition-colors cursor-pointer"
               style={{ background: "transparent", border: "none" }}
             >
               <Menu className="w-5 h-5" />
@@ -763,15 +801,18 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Mobile Bottom Navigation */}
-        <MobileBottomNav onOpenMenu={() => setSidebarOpen(true)} />
+        <MobileBottomNav
+          onOpenMenu={() => setSidebarOpen(true)}
+          isMenuOpen={sidebarOpen && !isDesktopViewport}
+        />
 
         {/* Desktop top bar */}
-        <div className="hidden lg:flex items-center justify-between px-4 py-2 gap-5" style={{
+        <div className="hidden md:flex items-center justify-between px-4 py-2 gap-5" style={{
           borderBottom: "1px solid var(--fc-border)",
           background: "var(--fc-surface-overlay)",
           height: "56px",
           position: "relative",
-          zIndex: 50,
+          zIndex: 100,
         }}>
 
           {/* ── Hamburger / Sidebar toggle ── */}
@@ -780,7 +821,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
             onClick={toggleSidebarPin}
             title={sidebarPinned ? (lang === 'es' ? "Colapsar menú" : "Collapse menu") : (lang === 'es' ? "Abrir menú" : "Open menu")}
             style={{
-              background: sidebarPinned ? "rgba(0,212,255,0.08)" : "transparent",
+              background: sidebarPinned ? "var(--fc-accent-wash)" : "transparent",
               border: "1px solid transparent",
               borderRadius: 8,
               padding: "6px 8px",
@@ -788,19 +829,19 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
               display: "flex",
               alignItems: "center",
               gap: 6,
-              color: sidebarPinned ? "var(--cyan)" : "var(--text-secondary)",
+              color: sidebarPinned ? "var(--fc-accent)" : "var(--fc-text-secondary)",
               transition: "all 0.2s ease",
               flexShrink: 0,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = sidebarPinned ? "rgba(0,212,255,0.12)" : "rgba(255,255,255,0.05)";
-              e.currentTarget.style.borderColor = sidebarPinned ? "rgba(0,212,255,0.25)" : "rgba(255,255,255,0.08)";
-              e.currentTarget.style.color = sidebarPinned ? "var(--cyan)" : "var(--foreground)";
+              e.currentTarget.style.background = sidebarPinned ? "var(--fc-accent-wash)" : "var(--fc-row-hover)";
+              e.currentTarget.style.borderColor = sidebarPinned ? "var(--fc-border-strong)" : "var(--fc-border)";
+              e.currentTarget.style.color = sidebarPinned ? "var(--fc-accent)" : "var(--fc-text)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = sidebarPinned ? "rgba(0,212,255,0.08)" : "transparent";
+              e.currentTarget.style.background = sidebarPinned ? "var(--fc-accent-wash)" : "transparent";
               e.currentTarget.style.borderColor = "transparent";
-              e.currentTarget.style.color = sidebarPinned ? "var(--cyan)" : "var(--text-secondary)";
+              e.currentTarget.style.color = sidebarPinned ? "var(--fc-accent)" : "var(--fc-text-secondary)";
             }}
           >
             <Menu
@@ -819,12 +860,12 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
               // If there are store override breadcrumbs (e.g. from Inbox)
               breadcrumbs.map((crumb, idx) => (
                 <React.Fragment key={idx}>
-                  {idx > 0 && <span style={{ color: "var(--text-muted)", fontSize: 13, margin: "0 2px" }}>/</span>}
+                  {idx > 0 && <span style={{ color: "var(--fc-text-muted)", fontSize: 13, margin: "0 2px" }}>/</span>}
                   <span
                     onClick={crumb.onClick}
-                    className={crumb.onClick ? "hover:text-[var(--foreground)] transition-colors" : ""}
+                    className={crumb.onClick ? "hover:text-[var(--fc-text)] transition-colors" : ""}
                     style={{
-                      color: crumb.onClick ? 'var(--text-secondary)' : 'var(--foreground)',
+                      color: crumb.onClick ? 'var(--fc-text-secondary)' : 'var(--fc-text)',
                       cursor: crumb.onClick ? 'pointer' : 'default',
                       fontWeight: idx === breadcrumbs.length - 1 ? 600 : 500
                     }}
@@ -842,11 +883,11 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                 
                 return (
                   <React.Fragment key={idx}>
-                    {idx > 0 && <span style={{ color: "var(--text-muted)", fontSize: 13, margin: "0 2px" }}>/</span>}
+                  {idx > 0 && <span style={{ color: "var(--fc-text-muted)", fontSize: 13, margin: "0 2px" }}>/</span>}
                     {isLast ? (
                       <span
                         style={{
-                          color: color || 'var(--foreground)',
+                          color: color || 'var(--fc-text)',
                           fontWeight: 600,
                           whiteSpace: "nowrap"
                         }}
@@ -856,9 +897,9 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     ) : (
                       <Link
                         href={crumb.href || "#"}
-                        className="hover:text-[var(--foreground)] transition-colors"
+                        className="hover:text-[var(--fc-text)] transition-colors"
                         style={{
-                          color: color || 'var(--text-secondary)',
+                          color: color || 'var(--fc-text-secondary)',
                           fontWeight: 500,
                           whiteSpace: "nowrap",
                           cursor: "pointer"
@@ -877,13 +918,13 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-5 ml-auto">
 
 
-          <Link href="/dashboard/inbox" className="text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors" title="Conversaciones">
+          <Link href="/dashboard/inbox" className="text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] transition-colors" title="Conversaciones">
             <HoloIcon icon={MessageSquarePlus} variant="cyan" isActive={true} className="w-[18px] h-[18px]" />
           </Link>
 
           <AlertBellButton />
 
-          <button className="text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors" title="Ayuda" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+          <button className="text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] transition-colors" title="Ayuda" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
             <HoloIcon icon={HelpCircle} variant="emerald" isActive={true} className="w-[18px] h-[18px]" />
           </button>
 
@@ -891,11 +932,11 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => { setUserMenuOpen(!userMenuOpen); setActivePanel('main'); }}
-              className="flex items-center gap-3 hover:bg-[var(--surface-hover)] px-2 py-1.5 rounded-lg transition-colors cursor-pointer"
+              className="flex items-center gap-3 hover:bg-[var(--fc-surface-hover)] px-2 py-1.5 rounded-lg transition-colors cursor-pointer"
               style={{ background: "transparent", border: "none" }}
             >
               <div style={{ position: "relative" }}>
-                <div className="w-[32px] h-[32px] rounded-full overflow-hidden border border-[var(--fc-border)]" style={{ background: "linear-gradient(135deg,var(--fc-accent),#2563eb)" }}>
+                <div className="w-[32px] h-[32px] rounded-full overflow-hidden border border-[var(--fc-border)]" style={{ background: "linear-gradient(135deg,var(--fc-accent),var(--fc-accent-deep))" }}>
                   {session?.user?.image && !avatarError ? (
                     // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
                     <img
@@ -906,7 +947,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     />
                   ) : null}
                   {(!session?.user?.image || avatarError) && (
-                    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-[var(--foreground)]">
+                    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-[var(--fc-text)]">
                       {session?.user?.name?.charAt(0).toUpperCase() || "C"}
                     </div>
                   )}
@@ -924,8 +965,8 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
               </div>
 
               <div className="flex flex-col items-start text-left min-w-[70px]">
-                <span style={{ fontSize: "9px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", lineHeight: 1.1 }}>{t.estado}</span>
-                <span style={{ fontSize: "11px", color: 'var(--foreground)', fontWeight: 600, lineHeight: 1.2 }}>
+                <span style={{ fontSize: "9px", color: "var(--fc-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", lineHeight: 1.1 }}>{t.estado}</span>
+                <span style={{ fontSize: "11px", color: 'var(--fc-text)', fontWeight: 600, lineHeight: 1.2 }}>
                   {currentStatusCfg.key === "online_chat" ? t.enLinea : currentStatusCfg.key === "online_no_chat" ? t.enLinea : currentStatusCfg.key === "break" ? t.break : currentStatusCfg.key === "almuerzo" ? t.almuerzo : currentStatusCfg.key === "coach" ? t.coach : t.ocupado}
                 </span>
               </div>
@@ -941,22 +982,22 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                   top: "105%",
                   right: 0,
                   width: 280,
-                  background: "var(--panel-bg)",
+                  background: "var(--fc-surface-overlay)",
                   
                   border: "1px solid var(--fc-border)",
                   borderRadius: 12,
-                  boxShadow: "0 10px 40px var(--overlay-dark)",
+                  boxShadow: "var(--fc-shadow-overlay)",
                   padding: "16px 0 8px",
                   zIndex: 999,
                   animation: "fadeInScale 0.15s ease-out",
-                  color: "var(--foreground)",
+                  color: "var(--fc-text)",
                 }}
               >
                 {activePanel === 'main' && (
                   <>
                     {/* User Header */}
                     <div className="px-5 pb-4 flex items-center gap-3">
-                      <div className="w-[48px] h-[48px] rounded-full overflow-hidden border-2 border-[var(--fc-border)]" style={{ background: "linear-gradient(135deg,#2563eb,var(--purple))", flexShrink: 0 }}>
+                      <div className="w-[48px] h-[48px] rounded-full overflow-hidden border-2 border-[var(--fc-border)]" style={{ background: "linear-gradient(135deg,var(--fc-accent-deep),var(--fc-module-aria))", flexShrink: 0 }}>
                           {session?.user?.image && !avatarError ? (
                             // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
                             <img
@@ -967,19 +1008,19 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                             />
                           ) : null}
                           {(!session?.user?.image || avatarError) && (
-                            <div className="w-full h-full flex items-center justify-center text-sm font-bold text-[var(--foreground)]">
+                            <div className="w-full h-full flex items-center justify-center text-sm font-bold text-[var(--fc-text)]">
                               {session?.user?.name?.charAt(0).toUpperCase() || "C"}
                             </div>
                           )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <p style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-text)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {session?.user?.name || "Josseth"}
                         </p>
-                        <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <p style={{ fontSize: 10, color: "var(--fc-text-secondary)", margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {userRole === "OWNER" || userRole === "ADMIN" ? t.superAdmin : t.miembro}
                         </p>
-                        <p style={{ fontSize: 10, color: "var(--text-muted)", margin: "1px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <p style={{ fontSize: 10, color: "var(--fc-text-muted)", margin: "1px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {session?.user?.email || ""}
                         </p>
                       </div>
@@ -989,10 +1030,10 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
 
                     {/* Estado Section */}
                     <div className="px-5">
-                      <p style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 10px" }}>{t.estado}</p>
+                      <p style={{ fontSize: "10px", fontWeight: 700, color: "var(--fc-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 10px" }}>{t.estado}</p>
                       
                       {/* Recibe conversaciones */}
-                      <p style={{ fontSize: "10px", color: "var(--text-muted)", margin: "0 0 6px" }}>{t.recibe}</p>
+                      <p style={{ fontSize: "10px", color: "var(--fc-text-muted)", margin: "0 0 6px" }}>{t.recibe}</p>
                       <div className="space-y-1 mb-3">
                         {STATUS_OPTIONS.filter(o => o.category === "recibe").map(opt => {
                           const Icon = opt.icon;
@@ -1001,17 +1042,17 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                             <button
                               key={opt.key}
                               onClick={() => changeStatus(opt.key)}
-                              className="w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-left hover:bg-[var(--surface-hover)] transition-colors"
+                              className="w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-left hover:bg-[var(--fc-surface-hover)] transition-colors"
                               style={{
-                                background: isSelected ? ("var(--surface-hover)") : "transparent",
+                                background: isSelected ? ("var(--fc-surface-hover)") : "transparent",
                                 border: "none",
                                 cursor: "pointer",
                               }}
                             >
-                              <div className="w-[24px] h-[24px] rounded-full flex items-center justify-center" style={{ background: "var(--surface)" }}>
-                                <Icon className="w-3.5 h-3.5 text-[var(--emerald)]" />
+                              <div className="w-[24px] h-[24px] rounded-full flex items-center justify-center" style={{ background: "var(--fc-surface)" }}>
+                                <Icon className="w-3.5 h-3.5 text-[var(--fc-success)]" />
                               </div>
-                              <span style={{ fontSize: 12, color: isSelected ? ("var(--foreground)") : ("var(--text-secondary)"), fontWeight: isSelected ? 600 : 400 }}>
+                              <span style={{ fontSize: 12, color: isSelected ? ("var(--fc-text)") : ("var(--fc-text-secondary)"), fontWeight: isSelected ? 600 : 400 }}>
                                 {opt.key === "online_chat" ? t.enLinea : opt.label}
                               </span>
                             </button>
@@ -1020,7 +1061,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                       </div>
 
                       {/* No recibe conversaciones */}
-                      <p style={{ fontSize: "10px", color: "var(--text-muted)", margin: "0 0 6px" }}>{t.noRecibe}</p>
+                      <p style={{ fontSize: "10px", color: "var(--fc-text-muted)", margin: "0 0 6px" }}>{t.noRecibe}</p>
                       <div className="space-y-1 mb-2" style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                         {STATUS_OPTIONS.filter(o => o.category === "no_recibe").map(opt => {
                           const Icon = opt.icon;
@@ -1029,17 +1070,17 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                             <button
                               key={opt.key}
                               onClick={() => changeStatus(opt.key)}
-                              className="w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-left hover:bg-[var(--surface-hover)] transition-colors"
+                              className="w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-left hover:bg-[var(--fc-surface-hover)] transition-colors"
                               style={{
-                                background: isSelected ? ("var(--surface-hover)") : "transparent",
+                                background: isSelected ? ("var(--fc-surface-hover)") : "transparent",
                                 border: "none",
                                 cursor: "pointer",
                               }}
                             >
-                              <div className="w-[24px] h-[24px] rounded-full flex items-center justify-center" style={{ background: "var(--surface)", flexShrink: 0 }}>
-                                <Icon className="w-3.5 h-3.5 text-[var(--amber)]" />
+                              <div className="w-[24px] h-[24px] rounded-full flex items-center justify-center" style={{ background: "var(--fc-surface)", flexShrink: 0 }}>
+                                <Icon className="w-3.5 h-3.5 text-[var(--fc-warning)]" />
                               </div>
-                              <span style={{ fontSize: 12, color: isSelected ? ("var(--foreground)") : ("var(--text-secondary)"), fontWeight: isSelected ? 600 : 400 }}>
+                              <span style={{ fontSize: 12, color: isSelected ? ("var(--fc-text)") : ("var(--fc-text-secondary)"), fontWeight: isSelected ? 600 : 400 }}>
                                 {opt.key === "online_no_chat" ? t.enLinea : opt.key === "break" ? t.break : opt.key === "almuerzo" ? t.almuerzo : opt.key === "coach" ? t.coach : t.ocupado}
                               </span>
                             </button>
@@ -1054,16 +1095,16 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     <div className="px-2" style={{ display: "flex", flexDirection: "column" }}>
                       <button
                         onClick={() => setActivePanel('lang')}
-                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left hover:bg-[var(--surface-hover)] transition-colors"
-                        style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--text-secondary)" }}
+                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left hover:bg-[var(--fc-surface-hover)] transition-colors"
+                        style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--fc-text-secondary)" }}
                       >
                         <HoloIcon icon={Languages} variant="cyan" isActive={true} className="w-4 h-4" />
                         <span style={{ fontSize: 12 }}>{t.idioma}</span>
                       </button>
                       <button
                         onClick={() => setActivePanel('theme')}
-                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left hover:bg-[var(--surface-hover)] transition-colors"
-                        style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--text-secondary)" }}
+                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left hover:bg-[var(--fc-surface-hover)] transition-colors"
+                        style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--fc-text-secondary)" }}
                       >
                         <HoloIcon icon={Palette} variant="gold" isActive={true} className="w-4 h-4" />
                         <span style={{ fontSize: 12 }}>{t.apariencia}</span>
@@ -1071,8 +1112,8 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                       <Link
                         href="/dashboard/settings"
                         onClick={() => setUserMenuOpen(false)}
-                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-left hover:bg-[var(--surface-hover)]"
-                        style={{ color: "var(--text-secondary)" }}
+                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-left hover:bg-[var(--fc-surface-hover)]"
+                        style={{ color: "var(--fc-text-secondary)" }}
                       >
                         <HoloIcon icon={Settings} variant="pink" isActive={true} className="w-4 h-4" />
                         <span style={{ fontSize: 12 }}>{t.config}</span>
@@ -1080,7 +1121,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                       <button
                         onClick={() => signOut({ callbackUrl: "/login" })}
                         className="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-red-500/10 transition-colors text-left"
-                        style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--red)" }}
+                        style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--fc-danger)" }}
                       >
                         <LogOut className="w-4 h-4" />
                         <span style={{ fontSize: 12, fontWeight: 500 }}>{t.logout}</span>
@@ -1094,25 +1135,25 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     <button
                       onClick={() => setActivePanel('main')}
                       className="flex items-center gap-2 text-xs font-semibold mb-4 hover:opacity-80 transition-opacity"
-                      style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
+                      style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer" }}
                     >
                       <ChevronLeft className="w-4 h-4" />
                       Volver / Back
                     </button>
-                    <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", marginBottom: 12 }}>{t.idiomaTitulo}</p>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: "var(--fc-text)", marginBottom: 12 }}>{t.idiomaTitulo}</p>
                     <div className="space-y-1">
                       <button
                         onClick={() => changeLang('es')}
-                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--surface-hover)] text-left text-xs transition-colors"
-                        style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--fc-surface-hover)] text-left text-xs transition-colors"
+                        style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer" }}
                       >
                         <span>Español (ES)</span>
                         {lang === 'es' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                       <button
                         onClick={() => changeLang('en')}
-                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--surface-hover)] text-left text-xs transition-colors"
-                        style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--fc-surface-hover)] text-left text-xs transition-colors"
+                        style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer" }}
                       >
                         <span>English (EN)</span>
                         {lang === 'en' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
@@ -1126,33 +1167,33 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     <button
                       onClick={() => setActivePanel('main')}
                       className="flex items-center gap-2 text-xs font-semibold mb-4 hover:opacity-80 transition-opacity"
-                      style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
+                      style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer" }}
                     >
                       <HoloIcon icon={ChevronLeft} variant="cyan" isActive={true} className="w-4 h-4" />
                       Volver / Back
                     </button>
-                    <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", marginBottom: 12 }}>{t.aparienciaTitulo}</p>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: "var(--fc-text)", marginBottom: 12 }}>{t.aparienciaTitulo}</p>
                     <div className="space-y-1">
                       <button
                         onClick={() => changeTheme('dark')}
-                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--surface-hover)] text-left text-xs transition-colors"
-                        style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--fc-surface-hover)] text-left text-xs transition-colors"
+                        style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer" }}
                       >
                         <span>{t.modoOscuro}</span>
                         {theme === 'dark' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                       <button
                         onClick={() => changeTheme('light')}
-                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--surface-hover)] text-left text-xs transition-colors"
-                        style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--fc-surface-hover)] text-left text-xs transition-colors"
+                        style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer" }}
                       >
                         <span>{t.modoClaro}</span>
                         {theme === 'light' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                       <button
                         onClick={() => changeTheme('azul')}
-                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--surface-hover)] text-left text-xs transition-colors"
-                        style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--fc-surface-hover)] text-left text-xs transition-colors"
+                        style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer" }}
                       >
                         <span>{t.modoAzul}</span>
                         {theme === 'azul' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
@@ -1181,5 +1222,3 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-
-

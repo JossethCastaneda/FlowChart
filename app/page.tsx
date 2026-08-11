@@ -6,7 +6,6 @@ import Link from "next/link";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { ReactLenis } from "lenis/react";
 import { FlowChartLogo } from "@/components/ui/FlowChartLogo";
-import { Orbi } from "@/components/ui/Orbi";
 import {
     ArrowRight,
     BarChart3,
@@ -2025,3 +2024,4 @@ function SpotlightCard({ children, className = "", style = {} }: { children: Rea
     </div>
   );
 }
+
