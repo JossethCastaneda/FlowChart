@@ -26,7 +26,7 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    // Si la variable está definida, mandamos todas las peticiones /api a dev.flowchart.xyz (Backend)
+    // Si la variable está definida, mandamos todas las peticiones /api a dev.flowchart.lat (Backend)
     // El frontend actúa como proxy transparente
     const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/^\uFEFF/, ""); // Remove BOM if present
     if (apiUrl && apiUrl.startsWith("http")) {
@@ -36,7 +36,7 @@ const nextConfig: NextConfig = {
           missing: [
             {
               type: 'host',
-              value: 'dev.flowchart.app',
+              value: 'dev.flowchart.lat',
             },
           ],
           destination: `${apiUrl}/api/:path*`,
@@ -53,7 +53,7 @@ const nextConfig: NextConfig = {
         source: "/api/:path*",
         headers: [
           { key: "Access-Control-Allow-Credentials", value: "true" },
-          { key: "Access-Control-Allow-Origin", value: process.env.NEXT_PUBLIC_FRONTEND_URL || "https://flowchart.app" },
+          { key: "Access-Control-Allow-Origin", value: process.env.NEXT_PUBLIC_FRONTEND_URL || "https://flowchart.lat" },
           { key: "Access-Control-Allow-Methods", value: "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
           { key: "Access-Control-Allow-Headers", value: "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" },
         ],
@@ -76,7 +76,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://*.fbcdn.net https://*.xx.fbcdn.net https://graph.facebook.com https://platform-lookaside.fbsbx.com https://*.cdninstagram.com https://www.googletagmanager.com https://www.google-analytics.com https://static.xx.fbcdn.net",
-              "connect-src 'self' https://dev.flowchart.app https://flowchart.app https://flowchart.app https://graph.facebook.com https://*.facebook.com https://*.facebook.net https://api.resend.com https://vitals.vercel-insights.com https://www.google-analytics.com https://*.analytics.google.com https://*.google-analytics.com https://stats.g.doubleclick.net",
+              "connect-src 'self' https://dev.flowchart.lat https://flowchart.lat https://graph.facebook.com https://*.facebook.com https://*.facebook.net https://api.resend.com https://vitals.vercel-insights.com https://www.google-analytics.com https://*.analytics.google.com https://*.google-analytics.com https://stats.g.doubleclick.net",
               "media-src 'self' blob: https://*.fbcdn.net https://*.cdninstagram.com",
               // frame-src: permite el popup/iframe del login de Facebook e iframe interno
               "frame-src 'self' https://www.facebook.com https://staticxx.facebook.com https://web.facebook.com",

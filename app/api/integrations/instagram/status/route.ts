@@ -26,7 +26,7 @@ export const GET = withWorkspaceRole(["OWNER", "ADMIN"])(async (_req: NextReques
 
   const verifyToken = env.META_WEBHOOK_VERIFY_TOKEN;
   const appId = env.INSTAGRAM_APIKEY_CONNECT;
-  const baseUrl = env.NEXT_PUBLIC_APP_URL || env.NEXTAUTH_URL || "https://flowchart.xyz";
+  const baseUrl = env.NEXT_PUBLIC_APP_URL || env.NEXTAUTH_URL || "https://flowchart.lat";
 
   let subscriptionStatus: { active: boolean; fields?: string[]; error?: string } | null = null;
 

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import Link from "next/link";
@@ -46,7 +46,7 @@ export default function CondicionesDelServicio() {
         <div style={{ display: "flex", flexDirection: "column", gap: "24px", lineHeight: "1.7", fontSize: "15px" }}>
           <section>
             <p>
-              Bienvenido a <strong>FLOWCHART</strong> (flowchart.xyz). Al acceder o utilizar nuestra plataforma, aceptas cumplir y estar sujeto a las siguientes Condiciones del Servicio. Por favor, léelas atentamente.
+              Bienvenido a <strong>FLOWCHART</strong> (flowchart.lat). Al acceder o utilizar nuestra plataforma, aceptas cumplir y estar sujeto a las siguientes Condiciones del Servicio. Por favor, léelas atentamente.
             </p>
           </section>
 
@@ -115,8 +115,8 @@ export default function CondicionesDelServicio() {
             </h2>
             <p>
               Si tienes alguna pregunta acerca de estas Condiciones del Servicio, puedes contactarnos a través de:{" "}
-              <a href="mailto:soporte@flowchart.xyz" style={{ color: "var(--cyan)", textDecoration: "none" }}>
-                soporte@flowchart.xyz
+              <a href="mailto:soporte@flowchart.lat" style={{ color: "var(--cyan)", textDecoration: "none" }}>
+                soporte@flowchart.lat
               </a>
             </p>
           </section>

@@ -70,8 +70,8 @@ function DeletionContent() {
           <p><strong style={{ color: "var(--text-secondary)" }}>Tiempo estimado:</strong> Hasta 90 días</p>
           <p style={{ marginTop: 12 }}>
             Si tienes preguntas, contacta a{" "}
-            <a href="mailto:soporte@flowchart.xyz" style={{ color: "var(--cyan)", textDecoration: "none" }}>
-              soporte@flowchart.xyz
+            <a href="mailto:soporte@flowchart.lat" style={{ color: "var(--cyan)", textDecoration: "none" }}>
+              soporte@flowchart.lat
             </a>
           </p>
         </div>

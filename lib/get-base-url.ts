@@ -37,5 +37,5 @@ export function getBaseUrl(): string {
   }
 
   // 4. Last resort hardcoded production domain
-  return "https://flowchart.xyz";
+  return "https://flowchart.lat";
 }

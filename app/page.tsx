@@ -462,7 +462,7 @@ export default function Home() {
       {
         "@type": "SoftwareApplication",
         "name": "FlowChart",
-        "url": "https://flowchart.xyz",
+        "url": "https://flowchart.lat",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web",
         "description": "El centro de mando para agencias de marketing: pauta de Meta, TikTok y Google Ads, inbox unificado de WhatsApp, Instagram y Messenger, y contenido con IA, para manejar todas tus cuentas desde un solo login.",
@@ -471,9 +471,9 @@ export default function Home() {
       {
         "@type": "Organization",
         "name": "FlowChart",
-        "url": "https://flowchart.xyz",
-        "logo": "https://flowchart.xyz/flowchart-logo-1024.jpg",
-        "contactPoint": { "@type": "ContactPoint", "email": "soporte@flowchart.xyz", "contactType": "customer service", "availableLanguage": ["Spanish"] },
+        "url": "https://flowchart.lat",
+        "logo": "https://flowchart.lat/flowchart-logo-1024.jpg",
+        "contactPoint": { "@type": "ContactPoint", "email": "soporte@flowchart.lat", "contactType": "customer service", "availableLanguage": ["Spanish"] },
         "sameAs": []
       },
       {

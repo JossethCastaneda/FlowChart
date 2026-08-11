@@ -39,6 +39,7 @@ export async function GET(_req: NextRequest) {
       path: "/",
       expires: new Date(0),
     });
+    // Clear old domain (flowchart.xyz) — backward compatibility
     res.cookies.set(name, "", { 
       maxAge: 0, 
       path: "/",
@@ -49,6 +50,19 @@ export async function GET(_req: NextRequest) {
       maxAge: 0, 
       path: "/",
       domain: "flowchart.xyz",
+      expires: new Date(0),
+    });
+    // Clear new domain (flowchart.lat)
+    res.cookies.set(name, "", { 
+      maxAge: 0, 
+      path: "/",
+      domain: ".flowchart.lat",
+      expires: new Date(0),
+    });
+    res.cookies.set(name, "", { 
+      maxAge: 0, 
+      path: "/",
+      domain: "flowchart.lat",
       expires: new Date(0),
     });
   }

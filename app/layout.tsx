@@ -45,14 +45,14 @@ export const viewport: Viewport = {
 };
 
 const safeUrl = (url: string | undefined): URL => {
-  if (!url) return new URL("https://flowchart.xyz");
+  if (!url) return new URL("https://flowchart.lat");
   const cleaned = url.replace(/^"|"$/g, "").trim();
-  if (!cleaned) return new URL("https://flowchart.xyz");
+  if (!cleaned) return new URL("https://flowchart.lat");
   if (!cleaned.startsWith("http")) return new URL(`http://${cleaned}`);
   try {
     return new URL(cleaned);
   } catch {
-    return new URL("https://flowchart.xyz");
+    return new URL("https://flowchart.lat");
   }
 };
 
@@ -76,7 +76,7 @@ export const metadata: Metadata = {
     "automatización marketing digital",
     "dashboard anuncios",
   ],
-  authors: [{ name: "FlowChart", url: "https://flowchart.app" }],
+  authors: [{ name: "FlowChart", url: "https://flowchart.lat" }],
   creator: "FlowChart",
   publisher: "FlowChart",
   alternates: {
@@ -86,7 +86,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "es_MX",
-    url: "https://flowchart.app",
+    url: "https://flowchart.lat",
     siteName: "FlowChart",
     title: "FlowChart — Todos tus canales en un solo flujo de datos",
     description:

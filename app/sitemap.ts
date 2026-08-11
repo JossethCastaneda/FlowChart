@@ -1,10 +1,10 @@
 import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  let baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://flowchart.xyz";
+  let baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://flowchart.lat";
   baseUrl = baseUrl.replace(/^"|"$/g, "").trim();
   if (!baseUrl || baseUrl === "") {
-    baseUrl = "https://flowchart.xyz";
+    baseUrl = "https://flowchart.lat";
   }
   if (!baseUrl.startsWith("http")) {
     baseUrl = `https://${baseUrl}`;

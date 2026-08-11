@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import Link from "next/link";
@@ -46,7 +46,7 @@ export default function AvisoDePrivacidad() {
         <div style={{ display: "flex", flexDirection: "column", gap: "24px", lineHeight: "1.7", fontSize: "15px" }}>
           <section>
             <p>
-              En <strong>FLOWCHART</strong> (flowchart.xyz), la privacidad de nuestros usuarios es de suma importancia. Este Aviso de Privacidad detalla cómo recopilamos, utilizamos, protegemos y permitimos la eliminación de tus datos personales cuando utilizas nuestra plataforma y conectas tus cuentas a través de Meta/Facebook Login y la API de Meta.
+              En <strong>FLOWCHART</strong> (flowchart.lat), la privacidad de nuestros usuarios es de suma importancia. Este Aviso de Privacidad detalla cómo recopilamos, utilizamos, protegemos y permitimos la eliminación de tus datos personales cuando utilizas nuestra plataforma y conectas tus cuentas a través de Meta/Facebook Login y la API de Meta.
             </p>
           </section>
 
@@ -153,8 +153,8 @@ export default function AvisoDePrivacidad() {
             </h2>
             <p>
               Si tienes alguna duda o comentario sobre este Aviso de Privacidad o deseas ejercer tus derechos ARCO, por favor contáctanos vía correo electrónico a:{" "}
-              <a href="mailto:soporte@flowchart.xyz" style={{ color: "var(--cyan)", textDecoration: "none" }}>
-                soporte@flowchart.xyz
+              <a href="mailto:soporte@flowchart.lat" style={{ color: "var(--cyan)", textDecoration: "none" }}>
+                soporte@flowchart.lat
               </a>
             </p>
           </section>
