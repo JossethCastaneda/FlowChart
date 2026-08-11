@@ -78,6 +78,7 @@ import {
   Webhook,
   PieChart,
   BrainCircuit,
+  Gauge,
   type LucideIcon,
 } from "lucide-react";
 
@@ -106,6 +107,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   "webhook": Webhook,
   "pie-chart": PieChart,
   "brain-circuit": BrainCircuit,
+  "gauge": Gauge,
 };
 
 
@@ -1181,5 +1183,4 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-
 

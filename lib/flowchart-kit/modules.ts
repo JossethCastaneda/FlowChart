@@ -10,7 +10,7 @@
 export type ModuleKey =
   | "resumen" | "clientes" | "publicacion" | "inbox" | "anuncios"
   | "escucha" | "envivo" | "briefs" | "tareas" | "chatbots"
-  | "integraciones" | "configuracion" | "mmm"
+  | "integraciones" | "configuracion" | "mmm" | "optimization"
   | "aprobaciones" | "reportes" | "biblioteca" | "datos" | "competidores" | "linkinbio" | "roles" | "api" | "aria";
 
 export type GroupKey =
@@ -72,6 +72,7 @@ export const MODULES: ModuleDef[] = [
       { label: "Predictive Studio", route: "/studio" },
       { label: "Scores",           route: "/scores" },
     ] },
+  { key: "optimization", label: "Optimización", code: "Control", route: "/dashboard/optimization", color: "var(--purple)", icon: "gauge", tagline: "Decisiones de inversión gobernadas", group: "crecimiento" },
   { key: "reportes",    label: "Reportes",     code: "Bitácora",  route: "/dashboard/reportes",    color: "var(--mod-reportes)", icon: "file-text",   tagline: "Informes white-label para el cliente", group: "crecimiento" },
 
 
