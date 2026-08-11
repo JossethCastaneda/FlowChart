@@ -51,37 +51,37 @@
 }
 
 [data-theme="light"] {
-  --fc-bg:               #F1EFEA;
-  --fc-surface:          #FDFCFA;
-  --fc-surface-raised:   #F5F3EE;
-  --fc-surface-overlay:  #FDFCFA;
+  --fc-bg:               #F9FAFB;
+  --fc-surface:          #FFFFFF;
+  --fc-surface-raised:   #F3F4F6;
+  --fc-surface-overlay:  #FFFFFF;
 
-  --fc-text:             #0B1214;
-  --fc-text-secondary:   #3A4446;
-  --fc-text-tertiary:    #5B6769;
-  --fc-text-disabled:    #8E9899;
+  --fc-text:             #111827;
+  --fc-text-secondary:   #4B5563;
+  --fc-text-tertiary:    #6B7280;
+  --fc-text-disabled:    #9CA3AF;
   --fc-text-muted:       var(--fc-text-tertiary);
 
-  --fc-border:           #E8E4DC;
-  --fc-border-subtle:    #F0EDE7;
-  --fc-border-strong:    #D4CFC5;
+  --fc-border:           #E5E7EB;
+  --fc-border-subtle:    #F3F4F6;
+  --fc-border-strong:    #D1D5DB;
   --fc-border-hover:     var(--fc-border-strong);
   --fc-surface-hover:    var(--fc-surface-raised);
 
-  --fc-accent:           #0A6E73;
-  --fc-accent-hover:     #085A5E;
-  --fc-accent-deep:      #12A2A8;
-  --fc-accent-wash:      #E3F0F0;
-  --fc-on-accent:        #FDFCFA;
+  --fc-accent:           #0E7A80;
+  --fc-accent-hover:     #0A6E73;
+  --fc-accent-deep:      #085A5E;
+  --fc-accent-wash:      #E6F4F4;
+  --fc-on-accent:        #FFFFFF;
 
-  --fc-success:          #0E8A5F;
-  --fc-success-wash:     #E6F2EC;
-  --fc-warning:          #A66A00;
-  --fc-warning-wash:     #FAF0DC;
-  --fc-danger:           #C93B3B;
-  --fc-danger-wash:      #FAECEC;
+  --fc-success:          #059669;
+  --fc-success-wash:     #D1FAE5;
+  --fc-warning:          #D97706;
+  --fc-warning-wash:     #FEF3C7;
+  --fc-danger:           #DC2626;
+  --fc-danger-wash:      #FEE2E2;
 
-  --fc-shadow-overlay:   0 16px 40px rgba(32, 30, 29, .14);
+  --fc-shadow-overlay:   0 16px 40px rgba(0, 0, 0, .08);
 }
 
 /* Tokens de compatibilidad ya migrados desde globals.css.
@@ -94,7 +94,7 @@
   --fc-accent-dim:        var(--fc-accent-wash);
   --fc-sidebar-border:    var(--fc-border);
   --fc-sidebar-shadow:    0 8px 40px rgba(0, 0, 0, .5), 0 0 0 1px rgba(255, 255, 255, .03);
-  --fc-glass-border:      var(--fc-border);
+  --fc-glass-border:      rgba(255, 255, 255, 0.08);
   --fc-shadow-soft:       0 12px 35px rgba(0, 0, 0, .45);
   --fc-shadow-hard:       0 24px 60px rgba(0, 0, 0, .8);
   --fc-overlay-dark:      rgba(0, 0, 0, .72);
@@ -119,7 +119,7 @@
 [data-theme="light"] {
   --fc-sidebar-border:    var(--fc-border);
   --fc-sidebar-shadow:    0 8px 40px rgba(15, 23, 42, .10), 0 0 0 1px rgba(15, 23, 42, .02);
-  --fc-glass-border:      var(--fc-border);
+  --fc-glass-border:      rgba(15, 23, 42, 0.08);
   --fc-shadow-soft:       0 12px 30px rgba(15, 23, 42, .15);
   --fc-shadow-hard:       0 24px 50px rgba(15, 23, 42, .25);
   --fc-overlay-dark:      rgba(15, 23, 42, .45);
@@ -160,8 +160,8 @@
 
 /* Tipografía */
 :root {
-  --fc-font-sans: Manrope, system-ui, sans-serif;
-  --fc-font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --fc-font-sans: var(--font-manrope), Manrope, system-ui, sans-serif;
+  --fc-font-mono: var(--font-jbmono), "JetBrains Mono", ui-monospace, monospace;
   --fc-font-display: var(--font-display, var(--fc-font-sans));
 
   --fc-text-display: 700 48px/1.05 var(--fc-font-sans);

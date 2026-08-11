@@ -150,7 +150,7 @@ export default function RootLayout({
         className="antialiased"
         suppressHydrationWarning
       >
-        <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem themes={["light", "dark"]}>
+        <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem themes={["light", "dark"]} storageKey="fc-theme">
         <FlowChartBrandDefs />
         <AuthProvider>
           <LanguageProvider>
