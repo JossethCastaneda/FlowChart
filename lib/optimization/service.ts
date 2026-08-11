@@ -2,14 +2,18 @@ import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { hashCanonicalJson } from "./canonical-json";
 import { assessOptimizationDataQuality } from "./data-quality";
+import { CanonicalMetricSchema, EvaluationPredictionRecordSchema } from "./contracts";
 import type {
   CreateAnalysisResultInput,
+  CreateEvaluationInput,
+  EvaluationPredictionRecord,
   CreateObjectiveInput,
   CreateOptimizationClientInput,
   CreateProposedActionInput,
   CreateSnapshotInput,
   JsonValue,
 } from "./contracts";
+import { aggregateEvaluationMetric, comparePrediction, evaluateSnapshotGuardrails } from "./evaluation";
 
 export class OptimizationDomainError extends Error {
   constructor(
@@ -445,4 +449,164 @@ export async function createOptimizationProposedAction(
     });
     return action;
   });
+}
+
+function objectiveGuardrails(value: Prisma.JsonValue): JsonValue {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+  const guardrails = (value as Record<string, Prisma.JsonValue>).guardrails;
+  return (guardrails ?? []) as JsonValue;
+}
+
+function extractEvaluationPrediction(payload: Prisma.JsonValue, locator: string) {
+  const candidates: Prisma.JsonValue[] = Array.isArray(payload) ? payload : [payload];
+  if (payload && typeof payload === "object" && !Array.isArray(payload)) {
+    const nested = (payload as Record<string, Prisma.JsonValue>).predictions;
+    if (Array.isArray(nested)) candidates.push(...nested);
+  }
+  for (const candidate of candidates) {
+    const parsed = EvaluationPredictionRecordSchema.safeParse(candidate);
+    if (parsed.success && parsed.data.locator === locator) return parsed.data;
+  }
+  return null;
+}
+
+export async function createOptimizationEvaluation(
+  workspaceId: string,
+  actorId: string,
+  input: CreateEvaluationInput
+) {
+  return prisma.$transaction(async (tx) => {
+    const existing = await tx.optimizationEvaluation.findUnique({
+      where: { idempotencyKey: input.idempotencyKey },
+    });
+    if (existing) {
+      if (existing.workspaceId === workspaceId && existing.clientId === input.clientId) return existing;
+      throw new OptimizationDomainError("La clave de idempotencia no está disponible", "IDEMPOTENCY_CONFLICT", 409);
+    }
+
+    const [sourceSnapshot, outcomeSnapshot] = await Promise.all([
+      tx.optimizationSnapshot.findFirst({
+        where: { id: input.sourceSnapshotId, workspaceId, clientId: input.clientId },
+      }),
+      tx.optimizationSnapshot.findFirst({
+        where: { id: input.outcomeSnapshotId, workspaceId, clientId: input.clientId },
+      }),
+    ]);
+    if (!sourceSnapshot) throw new OptimizationDomainError("Snapshot de origen no encontrado", "SOURCE_SNAPSHOT_NOT_FOUND", 404);
+    if (!outcomeSnapshot) throw new OptimizationDomainError("Snapshot de resultado no encontrado", "OUTCOME_SNAPSHOT_NOT_FOUND", 404);
+    if (outcomeSnapshot.periodStart <= sourceSnapshot.cutoffAt || outcomeSnapshot.cutoffAt <= sourceSnapshot.cutoffAt) {
+      throw new OptimizationDomainError("El periodo observado debe comenzar después del corte de la predicción", "OUTCOME_NOT_POST_CUTOFF", 422);
+    }
+
+    let prediction: EvaluationPredictionRecord | null = null;
+    if (input.evaluationType === "forecast_backtest") {
+      const result = await tx.optimizationAnalysisResult.findFirst({
+        where: {
+          id: input.analysisResultId,
+          workspaceId,
+          clientId: input.clientId,
+          snapshotId: input.sourceSnapshotId,
+        },
+        select: { id: true, predictions: true },
+      });
+      if (!result) throw new OptimizationDomainError("Resultado analítico fuera del snapshot o tenant", "ANALYSIS_SCOPE_MISMATCH", 403);
+      prediction = extractEvaluationPrediction(result.predictions, input.predictionLocator);
+    }
+    if (input.evaluationType === "shadow_policy") {
+      const action = await tx.optimizationProposedAction.findFirst({
+        where: {
+          id: input.actionId,
+          workspaceId,
+          clientId: input.clientId,
+          snapshotId: input.sourceSnapshotId,
+        },
+        select: { id: true, expectedImpact: true },
+      });
+      if (!action) throw new OptimizationDomainError("Acción propuesta fuera del snapshot o tenant", "ACTION_SCOPE_MISMATCH", 403);
+      prediction = extractEvaluationPrediction(action.expectedImpact, input.predictionLocator);
+    }
+    if (!prediction) {
+      throw new OptimizationDomainError("La predicción estructurada no existe en el artefacto inmutable", "PREDICTION_NOT_FOUND", 422);
+    }
+
+    const parsedMetrics = CanonicalMetricSchema.array().safeParse(outcomeSnapshot.normalizedMetrics);
+    const metrics = parsedMetrics.success ? parsedMetrics.data : [];
+    const actual = aggregateEvaluationMetric(metrics, prediction.metric, input.scope);
+    const comparison = comparePrediction({
+      predictedValue: prediction.value,
+      actualValue: actual.value,
+      baselineValue: prediction.baselineValue,
+      interval: prediction.interval,
+    });
+    const guardrailResults = evaluateSnapshotGuardrails(metrics, objectiveGuardrails(sourceSnapshot.activeObjective));
+    const limitations: string[] = [];
+    if (!parsedMetrics.success) limitations.push("El snapshot de resultado no contiene métricas canónicas válidas");
+    if (sourceSnapshot.status === "invalid") limitations.push("El snapshot de origen es inválido");
+    if (outcomeSnapshot.status === "invalid") limitations.push("El snapshot de resultado es inválido");
+    if (sourceSnapshot.status === "degraded" || outcomeSnapshot.status === "degraded") {
+      limitations.push("Al menos un snapshot tiene calidad degradada");
+    }
+    if (actual.sampleSize < input.minimumSampleSize) limitations.push("La muestra observada no alcanza el mínimo configurado");
+    if (actual.value === null) limitations.push("No es posible calcular la métrica observada con los denominadores disponibles");
+    if (input.evaluationType === "shadow_policy") {
+      limitations.push("La acción no se ejecutó: la comparación shadow es contrafactual y no demuestra causalidad");
+    }
+    const inconclusive = !parsedMetrics.success
+      || sourceSnapshot.status === "invalid"
+      || outcomeSnapshot.status === "invalid"
+      || actual.sampleSize < input.minimumSampleSize
+      || actual.value === null;
+
+    const evaluation = await tx.optimizationEvaluation.create({
+      data: {
+        workspaceId,
+        clientId: input.clientId,
+        sourceSnapshotId: input.sourceSnapshotId,
+        outcomeSnapshotId: input.outcomeSnapshotId,
+        analysisResultId: input.analysisResultId,
+        actionId: input.actionId,
+        evaluationType: input.evaluationType,
+        metric: prediction.metric,
+        aggregation: input.aggregation,
+        scope: json(input.scope),
+        predictedValue: prediction.value,
+        actualValue: actual.value,
+        baselineValue: prediction.baselineValue,
+        intervalLow: prediction.interval?.low,
+        intervalHigh: prediction.interval?.high,
+        intervalLevel: prediction.interval?.level,
+        predictionLocator: prediction.locator,
+        absoluteError: comparison.absoluteError,
+        percentageError: comparison.percentageError,
+        withinInterval: comparison.withinInterval,
+        directionalCorrect: comparison.directionalCorrect,
+        sampleSize: actual.sampleSize,
+        minimumSampleSize: input.minimumSampleSize,
+        status: inconclusive ? "inconclusive" : "completed",
+        causalClaimAllowed: false,
+        guardrailResults: json(guardrailResults as unknown as JsonValue[]),
+        limitations: json(limitations),
+        idempotencyKey: input.idempotencyKey,
+        createdById: actorId,
+      },
+    });
+    await tx.optimizationAuditEvent.create({
+      data: {
+        workspaceId,
+        clientId: input.clientId,
+        snapshotId: input.outcomeSnapshotId,
+        actionId: input.actionId,
+        actorId,
+        eventType: "evaluation.created",
+        payload: json({
+          evaluationId: evaluation.id,
+          evaluationType: input.evaluationType,
+          metric: prediction.metric,
+          status: evaluation.status,
+          causalClaimAllowed: false,
+        }),
+      },
+    });
+    return evaluation;
+  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 }

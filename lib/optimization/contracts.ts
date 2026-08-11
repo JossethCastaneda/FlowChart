@@ -205,6 +205,75 @@ export const CreateProposedActionSchema = z.object({
   state: z.enum(["draft", "requires_review", "blocked"]).default("requires_review"),
 });
 
+export const EvaluationMetricSchema = z.enum([
+  "spend",
+  "impressions",
+  "clicks",
+  "conversions",
+  "revenue",
+  "cpa",
+  "roas",
+  "ctr",
+  "cpc",
+  "cvr",
+]);
+
+export const EvaluationScopeSchema = z.object({
+  provider: ProviderSchema.optional(),
+  accountId: z.string().min(1).max(200).optional(),
+  campaignId: z.string().min(1).max(200).optional(),
+  groupId: z.string().min(1).max(200).optional(),
+  adId: z.string().min(1).max(200).optional(),
+});
+
+export const EvaluationPredictionRecordSchema = z.object({
+  locator: z.string().min(1).max(500),
+  metric: EvaluationMetricSchema,
+  value: z.number().finite(),
+  baselineValue: z.number().finite().optional(),
+  interval: z.object({
+    low: z.number().finite(),
+    high: z.number().finite(),
+    level: z.number().min(0).max(1),
+  }).optional(),
+}).superRefine((value, ctx) => {
+  if (value.interval && value.interval.low > value.interval.high) {
+    ctx.addIssue({ code: "custom", path: ["interval", "high"], message: "El límite superior debe ser mayor o igual al inferior" });
+  }
+});
+
+export const CreateEvaluationSchema = z
+  .object({
+    clientId: z.string().min(1),
+    sourceSnapshotId: z.string().min(1),
+    outcomeSnapshotId: z.string().min(1),
+    evaluationType: z.enum(["forecast_backtest", "shadow_policy"]),
+    analysisResultId: z.string().min(1).optional(),
+    actionId: z.string().min(1).optional(),
+    aggregation: z.literal("period_total").default("period_total"),
+    scope: EvaluationScopeSchema.default({}),
+    predictionLocator: z.string().min(1).max(500),
+    minimumSampleSize: z.number().int().min(1).max(250_000).default(1),
+    idempotencyKey: z.string().min(16).max(200),
+  })
+  .superRefine((value, ctx) => {
+    if (value.sourceSnapshotId === value.outcomeSnapshotId) {
+      ctx.addIssue({ code: "custom", path: ["outcomeSnapshotId"], message: "El snapshot de resultado debe ser posterior y distinto" });
+    }
+    if (value.evaluationType === "forecast_backtest" && !value.analysisResultId) {
+      ctx.addIssue({ code: "custom", path: ["analysisResultId"], message: "El backtest requiere un resultado analítico" });
+    }
+    if (value.evaluationType === "forecast_backtest" && value.actionId) {
+      ctx.addIssue({ code: "custom", path: ["actionId"], message: "El backtest de forecast no acepta una acción" });
+    }
+    if (value.evaluationType === "shadow_policy" && !value.actionId) {
+      ctx.addIssue({ code: "custom", path: ["actionId"], message: "Shadow mode requiere una acción propuesta" });
+    }
+    if (value.evaluationType === "shadow_policy" && value.analysisResultId) {
+      ctx.addIssue({ code: "custom", path: ["analysisResultId"], message: "Shadow mode obtiene la predicción exclusivamente de la acción" });
+    }
+  });
+
 export type CreateOptimizationClientInput = z.infer<typeof CreateOptimizationClientSchema>;
 export type CreateObjectiveInput = z.infer<typeof CreateObjectiveSchema>;
 export type CanonicalMetric = z.infer<typeof CanonicalMetricSchema>;
@@ -212,3 +281,7 @@ export type SourceManifest = z.infer<typeof SourceManifestSchema>;
 export type CreateSnapshotInput = z.infer<typeof CreateSnapshotSchema>;
 export type CreateAnalysisResultInput = z.infer<typeof CreateAnalysisResultSchema>;
 export type CreateProposedActionInput = z.infer<typeof CreateProposedActionSchema>;
+export type EvaluationMetric = z.infer<typeof EvaluationMetricSchema>;
+export type EvaluationScope = z.infer<typeof EvaluationScopeSchema>;
+export type EvaluationPredictionRecord = z.infer<typeof EvaluationPredictionRecordSchema>;
+export type CreateEvaluationInput = z.infer<typeof CreateEvaluationSchema>;

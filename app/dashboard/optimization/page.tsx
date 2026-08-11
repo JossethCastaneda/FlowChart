@@ -9,6 +9,7 @@ import {
   Database,
   Gauge,
   Loader2,
+  Microscope,
   RefreshCw,
   ShieldCheck,
   Target,
@@ -65,6 +66,13 @@ function formatValue(value: unknown, unit?: string, currency?: string | null) {
   }
   if (typeof value === "string" || typeof value === "boolean") return String(value);
   return JSON.stringify(value);
+}
+
+function formatEvaluationValue(value: number | null, metric: string) {
+  if (value === null) return "No calculable";
+  if (metric === "ctr" || metric === "cvr") return `${(value * 100).toFixed(2)}%`;
+  if (metric === "roas") return `${value.toFixed(2)}x`;
+  return new Intl.NumberFormat("es-MX", { maximumFractionDigits: 2 }).format(value);
 }
 
 function Panel({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
@@ -154,11 +162,13 @@ export default function OptimizationCenterPage() {
         />
       ) : overview ? (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-4">
             <KpiCard label="Clientes activos" value={overview.summary.activeClients} icon={<Target className="w-5 h-5" />} color="purple" context={`${overview.summary.clientsWithObjective} con meta activa`} />
             <KpiCard label="Cuentas autorizadas" value={overview.summary.authorizedAccounts} icon={<ShieldCheck className="w-5 h-5" />} color="cyan" context="Allow-list del workspace" />
             <KpiCard label="Requieren revisión" value={overview.summary.requiresReview} icon={<Clock3 className="w-5 h-5" />} color="amber" context="Sin ejecución habilitada" />
             <KpiCard label="Acciones bloqueadas" value={overview.summary.blocked} icon={<Ban className="w-5 h-5" />} color="red" context="Guardrails o calidad" />
+            <KpiCard label="Evaluaciones válidas" value={overview.summary.completedEvaluations} icon={<Microscope className="w-5 h-5" />} color="emerald" context={`${overview.summary.inconclusiveEvaluations} inconclusas`} />
+            <KpiCard label="MAPE retrospectivo" value={overview.summary.meanAbsolutePercentageError === null ? "—" : `${(overview.summary.meanAbsolutePercentageError * 100).toFixed(1)}%`} icon={<Gauge className="w-5 h-5" />} color="purple" context="Solo evaluaciones concluyentes" />
           </div>
 
           <Panel title="Preparación por cliente" description="La clasificación proviene del último snapshot inmutable; sin snapshot se falla de forma segura a datos insuficientes.">
@@ -190,6 +200,42 @@ export default function OptimizationCenterPage() {
                     })}
                   </tbody>
                 </table>
+              </div>
+            )}
+          </Panel>
+
+          <Panel title="Evaluación retrospectiva y shadow mode" description="Compara predicciones con snapshots posteriores. Shadow mode nunca atribuye causalidad porque la acción propuesta no fue ejecutada.">
+            {overview.evaluations.length === 0 ? (
+              <div className="p-6"><EmptyState icon={<Microscope className="w-8 h-8" />} title="Aún no hay evaluaciones retrospectivas" description="Cuando exista un snapshot posterior, el motor podrá medir error, cobertura del intervalo, dirección y guardrails." /></div>
+            ) : (
+              <div className="divide-y divide-[var(--fc-border-subtle)]">
+                {overview.evaluations.map((evaluation) => (
+                  <article key={evaluation.id} className="p-5 grid grid-cols-1 lg:grid-cols-[1.2fr_1fr_1fr_auto] gap-4 items-center">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <span className="text-sm font-bold text-[var(--fc-text)]">{evaluation.clientName}</span>
+                        <Tag variant={evaluation.status === "completed" ? "success" : "warning"}>{evaluation.status === "completed" ? "Concluyente" : "Inconclusa"}</Tag>
+                        <Tag variant={evaluation.evaluationType === "shadow_policy" ? "accent" : "default"}>{evaluation.evaluationType === "shadow_policy" ? "Shadow" : "Backtest"}</Tag>
+                      </div>
+                      <p className="text-xs uppercase font-bold text-[var(--fc-text-secondary)] m-0">{evaluation.metric}</p>
+                      <p className="text-[10px] text-[var(--fc-text-muted)] mt-1 mb-0">{evaluation.sampleSize} filas · mínimo {evaluation.minimumSampleSize}</p>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs">
+                      <div><span className="block text-[10px] text-[var(--fc-text-muted)] mb-1">Predicción</span><strong className="text-[var(--purple)]">{formatEvaluationValue(evaluation.predictedValue, evaluation.metric)}</strong></div>
+                      <span className="text-[var(--fc-text-muted)]">→</span>
+                      <div><span className="block text-[10px] text-[var(--fc-text-muted)] mb-1">Observado</span><strong className="text-[var(--fc-text)]">{formatEvaluationValue(evaluation.actualValue, evaluation.metric)}</strong></div>
+                    </div>
+                    <div className="text-xs text-[var(--fc-text-secondary)]">
+                      <span className="block text-[10px] text-[var(--fc-text-muted)] mb-1">Error absoluto porcentual</span>
+                      <strong className="text-[var(--fc-text)]">{evaluation.percentageError === null ? "—" : `${(evaluation.percentageError * 100).toFixed(1)}%`}</strong>
+                      {evaluation.withinInterval !== null && <span className="block text-[10px] mt-1">Intervalo: {evaluation.withinInterval ? "cubierto" : "fuera de rango"}</span>}
+                    </div>
+                    <div className="lg:text-right text-[10px] text-[var(--fc-text-muted)]">
+                      <span className="block">{formatDate(evaluation.evaluatedAt)}</span>
+                      <span className="block mt-1 font-semibold text-[var(--fc-warning)]">Sin afirmación causal</span>
+                    </div>
+                  </article>
+                ))}
               </div>
             )}
           </Panel>

@@ -118,6 +118,7 @@ model Workspace {
   optimizationSnapshots   OptimizationSnapshot[]
   optimizationResults     OptimizationAnalysisResult[]
   optimizationActions     OptimizationProposedAction[]
+  optimizationEvaluations OptimizationEvaluation[]
   optimizationAuditEvents OptimizationAuditEvent[]
 }
 
@@ -1712,6 +1713,7 @@ model OptimizationClient {
   snapshots   OptimizationSnapshot[]
   results     OptimizationAnalysisResult[]
   actions     OptimizationProposedAction[]
+  evaluations OptimizationEvaluation[]
   auditEvents OptimizationAuditEvent[]
 
   @@unique([workspaceId, key])
@@ -1816,11 +1818,13 @@ model OptimizationSnapshot {
   createdById          String?
   createdAt            DateTime @default(now())
 
-  workspace   Workspace                    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  client      OptimizationClient           @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
-  results     OptimizationAnalysisResult[]
-  actions     OptimizationProposedAction[]
-  auditEvents OptimizationAuditEvent[]
+  workspace          Workspace                    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client             OptimizationClient           @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
+  results            OptimizationAnalysisResult[]
+  actions            OptimizationProposedAction[]
+  sourceEvaluations  OptimizationEvaluation[]     @relation("EvaluationSourceSnapshot")
+  outcomeEvaluations OptimizationEvaluation[]     @relation("EvaluationOutcomeSnapshot")
+  auditEvents        OptimizationAuditEvent[]
 
   @@unique([workspaceId, clientId, contentHash])
   @@unique([workspaceId, clientId, id])
@@ -1845,9 +1849,10 @@ model OptimizationAnalysisResult {
   status                   String
   createdAt                DateTime @default(now())
 
-  workspace Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  client    OptimizationClient   @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
-  snapshot  OptimizationSnapshot @relation(fields: [workspaceId, clientId, snapshotId], references: [workspaceId, clientId, id], onDelete: Cascade)
+  workspace   Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client      OptimizationClient       @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
+  snapshot    OptimizationSnapshot     @relation(fields: [workspaceId, clientId, snapshotId], references: [workspaceId, clientId, id], onDelete: Cascade)
+  evaluations OptimizationEvaluation[]
 
   @@index([workspaceId, clientId, createdAt])
   @@index([snapshotId, analysisType])
@@ -1886,11 +1891,64 @@ model OptimizationProposedAction {
   workspace   Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   client      OptimizationClient       @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
   snapshot    OptimizationSnapshot     @relation(fields: [workspaceId, clientId, snapshotId], references: [workspaceId, clientId, id], onDelete: Cascade)
+  evaluations OptimizationEvaluation[]
   auditEvents OptimizationAuditEvent[]
 
   @@unique([workspaceId, clientId, id])
   @@index([workspaceId, clientId, state])
   @@index([snapshotId])
+}
+
+/// Immutable retrospective comparison. The observed value is always derived
+/// from the outcome snapshot; callers cannot supply it. Shadow evaluations
+/// describe counterfactual policy behavior and never establish causality.
+model OptimizationEvaluation {
+  id                 String   @id @default(cuid())
+  workspaceId        String
+  clientId           String
+  sourceSnapshotId   String
+  outcomeSnapshotId  String
+  analysisResultId   String?
+  actionId           String?
+  evaluationType     String // forecast_backtest | shadow_policy
+  metric             String
+  aggregation        String
+  scope              Json
+  predictedValue     Float
+  actualValue        Float?
+  baselineValue      Float?
+  intervalLow        Float?
+  intervalHigh       Float?
+  intervalLevel      Float?
+  predictionLocator  String
+  absoluteError      Float?
+  percentageError    Float?
+  withinInterval     Boolean?
+  directionalCorrect Boolean?
+  sampleSize         Int
+  minimumSampleSize  Int
+  status             String // completed | inconclusive
+  causalClaimAllowed Boolean  @default(false)
+  guardrailResults   Json
+  limitations        Json
+  idempotencyKey     String   @unique
+  createdById        String?
+  evaluatedAt        DateTime @default(now())
+  createdAt          DateTime @default(now())
+
+  workspace       Workspace                   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client          OptimizationClient          @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
+  sourceSnapshot  OptimizationSnapshot        @relation("EvaluationSourceSnapshot", fields: [workspaceId, clientId, sourceSnapshotId], references: [workspaceId, clientId, id], onDelete: Restrict)
+  outcomeSnapshot OptimizationSnapshot        @relation("EvaluationOutcomeSnapshot", fields: [workspaceId, clientId, outcomeSnapshotId], references: [workspaceId, clientId, id], onDelete: Restrict)
+  analysisResult  OptimizationAnalysisResult? @relation(fields: [analysisResultId], references: [id], onDelete: Restrict)
+  action          OptimizationProposedAction? @relation(fields: [actionId], references: [id], onDelete: Restrict)
+
+  @@unique([workspaceId, clientId, id])
+  @@index([workspaceId, clientId, evaluatedAt])
+  @@index([sourceSnapshotId])
+  @@index([outcomeSnapshotId])
+  @@index([analysisResultId])
+  @@index([actionId])
 }
 
 /// Append-only domain ledger. Application code exposes create/list only.

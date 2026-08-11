@@ -37,7 +37,7 @@ export function parseQualitySummary(value: unknown): QualitySummary {
 
 export async function getOptimizationOverview(workspaceId: string) {
   const now = new Date();
-  const [clients, actions] = await Promise.all([
+  const [clients, actions, evaluations] = await Promise.all([
     prisma.optimizationClient.findMany({
       where: { workspaceId, status: "active" },
       select: {
@@ -79,7 +79,7 @@ export async function getOptimizationOverview(workspaceId: string) {
           take: 1,
           select: { analysisType: true, status: true, createdAt: true },
         },
-        _count: { select: { actions: true } },
+        _count: { select: { actions: true, evaluations: true } },
       },
       orderBy: { displayName: "asc" },
     }),
@@ -106,6 +106,35 @@ export async function getOptimizationOverview(workspaceId: string) {
         expiresAt: true,
         requiredApproverRole: true,
         createdAt: true,
+        client: { select: { displayName: true } },
+      },
+    }),
+    prisma.optimizationEvaluation.findMany({
+      where: { workspaceId },
+      orderBy: { evaluatedAt: "desc" },
+      take: 25,
+      select: {
+        id: true,
+        clientId: true,
+        evaluationType: true,
+        metric: true,
+        predictedValue: true,
+        actualValue: true,
+        baselineValue: true,
+        intervalLow: true,
+        intervalHigh: true,
+        intervalLevel: true,
+        absoluteError: true,
+        percentageError: true,
+        withinInterval: true,
+        directionalCorrect: true,
+        sampleSize: true,
+        minimumSampleSize: true,
+        status: true,
+        causalClaimAllowed: true,
+        guardrailResults: true,
+        limitations: true,
+        evaluatedAt: true,
         client: { select: { displayName: true } },
       },
     }),
@@ -136,6 +165,7 @@ export async function getOptimizationOverview(workspaceId: string) {
         ? { ...client.results[0], createdAt: client.results[0].createdAt.toISOString() }
         : null,
       proposedActions: client._count.actions,
+      evaluations: client._count.evaluations,
     };
   });
 
@@ -146,6 +176,16 @@ export async function getOptimizationOverview(workspaceId: string) {
     createdAt: action.createdAt.toISOString(),
     clientName: client.displayName,
   }));
+  const evaluationRows = evaluations.map(({ client, ...evaluation }) => ({
+    ...evaluation,
+    evaluatedAt: evaluation.evaluatedAt.toISOString(),
+    clientName: client.displayName,
+  }));
+  const percentageErrors = evaluationRows.flatMap((evaluation) =>
+    evaluation.status === "completed" && evaluation.percentageError !== null
+      ? [evaluation.percentageError]
+      : []
+  );
 
   const readiness = {
     mmm_ready: 0,
@@ -166,10 +206,16 @@ export async function getOptimizationOverview(workspaceId: string) {
       authorizedAccounts: clientRows.reduce((total, client) => total + client.authorizedAccounts, 0),
       requiresReview: actionRows.filter((action) => action.state === "requires_review").length,
       blocked: actionRows.filter((action) => action.state === "blocked").length,
+      completedEvaluations: evaluationRows.filter((evaluation) => evaluation.status === "completed").length,
+      inconclusiveEvaluations: evaluationRows.filter((evaluation) => evaluation.status === "inconclusive").length,
+      meanAbsolutePercentageError: percentageErrors.length
+        ? percentageErrors.reduce((total, value) => total + value, 0) / percentageErrors.length
+        : null,
       readiness,
     },
     clients: clientRows,
     actions: actionRows,
+    evaluations: evaluationRows,
   };
 }
 

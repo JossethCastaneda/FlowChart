@@ -4,6 +4,7 @@ vi.mock("@/lib/prisma", () => ({
   default: {
     optimizationClient: { findMany: vi.fn() },
     optimizationProposedAction: { findMany: vi.fn() },
+    optimizationEvaluation: { findMany: vi.fn() },
   },
 }));
 
@@ -13,12 +14,14 @@ import { getOptimizationOverview, parseQualitySummary } from "../lib/optimizatio
 const mocked = prisma as unknown as {
   optimizationClient: { findMany: ReturnType<typeof vi.fn> };
   optimizationProposedAction: { findMany: ReturnType<typeof vi.fn> };
+  optimizationEvaluation: { findMany: ReturnType<typeof vi.fn> };
 };
 
 beforeEach(() => {
   vi.clearAllMocks();
   mocked.optimizationClient.findMany.mockResolvedValue([]);
   mocked.optimizationProposedAction.findMany.mockResolvedValue([]);
+  mocked.optimizationEvaluation.findMany.mockResolvedValue([]);
 });
 
 describe("optimization overview quality parsing", () => {
@@ -48,6 +51,9 @@ describe("optimization overview tenant boundaries", () => {
       expect.objectContaining({ where: { workspaceId: "ws-active", status: "active" } })
     );
     expect(mocked.optimizationProposedAction.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { workspaceId: "ws-active" } })
+    );
+    expect(mocked.optimizationEvaluation.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ where: { workspaceId: "ws-active" } })
     );
   });

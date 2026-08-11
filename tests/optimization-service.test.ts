@@ -12,6 +12,7 @@ vi.mock("@/lib/prisma", () => ({
 import prisma from "@/lib/prisma";
 import {
   createOptimizationClient,
+  createOptimizationEvaluation,
   createOptimizationProposedAction,
   createOptimizationSnapshot,
 } from "../lib/optimization/service";
@@ -123,5 +124,112 @@ describe("Optimization service tenant boundaries", () => {
       where: { id: "snapshot-from-ws-b", workspaceId: "ws-a", clientId: "client-a" },
     });
     expect(tx.optimizationAdAccount.findFirst).not.toHaveBeenCalled();
+  });
+
+  it("rechaza un snapshot de resultado perteneciente a otro tenant", async () => {
+    const tx = {
+      optimizationEvaluation: { findUnique: vi.fn().mockResolvedValue(null) },
+      optimizationSnapshot: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce({ id: "source", cutoffAt: new Date("2026-08-01T23:59:59Z") })
+          .mockResolvedValueOnce(null),
+      },
+    };
+    mocked.$transaction.mockImplementation(async (callback: (arg: typeof tx) => unknown) => callback(tx));
+
+    await expect(createOptimizationEvaluation("ws-a", "user-a", {
+      clientId: "client-a",
+      sourceSnapshotId: "source",
+      outcomeSnapshotId: "outcome-from-ws-b",
+      evaluationType: "shadow_policy",
+      actionId: "action-a",
+      aggregation: "period_total",
+      scope: {},
+      predictionLocator: "expectedImpact.conversions",
+      minimumSampleSize: 1,
+      idempotencyKey: "evaluation:tenant-boundary",
+    })).rejects.toMatchObject({ code: "OUTCOME_SNAPSHOT_NOT_FOUND", status: 404 });
+
+    expect(tx.optimizationSnapshot.findFirst).toHaveBeenNthCalledWith(2, {
+      where: { id: "outcome-from-ws-b", workspaceId: "ws-a", clientId: "client-a" },
+    });
+  });
+
+  it("deriva el valor observado del snapshot y conserva shadow mode como no causal", async () => {
+    const source = {
+      id: "source",
+      cutoffAt: new Date("2026-08-01T23:59:59Z"),
+      periodStart: new Date("2026-07-01T00:00:00Z"),
+      status: "valid",
+      activeObjective: { guardrails: [{ metric: "conversions", operator: "gte", value: 4 }] },
+    };
+    const outcome = {
+      id: "outcome",
+      cutoffAt: new Date("2026-08-09T23:59:59Z"),
+      periodStart: new Date("2026-08-02T00:00:00Z"),
+      status: "valid",
+      normalizedMetrics: [{
+        date: "2026-08-03",
+        provider: "meta",
+        accountId: "act-1",
+        level: "campaign",
+        entityId: "cmp-1",
+        campaignId: "cmp-1",
+        currency: "MXN",
+        timezone: "America/Mexico_City",
+        attributionWindow: "7d_click_1d_view",
+        spend: 100,
+        impressions: 1000,
+        clicks: 50,
+        conversions: 5,
+        revenue: 300,
+        sourceUpdatedAt: "2026-08-09T12:00:00.000Z",
+      }],
+    };
+    const tx = {
+      optimizationEvaluation: {
+        findUnique: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockImplementation(({ data }) => Promise.resolve({ id: "eval-1", ...data })),
+      },
+      optimizationSnapshot: { findFirst: vi.fn().mockResolvedValueOnce(source).mockResolvedValueOnce(outcome) },
+      optimizationProposedAction: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: "action-a",
+          expectedImpact: {
+            locator: "expectedImpact.conversions",
+            metric: "conversions",
+            value: 6,
+            baselineValue: 4,
+          },
+        }),
+      },
+      optimizationAuditEvent: { create: vi.fn().mockResolvedValue({ id: "audit-1" }) },
+    };
+    mocked.$transaction.mockImplementation(async (callback: (arg: typeof tx) => unknown) => callback(tx));
+
+    await createOptimizationEvaluation("ws-a", "user-a", {
+      clientId: "client-a",
+      sourceSnapshotId: "source",
+      outcomeSnapshotId: "outcome",
+      evaluationType: "shadow_policy",
+      actionId: "action-a",
+      aggregation: "period_total",
+      scope: {},
+      predictionLocator: "expectedImpact.conversions",
+      minimumSampleSize: 1,
+      idempotencyKey: "evaluation:derived-outcome",
+    });
+
+    expect(tx.optimizationEvaluation.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        predictedValue: 6,
+        actualValue: 5,
+        absoluteError: 1,
+        percentageError: 0.2,
+        directionalCorrect: true,
+        status: "completed",
+        causalClaimAllowed: false,
+      }),
+    });
   });
 });
