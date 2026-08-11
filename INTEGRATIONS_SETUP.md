@@ -42,16 +42,16 @@ Tokens se cifran con **AES-256-GCM** vía `lib/encryption.ts` y se almacenan **p
 **Authorized redirect URIs** (regístralas EXACTAS, sin espacios ni slash final):
 
 ```
-https://flowchart.xyz/api/oauth/google/callback
-https://dev.flowchart.xyz/api/oauth/google/callback
+https://flowchart.lat/api/oauth/google/callback
+https://dev.flowchart.lat/api/oauth/google/callback
 http://localhost:3000/api/oauth/google/callback
 ```
 
 **Authorized JavaScript origins:**
 
 ```
-https://flowchart.xyz
-https://dev.flowchart.xyz
+https://flowchart.lat
+https://dev.flowchart.lat
 http://localhost:3000
 ```
 
@@ -65,8 +65,8 @@ http://localhost:3000
 > ⚠️ **NEXTAUTH_URL sin espacios:** el `redirect_uri` se deriva de `NEXTAUTH_URL`.
 > Si esa variable tiene un espacio al inicio/fin en Vercel, Google lo recibe como
 > `%20` y rechaza con `redirect_uri_mismatch`. El código ya lo sanea
-> (`lib/app-url.ts`), pero igual debe estar limpia: `https://flowchart.xyz` en
-> Production y `https://dev.flowchart.xyz` en Preview.
+> (`lib/app-url.ts`), pero igual debe estar limpia: `https://flowchart.lat` en
+> Production y `https://dev.flowchart.lat` en Preview.
 
 ---
 

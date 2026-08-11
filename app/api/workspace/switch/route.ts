@@ -38,7 +38,7 @@ export const POST = withAuth(async (req, ctx) => {
   });
 
   // Cookie host-only (sin domain explícito), igual que la cookie de invitación. El
-  // `.flowchart.xyz` hardcodeado rompía el switch en deploys de Preview (*.vercel.app)
+  // `.flowchart.lat` hardcodeado rompía el switch en deploys de Preview (*.vercel.app)
   // y "shadowaba" la cookie host-only puesta por otras rutas.
   response.cookies.set(ACTIVE_WORKSPACE_COOKIE, workspaceId, {
     httpOnly: true,

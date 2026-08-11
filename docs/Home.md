@@ -6,7 +6,7 @@ created: 2026-08-11
 # FlowChart / Zefirus — Base de Conocimiento
 
 > SaaS multi-tenant de marketing en Meta (Facebook + Instagram).
-> **Producción:** [flowchart.xyz](https://flowchart.xyz) · **Hosting:** Vercel · **DB:** PostgreSQL (Neon)
+> **Producción:** [flowchart.lat](https://flowchart.lat) · **Hosting:** Vercel · **DB:** PostgreSQL (Neon)
 
 ---
 

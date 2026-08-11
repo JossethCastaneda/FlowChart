@@ -15,7 +15,7 @@ function getResend(): Resend | null {
   if (!_resend) _resend = new Resend(env.RESEND_API_KEY);
   return _resend;
 }
-const FROM_EMAIL = env.RESEND_FROM_EMAIL || env.EMAIL_FROM || "FLOWCHART <noreply@flowchart.xyz>";
+const FROM_EMAIL = env.RESEND_FROM_EMAIL || env.EMAIL_FROM || "FLOWCHART <noreply@flowchart.lat>";
 const BASE_URL = getBaseUrl();
 
 // ─── WhatsApp helper ─────────────────────────────────────────────────────────

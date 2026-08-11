@@ -324,8 +324,8 @@ providers.push(
 // so enabling the production cookie config locally has no effect on dev sessions.
 //
 // COOKIE_DOMAIN: optional env var to set the cross-subdomain cookie domain.
-// Set to ".flowchart.xyz" or ".zefirus.xyz" in Vercel to share cookies across
-// subdomains of that apex. If unset, cookies are host-only (no domain attr),
+// Set to ".flowchart.lat" in Vercel only when cookies must span subdomains.
+// If unset, cookies are host-only (no domain attr),
 // which works correctly on any single domain but does NOT share across subdomains.
 // NOTE: do NOT include domain if the app lives at the apex only — host-only is safer.
 const cookieDomain = process.env.COOKIE_DOMAIN?.trim() || undefined;
@@ -683,7 +683,7 @@ export const authOptions: NextAuthOptions = {
       // Allow relative URLs (like /invite/token)
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       // SEGURIDAD: comparar ORIGEN exacto, no prefijo. `url.startsWith(baseUrl)`
-      // aceptaba https://flowchart.xyz.evil.com (open redirect post-login → phishing).
+      // aceptaba https://flowchart.lat.evil.com (open redirect post-login → phishing).
       try {
         if (new URL(url).origin === new URL(baseUrl).origin) return url;
       } catch {

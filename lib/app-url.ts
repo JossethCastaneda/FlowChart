@@ -5,7 +5,7 @@ import { env } from "@/lib/env";
  *
  * Defensa contra valores de entorno mal pegados: un espacio al inicio/fin (o en
  * medio) de NEXTAUTH_URL / NEXT_PUBLIC_APP_URL produce redirect_uri del tipo
- * "https://flowchart.xyz /api/oauth/google/callback", que Google codifica como
+ * "https://flowchart.lat /api/oauth/google/callback", que Google codifica como
  * `%20` y rechaza con redirect_uri_mismatch. Zod `.url()` valida pero NO
  * normaliza, así que el espacio sobrevive hasta aquí: lo removemos siempre.
  *

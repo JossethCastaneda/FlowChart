@@ -47,7 +47,7 @@ lo absorbe con mensaje equivocado), (b) imposible revisar por PR, (c) cualquier 
    un nuevo `/api/cron/meta/refresh-tokens` (sin agendar). Hay **dos implementaciones**; reconciliar a una.
 3. **Límite de plan de Vercel:** 6 cron jobs requieren plan **Pro** (Hobby permite 2). Verificar el plan;
    en Hobby el deploy de crons falla.
-4. **Modo proxy:** `next.config.ts/rewrites` reenvía `/api/*` a `NEXT_PUBLIC_API_URL` (dev.flowchart.xyz) si
+4. **Modo proxy:** `next.config.ts/rewrites` reenvía `/api/*` a `NEXT_PUBLIC_API_URL` (dev.flowchart.lat) si
    está seteado. Confirmar que en Producción NO esté seteado (si no, el frontend proxyea a otro backend).
 
 ---

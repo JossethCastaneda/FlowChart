@@ -7,8 +7,8 @@ export const dynamic = "force-dynamic";
 /**
  * NextAuth v4 route handler.
  * We intercept the request to derive the actual host so that OAuth callbacks
- * always return to the domain the user visited (flowchart.xyz), not the VERCEL_URL
- * preview subdomain (dev.flowchart.xyz) that Vercel auto-injects.
+ * always return to the domain the user visited (flowchart.lat), not the VERCEL_URL
+ * preview subdomain (dev.flowchart.lat) that Vercel auto-injects.
  *
  * Strategy: if NEXTAUTH_URL is unset at request time, we set it from the
  * incoming Host header. This runs per-request (process.env mutations in
@@ -19,10 +19,10 @@ async function handler(
   ctx: { params: Promise<{ nextauth: string[] }> }
 ) {
   // Always override NEXTAUTH_URL to match the current request host.
-  // This prevents NextAuth from redirecting to VERCEL_URL (e.g. dev.flowchart.xyz)
-  // when the user is browsing on the main domain (flowchart.xyz), and ensures
+  // This prevents NextAuth from redirecting to VERCEL_URL
+  // when the user is browsing on the canonical domain, and ensures
   // dynamic port fallback (e.g. localhost:3001) works in development.
-  const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "flowchart.xyz";
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "flowchart.lat";
   const proto = host.includes("localhost") ? "http" : (req.headers.get("x-forwarded-proto") || "https");
   process.env.NEXTAUTH_URL = `${proto}://${host}`;
 
@@ -33,4 +33,3 @@ async function handler(
 }
 
 export { handler as GET, handler as POST };
-

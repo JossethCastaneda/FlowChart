@@ -20,7 +20,7 @@ En **APIs & Services > OAuth consent screen**:
 2. **App name**: FlowChart
 3. **User support email**: Tu email (luego uno de soporte).
 4. **App logo**: Agrega el logo (esto es importante para la verificación).
-5. **Authorized domains**: Agrega tu dominio de producción (ej. `flowchart.xyz`).
+5. **Authorized domains**: Agrega tu dominio de producción (ej. `flowchart.lat`).
 6. **Developer contact information**: Tu email.
 
 ### Scopes
@@ -38,8 +38,8 @@ Agrega los siguientes scopes en la pestaña "Scopes" (debes agregarlos manualmen
 1. Ve a **Credentials > Create Credentials > OAuth client ID**.
 2. **Application type**: Web application.
 3. **Name**: FlowChart Web.
-4. **Authorized JavaScript origins**: `https://flowchart.xyz` (y `http://localhost:3000` para dev).
-5. **Authorized redirect URIs**: `https://flowchart.xyz/api/oauth/google/callback` (y `http://localhost:3000/api/oauth/google/callback` para dev).
+4. **Authorized JavaScript origins**: `https://flowchart.lat` (y `http://localhost:3000` para dev).
+5. **Authorized redirect URIs**: `https://flowchart.lat/api/oauth/google/callback` (y `http://localhost:3000/api/oauth/google/callback` para dev).
 6. Copia el **Client ID** y el **Client Secret**.
 
 ## 5. Configurar Variables de Entorno en FlowChart

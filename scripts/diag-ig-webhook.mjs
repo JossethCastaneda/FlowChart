@@ -135,12 +135,12 @@ try {
 console.log("\n6. Estado de configuración del webhook:");
 if (META_WEBHOOK_VERIFY_TOKEN) {
   console.log("   Verify Token:", META_WEBHOOK_VERIFY_TOKEN);
-  console.log("   Endpoint URL: https://flowchart.xyz/api/webhooks/meta");
+  console.log("   Endpoint URL: https://flowchart.lat/api/webhooks/meta");
   console.log("   ✅ Token configurado — asegúrate de que este mismo token está en Meta Developers");
   
   // Simular la verificación de webhook
   const testChallenge = "test_" + Date.now();
-  const verifyUrl = `https://flowchart.xyz/api/webhooks/meta?hub.mode=subscribe&hub.verify_token=${META_WEBHOOK_VERIFY_TOKEN}&hub.challenge=${testChallenge}`;
+  const verifyUrl = `https://flowchart.lat/api/webhooks/meta?hub.mode=subscribe&hub.verify_token=${META_WEBHOOK_VERIFY_TOKEN}&hub.challenge=${testChallenge}`;
   console.log("\n   Probando endpoint de verificación...");
   try {
     const verRes = await fetch(verifyUrl);

@@ -25,24 +25,6 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "p77-sign-va.tiktokcdn.com" },
     ],
   },
-  async redirects() {
-    return [
-      // Redirect old domain (zefirus.xyz) → canonical domain (flowchart.lat)
-      // permanent: true = 308 Permanent Redirect (SEO-safe, browsers cache it)
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "zefirus.xyz" }],
-        destination: "https://flowchart.lat/:path*",
-        permanent: true,
-      },
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "www.zefirus.xyz" }],
-        destination: "https://flowchart.lat/:path*",
-        permanent: true,
-      },
-    ];
-  },
   async rewrites() {
     // Si la variable está definida, mandamos todas las peticiones /api a dev.flowchart.lat (Backend)
     // El frontend actúa como proxy transparente
