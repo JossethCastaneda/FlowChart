@@ -68,16 +68,28 @@ El grafo completo del repositorio (código + docs + relaciones) vive en `graphif
 | `graphify-out/graph.html` | Visualización interactiva (abre en browser, generado localmente) |
 | `graphify-out/graph.json` | Datos raw del grafo (para queries con `graphify query`) |
 
-**Para regenerar el grafo completo** desde el asistente:
+**Para regenerar el grafo completo** (ejecutar desde un solo asistente a la vez):
 
+Para Claude Code / Antigravity:
 ```
 /graphify .
 ```
 
+Para Codex:
+```
+$graphify .
+```
+
 **Para actualización incremental** (solo archivos cambiados):
 
+Para Claude Code / Antigravity:
 ```
 /graphify . --update
+```
+
+Para Codex:
+```
+$graphify . --update
 ```
 
 **Para consultar el grafo** desde terminal:
