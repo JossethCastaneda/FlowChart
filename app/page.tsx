@@ -538,8 +538,7 @@ export default function Home() {
           position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
           background:
             radial-gradient(60vw 50vh at 15% 6%, rgba(59,130,246,0.10), transparent 60%),
-            radial-gradient(55vw 55vh at 85% 92%, rgba(120,110,255,0.07), transparent 60%),
-            #070809;
+            radial-gradient(55vw 55vh at 85% 92%, rgba(120,110,255,0.07), transparent 60%);
         }
         .zef-bg::before, .zef-bg::after {
           content: ""; position: absolute; border-radius: 50%; filter: blur(100px); will-change: transform;
