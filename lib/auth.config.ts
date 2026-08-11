@@ -315,13 +315,21 @@ providers.push(
   })
 );
 
-// Cookie config for production (flowchart.xyz).
+// Cookie config for production.
 // CRITICAL: authOptions is a static object evaluated at module-load time.
 // NEXTAUTH_URL is set dynamically per-request in [...nextauth]/route.ts, so it
 // is ALWAYS empty here. Do NOT check NEXTAUTH_URL.
 // VERCEL_ENV === "production" is injected by Vercel at build time and is stable.
-// On localhost, browsers reject __Secure- cookies over HTTP and ignore domain:.flowchart.xyz,
+// On localhost, browsers reject __Secure- cookies over HTTP and ignore domain:,
 // so enabling the production cookie config locally has no effect on dev sessions.
+//
+// COOKIE_DOMAIN: optional env var to set the cross-subdomain cookie domain.
+// Set to ".flowchart.xyz" or ".zefirus.xyz" in Vercel to share cookies across
+// subdomains of that apex. If unset, cookies are host-only (no domain attr),
+// which works correctly on any single domain but does NOT share across subdomains.
+// NOTE: do NOT include domain if the app lives at the apex only — host-only is safer.
+const cookieDomain = process.env.COOKIE_DOMAIN?.trim() || undefined;
+
 const productionCookies: NextAuthOptions["cookies"] =
   process.env.VERCEL_ENV === "production" && process.env.NODE_ENV !== "development"
     ? {
@@ -332,7 +340,7 @@ const productionCookies: NextAuthOptions["cookies"] =
             sameSite: "lax" as const,
             path: "/",
             secure: true,
-            domain: ".flowchart.xyz",
+            ...(cookieDomain ? { domain: cookieDomain } : {}),
           },
         },
         callbackUrl: {
@@ -341,7 +349,7 @@ const productionCookies: NextAuthOptions["cookies"] =
             sameSite: "lax" as const,
             path: "/",
             secure: true,
-            domain: ".flowchart.xyz",
+            ...(cookieDomain ? { domain: cookieDomain } : {}),
           },
         },
         csrfToken: {
@@ -351,7 +359,7 @@ const productionCookies: NextAuthOptions["cookies"] =
             sameSite: "lax" as const,
             path: "/",
             secure: true,
-            domain: ".flowchart.xyz",
+            ...(cookieDomain ? { domain: cookieDomain } : {}),
           },
         },
       }
