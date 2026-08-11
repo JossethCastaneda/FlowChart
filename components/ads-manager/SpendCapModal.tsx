@@ -1,4 +1,4 @@
-"use client";
+Ôªø"use client";
 import React, { useState } from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { X, DollarSign, ToggleLeft, ToggleRight } from "lucide-react";
@@ -16,7 +16,7 @@ export function SpendCapModal({ items, onClose, onApply }: SpendCapModalProps) {
 
   const handleApply = async () => {
     // Meta API: to REMOVE a spend cap you must send the documented sentinel
-    // value 922337203685478 ó sending 0 is rejected with error #100.
+    // value 922337203685478 ‚Äî sending 0 is rejected with error #100.
     const REMOVE_SPEND_CAP = 922337203685478;
     const capValue = noLimit ? REMOVE_SPEND_CAP : Math.round((parseFloat(amount) || 0) * 100);
     const updates = items.map((i) => ({ id: i.id, spend_cap: capValue }));
@@ -36,7 +36,7 @@ export function SpendCapModal({ items, onClose, onApply }: SpendCapModalProps) {
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--fc-border)" }}>
           <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--fc-text)" }}>
-            LÌmite de gasto de campaÒa
+            L√≠mite de gasto de campa√±a
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--fc-text-muted)", cursor: "pointer" }}>
             <X className="w-4 h-4" />
@@ -45,7 +45,7 @@ export function SpendCapModal({ items, onClose, onApply }: SpendCapModalProps) {
 
         <div style={{ padding: "16px 20px" }}>
           <div style={{ fontSize: "11px", color: "var(--fc-text-secondary)", lineHeight: "1.5", marginBottom: "16px", padding: "10px 12px", background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.08)", borderRadius: "6px" }}>
-            El lÌmite de gasto es el m·ximo que esta campaÒa puede gastar en total, independientemente del presupuesto diario. Una vez alcanzado, la campaÒa se pausa autom·ticamente.
+            El l√≠mite de gasto es el m√°ximo que esta campa√±a puede gastar en total, independientemente del presupuesto diario. Una vez alcanzado, la campa√±a se pausa autom√°ticamente.
           </div>
 
           {/* No limit toggle */}
@@ -57,7 +57,7 @@ export function SpendCapModal({ items, onClose, onApply }: SpendCapModalProps) {
               {noLimit ? <ToggleRight className="w-6 h-6" /> : <ToggleLeft className="w-6 h-6" />}
             </button>
             <span style={{ fontSize: "11px", color: noLimit ? "var(--fc-success)" : "var(--fc-text-secondary)", fontWeight: 600 }}>
-              {noLimit ? "Sin lÌmite de gasto" : "Con lÌmite de gasto"}
+              {noLimit ? "Sin l√≠mite de gasto" : "Con l√≠mite de gasto"}
             </span>
           </label>
 
@@ -65,7 +65,7 @@ export function SpendCapModal({ items, onClose, onApply }: SpendCapModalProps) {
           {!noLimit && (
             <div style={{ marginBottom: "14px" }}>
               <label style={{ fontSize: "10px", color: "var(--fc-text-muted)", fontWeight: 600, display: "block", marginBottom: "4px" }}>
-                LÌmite m·ximo de gasto
+                L√≠mite m√°ximo de gasto
               </label>
               <div style={{ position: "relative" }}>
                 <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "var(--fc-text-muted)", fontSize: "13px" }}>$</span>
@@ -87,7 +87,7 @@ export function SpendCapModal({ items, onClose, onApply }: SpendCapModalProps) {
 
           {/* Items list */}
           <div style={{ fontSize: "10px", color: "var(--fc-text-muted)", fontWeight: 600, marginBottom: "6px" }}>
-            Aplica a {items.length} campaÒa{items.length > 1 ? "s" : ""}:
+            Aplica a {items.length} campa√±a{items.length > 1 ? "s" : ""}:
           </div>
           <div style={{ maxHeight: "120px", overflowY: "auto" }} className="custom-scrollbar">
             {items.map((item) => {
@@ -96,7 +96,7 @@ export function SpendCapModal({ items, onClose, onApply }: SpendCapModalProps) {
                 <div key={item.id} style={{ fontSize: "10px", color: "var(--fc-text-secondary)", padding: "4px 0", display: "flex", justifyContent: "space-between" }}>
                   <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{item.name}</span>
                   <span style={{ color: "var(--fc-text-muted)", flexShrink: 0, marginLeft: "8px" }}>
-                    actual: {currentCap > 0 ? `$${currentCap.toFixed(2)}` : "sin lÌmite"}
+                    actual: {currentCap > 0 ? `$${currentCap.toFixed(2)}` : "sin l√≠mite"}
                   </span>
                 </div>
               );

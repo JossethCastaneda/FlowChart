@@ -1,4 +1,4 @@
-"use client";
+ï»¿"use client";
 import React, { useState, useEffect, useRef } from "react";
 import { X, Save, Loader2, AlertCircle, TrendingUp } from "lucide-react";
 import { useMetaUpdate } from "@/hooks/useMetaUpdate";
@@ -11,18 +11,18 @@ interface EditCampaignModalProps {
 }
 
 const BID_STRATEGIES = [
-  { value: "LOWEST_COST_WITHOUT_CAP", label: "Costo más bajo (sin límite)" },
-  { value: "LOWEST_COST_WITH_BID_CAP", label: "Costo más bajo (con límite de puja)" },
-  { value: "COST_CAP", label: "Límite de costo" },
-  { value: "LOWEST_COST_WITH_MIN_ROAS", label: "ROAS mínimo" },
+  { value: "LOWEST_COST_WITHOUT_CAP", label: "Costo mÃ¡s bajo (sin lÃ­mite)" },
+  { value: "LOWEST_COST_WITH_BID_CAP", label: "Costo mÃ¡s bajo (con lÃ­mite de puja)" },
+  { value: "COST_CAP", label: "LÃ­mite de costo" },
+  { value: "LOWEST_COST_WITH_MIN_ROAS", label: "ROAS mÃ­nimo" },
 ];
 
 const SPECIAL_CATEGORIES = [
   { value: "", label: "Ninguna" },
   { value: "EMPLOYMENT", label: "Empleo" },
   { value: "HOUSING", label: "Vivienda" },
-  { value: "CREDIT", label: "Crédito" },
-  { value: "ISSUES_ELECTIONS_POLITICS", label: "Política / Elecciones" },
+  { value: "CREDIT", label: "CrÃ©dito" },
+  { value: "ISSUES_ELECTIONS_POLITICS", label: "PolÃ­tica / Elecciones" },
 ];
 
 export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignModalProps) {
@@ -31,7 +31,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
   const [saved, setSaved] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  // Form state — pre-fill from campaign data
+  // Form state â€” pre-fill from campaign data
   const [name, setName] = useState(campaign.name || "");
   const [status, setStatus] = useState<"ACTIVE" | "PAUSED">(campaign.status === "ACTIVE" ? "ACTIVE" : "PAUSED");
   const hasDailyBudget = campaign.daily_budget !== undefined;
@@ -54,9 +54,9 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  // Campañas ABO (presupuesto a nivel de ad set) NO tienen daily/lifetime a nivel
-  // campaña: el input de presupuesto ni se renderiza. Sin este flag, la validación
-  // budget>0 bloqueaba guardar nombre/estado/bid en esas campañas (muy comunes).
+  // CampaÃ±as ABO (presupuesto a nivel de ad set) NO tienen daily/lifetime a nivel
+  // campaÃ±a: el input de presupuesto ni se renderiza. Sin este flag, la validaciÃ³n
+  // budget>0 bloqueaba guardar nombre/estado/bid en esas campaÃ±as (muy comunes).
   const hasCampaignBudget = hasDailyBudget || hasLifetimeBudget;
 
   const handleSave = async () => {
@@ -122,7 +122,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
               <TrendingUp className="w-4 h-4 text-cyan-400" />
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--fc-text)" }}>Editar Campaña</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--fc-text)" }}>Editar CampaÃ±a</div>
               <div style={{ fontSize: 11, color: "var(--fc-text-secondary)" }}>ID: {campaign.id}</div>
             </div>
           </div>
@@ -144,11 +144,11 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
           style={{ padding: 20, overflowY: "auto", display: "flex", flexDirection: "column", gap: 16 }}
         >
           {/* Name */}
-          <FormGroup label="Nombre de campaña">
+          <FormGroup label="Nombre de campaÃ±a">
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Nombre de la campaña"
+              placeholder="Nombre de la campaÃ±a"
               style={inputStyle}
             />
           </FormGroup>
@@ -222,7 +222,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
           </FormGroup>
 
           {/* Special Ad Categories */}
-          <FormGroup label="Categoría especial">
+          <FormGroup label="CategorÃ­a especial">
             <select value={specialCategory} onChange={(e) => setSpecialCategory(e.target.value)} style={selectStyle}>
               {SPECIAL_CATEGORIES.map((c) => (
                 <option key={c.value} value={c.value}>{c.label}</option>
@@ -233,7 +233,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
           {/* Objective (read-only) */}
           <FormGroup label="Objetivo">
             <div style={{ ...inputStyle, color: "var(--fc-text-muted)", display: "flex", alignItems: "center" }}>
-              {campaign.objective || "—"}
+              {campaign.objective || "â€”"}
               <span style={{ marginLeft: "auto", fontSize: 10, color: "var(--fc-text-muted)", fontStyle: "italic" }}>
                 No editable
               </span>

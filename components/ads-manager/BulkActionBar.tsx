@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+ï»¿import React, { useState } from "react";
 import { Copy, Play, Pause, Archive, Trash2, X } from "lucide-react";
 
 interface BulkActionBarProps {
@@ -98,7 +98,7 @@ export function BulkActionBar({ selectedCount, onClearSelection, onAction }: Bul
           loading={loading === "delete"}
           color="var(--fc-danger)"
           onClick={() => {
-            if (confirm(`¿Estás seguro de que deseas eliminar ${selectedCount} elemento(s)?`)) {
+            if (confirm(`Â¿EstÃ¡s seguro de que deseas eliminar ${selectedCount} elemento(s)?`)) {
               handleAction("delete");
             }
           }}

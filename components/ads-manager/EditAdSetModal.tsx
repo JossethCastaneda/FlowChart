@@ -1,4 +1,4 @@
-"use client";
+ï»¿"use client";
 import React, { useState, useEffect, useRef } from "react";
 import { X, Save, Loader2, AlertCircle, Target, MapPin, Users, Monitor } from "lucide-react";
 import { useMetaUpdate } from "@/hooks/useMetaUpdate";
@@ -22,16 +22,16 @@ const OPTIMIZATION_GOALS = [
   { value: "REACH", label: "Alcance" },
   { value: "LINK_CLICKS", label: "Clics en enlace" },
   { value: "CONVERSIONS", label: "Conversiones" },
-  { value: "LEAD_GENERATION", label: "Generación de leads" },
+  { value: "LEAD_GENERATION", label: "GeneraciÃ³n de leads" },
   { value: "REPLIES", label: "Respuestas en mensajes" },
   { value: "THRUPLAY", label: "ThruPlay (video)" },
-  { value: "POST_ENGAGEMENT", label: "Interacción con publicación" },
+  { value: "POST_ENGAGEMENT", label: "InteracciÃ³n con publicaciÃ³n" },
 ];
 
 const BID_STRATEGIES_ADSET = [
-  { value: "LOWEST_COST_WITHOUT_CAP", label: "Costo más bajo (automático)" },
-  { value: "LOWEST_COST_WITH_BID_CAP", label: "Límite de puja" },
-  { value: "COST_CAP", label: "Límite de costo" },
+  { value: "LOWEST_COST_WITHOUT_CAP", label: "Costo mÃ¡s bajo (automÃ¡tico)" },
+  { value: "LOWEST_COST_WITH_BID_CAP", label: "LÃ­mite de puja" },
+  { value: "COST_CAP", label: "LÃ­mite de costo" },
 ];
 
 interface EditAdSetModalProps {
@@ -100,15 +100,15 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
     if (bidAmount > 0 && bidStrategy === "LOWEST_COST_WITH_BID_CAP") fields.bid_amount = bidAmount;
     if (optimizationGoal !== adset.optimization_goal) fields.optimization_goal = optimizationGoal;
 
-    // Schedule — SOLO enviar si el usuario cambió el valor. Antes se reenviaba en cada
+    // Schedule â€” SOLO enviar si el usuario cambiÃ³ el valor. Antes se reenviaba en cada
     // guardado y `new Date(localValue).toISOString()` reinterpretaba la hora en la zona
-    // horaria del navegador, desplazando la programación un poco en cada save.
+    // horaria del navegador, desplazando la programaciÃ³n un poco en cada save.
     const origStart = adset.start_time ? adset.start_time.substring(0, 16) : "";
     const origEnd = adset.end_time ? adset.end_time.substring(0, 16) : "";
     if (startTime && startTime !== origStart) fields.start_time = new Date(startTime).toISOString();
     if (endTime !== origEnd) fields.end_time = endTime ? new Date(endTime).toISOString() : null;
 
-    // Targeting — must be full object
+    // Targeting â€” must be full object
     const newTargeting = {
       ...targeting,
       age_min: ageMin,
@@ -133,8 +133,8 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
   const TABS = [
     { key: "general", label: "General", icon: <Target className="w-3.5 h-3.5" /> },
     { key: "budget", label: "Presupuesto", icon: <Monitor className="w-3.5 h-3.5" /> },
-    { key: "targeting", label: "Segmentación", icon: <Users className="w-3.5 h-3.5" /> },
-    { key: "schedule", label: "Programación", icon: <MapPin className="w-3.5 h-3.5" /> },
+    { key: "targeting", label: "SegmentaciÃ³n", icon: <Users className="w-3.5 h-3.5" /> },
+    { key: "schedule", label: "ProgramaciÃ³n", icon: <MapPin className="w-3.5 h-3.5" /> },
   ] as const;
 
   return (
@@ -213,7 +213,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
                   ))}
                 </div>
               </FormGroup>
-              <FormGroup label="Objetivo de optimización">
+              <FormGroup label="Objetivo de optimizaciÃ³n">
                 <select value={optimizationGoal} onChange={(e) => setOptimizationGoal(e.target.value)} style={selectStyle}>
                   {OPTIMIZATION_GOALS.map((g) => (
                     <option key={g.value} value={g.value}>{g.label}</option>
@@ -248,7 +248,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
                 </select>
               </FormGroup>
               {bidStrategy === "LOWEST_COST_WITH_BID_CAP" && (
-                <FormGroup label="Límite de puja ($)">
+                <FormGroup label="LÃ­mite de puja ($)">
                   <div style={{ position: "relative" }}>
                     <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--fc-text-secondary)", fontSize: 13 }}>$</span>
                     <input type="number" value={bidAmount} onChange={(e) => setBidAmount(parseFloat(e.target.value) || 0)} min={0.01} step={0.01} style={{ ...inputStyle, paddingLeft: 28 }} />
@@ -263,13 +263,13 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
               <FormGroup label="Rango de edad">
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                   <input type="number" value={ageMin} onChange={(e) => setAgeMin(parseInt(e.target.value) || 18)} min={13} max={65} style={{ ...inputStyle, width: 80 }} />
-                  <span style={{ color: "var(--fc-text-muted)", fontSize: 12 }}>–</span>
+                  <span style={{ color: "var(--fc-text-muted)", fontSize: 12 }}>â€“</span>
                   <input type="number" value={ageMax} onChange={(e) => setAgeMax(parseInt(e.target.value) || 65)} min={13} max={65} style={{ ...inputStyle, width: 80 }} />
-                  <span style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>años</span>
+                  <span style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>aÃ±os</span>
                 </div>
               </FormGroup>
 
-              <FormGroup label="Género">
+              <FormGroup label="GÃ©nero">
                 <div style={{ display: "flex", gap: 8 }}>
                   {([{ v: 0, l: "Todos" }, { v: 1, l: "Hombres" }, { v: 2, l: "Mujeres" }]).map(({ v, l }) => {
                     const isActive = v === 0 ? genders.length === 0 : genders.includes(v);
@@ -289,7 +289,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
                 </div>
               </FormGroup>
 
-              <FormGroup label="Países" hint="Separados por coma (ej: MX, US, ES)">
+              <FormGroup label="PaÃ­ses" hint="Separados por coma (ej: MX, US, ES)">
                 <input
                   value={countries}
                   onChange={(e) => setCountries(e.target.value)}
@@ -299,7 +299,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
               </FormGroup>
 
               <div style={{ padding: "10px 12px", background: "var(--fc-surface)", border: "1px solid rgba(224,168,60,0.2)", borderRadius: 8, fontSize: 11, color: "rgba(224,168,60,0.9)", lineHeight: 1.5 }}>
-                ?? La segmentación detallada (intereses, comportamientos, audiencias personalizadas) se gestiona a nivel avanzado desde el Administrador de Meta para evitar pérdida de datos.
+                ?? La segmentaciÃ³n detallada (intereses, comportamientos, audiencias personalizadas) se gestiona a nivel avanzado desde el Administrador de Meta para evitar pÃ©rdida de datos.
               </div>
             </>
           )}
@@ -318,7 +318,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
                 )}
               </FormGroup>
               <div style={{ padding: "10px 12px", background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.08)", borderRadius: 8, fontSize: 11, color: "var(--fc-text-secondary)", lineHeight: 1.5 }}>
-                ?? Los cambios de programación pueden reiniciar la fase de aprendizaje del conjunto.
+                ?? Los cambios de programaciÃ³n pueden reiniciar la fase de aprendizaje del conjunto.
               </div>
             </>
           )}

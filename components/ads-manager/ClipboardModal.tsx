@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React from "react";
 import { X, Clipboard, Clock, Trash2 } from "lucide-react";
 import { useClipboardStore } from "@/stores/clipboardStore";

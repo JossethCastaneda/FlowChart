@@ -1,4 +1,4 @@
-"use client";
+ï»¿"use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import { Bookmark, Plus, X, Check, ChevronDown } from "lucide-react";
@@ -17,7 +17,7 @@ interface Preset {
 const BUILT_IN_PRESETS: Preset[] = [
   {
     id: "default",
-    name: "?? Estándar",
+    name: "?? EstÃ¡ndar",
     columns: ["name", "delivery", "budget", "objective", "roas", "reach", "impressions", "cpm", "frequency", "clicks", "ctr", "cpc", "results", "conversations", "cost_per_message", "cost_per_conversation", "cpa", "landing_page_views", "hook_rate", "spend", "quality_ranking"],
   },
   {
@@ -37,7 +37,7 @@ const BUILT_IN_PRESETS: Preset[] = [
   },
   {
     id: "overview",
-    name: "?? Vista Rápida",
+    name: "?? Vista RÃ¡pida",
     columns: ["name", "delivery", "budget", "results", "spend", "roas", "cpa"],
   },
 ];
@@ -55,7 +55,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrÃ³n
       if (stored) setCustomPresets(JSON.parse(stored));
     } catch {}
   }, []);

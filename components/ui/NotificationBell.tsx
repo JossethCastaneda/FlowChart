@@ -1,4 +1,4 @@
-"use client";
+ï»¿"use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -43,7 +43,7 @@ export function NotificationBell() {
 
   // Poll every 30 seconds
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrÃ³n
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
@@ -61,7 +61,7 @@ export function NotificationBell() {
     if (unreadCount > 0 && typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
       const latest = notifications.find(n => !n.read);
       if (latest) {
-        const bNotif = new window.Notification(`FLOWCHART — ${latest.title}`, {
+        const bNotif = new window.Notification(`FLOWCHART â€” ${latest.title}`, {
           body: latest.message,
           icon: "/icon.svg",
           tag: latest.id,
@@ -123,7 +123,7 @@ export function NotificationBell() {
   };
 
   const timeAgo = (d: string) => {
-    // eslint-disable-next-line react-hooks/purity -- TODO: [React] Refactor de hooks anti-patrón
+    // eslint-disable-next-line react-hooks/purity -- TODO: [React] Refactor de hooks anti-patrÃ³n
     const mins = Math.floor((Date.now() - new Date(d).getTime()) / 60000);
     if (mins < 1) return "ahora";
     if (mins < 60) return `${mins}m`;
@@ -163,7 +163,7 @@ export function NotificationBell() {
         )}
       </button>
 
-      {/* Portal-rendered notification panel — always on top */}
+      {/* Portal-rendered notification panel â€” always on top */}
       {open && typeof document !== "undefined" && createPortal(
         <div
           ref={panelRef}
@@ -213,7 +213,7 @@ export function NotificationBell() {
                   cursor: "pointer", opacity: loading ? 0.5 : 1, fontFamily: "inherit",
                   whiteSpace: "nowrap",
                 }}>
-                  Marcar todo leído
+                  Marcar todo leÃ­do
                 </button>
               )}
               <button onClick={() => setOpen(false)} aria-label="Cerrar notificaciones" style={{

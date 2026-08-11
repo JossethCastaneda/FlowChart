@@ -1,4 +1,4 @@
-"use client";
+ï»¿"use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -71,7 +71,7 @@ const MODULES: Array<{
   {
     key: "ads",
     title: "Ads",
-    description: "Ad accounts, campañas, reglas y cambios controlados.",
+    description: "Ad accounts, campaÃ±as, reglas y cambios controlados.",
     icon: Megaphone,
     color: "#0081FB",
     nextStep: "Conectar Ads",
@@ -79,7 +79,7 @@ const MODULES: Array<{
   {
     key: "analytics",
     title: "Analytics",
-    description: "Insights orgánicos, paid y reportes de cliente.",
+    description: "Insights orgÃ¡nicos, paid y reportes de cliente.",
     icon: BarChart3,
     color: "var(--fc-module-aria)",
     nextStep: "Conectar Analytics",
@@ -95,7 +95,7 @@ const MODULES: Array<{
   {
     key: "social",
     title: "Social",
-    description: "Lectura de perfiles, páginas y contenido social.",
+    description: "Lectura de perfiles, pÃ¡ginas y contenido social.",
     icon: ShieldCheck,
     color: "var(--fc-success)",
     nextStep: "Conectar Social",

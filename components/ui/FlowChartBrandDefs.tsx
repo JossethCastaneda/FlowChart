@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ChartTheme } from "@/components/ui/charts/ChartTheme";
 
 /**
  * FlowChartBrandDefs
@@ -22,7 +21,6 @@ export function FlowChartBrandDefs() {
   return (
     <>
       <svg width="0" height="0" style={{ position: "absolute", width: 0, height: 0, visibility: "hidden" }}>
-        <ChartTheme />
         <defs>
           {/* ─── Azul (marca) ─── */}
           <linearGradient id="flowchart-holo-cyan" x1="0%" y1="0%" x2="100%" y2="100%">

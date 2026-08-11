@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React from "react";
 import { FileText, Video, Camera, Images } from "lucide-react";
 
@@ -11,7 +11,7 @@ interface Props {
 
 const FORMATS: { key: PostFormat; icon: React.ElementType; label: string; badges?: string[] }[] = [
   { key: "post", icon: FileText, label: "Post" },
-  { key: "reel", icon: Video, label: "Reel", badges: ["9:16", "m�x 90s"] },
+  { key: "reel", icon: Video, label: "Reel", badges: ["9:16", "máx 90s"] },
   { key: "story", icon: Camera, label: "Story", badges: ["9:16", "24h"] },
   { key: "carousel", icon: Images, label: "Carousel", badges: ["2-10 items"] },
 ];

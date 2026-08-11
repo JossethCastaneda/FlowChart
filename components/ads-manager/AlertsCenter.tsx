@@ -1,4 +1,4 @@
-"use client";
+Ôªø"use client";
 
 import React, { useState } from "react";
 import { AlertTriangle, AlertCircle, TrendingUp, ChevronDown, ChevronUp, X } from "lucide-react";
@@ -20,7 +20,7 @@ const LEVEL_CONFIG: Record<AlertLevel, {
     borderColor: "rgba(229,72,77,0.3)",
     bgColor: "rgba(229,72,77,0.06)",
     textColor: "var(--fc-danger)",
-    label: "ALERTA CRÕTICA",
+    label: "ALERTA CR√çTICA",
   },
   warning: {
     icon: <AlertTriangle className="w-3.5 h-3.5" />,
@@ -76,7 +76,7 @@ export function AlertsCenter({ alerts }: AlertsCenterProps) {
         <div style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "10px" }}>
           {criticalCount > 0 && (
             <span style={{ display: "flex", alignItems: "center", gap: "3px", color: "var(--fc-danger)", fontWeight: 700 }}>
-              <AlertCircle className="w-3.5 h-3.5" /> {criticalCount} crÌtica{criticalCount !== 1 ? "s" : ""}
+              <AlertCircle className="w-3.5 h-3.5" /> {criticalCount} cr√≠tica{criticalCount !== 1 ? "s" : ""}
             </span>
           )}
           {warningCount > 0 && (
@@ -148,7 +148,7 @@ export function AlertsCenter({ alerts }: AlertsCenterProps) {
             border: "1px solid var(--hairline)",
           }}
         >
-          Ver {visible.length - 3} alertas m·s...
+          Ver {visible.length - 3} alertas m√°s...
         </div>
       )}
     </div>

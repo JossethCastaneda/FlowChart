@@ -1,11 +1,11 @@
-"use client";
+Ôªø"use client";
 
 import { useState, useEffect } from "react";
 import { Shield, Check, Loader2, Zap, Calendar, MessageCircle, Megaphone, BarChart3, Target, ChevronDown, ChevronRight, CheckSquare, Square } from "lucide-react";
 import { DEFAULT_MEMBER_PERMS, DEFAULT_LEADER_PERMS, DEFAULT_EXTERNAL_PERMS, type Area, type AreaPermissions } from "@/lib/workflow-config";
 
 const PERM_KEYS: { key: keyof AreaPermissions; label: string; icon: React.ElementType }[] = [
-  { key: "canAccessOps",       label: "Ops (GestiÛn)",  icon: Zap },
+  { key: "canAccessOps",       label: "Ops (Gesti√≥n)",  icon: Zap },
   { key: "canAccessPublisher", label: "Publisher",       icon: Calendar },
   { key: "canAccessInbox",     label: "Inbox",           icon: MessageCircle },
   { key: "canAccessAds",       label: "Ads Manager",     icon: Megaphone },
@@ -94,16 +94,16 @@ export function PermissionsManager() {
   if (areas.length === 0) return (
     <div style={{ textAlign: "center", padding: 32 }}>
       <Shield style={{ width: 32, height: 32, color: "var(--fc-text-muted)", margin: "0 auto 12px" }} />
-      <p style={{ fontSize: 13, color: "var(--fc-text-secondary)", marginBottom: 4 }}>No hay ·reas configuradas todavÌa.</p>
-      <p style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>Ve a <strong>¡reas y flujos</strong> para crear ·reas primero.</p>
+      <p style={{ fontSize: 13, color: "var(--fc-text-secondary)", marginBottom: 4 }}>No hay √°reas configuradas todav√≠a.</p>
+      <p style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>Ve a <strong>√Åreas y flujos</strong> para crear √°reas primero.</p>
     </div>
   );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <p style={{ fontSize: 12, color: "var(--fc-text-muted)", margin: 0 }}>
-        Controla a quÈ <strong>mÛdulos</strong> pueden acceder los <strong>miembros</strong> de cada ·rea.{" "}
-        <span style={{ color: "var(--fc-text-secondary)" }}>LÌderes, Owners y Admins siempre tienen acceso total a sus ·reas.</span>
+        Controla a qu√© <strong>m√≥dulos</strong> pueden acceder los <strong>miembros</strong> de cada √°rea.{" "}
+        <span style={{ color: "var(--fc-text-secondary)" }}>L√≠deres, Owners y Admins siempre tienen acceso total a sus √°reas.</span>
       </p>
 
       {/* Permissions table per area */}
@@ -137,7 +137,7 @@ export function PermissionsManager() {
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 {isDefault && <span style={{ fontSize: 10, color: "var(--fc-text-secondary)", fontStyle: "italic", border: "1px solid var(--hairline)", padding: "2px 6px", borderRadius: 4 }}>Defaults</span>}
                 <span style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>
-                  {area.memberIds.length} miembros ∑ {area.leadIds.length} lÌderes
+                  {area.memberIds.length} miembros ¬∑ {area.leadIds.length} l√≠deres
                 </span>
               </div>
             </div>
@@ -163,7 +163,7 @@ export function PermissionsManager() {
                          Permisos de Integrantes
                       </div>
                       <div style={{ fontSize: 11, color: "var(--fc-text-secondary)", marginTop: 4 }}>
-                        Aplica a todos los miembros asignados a esta ·rea. Los lÌderes tienen acceso total por defecto.
+                        Aplica a todos los miembros asignados a esta √°rea. Los l√≠deres tienen acceso total por defecto.
                       </div>
                     </div>
                     {/* Batch Action Buttons */}

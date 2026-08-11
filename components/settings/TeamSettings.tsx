@@ -337,7 +337,7 @@ export function TeamSettings() {
         >
           <div className="flex flex-col gap-3">
             <AnimatePresence initial={false}>
-              {invites.map((invite: any) => (
+              {invites.map((invite) => (
                 <motion.div
                   key={invite.id}
                   variants={settingsItemVariants}
@@ -385,7 +385,7 @@ export function TeamSettings() {
         ) : (
           <div className="flex flex-col gap-3">
             <AnimatePresence initial={false}>
-              {members.map((member: any) => {
+              {members.map((member) => {
                 const meta = ROLE_META[member.role] ?? ROLE_META.MEMBER;
                 const isSelf = member.userId === (session?.user as { id?: string })?.id;
                 const hasCustomPerms = !!member.permissions;

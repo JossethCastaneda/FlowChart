@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
 
 interface KpiCardProps {
@@ -13,7 +13,7 @@ interface KpiCardProps {
   sparkline?: number[];
 }
 
-/* RGB de los tokens de acento (ver app/globals.css) � para rgba() en gradientes SVG */
+/* RGB de los tokens de acento (ver app/globals.css) — para rgba() en gradientes SVG */
 const COLOR_MAP: Record<string, string> = {
   cyan:    "91,155,255",
   emerald: "52,183,124",

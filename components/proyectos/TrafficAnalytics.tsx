@@ -1,4 +1,4 @@
-"use client";
+ï»¿"use client";
 
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -19,11 +19,11 @@ interface TrafficResponse {
   website: string | null;
 }
 
-/** Formatea el valor de cada métrica GA4 para su tarjeta. */
+/** Formatea el valor de cada mÃ©trica GA4 para su tarjeta. */
 function fmtMetric(id: string, m: TrafficSummary | null): string {
-  if (!m) return "—";
+  if (!m) return "â€”";
   const v = (m as unknown as Record<string, number>)[id];
-  if (v == null || Number.isNaN(v)) return "—";
+  if (v == null || Number.isNaN(v)) return "â€”";
   if (id === "engagement" || id === "bounce") return `${v}%`;
   if (id === "avg_duration") {
     const mm = Math.floor(v / 60);
@@ -38,8 +38,8 @@ function fmtMetric(id: string, m: TrafficSummary | null): string {
 const TRAFFIC_METRICS = [
   { id: "users", label: "Usuarios", icon: Users, color: "#4285F4" },
   { id: "sessions", label: "Sesiones", icon: TrendingUp, color: "var(--fc-accent)" },
-  { id: "engagement", label: "Tasa de interacción", icon: MousePointer, color: "var(--fc-success)" },
-  { id: "avg_duration", label: "Duración media", icon: Clock, color: "var(--fc-module-aria)" },
+  { id: "engagement", label: "Tasa de interacciÃ³n", icon: MousePointer, color: "var(--fc-success)" },
+  { id: "avg_duration", label: "DuraciÃ³n media", icon: Clock, color: "var(--fc-module-aria)" },
   { id: "conversions", label: "Conversiones", icon: Target, color: "#bc5fb2" },
   { id: "bounce", label: "Tasa de rebote", icon: MousePointer, color: "#d98843" },
 ];
@@ -52,7 +52,7 @@ export function TrafficAnalytics({ project }: { project: Project }) {
   const [hidden, setHidden] = useState<string[]>([]);
   const [showForm, setShowForm] = useState(false);
 
-  // Tráfico GA4 real (degradado a "Conecta GA4" si no está conectado).
+  // TrÃ¡fico GA4 real (degradado a "Conecta GA4" si no estÃ¡ conectado).
   const { data: traffic, isLoading: trafficLoading } = useQuery<TrafficResponse>({
     queryKey: ["project-traffic", project.id],
     queryFn: async () => {
@@ -69,7 +69,7 @@ export function TrafficAnalytics({ project }: { project: Project }) {
       const raw = localStorage.getItem(storeKey);
       if (raw) {
         const p = JSON.parse(raw);
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrÃ³n
         if (Array.isArray(p.order)) setOrder(p.order);
         if (Array.isArray(p.hidden)) setHidden(p.hidden);
       }
@@ -101,10 +101,10 @@ export function TrafficAnalytics({ project }: { project: Project }) {
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <Plug style={{ width: 16, height: 16, color: "#4285F4", flexShrink: 0 }} />
           <span style={{ fontSize: 12, color: "var(--fc-text-secondary)" }}>
-            Análisis de tráfico para <strong style={{ color: "var(--fc-text)" }}>{project.website || "el sitio"}</strong>.{" "}
+            AnÃ¡lisis de trÃ¡fico para <strong style={{ color: "var(--fc-text)" }}>{project.website || "el sitio"}</strong>.{" "}
             {connected
-              ? <>Datos de <strong style={{ color: "var(--fc-success)" }}>GA4</strong> · últimos 28 días.</>
-              : <>Conecta <strong>GA4</strong> en Integraciones ? Google para poblar las métricas.</>}
+              ? <>Datos de <strong style={{ color: "var(--fc-success)" }}>GA4</strong> Â· Ãºltimos 28 dÃ­as.</>
+              : <>Conecta <strong>GA4</strong> en Integraciones â†’ Google para poblar las mÃ©tricas.</>}
           </span>
         </div>
         <button onClick={() => setShowForm((s) => !s)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 6, background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--fc-text)", fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
@@ -115,7 +115,7 @@ export function TrafficAnalytics({ project }: { project: Project }) {
       {/* Data-request order form */}
       {showForm && (
         <div className="glass-panel" style={{ padding: 20 }}>
-          <div style={{ fontSize: 12, color: "var(--fc-text-secondary)", marginBottom: 12 }}>Define qué métricas mostrar y en qué orden (se guarda por proyecto).</div>
+          <div style={{ fontSize: 12, color: "var(--fc-text-secondary)", marginBottom: 12 }}>Define quÃ© mÃ©tricas mostrar y en quÃ© orden (se guarda por proyecto).</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {order.map((id, i) => {
               const m = TRAFFIC_METRICS.find((x) => x.id === id); if (!m) return null;
@@ -147,19 +147,19 @@ export function TrafficAnalytics({ project }: { project: Project }) {
                 <span style={{ fontSize: 10, color: "var(--fc-text-muted)", fontWeight: 600 }}>{m.label}</span>
               </div>
               <div style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 700, color: m.color }}>
-                {trafficLoading ? "…" : connected ? fmtMetric(m.id, metrics) : "—"}
+                {trafficLoading ? "â€¦" : connected ? fmtMetric(m.id, metrics) : "â€”"}
               </div>
-              <div style={{ fontSize: 9, color: "var(--fc-text-secondary)", marginTop: 4 }}>{connected ? "Últimos 28 días" : "Conecta GA4"}</div>
+              <div style={{ fontSize: 9, color: "var(--fc-text-secondary)", marginTop: 4 }}>{connected ? "Ãšltimos 28 dÃ­as" : "Conecta GA4"}</div>
             </div>
           );
         })}
       </div>
 
       <div className="glass-panel" style={{ padding: 0 }}>
-        <div className="section-header"><span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}><Globe style={{ width: 14, height: 14 }} /> Fuentes de tráfico</span></div>
+        <div className="section-header"><span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}><Globe style={{ width: 14, height: 14 }} /> Fuentes de trÃ¡fico</span></div>
         <div style={{ padding: 24, textAlign: "center", color: "var(--fc-text-secondary)", fontSize: 12 }}>
           {connected
-            ? "Desglose por fuente/medio (sessionSource) — próxima iteración."
+            ? "Desglose por fuente/medio (sessionSource) â€” prÃ³xima iteraciÃ³n."
             : "Disponible al conectar Google Analytics 4 / Tag Manager."}
         </div>
       </div>

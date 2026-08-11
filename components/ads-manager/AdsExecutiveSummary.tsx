@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { AlertTriangle, ArrowRight, CheckCircle2, Clock3, DollarSign, MousePointerClick, RefreshCw, ShieldAlert, TrendingUp } from "lucide-react";
 import { calcROAS } from "@/lib/ads-metrics";

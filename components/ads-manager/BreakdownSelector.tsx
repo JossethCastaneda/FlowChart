@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { BarChart3, ChevronDown } from "lucide-react";
 
 interface BreakdownSelectorProps {
@@ -8,26 +8,26 @@ interface BreakdownSelectorProps {
 
 const BREAKDOWNS = [
   { key: "none", label: "Sin desglose" },
-  { key: "day", label: "Por d�a" },
+  { key: "day", label: "Por día" },
   { key: "week", label: "Por semana" },
   { key: "month", label: "Por mes" },
   { key: "age", label: "Edad" },
   { key: "gender", label: "Sexo" },
   { key: "age_gender", label: "Edad y sexo" },
-  { key: "country", label: "Pa�s" },
-  { key: "region", label: "Regi�n" },
-  { key: "dma", label: "�rea de mercado (DMA)" },
+  { key: "country", label: "País" },
+  { key: "region", label: "Región" },
+  { key: "dma", label: "Área de mercado (DMA)" },
   { key: "platform", label: "Plataforma" },
-  { key: "placement", label: "Ubicaci�n" },
+  { key: "placement", label: "Ubicación" },
   { key: "device", label: "Plataforma de dispositivo" },
-  { key: "time_of_day", label: "Hora del d�a" },
-  { key: "conversion_device", label: "Dispositivo de conversi�n" },
+  { key: "time_of_day", label: "Hora del día" },
+  { key: "conversion_device", label: "Dispositivo de conversión" },
   { key: "destination", label: "Destino" },
-  { key: "dynamic_image", label: "Imagen / Video (Contenido din�mico)" },
-  { key: "dynamic_text", label: "Texto principal (Contenido din�mico)" },
-  { key: "dynamic_headline", label: "T�tulo (Contenido din�mico)" },
-  { key: "dynamic_description", label: "Descripci�n (Contenido din�mico)" },
-  { key: "dynamic_cta", label: "Llamada a la acci�n (Contenido din�mico)" },
+  { key: "dynamic_image", label: "Imagen / Video (Contenido dinámico)" },
+  { key: "dynamic_text", label: "Texto principal (Contenido dinámico)" },
+  { key: "dynamic_headline", label: "Título (Contenido dinámico)" },
+  { key: "dynamic_description", label: "Descripción (Contenido dinámico)" },
+  { key: "dynamic_cta", label: "Llamada a la acción (Contenido dinámico)" },
 ];
 
 export function BreakdownSelector({ selectedBreakdown, onChange }: BreakdownSelectorProps) {
