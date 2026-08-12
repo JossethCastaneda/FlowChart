@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 import { useLanguage } from "@/components/layout/LanguageContext";
 import { useTheme } from "next-themes";
 import { signIn } from "next-auth/react";
-import { BrandIconProps, MetaIcon, GoogleAdsIcon, TikTokIcon } from "@/components/ui/BrandIcons";
+import { FacebookIcon, GoogleIcon, TikTokIcon } from "@/components/ui/BrandIcons";
 
 type AuthProviders = Record<string, unknown>;
 
@@ -402,11 +402,11 @@ export default function LoginPage() {
                 <>
                   <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                     <button onClick={handleFacebookLogin} disabled={isLoading || !hasFacebookProvider} style={{ fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", height: "50px", border: "1px solid var(--fc-border)", borderRadius: "12px", background: "var(--fc-surface-raised)", color: "var(--fc-text)", fontSize: "15px", fontWeight: 700, opacity: isLoading ? 0.7 : 1 }}>
-                      <span style={{ width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center" }}><MetaIcon width={20} height={20} /></span>
+                      <span style={{ width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center" }}><FacebookIcon width={20} height={20} /></span>
                       {t.conMeta}
                     </button>
                     <button onClick={handleGoogleLogin} disabled={isLoading || !hasGoogleProvider} style={{ fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", height: "50px", border: "1px solid var(--fc-border)", borderRadius: "12px", background: "var(--fc-surface-raised)", color: "var(--fc-text)", fontSize: "15px", fontWeight: 700, opacity: isLoading ? 0.7 : 1 }}>
-                      <span style={{ width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center" }}><GoogleAdsIcon width={20} height={20} /></span>
+                      <span style={{ width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center" }}><GoogleIcon width={20} height={20} /></span>
                       {t.conGoogle}
                     </button>
                   </div>
