@@ -2,9 +2,19 @@ import prisma, { Prisma } from "@/lib/prisma";
 import { checkEntitlement } from "./entitlements";
 import { AiError, ErrorCode } from "../errors";
 
+function getCurrentMonthBoundaries() {
+  const now = new Date();
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
+  return { start, end };
+}
+import { checkEntitlement } from "./entitlements";
+import { AiError, ErrorCode } from "../errors";
+
 export interface ReservationContext {
   workspaceId: string;
   reservationId: string;
+  requestId: string;
   idempotencyKey: string;
   feature: string;
   estimatedCost: number;
@@ -63,29 +73,29 @@ export async function reserve(
       );
     }
 
-    const period = new Date().toISOString().slice(0, 7); // e.g., "2026-08"
+    const { start: periodStart, end: periodEnd } = getCurrentMonthBoundaries();
 
     // Upsert equivalent via raw query for atomic locking (because Prisma upsert doesn't lock for update)
     await tx.$executeRaw`
       INSERT INTO "WorkspaceAiBudgetBalance" (
-        "id", "workspaceId", "period", 
+        "id", "workspaceId", "periodStart", "periodEnd", 
         "customerAiAllowance", "customerBilledUsd", "customerReservedUsd", 
         "internalProviderSpendLimit", "internalProviderCostUsd", 
         "createdAt", "updatedAt"
       )
       VALUES (
-        gen_random_uuid(), ${workspaceId}, ${period}, 
+        gen_random_uuid(), ${workspaceId}, ${periodStart}, ${periodEnd}, 
         0, 0, 0, 
         0, 0, 
         NOW(), NOW()
       )
-      ON CONFLICT ("workspaceId", "period") DO NOTHING;
+      ON CONFLICT ("workspaceId", "periodStart", "periodEnd") DO NOTHING;
     `;
 
     // Now select FOR UPDATE to lock the row for this transaction
     const balances = await tx.$queryRaw<any[]>`
       SELECT "customerBilledUsd", "customerReservedUsd", "customerAiAllowance" FROM "WorkspaceAiBudgetBalance"
-      WHERE "workspaceId" = ${workspaceId} AND "period" = ${period}
+      WHERE "workspaceId" = ${workspaceId} AND "periodStart" = ${periodStart} AND "periodEnd" = ${periodEnd}
       FOR UPDATE;
     `;
 
@@ -93,12 +103,13 @@ export async function reserve(
       throw new Error("Failed to lock AiBudgetBalance");
     }
 
-    const currentSpent = Number(balances[0].customerBilledUsd);
-    const currentReserved = Number(balances[0].customerReservedUsd);
-    const allowance = Number(balances[0].customerAiAllowance);
+    const currentSpent = new Prisma.Decimal(balances[0].customerBilledUsd);
+    const currentReserved = new Prisma.Decimal(balances[0].customerReservedUsd);
+    const allowance = new Prisma.Decimal(balances[0].customerAiAllowance);
+    const estimatedCostDec = new Prisma.Decimal(estimatedCost);
 
     // If there is an allowance > 0, we check the limit. Otherwise we assume unrestricted/pay-as-you-go based on recovery policy
-    if (allowance > 0 && currentSpent + currentReserved + estimatedCost > allowance) {
+    if (allowance.greaterThan(0) && currentSpent.plus(currentReserved).plus(estimatedCostDec).greaterThan(allowance)) {
       throw new AiError(
         ErrorCode.AI_BUDGET_EXCEEDED,
         "Monthly AI budget exceeded including pending reservations",
@@ -112,7 +123,7 @@ export async function reserve(
       UPDATE "WorkspaceAiBudgetBalance"
       SET "customerReservedUsd" = "customerReservedUsd" + ${estimatedCost},
           "updatedAt" = NOW()
-      WHERE "workspaceId" = ${workspaceId} AND "period" = ${period};
+      WHERE "workspaceId" = ${workspaceId} AND "periodStart" = ${periodStart} AND "periodEnd" = ${periodEnd};
     `;
 
     // Insert atomic reservation ledger entry
@@ -167,7 +178,7 @@ export async function settle(
   await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     // Mark request as completed
     await tx.aiRequest.update({
-      where: { id: context.reservationId },
+      where: { id: context.requestId },
       data: { 
         status: "SUCCEEDED",
         completedAt: new Date()
@@ -183,7 +194,7 @@ export async function settle(
         update: {}, // if it exists, do nothing
         create: {
           workspaceId: context.workspaceId,
-          requestId: context.reservationId,
+          requestId: context.requestId,
           idempotencyKey: runIdempotencyKey,
           route: run.route,
           model: run.model,
@@ -211,7 +222,7 @@ export async function settle(
               aiUsageId: usage.id,
               stripeMeterEventIdentifier: meterEventId,
               meterName: "ai_billable_units", // the commercial unit (e.g. cents)
-              quantity: Math.round(run.customerCharge * 100), // explicit conversion from USD to billable units (cents)
+              quantity: new Prisma.Decimal(run.customerCharge).mul(100).trunc().toNumber(), // exact decimal math to avoid float precision issues
             }
           });
           console.log(`[Billing Meter] Enqueued usage sync for ${meterEventId} to Stripe.`);
@@ -233,7 +244,7 @@ export async function settle(
         }
       });
       
-      const period = reservation.createdAt.toISOString().slice(0, 7);
+      const { start: periodStart, end: periodEnd } = getCurrentMonthBoundaries();
       const totalCustomerCharge = runs.reduce((sum, run) => sum + (run.customerCharge || 0), 0);
 
       await tx.$executeRaw`
@@ -241,7 +252,7 @@ export async function settle(
         SET "customerReservedUsd" = GREATEST("customerReservedUsd" - ${Number(reservation.reservedCostUsd)}, 0),
             "customerBilledUsd" = "customerBilledUsd" + ${totalCustomerCharge},
             "updatedAt" = NOW()
-        WHERE "workspaceId" = ${context.workspaceId} AND "period" = ${period};
+        WHERE "workspaceId" = ${context.workspaceId} AND "periodStart" = ${periodStart} AND "periodEnd" = ${periodEnd};
       `;
     }
   });
@@ -253,7 +264,7 @@ export async function settle(
 export async function release(context: ReservationContext, errorReason?: string): Promise<void> {
   await prisma.$transaction(async (tx) => {
     await tx.aiRequest.update({
-      where: { id: context.reservationId },
+      where: { id: context.requestId },
       data: { 
         status: "FAILED",
         completedAt: new Date()
@@ -273,13 +284,13 @@ export async function release(context: ReservationContext, errorReason?: string)
         }
       });
       
-      const period = reservation.createdAt.toISOString().slice(0, 7);
+      const { start: periodStart, end: periodEnd } = getCurrentMonthBoundaries();
 
       await tx.$executeRaw`
         UPDATE "WorkspaceAiBudgetBalance"
         SET "customerReservedUsd" = GREATEST("customerReservedUsd" - ${Number(reservation.reservedCostUsd)}, 0),
             "updatedAt" = NOW()
-        WHERE "workspaceId" = ${context.workspaceId} AND "period" = ${period};
+        WHERE "workspaceId" = ${context.workspaceId} AND "periodStart" = ${periodStart} AND "periodEnd" = ${periodEnd};
       `;
     }
   });

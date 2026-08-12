@@ -2306,19 +2306,33 @@ model Invoice {
 model WorkspaceAiBudgetBalance {
   id                         String   @id @default(cuid())
   workspaceId                String
-  period                     String // e.g. "2026-08"
-  customerAiAllowance        Decimal  @default(0.00) @db.Decimal(19, 4) // Maximum billable to customer
-  customerBilledUsd          Decimal  @default(0.00) @db.Decimal(19, 4) // Actual amount billed to customer
-  customerReservedUsd        Decimal  @default(0.00) @db.Decimal(19, 4) // Amount currently locked for in-flight requests
-  internalProviderSpendLimit Decimal  @default(0.00) @db.Decimal(19, 4) // Hard limit on internal API costs
-  internalProviderCostUsd    Decimal  @default(0.00) @db.Decimal(19, 4) // Actual API cost incurred
+  
+  // Exact commercial billing period boundaries (removes YYYY-MM ambiguity)
+  periodStart                DateTime
+  periodEnd                  DateTime
+
+  // Customer Included AI Allowance: The maximum monetary value (USD) included in the subscription plan
+  customerAiAllowance        Decimal  @default(0.00) @db.Decimal(19, 4) 
+  
+  // Customer Billable AI Usage: The actual amount (USD) billed to the customer during this period
+  customerBilledUsd          Decimal  @default(0.00) @db.Decimal(19, 4) 
+  
+  // Amount currently locked for in-flight requests to prevent double-spending
+  customerReservedUsd        Decimal  @default(0.00) @db.Decimal(19, 4) 
+  
+  // Internal Provider Spend Limit: The hard limit on our raw API costs, ensuring we don't bleed margin
+  internalProviderSpendLimit Decimal  @default(0.00) @db.Decimal(19, 4) 
+  
+  // Actual API cost incurred with providers (OpenAI, Anthropic, etc.)
+  internalProviderCostUsd    Decimal  @default(0.00) @db.Decimal(19, 4) 
+  
   createdAt                  DateTime @default(now())
   updatedAt                  DateTime @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
-  @@unique([workspaceId, period])
-  @@index([workspaceId, period])
+  @@unique([workspaceId, periodStart, periodEnd])
+  @@index([workspaceId, periodStart, periodEnd])
 }
 
 model AiReservationLedger {

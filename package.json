@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/db-sync.mjs && prisma generate && node scripts/patch-prisma-types.mjs || true && next build",
+    "build": "prisma generate && node scripts/patch-prisma-types.mjs || true && next build",
     "db:sync": "node scripts/db-sync.mjs",
-    "release": "node scripts/db-sync.mjs && prisma generate && node scripts/patch-prisma-types.mjs || true && next build",
+    "release": "prisma generate && node scripts/patch-prisma-types.mjs || true && next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",

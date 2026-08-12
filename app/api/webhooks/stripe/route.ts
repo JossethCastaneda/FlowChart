@@ -86,11 +86,18 @@ export async function POST(req: Request) {
               let budget = 0;
               const planConfig = getPlanByPriceId(planPriceId);
               const maxBudget = planConfig ? planConfig.monthlyAiBudget : 0;
+              
+              const policy = await tx.billingRecoveryPolicy.findFirst({ orderBy: { version: 'desc' } });
 
               if (status === "active" || status === "trialing") {
                 budget = maxBudget;
               } else if (status === "past_due") {
-                budget = Math.max(10, maxBudget * 0.1); // 10% grace period
+                if (!policy) {
+                  console.error("[Stripe Webhook] CRITICAL: No active BillingRecoveryPolicy found. Defaulting budget to 0.");
+                  budget = 0;
+                } else {
+                  budget = Math.max(policy.hardLimitUsd, maxBudget * (policy.graceBudgetPercent / 100));
+                }
               } else {
                 budget = 0;
               }
@@ -141,7 +148,13 @@ export async function POST(req: Request) {
               if (event.type === "invoice.payment_failed") {
                 // Fetch active Recovery Policy (assumes version 1 is active, or order by latest)
                 const policy = await tx.billingRecoveryPolicy.findFirst({ orderBy: { version: 'desc' } });
-                const graceDays = policy?.gracePeriodDays || 3;
+                
+                if (!policy) {
+                  console.error("[Stripe Webhook] CRITICAL: No active BillingRecoveryPolicy. Cannot calculate grace period.");
+                  throw new Error("Missing active BillingRecoveryPolicy");
+                }
+                
+                const graceDays = policy.gracePeriodDays;
                 
                 // Create a Recovery Case and Notification
                 const gracePeriod = new Date(Date.now() + graceDays * 24 * 60 * 60 * 1000);
