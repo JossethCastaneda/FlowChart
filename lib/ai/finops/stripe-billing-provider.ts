@@ -43,20 +43,10 @@ export class StripeBillingProvider implements BillingProvider {
     throw new Error("Use Stripe Billing Meters (Phase C) for usage reporting.");
   }
 
-  async sendMeterEvent(workspaceId: string, idempotencyKey: string, meterName: string, quantity: number): Promise<void> {
-    // Requires a Stripe Customer ID
-    // Note: To be fully correct, we should look up stripeCustomerId, but typically we send to Stripe's v2 billing meter events API
-    // which expects the event name and customer or other identifying info.
-    // FlowChart handles this mapping via Prisma before calling this method, or we lookup here.
-    
-    // For now, we simulate the Stripe v2 meter event creation (requires Stripe API version 2023-10-16 or newer)
+  async sendMeterEvent(stripeCustomerId: string, idempotencyKey: string, meterName: string, quantity: number): Promise<void> {
     try {
-      // In a real implementation we would fetch the stripeCustomerId from Prisma, or pass it in.
-      // We assume it's fetched beforehand and passed via `workspaceId` as a simplification, 
-      // OR we look it up (in a real production app we'd pass `stripeCustomerId` directly).
-      // For this phase C requirement, we'll log it as implemented in test mode.
       console.log(`[StripeBillingProvider] Sending meter event ${meterName} to Stripe with quantity ${quantity} and id ${idempotencyKey}`);
-      /*
+      
       await this.stripe.billing.meterEvents.create({
         event_name: meterName,
         payload: {
@@ -65,31 +55,29 @@ export class StripeBillingProvider implements BillingProvider {
         },
         identifier: idempotencyKey,
       });
-      */
+      
     } catch (error: any) {
       console.error("[StripeBillingProvider] Failed to send meter event", error);
       throw error;
     }
   }
 
-  async createCheckout(workspaceId: string, plan: string): Promise<string> {
-    // We would resolve `plan` to an actual Stripe Price ID via BillingCatalog
-    // For now, in Phase B implementation, we return a mock URL if not fully mapped
+  async createCheckout(workspaceId: string, stripeCustomerId: string, stripePriceId: string): Promise<string> {
     const session = await this.stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "subscription",
+      customer: stripeCustomerId,
       client_reference_id: workspaceId,
       line_items: [
         {
-          price: plan, // Expects actual Stripe Price ID passed from caller
+          price: stripePriceId, 
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/billing?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/billing?canceled=true`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/billing?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/billing?canceled=true`,
       metadata: {
         workspaceId,
-        plan,
       },
     });
 

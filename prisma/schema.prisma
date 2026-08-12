@@ -2268,11 +2268,13 @@ model BillingUsageEvent {
   stripeMeterEventIdentifier String    @unique
   meterName                  String
   quantity                   Int
-  status                     String    @default("PENDING") // PENDING, SENT, FAILED
+  status                     String    @default("PENDING") // PENDING, PROCESSING, SENT, FAILED
   attempts                   Int       @default(0)
   lastError                  String?   @db.Text
   sentAt                     DateTime?
   reportedAt                 DateTime  @default(now())
+  lastAttemptAt              DateTime?
+  nextAttemptAt              DateTime?
 }
 
 model Invoice {

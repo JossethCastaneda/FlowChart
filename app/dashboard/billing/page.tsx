@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth.config";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { BillingClient } from "./billing-client";
 import { redirect } from "next/navigation";
+import prisma from "@/lib/prisma";
 
 export default async function BillingPage() {
   const session = await getServerSession(authOptions);
@@ -13,5 +14,32 @@ export default async function BillingPage() {
 
   const workspaceId = await getActiveWorkspaceId(session.user.id);
 
-  return <BillingClient initialWorkspaceId={workspaceId} />;
+  if (!workspaceId) {
+    return <div className="p-8 text-white">No active workspace selected.</div>;
+  }
+
+  const [entitlement, subscription, usage] = await Promise.all([
+    prisma.workspaceEntitlement.findUnique({
+      where: { workspaceId }
+    }),
+    prisma.subscription.findFirst({
+      where: { workspaceId },
+      orderBy: { currentPeriodEnd: "desc" }
+    }),
+    prisma.aiUsage.aggregate({
+      where: { workspaceId },
+      _sum: { customerChargeUsd: true }
+    })
+  ]);
+
+  const totalUsage = usage?._sum?.customerChargeUsd || 0;
+
+  return (
+    <BillingClient 
+      initialWorkspaceId={workspaceId} 
+      entitlement={entitlement}
+      subscription={subscription}
+      totalUsage={totalUsage}
+    />
+  );
 }

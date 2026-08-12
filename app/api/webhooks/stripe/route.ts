@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { StripeBillingProvider } from "@/lib/ai/finops/stripe-billing-provider";
 import prisma from "@/lib/prisma"; // Adjust according to your project structure
-
+import Stripe from "stripe";
+import { getPlanByPriceId } from "@/lib/ai/finops/plan-catalog";
 export async function POST(req: Request) {
   try {
     // Read raw body bytes for Stripe signature verification
@@ -45,111 +46,125 @@ export async function POST(req: Request) {
         }
       });
 
-      // Handle specific events (e.g., subscription lifecycle)
-      const data = event.data as any; // Type narrowed by event type below
+      try {
+        switch (event.type) {
+          case "customer.subscription.created":
+          case "customer.subscription.updated":
+          case "customer.subscription.deleted":
+          case "customer.subscription.paused":
+          case "customer.subscription.resumed": {
+            const subscription = (event.data as any).object as Stripe.Subscription;
+            const customerId = subscription.customer as string;
 
-      switch (event.type) {
-        case "customer.subscription.created":
-        case "customer.subscription.updated":
-        case "customer.subscription.deleted":
-        case "customer.subscription.paused":
-        case "customer.subscription.resumed": {
-          const subscription = data;
-          const customerId = subscription.customer;
-
-          const billingCustomer = await tx.billingCustomer.findUnique({
-            where: { stripeCustomerId: customerId }
-          });
-
-          if (billingCustomer) {
-            const status = subscription.status; // active, past_due, unpaid, canceled, trialing, paused
-            
-            await tx.subscription.upsert({
-              where: { stripeSubscriptionId: subscription.id },
-              create: {
-                workspaceId: billingCustomer.workspaceId,
-                stripeSubscriptionId: subscription.id,
-                status: status,
-                plan: subscription.items?.data?.[0]?.price?.id || "unknown",
-                currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-                cancelAtPeriodEnd: subscription.cancel_at_period_end
-              },
-              update: {
-                status: status,
-                plan: subscription.items?.data?.[0]?.price?.id || "unknown",
-                currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-                cancelAtPeriodEnd: subscription.cancel_at_period_end
-              }
+            const billingCustomer = await tx.billingCustomer.findUnique({
+              where: { stripeCustomerId: customerId }
             });
 
-            // Trigger Entitlement Update based on Subscription State
-            let budget = 0;
-            if (status === "active" || status === "trialing") {
-              budget = 100.0; // Normal active budget
-            } else if (status === "past_due") {
-              budget = 10.0; // Grace period budget
-            } else {
-              budget = 0.0; // unpaid, canceled, paused
+            if (billingCustomer) {
+              const status = subscription.status; // active, past_due, unpaid, canceled, trialing, paused
+              const planPriceId = subscription.items?.data?.[0]?.price?.id || "unknown";
+
+              await tx.subscription.upsert({
+                where: { stripeSubscriptionId: subscription.id },
+                create: {
+                  workspaceId: billingCustomer.workspaceId,
+                  stripeSubscriptionId: subscription.id,
+                  status: status,
+                  plan: planPriceId,
+                  currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
+                  cancelAtPeriodEnd: (subscription as any).cancel_at_period_end
+                },
+                update: {
+                  status: status,
+                  plan: planPriceId,
+                  currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
+                  cancelAtPeriodEnd: (subscription as any).cancel_at_period_end
+                }
+              });
+
+              // Trigger Entitlement Update based on Subscription State and Plan Catalog
+              let budget = 0;
+              const planConfig = getPlanByPriceId(planPriceId);
+              const maxBudget = planConfig ? planConfig.monthlyAiBudget : 0;
+
+              if (status === "active" || status === "trialing") {
+                budget = maxBudget;
+              } else if (status === "past_due") {
+                budget = Math.max(10, maxBudget * 0.1); // 10% grace period
+              } else {
+                budget = 0;
+              }
+
+              await tx.workspaceEntitlement.upsert({
+                where: { workspaceId: billingCustomer.workspaceId },
+                create: {
+                  workspaceId: billingCustomer.workspaceId,
+                  monthlyAiBudget: budget
+                },
+                update: {
+                  monthlyAiBudget: budget
+                }
+              });
             }
-
-            await tx.workspaceEntitlement.upsert({
-              where: { workspaceId: billingCustomer.workspaceId },
-              create: {
-                workspaceId: billingCustomer.workspaceId,
-                monthlyAiBudget: budget
-              },
-              update: {
-                monthlyAiBudget: budget
-              }
-            });
+            break;
           }
-          break;
+
+          case "invoice.payment_succeeded":
+          case "invoice.payment_failed": {
+            const invoice = (event.data as any).object as Stripe.Invoice;
+            const customerId = invoice.customer as string;
+            
+            const billingCustomer = await tx.billingCustomer.findUnique({
+              where: { stripeCustomerId: customerId }
+            });
+
+            if (billingCustomer) {
+              await tx.invoice.upsert({
+                where: { stripeInvoiceId: invoice.id },
+                create: {
+                  workspaceId: billingCustomer.workspaceId,
+                  stripeInvoiceId: invoice.id,
+                  status: invoice.status || "unknown",
+                  currency: invoice.currency,
+                  amountDue: invoice.amount_due,
+                  amountPaid: invoice.amount_paid,
+                  hostedInvoiceUrl: invoice.hosted_invoice_url,
+                },
+                update: {
+                  status: invoice.status || "unknown",
+                  amountDue: invoice.amount_due,
+                  amountPaid: invoice.amount_paid,
+                  hostedInvoiceUrl: invoice.hosted_invoice_url,
+                }
+              });
+            }
+            break;
+          }
+          default:
+            console.log(`[Stripe Webhook] Unhandled event type: ${event.type}`);
+            break;
         }
 
-        case "invoice.payment_succeeded":
-        case "invoice.payment_failed": {
-          const invoice = data;
-          const customerId = invoice.customer;
-          
-          const billingCustomer = await tx.billingCustomer.findUnique({
-            where: { stripeCustomerId: customerId }
-          });
-
-          if (billingCustomer) {
-            await tx.invoice.upsert({
-              where: { stripeInvoiceId: invoice.id },
-              create: {
-                workspaceId: billingCustomer.workspaceId,
-                stripeInvoiceId: invoice.id,
-                status: invoice.status,
-                currency: invoice.currency,
-                amountDue: invoice.amount_due,
-                amountPaid: invoice.amount_paid,
-                hostedInvoiceUrl: invoice.hosted_invoice_url,
-              },
-              update: {
-                status: invoice.status,
-                amountDue: invoice.amount_due,
-                amountPaid: invoice.amount_paid,
-                hostedInvoiceUrl: invoice.hosted_invoice_url,
-              }
-            });
+        // Mark as processed
+        await tx.billingEvent.update({
+          where: { stripeEventId: event.id },
+          data: {
+            processingStatus: "processed",
+            processedAt: new Date()
           }
-          break;
-        }
-        default:
-          console.log(`[Stripe Webhook] Unhandled event type: ${event.type}`);
-          break;
+        });
+      } catch (err: any) {
+        console.error(`[Stripe Webhook] Failed processing event ${event.id}:`, err);
+        // Mark as failed
+        await tx.billingEvent.update({
+          where: { stripeEventId: event.id },
+          data: {
+            processingStatus: "failed",
+            processedAt: new Date()
+          }
+        });
+        return { message: "Failed", error: err.message || "Unknown error" };
       }
-
-      // Mark as processed
-      await tx.billingEvent.update({
-        where: { stripeEventId: event.id },
-        data: {
-          processingStatus: "processed",
-          processedAt: new Date()
-        }
-      });
 
       return { message: "Success" };
     });

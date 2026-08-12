@@ -4,11 +4,7 @@ import { authOptions } from "@/lib/auth.config";
 import { StripeBillingProvider } from "@/lib/ai/finops/stripe-billing-provider";
 import prisma from "@/lib/prisma";
 
-const PLAN_TO_PRICE_MAP: Record<string, string> = {
-  // In production, these should come from environment variables or a DB config
-  "pro": process.env.STRIPE_PRICE_PRO || "price_mock_pro",
-  "enterprise": process.env.STRIPE_PRICE_ENTERPRISE || "price_mock_enterprise",
-};
+import { getPlan } from "@/lib/ai/finops/plan-catalog";
 
 export async function POST(req: Request) {
   try {
@@ -24,11 +20,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "workspaceId and plan are required" }, { status: 400 });
     }
 
-    // Server-side mapping prevents client from passing arbitrary Stripe prices
-    const stripePriceId = PLAN_TO_PRICE_MAP[plan];
-    if (!stripePriceId) {
-      return NextResponse.json({ error: "Invalid plan selected" }, { status: 400 });
-    }
+    const planConfig = getPlan(plan);
+    const stripePriceId = planConfig.stripePriceId;
 
     // Verify user belongs to workspace and is OWNER/ADMIN
     const member = await prisma.workspaceMember.findUnique({
@@ -62,7 +55,7 @@ export async function POST(req: Request) {
       });
     }
     
-    const checkoutUrl = await provider.createCheckout(workspaceId, stripePriceId);
+    const checkoutUrl = await provider.createCheckout(workspaceId, billingCustomer.stripeCustomerId, stripePriceId);
 
     return NextResponse.json({ url: checkoutUrl });
   } catch (error: any) {

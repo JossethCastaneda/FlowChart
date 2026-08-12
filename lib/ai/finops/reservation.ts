@@ -131,9 +131,8 @@ export async function settle(
               workspaceId: context.workspaceId,
               aiUsageId: usage.id,
               stripeMeterEventIdentifier: meterEventId,
-              meterName: "ai_credits_consumed", // the commercial unit
-              // We could store fractional cents or units depending on Stripe meter config
-              quantity: Math.ceil(run.customerCharge * 100), // cents representation for the meter
+              meterName: "ai_billable_units", // the commercial unit (e.g. cents)
+              quantity: Math.ceil(run.customerCharge * 100), // explicit conversion from USD to billable units
             }
           });
 

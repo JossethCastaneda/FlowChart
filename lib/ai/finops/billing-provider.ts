@@ -45,7 +45,7 @@ export interface BillingProvider {
    * Creates a hosted checkout session URL.
 
    */
-  createCheckout(workspaceId: string, plan: string): Promise<string>;
+  createCheckout(workspaceId: string, stripeCustomerId: string, planOrPrice: string): Promise<string>;
 
   /**
    * Upgrades or downgrades an existing subscription.

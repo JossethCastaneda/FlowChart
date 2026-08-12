@@ -4,7 +4,17 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-export function BillingClient({ initialWorkspaceId }: { initialWorkspaceId: string | null }) {
+export function BillingClient({ 
+  initialWorkspaceId,
+  entitlement,
+  subscription,
+  totalUsage
+}: { 
+  initialWorkspaceId: string | null;
+  entitlement: any;
+  subscription: any;
+  totalUsage: number;
+}) {
   const { data: session } = useSession();
   const router = useRouter();
   const [workspaceId, setWorkspaceId] = useState<string | null>(initialWorkspaceId);
@@ -71,7 +81,8 @@ export function BillingClient({ initialWorkspaceId }: { initialWorkspaceId: stri
         
         {/* Subscription Info */}
         <div className="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-sm text-gray-200">
-          <h2 className="text-xl font-semibold mb-4 text-white">Current Plan</h2>
+          <h2 className="text-xl font-semibold mb-4 text-white">Current Plan: {subscription ? subscription.plan : "Free"}</h2>
+          <p className="text-gray-400 mb-6">Status: <span className="font-bold text-white">{subscription ? subscription.status : "Inactive"}</span></p>
           <p className="text-gray-400 mb-6">Manage your subscription, payment methods, and invoices securely via Stripe.</p>
           
           <div className="space-y-4">
@@ -114,8 +125,9 @@ export function BillingClient({ initialWorkspaceId }: { initialWorkspaceId: stri
       <div className="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-sm text-gray-200">
         <h2 className="text-xl font-semibold mb-4 text-white">AI Consumption</h2>
         <p className="text-gray-400 mb-4">View your unbilled AI usage before it synchronizes to your invoice.</p>
-        <div className="bg-gray-800 h-24 rounded border border-gray-700 flex items-center justify-center text-sm text-gray-500">
-          Usage breakdown components will render here...
+        <div className="bg-gray-800 p-4 rounded border border-gray-700 text-sm text-gray-300">
+          <p>Total AI Usage Generated: <span className="text-white font-bold">{totalUsage.toFixed(2)} Credits</span></p>
+          <p>Monthly Budget: <span className="text-white font-bold">{entitlement ? entitlement.monthlyAiBudget : 0} Credits</span></p>
         </div>
       </div>
     </div>
