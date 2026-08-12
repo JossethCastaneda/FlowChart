@@ -33,7 +33,8 @@ describe("ai-usage schema", () => {
     "tokensIn",
     "tokensOut",
     "provider",
-    "estimatedCostUsd",
+    "providerCostUsd",
+    "customerChargeUsd",
     "feature",
     "createdAt",
   ];

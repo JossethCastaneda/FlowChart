@@ -14,6 +14,36 @@ vi.mock("../../lib/ai/registry", async (importOriginal) => {
   };
 });
 
+// Mock Prisma for durable telemetry
+vi.mock("@/lib/prisma", () => ({
+  default: {
+    aiRequest: {
+      create: vi.fn().mockResolvedValue({ id: "req_mock" }),
+      update: vi.fn(),
+    },
+    aiRun: {
+      create: vi.fn().mockResolvedValue({ id: "run_mock", startedAt: new Date() }),
+      update: vi.fn(),
+    },
+    aiModelPricing: {
+      findFirst: vi.fn().mockResolvedValue(null),
+    }
+  },
+  prisma: {
+    aiRequest: {
+      create: vi.fn().mockResolvedValue({ id: "req_mock" }),
+      update: vi.fn(),
+    },
+    aiRun: {
+      create: vi.fn().mockResolvedValue({ id: "run_mock", startedAt: new Date() }),
+      update: vi.fn(),
+    },
+    aiModelPricing: {
+      findFirst: vi.fn().mockResolvedValue(null),
+    }
+  }
+}));
+
 describe("AI Orchestration Pipeline", () => {
   it("should process a context and output safe ProposedActions without executing them", async () => {
     // Mock the provider to return a valid OptimizationPlan

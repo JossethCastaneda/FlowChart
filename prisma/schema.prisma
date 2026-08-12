@@ -122,6 +122,9 @@ model Workspace {
   optimizationApprovals   OptimizationActionApproval[]
   optimizationExecutions  OptimizationActionExecution[]
   optimizationAuditEvents OptimizationAuditEvent[]
+  aiRequests              AiRequest[]
+  aiRuns                  AiRun[]
+  entitlement             WorkspaceEntitlement?
 }
 
 // ------------------------------------------------------
@@ -2092,24 +2095,124 @@ model Report {
 }
 
 // ------------------------------------------------------
-// AI METERING
+// AI METERING & FINOPS (Phase P1.5)
 // ------------------------------------------------------
+
+model AiRequest {
+  id             String    @id @default(cuid())
+  workspaceId    String
+  idempotencyKey String    @unique // To prevent concurrent duplicated requests
+  feature        String    // e.g. "optimization_planner", "agent_reporting"
+  status      String    @default("CREATED") // CREATED, RUNNING, SUCCEEDED, FAILED
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  runs      AiRun[]
+  usages    AiUsage[]
+
+  @@index([workspaceId])
+  @@index([status])
+}
+
+model AiRun {
+  id                    String    @id @default(cuid())
+  requestId             String
+  workspaceId           String
+  
+  provider              String    // e.g. "gemini", "anthropic"
+  model                 String    // Requested model
+  actualProviderModelId String    // Actual model executed (e.g. "gemini-1.5-pro-latest")
+  
+  promptVersion         String?
+  workflowVersion       String?
+  
+  status                String    @default("RUNNING") // RUNNING, SUCCEEDED, FAILED, TIMEOUT
+  
+  startedAt             DateTime  @default(now())
+  completedAt           DateTime?
+  latencyMs             Int?
+  
+  inputTokens           Int       @default(0)
+  outputTokens          Int       @default(0)
+  cachedTokens          Int       @default(0)
+  
+  providerCost          Float?    // Null if unknown, real provider cost in USD
+  currency              String    @default("USD")
+  
+  fallbackFromRunId     String?   // If this run was a fallback, point to failed run
+  errorCode             String?
+  
+  request   AiRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([requestId])
+  @@index([workspaceId])
+}
+
 model AiUsage {
   id               String   @id @default(cuid())
   workspaceId      String
-  route            String // e.g. "/api/agents/orchestrate", "GridIA"
-  model            String // e.g. "gemini-2.5-flash"
-  provider         String? // e.g. "gemini", "anthropic", "openai"
+  requestId        String?
+  idempotencyKey   String   @unique // To prevent duplicate settlement records
+  route            String
+  model            String
+  provider         String?
   tokensIn         Int      @default(0)
   tokensOut        Int      @default(0)
-  estimatedCostUsd Float? // estimated cost in USD for billing dashboards
-  feature          String? // high-level feature area: "copilot", "crecimiento", "agents"
+  providerCostUsd  Float?   // Exact cost from the provider
+  customerChargeUsd Float?  // Price billed to the customer (ledger value)
+  feature          String?
   createdAt        DateTime @default(now())
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  request   AiRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
 
   @@index([workspaceId])
   @@index([createdAt])
+  @@index([requestId])
+}
+
+model AiModelPricing {
+  id                String    @id @default(cuid())
+  provider          String
+  providerModelId   String
+  inputPrice        Float     // Cost per 1 token (or 1M, handled by calc logic)
+  outputPrice       Float
+  cachedInputPrice  Float?
+  currency          String    @default("USD")
+  effectiveFrom     DateTime  @default(now())
+  effectiveTo       DateTime?
+  sourceMetadata    String?   // URL or reference
+  
+  @@unique([provider, providerModelId, effectiveFrom])
+}
+
+model FeaturePricing {
+  id           String    @id @default(cuid())
+  feature      String    @unique // e.g. "optimization_planner"
+  pricingMode  String    // INCLUDED, CREDITS, USAGE_BASED, FIXED, OVERAGE
+  fixedCost    Float?    // If FIXED
+  creditsCost  Int?      // If CREDITS
+  currency     String    @default("USD")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model WorkspaceEntitlement {
+  id                     String    @id @default(cuid())
+  workspaceId            String    @unique
+  saasPlan               String    @default("FREE") // SaaS product plan
+  allowedFeatures        String[]  // ["AI_GENERATION", "AUTOPILOT"]
+  monthlyAiBudget        Float?    // Financial limit in USD
+
+  dailyAutopilotAiBudget Float?
+  maxAiCostPerRun        Float?
+  availableCredits       Int       @default(0)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
 // ------------------------------------------------------

@@ -38,7 +38,7 @@ export async function orchestrateOptimization(
   }
 
   // 3. Evaluate Plan
-  const run = TelemetryTracker.createRun(
+  const run = await TelemetryTracker.createRun(
     workspaceId,
     "orchestrator:evaluate_context",
     "system", // Evaluator is deterministic software
@@ -50,11 +50,11 @@ export async function orchestrateOptimization(
   
   if (!evaluation.accepted) {
     logger.warn("[Orchestrator] Plan rejected by Evaluator", { workspaceId, reason: evaluation.rejectionReason });
-    TelemetryTracker.failRun(run, new Error(evaluation.rejectionReason));
+    await TelemetryTracker.failRun(run, new Error(evaluation.rejectionReason));
     return [];
   }
 
-  TelemetryTracker.completeRun(run, { promptTokens: 0, completionTokens: 0, totalTokens: 0 }, 0);
+  await TelemetryTracker.completeRun(run, { promptTokens: 0, completionTokens: 0, totalTokens: 0 });
 
   // 4. Transform Validated Plan into ProposedActions (P0 Contract)
   const proposedActions: ProposedAction[] = evaluation.validatedActions.map(action => ({

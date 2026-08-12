@@ -8,7 +8,7 @@ tags: [generado, api, endpoints]
 > No lo edites manualmente — se sobreescribe en cada generación.
 > Fuente: `scripts/docs-graph.mjs`
 
-Total: **145 route handlers** en 30 grupos.
+Total: **158 route handlers** en 31 grupos.
 
 ## `/api/ads/`
 
@@ -203,6 +203,22 @@ Total: **145 route handlers** en 30 grupos.
 | `/api/ops/okrs` | `GET` `POST` | `app/api/ops/okrs/route.ts` |
 | `/api/ops/stream` | `GET` | `app/api/ops/stream/route.ts` |
 
+## `/api/optimization/`
+
+| Ruta | Métodos | Archivo |
+|------|---------|--------|
+| `/api/optimization/actions/[actionId]/approval` | `POST` | `app/api/optimization/actions/[actionId]/approval/route.ts` |
+| `/api/optimization/actions/[actionId]/execute` | `POST` | `app/api/optimization/actions/[actionId]/execute/route.ts` |
+| `/api/optimization/actions/[actionId]/rollback` | `POST` | `app/api/optimization/actions/[actionId]/rollback/route.ts` |
+| `/api/optimization/audit` | `GET` | `app/api/optimization/audit/route.ts` |
+| `/api/optimization/clients` | `GET` `POST` | `app/api/optimization/clients/route.ts` |
+| `/api/optimization/evaluations` | `GET` `POST` | `app/api/optimization/evaluations/route.ts` |
+| `/api/optimization/objectives` | `GET` `POST` | `app/api/optimization/objectives/route.ts` |
+| `/api/optimization/overview` | `GET` | `app/api/optimization/overview/route.ts` |
+| `/api/optimization/recommendations` | `GET` `POST` | `app/api/optimization/recommendations/route.ts` |
+| `/api/optimization/results` | `GET` `POST` | `app/api/optimization/results/route.ts` |
+| `/api/optimization/snapshots` | `GET` `POST` | `app/api/optimization/snapshots/route.ts` |
+
 ## `/api/projects/`
 
 | Ruta | Métodos | Archivo |
@@ -263,6 +279,7 @@ Total: **145 route handlers** en 30 grupos.
 
 | Ruta | Métodos | Archivo |
 |------|---------|--------|
+| `/api/user/avatar` | `POST` `DELETE` | `app/api/user/avatar/route.ts` |
 | `/api/user/profile` | `GET` `PATCH` | `app/api/user/profile/route.ts` |
 
 ## `/api/webhooks/`
@@ -298,6 +315,7 @@ Total: **145 route handlers** en 30 grupos.
 | `/api/workspace/[workspaceId]/members` | `GET` `DELETE` | `app/api/workspace/[workspaceId]/members/route.ts` |
 | `/api/workspace/[workspaceId]/members/permissions` | `PATCH` | `app/api/workspace/[workspaceId]/members/permissions/route.ts` |
 | `/api/workspace/[workspaceId]/members/role` | `PATCH` | `app/api/workspace/[workspaceId]/members/role/route.ts` |
+| `/api/workspace/branding/logo` | `POST` `DELETE` | `app/api/workspace/branding/logo/route.ts` |
 | `/api/workspace/integrations` | `GET` `POST` `DELETE` | `app/api/workspace/integrations/route.ts` |
 | `/api/workspace/integrations/test-crm` | `POST` | `app/api/workspace/integrations/test-crm/route.ts` |
 | `/api/workspace/members/status` | `GET` `PUT` | `app/api/workspace/members/status/route.ts` |

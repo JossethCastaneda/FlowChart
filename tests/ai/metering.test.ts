@@ -97,10 +97,13 @@ describe("AI Metering (metering.ts)", () => {
         workspaceId: "ws-123",
         provider: "openai",
         route: "/api/test",
+        idempotencyKey: "mock-idem",
+        requestId: "mock-req",
         model: "gpt-4",
         tokensIn: 10,
         tokensOut: 20,
-        estimatedCostUsd: 0.05,
+        providerCostUsd: 0.04,
+        customerChargeUsd: 0.05,
         feature: "test-feature",
       });
       

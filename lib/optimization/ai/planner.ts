@@ -37,7 +37,7 @@ export async function generateOptimizationPlan(
   const provider = route.provider;
 
   // 2. Start telemetry run
-  const run = TelemetryTracker.createRun(
+  const run = await TelemetryTracker.createRun(
     workspaceId,
     "planner:propose_action",
     provider.id,
@@ -97,11 +97,11 @@ Asegúrate de justificar con evidencias numéricas.
       parse: (raw) => OptimizationPlanSchema.parse(raw)
     });
 
-    TelemetryTracker.completeRun(run, result.usage || { promptTokens: 0, completionTokens: 0, totalTokens: 0 }, 0); // Cost logic omitted for brevity in P1
+    await TelemetryTracker.completeRun(run, result.usage || { promptTokens: 0, completionTokens: 0, totalTokens: 0 });
 
     return result.data;
   } catch (error) {
-    TelemetryTracker.failRun(run, error as Error);
+    await TelemetryTracker.failRun(run, error as Error);
     throw error;
   }
 }

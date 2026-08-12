@@ -193,12 +193,14 @@ async function seedTenant(
     data: {
       id: ids.aiUsage,
       workspaceId: workspace.id,
-      route: "/api/agents/orchestrate",
+      route: "/api/chat",
+      idempotencyKey: `seed-chat-${Date.now()}`,
       model: config.aiModel,
       provider: "gemini",
       tokensIn: 1500,
-      tokensOut: 800,
-      estimatedCostUsd: 0.003,
+      tokensOut: 250,
+      customerChargeUsd: 0.05,
+      providerCostUsd: 0.01,
       feature: "copilot",
     },
   });

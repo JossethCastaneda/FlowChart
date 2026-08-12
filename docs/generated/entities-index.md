@@ -8,7 +8,7 @@ tags: [generado, entidades, prisma, dominio]
 > No lo edites manualmente — se sobreescribe en cada generación.
 > Fuente: `scripts/docs-graph.mjs`
 
-Total: **76 modelos** en el schema de Prisma.
+Total: **92 modelos** en el schema de Prisma.
 
 ## Core (Identidad y tenant)
 
@@ -56,7 +56,7 @@ Total: **76 modelos** en el schema de Prisma.
 | **GoogleSource** | `externalId`, `kind`, `projectId`, `project` |
 | **Capturista** | `userId`, `user` |
 | **Channel** | `projectId`, `name`, `type`, `config`, `project` |
-| **MediaAsset** | `workspaceId`, `userId`, `url`, `fileName`, `mimeType` |
+| **MediaAsset** | `workspaceId`, `userId`, `projectId`, `url`, `fileName` |
 | **DraftPost** | `workspaceId`, `projectId`, `authorId`, `baseContent`, `baseMediaUrls` |
 | **Transmission** | `draftId`, `workspaceId`, `channel`, `accountId`, `accountName` |
 | **PublishJob** | `transmissionId`, `step`, `status`, `attempts`, `maxAttempts` |
@@ -103,7 +103,23 @@ Total: **76 modelos** en el schema de Prisma.
 | **AriaPrediction** | `modelId`, `recordId`, `score`, `probability`, `priority` |
 | **CenturionModel** | `workspaceId`, `clientName`, `verticalName`, `engine`, `config` |
 | **MmmWeeklySpend** | `workspaceId`, `clientName`, `week`, `channel`, `spend` |
-| **AiUsage** | `workspaceId`, `route`, `model`, `provider`, `tokensIn` |
+| **OptimizationClient** | `workspaceId`, `key`, `displayName`, `status`, `environment` |
+| **OptimizationClientProject** | `workspaceId`, `clientId`, `projectId`, `client`, `project` |
+| **OptimizationAdAccount** | `workspaceId`, `clientId`, `provider`, `externalAccountId`, `displayName` |
+| **OptimizationObjective** | `workspaceId`, `clientId`, `version`, `status`, `primaryKpi` |
+| **OptimizationSnapshot** | `workspaceId`, `clientId`, `schemaVersion`, `contentHash`, `periodStart` |
+| **OptimizationAnalysisResult** | `workspaceId`, `clientId`, `snapshotId`, `analysisType`, `observations` |
+| **OptimizationProposedAction** | `workspaceId`, `clientId`, `snapshotId`, `provider`, `accountId` |
+| **OptimizationActionApproval** | `workspaceId`, `clientId`, `actionId`, `approverId`, `approverRole` |
+| **OptimizationActionExecution** | `workspaceId`, `clientId`, `actionId`, `operation`, `status` |
+| **OptimizationEvaluation** | `workspaceId`, `clientId`, `sourceSnapshotId`, `outcomeSnapshotId`, `analysisResultId` |
+| **OptimizationAuditEvent** | `workspaceId`, `clientId`, `snapshotId`, `actionId`, `actorId` |
+| **AiRequest** | `workspaceId`, `feature`, `status`, `completedAt`, `workspace` |
+| **AiRun** | `requestId`, `workspaceId`, `provider`, `model`, `actualProviderModelId` |
+| **AiUsage** | `workspaceId`, `requestId`, `route`, `model`, `provider` |
+| **AiModelPricing** | `provider`, `providerModelId`, `inputPrice`, `outputPrice`, `cachedInputPrice` |
+| **FeaturePricing** | `feature`, `pricingMode`, `fixedCost`, `creditsCost`, `currency` |
+| **WorkspaceEntitlement** | `workspaceId`, `allowedFeatures`, `monthlyAiBudget`, `dailyAutopilotAiBudget`, `maxAiCostPerRun` |
 | **RateLimit** | `key`, `count`, `resetAt` |
 
 ## Relacionado
