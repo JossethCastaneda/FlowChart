@@ -37,7 +37,7 @@ export async function checkAiLimit(workspaceId: string): Promise<{ allowed: bool
     return { allowed: true, message: "" };
   } catch (err) {
     logger.error("[METERING] Error checkAiLimit", { workspaceId, error: String(err) });
-    return { allowed: true, message: "" }; // Fallback a true para no bloquear si hay error interno
+    return { allowed: false, message: "Error verificando cuota de IA. Por seguridad, la solicitud fue bloqueada." }; // Fail-closed
   }
 }
 
@@ -72,8 +72,8 @@ export async function recordAiUsage(
     if (opts?.estimatedCostUsd != null) data.estimatedCostUsd = opts.estimatedCostUsd;
     if (opts?.feature) data.feature = opts.feature;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
-    await prisma.aiUsage.create({ data: data as any });
+    const usageData = data as import("@prisma/client").Prisma.AiUsageUncheckedCreateInput;
+    await prisma.aiUsage.create({ data: usageData });
   } catch (err) {
     logger.error("[METERING] Error al guardar AiUsage", { workspaceId, route, error: String(err) });
   }

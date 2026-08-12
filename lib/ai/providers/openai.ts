@@ -13,6 +13,7 @@ import type {
 } from "../types";
 import { LLMProviderError } from "../types";
 import { toOpenAISchema } from "../schema";
+import { env } from "@/lib/env";
 
 const ENDPOINT = "https://api.openai.com/v1/chat/completions";
 
@@ -58,7 +59,7 @@ async function call(
   model: string,
   responseFormat?: Record<string, unknown>,
 ): Promise<OpenAIResponse> {
-  const key = process.env.OPENAI_API_KEY;
+  const key = env.OPENAI_API_KEY;
   if (!key) throw new LLMProviderError("openai", 500, "OPENAI_API_KEY no configurada");
   const body: Record<string, unknown> = {
     model,
@@ -70,7 +71,7 @@ async function call(
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
     body: JSON.stringify(body),
-    signal: opts.signal,
+    signal: opts.signal ?? AbortSignal.timeout(60_000),
   });
   if (!res.ok) {
     const e = (await res.json().catch(() => ({}))) as OpenAIResponse;
@@ -84,7 +85,7 @@ export const openaiProvider: LLMProvider = {
   defaultModel: "gpt-4.1",
 
   isConfigured() {
-    return !!process.env.OPENAI_API_KEY;
+    return !!env.OPENAI_API_KEY;
   },
 
   async complete(opts: CompleteOptions): Promise<CompleteResult> {

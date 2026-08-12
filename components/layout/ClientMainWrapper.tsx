@@ -147,7 +147,7 @@ const TRANSLATIONS = {
     aparienciaTitulo: "Apariencia",
     modoOscuro: "Original (Oscuro)",
     modoClaro: "Claro",
-    modoAzul: "Azul Medianoche",
+    modoSistema: "Sistema",
   },
   en: {
     inicio: "Home",
@@ -183,7 +183,7 @@ const TRANSLATIONS = {
     aparienciaTitulo: "Appearance",
     modoOscuro: "Original (Dark)",
     modoClaro: "Light",
-    modoAzul: "Midnight Blue",
+    modoSistema: "System",
   }
 };
 
@@ -862,14 +862,14 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-5 ml-auto">
 
 
-          <Link href="/dashboard/inbox" className="text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] transition-colors" title="Conversaciones">
-            <HoloIcon icon={MessageSquarePlus} variant="cyan" isActive={true} className="w-[18px] h-[18px]" />
+          <Link href="/dashboard/inbox" className="text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] transition-colors" title="Conversaciones" style={{ display: "flex", alignItems: "center" }}>
+            <MessageSquarePlus className="w-[18px] h-[18px]" />
           </Link>
 
           <AlertBellButton />
 
-          <button className="text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] transition-colors" title="Ayuda" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
-            <HoloIcon icon={HelpCircle} variant="emerald" isActive={true} className="w-[18px] h-[18px]" />
+          <button className="text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] transition-colors" title="Ayuda" style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center" }}>
+            <HelpCircle className="w-[18px] h-[18px]" />
           </button>
 
           {/* User Menu Trigger */}
@@ -880,7 +880,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
               style={{ background: "transparent", border: "none" }}
             >
               <div style={{ position: "relative" }}>
-                <div className="w-[32px] h-[32px] rounded-full overflow-hidden border border-[var(--fc-border)]" style={{ background: "linear-gradient(135deg,var(--fc-accent),var(--fc-accent-deep))" }}>
+                <div className="w-[32px] h-[32px] rounded-full overflow-hidden" style={{ background: "linear-gradient(135deg,var(--fc-accent),var(--fc-accent-deep))" }}>
                   {session?.user?.image && !avatarError ? (
                     // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
                     <img
@@ -891,7 +891,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     />
                   ) : null}
                   {(!session?.user?.image || avatarError) && (
-                    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-[var(--fc-text)]">
+                    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-white">
                       {session?.user?.name?.charAt(0).toUpperCase() || "C"}
                     </div>
                   )}
@@ -904,7 +904,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                   height: 10,
                   borderRadius: "50%",
                   background: currentStatusCfg.color,
-                  border: "1.5px solid var(--fc-bg)",
+                  border: "1.5px solid var(--fc-surface)",
                 }} />
               </div>
 
@@ -941,7 +941,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                   <>
                     {/* User Header */}
                     <div className="px-5 pb-4 flex items-center gap-3">
-                      <div className="w-[48px] h-[48px] rounded-full overflow-hidden border-2 border-[var(--fc-border)]" style={{ background: "linear-gradient(135deg,var(--fc-accent-deep),var(--fc-module-aria))", flexShrink: 0 }}>
+                      <div className="w-[48px] h-[48px] rounded-full overflow-hidden" style={{ background: "linear-gradient(135deg,var(--fc-accent),var(--fc-accent-deep))", flexShrink: 0 }}>
                           {session?.user?.image && !avatarError ? (
                             // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
                             <img
@@ -952,7 +952,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                             />
                           ) : null}
                           {(!session?.user?.image || avatarError) && (
-                            <div className="w-full h-full flex items-center justify-center text-sm font-bold text-[var(--fc-text)]">
+                            <div className="w-full h-full flex items-center justify-center text-sm font-bold text-white">
                               {session?.user?.name?.charAt(0).toUpperCase() || "C"}
                             </div>
                           )}
@@ -1135,12 +1135,12 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                         {theme === 'light' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                       <button
-                        onClick={() => changeTheme('azul')}
+                        onClick={() => changeTheme('system')}
                         className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--fc-surface-hover)] text-left text-xs transition-colors"
                         style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer" }}
                       >
-                        <span>{t.modoAzul}</span>
-                        {theme === 'azul' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
+                        <span>{t.modoSistema}</span>
+                        {theme === 'system' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                     </div>
                   </div>

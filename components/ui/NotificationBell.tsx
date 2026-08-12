@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -31,12 +31,22 @@ export function NotificationBell() {
   const panelRef = useRef<HTMLDivElement>(null);
   const [panelPos, setPanelPos] = useState({ top: 0, right: 0 });
   const router = useRouter();
+  const notifiedIdsRef = useRef<Set<string>>(new Set());
+  const initializedRef = useRef(false);
 
   const fetchNotifications = useCallback(async () => {
     try {
       const res = await fetch("/api/notifications");
       const data = await res.json();
-      if (data.data) setNotifications(data.data);
+      if (data.data) {
+        setNotifications(data.data);
+        if (!initializedRef.current) {
+          data.data.forEach((n: Notification) => {
+            if (!n.read) notifiedIdsRef.current.add(n.id);
+          });
+          initializedRef.current = true;
+        }
+      }
       if (data.unreadCount !== undefined) setUnreadCount(data.unreadCount);
     } catch {}
   }, []);
@@ -58,22 +68,28 @@ export function NotificationBell() {
 
   // Show browser notification for new unread items
   useEffect(() => {
-    if (unreadCount > 0 && typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
-      const latest = notifications.find(n => !n.read);
-      if (latest) {
-        const bNotif = new window.Notification(`FLOWCHART — ${latest.title}`, {
-          body: latest.message,
+    if (typeof window === "undefined" || !("Notification" in window) || Notification.permission !== "granted") return;
+    if (!initializedRef.current) return;
+
+    const newUnread = notifications.filter(n => !n.read && !notifiedIdsRef.current.has(n.id));
+    
+    if (newUnread.length > 0) {
+      newUnread.forEach(n => {
+        notifiedIdsRef.current.add(n.id);
+        const bNotif = new window.Notification(`FLOWCHART — ${n.title}`, {
+          body: n.message,
           icon: "/icon.svg",
-          tag: latest.id,
+          tag: `sys-notif-${n.id}`,
         });
         bNotif.onclick = () => {
           window.focus();
-          if (latest.link) router.push(latest.link);
+          if (n.link) router.push(n.link);
           bNotif.close();
         };
-      }
+        setTimeout(() => bNotif.close(), 6000);
+      });
     }
-  }, [unreadCount, notifications, router]);
+  }, [notifications, router]);
 
   // Close on outside click
   useEffect(() => {

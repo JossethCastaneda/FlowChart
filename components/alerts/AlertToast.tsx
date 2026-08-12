@@ -177,23 +177,19 @@ export function AlertBellButton() {
       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
         <button
           onClick={() => setOpen(!open)}
-        style={{
-          position: "relative",
-          background: "none",
-          border: "1px solid var(--fc-border)",
-          borderRadius: 8,
-          padding: "6px 8px",
-          cursor: "pointer",
-          color: "var(--fc-text-secondary)",
-          display: "flex",
-          alignItems: "center",
-          gap: 4,
-          transition: "all 0.15s",
-        }}
-        onMouseEnter={e => { e.currentTarget.style.background = "var(--surface-hover)"; e.currentTarget.style.color = "var(--fc-text)"; }}
-        onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "var(--fc-text-secondary)"; }}
-      >
-        <Bell size={14} />
+          className="text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] transition-colors"
+          style={{
+            position: "relative",
+            background: "none",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+          }}
+          title="Alertas"
+        >
+          <Bell size={18} />
         {unreadCount > 0 && (
           <span style={{
             position: "absolute", top: -4, right: -4,
@@ -212,18 +208,18 @@ export function AlertBellButton() {
       {open && (
         <div style={{
           position: "absolute",
-          top: "100%",
+          top: "calc(100% + 12px)",
           right: 0,
-          marginTop: 8,
-          width: 380,
-          maxHeight: 500,
+          width: 400,
+          maxHeight: "80vh",
           overflowY: "auto",
-          background: "var(--panel-bg)",
-          border: "1px solid var(--fc-border)",
-          borderRadius: 12,
-          boxShadow: "0 10px 40px var(--overlay-dark)",
+          background: "var(--fc-surface)",
+          backdropFilter: "blur(20px)",
+          border: "1px solid var(--fc-glass-border)",
+          borderRadius: 14,
+          boxShadow: "var(--fc-shadow-hard)",
           zIndex: 9999,
-          padding: 16
+          padding: 20
         }}>
           <AlertsPanel />
         </div>

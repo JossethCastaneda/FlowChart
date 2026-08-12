@@ -51,8 +51,8 @@ export function Avatar({
       width: size,
       height: size,
       borderRadius: "50%",
-      background: `var(--surface-hover)`,
-      border: `1px solid var(--hairline)`,
+      background: `var(--fc-surface-hover)`,
+      border: `1px solid var(--fc-border)`,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -97,8 +97,8 @@ export function PageSelector({
         style={{
           width: "100%", display: "flex", alignItems: "center", gap: 10,
           padding: "8px 12px",
-          background: open ? "rgba(155,123,232,0.06)" : "var(--surface-hover)",
-          border: `1px solid ${open ? "rgba(155,123,232,0.2)" : "var(--hairline)"}`,
+          background: open ? "var(--fc-surface-hover)" : "var(--fc-surface-hover)",
+          border: `1px solid ${open ? "var(--fc-border)" : "var(--fc-border)"}`,
           borderRadius: 10, cursor: "pointer",
           transition: "all 0.15s", fontFamily: "inherit",
         }}
@@ -116,7 +116,7 @@ export function PageSelector({
               width: 28, height: 28, borderRadius: "50%",
               background: selectedPage.platform === "instagram" ? "linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)" : "linear-gradient(135deg, #1877F2, #0d6efd)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 11, fontWeight: 700, color: "var(--fc-text)", flexShrink: 0,
+              fontSize: 11, fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--fc-text)", letterSpacing: "-0.01em", flexShrink: 0,
             }}>
               {selectedPage.name.charAt(0).toUpperCase()}
             </div>
@@ -155,20 +155,20 @@ export function PageSelector({
       {open && (
         <div style={{
           position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0,
-          background: "var(--panel-bg)", 
-          border: "1px solid var(--glass-border)", borderRadius: 12,
-          boxShadow: "var(--shadow-hard)",
+          background: "var(--fc-surface)", 
+          border: "1px solid var(--fc-glass-border)", borderRadius: 12,
+          boxShadow: "var(--fc-shadow-hard)",
           maxHeight: 360, display: "flex", flexDirection: "column",
           overflow: "hidden",
           zIndex: 9999,
         }}>
           {/* Search */}
-          <div style={{ padding: "8px 10px", borderBottom: "1px solid var(--hairline)" }}>
+          <div style={{ padding: "8px 10px", borderBottom: "1px solid var(--fc-border)" }}>
             <div style={{
               display: "flex", alignItems: "center", gap: 6,
               padding: "5px 8px",
-              background: "var(--surface-hover)",
-              borderRadius: 6, border: "1px solid var(--hairline)",
+              background: "var(--fc-surface-hover)",
+              borderRadius: 6, border: "1px solid var(--fc-border)",
             }}>
               <Search style={{ width: 12, height: 12, color: "var(--fc-text-muted)", flexShrink: 0 }} />
               <input
@@ -192,12 +192,12 @@ export function PageSelector({
               onClick={() => { onSelect(null); setOpen(false); setSearch(""); }}
               style={{
                 width: "100%", display: "flex", alignItems: "center", gap: 10,
-                padding: "8px 12px", background: !selectedPage ? "rgba(155,123,232,0.06)" : "transparent",
-                border: "none", borderBottom: "1px solid var(--hairline)",
+                padding: "8px 12px", background: !selectedPage ? "var(--fc-surface-hover)" : "transparent",
+                border: "none", borderBottom: "1px solid var(--fc-border)",
                 cursor: "pointer", transition: "background 0.1s", fontFamily: "inherit",
                 borderLeft: !selectedPage ? "3px solid var(--fc-module-aria)" : "3px solid transparent",
               }}
-              onMouseEnter={e => { if (selectedPage) e.currentTarget.style.background = "var(--row-hover)"; }}
+              onMouseEnter={e => { if (selectedPage) e.currentTarget.style.background = "var(--fc-row-hover)"; }}
               onMouseLeave={e => { if (selectedPage) e.currentTarget.style.background = "transparent"; }}
             >
               <div style={{
@@ -222,12 +222,12 @@ export function PageSelector({
                   style={{
                     width: "100%", display: "flex", alignItems: "center", gap: 10,
                     padding: "8px 12px",
-                    background: isActive ? "rgba(155,123,232,0.06)" : "transparent",
-                    border: "none", borderBottom: "1px solid var(--hairline)",
+                    background: isActive ? "var(--fc-surface-hover)" : "transparent",
+                    border: "none", borderBottom: "1px solid var(--fc-border)",
                     cursor: "pointer", transition: "background 0.1s", fontFamily: "inherit",
                     borderLeft: isActive ? "3px solid var(--fc-module-aria)" : "3px solid transparent",
                   }}
-                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "var(--row-hover)"; }}
+                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "var(--fc-row-hover)"; }}
                   onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
                 >
                   {/* Page avatar */}
@@ -245,7 +245,7 @@ export function PageSelector({
                           ? "linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)"
                           : "linear-gradient(135deg, #1877F2, #0d6efd)",
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 12, fontWeight: 700, color: "var(--fc-text)",
+                        fontSize: 12, fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--fc-text)", letterSpacing: "-0.01em",
                       }}>
                         {page.name.charAt(0).toUpperCase()}
                       </div>
@@ -352,7 +352,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
     if (loadingPost) {
       return (
         <div style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 40 }}>
-          <div style={{ width: 28, height: 28, border: "3px solid var(--hairline)", borderTopColor: "var(--fc-accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+          <div style={{ width: 28, height: 28, border: "3px solid var(--fc-border)", borderTopColor: "var(--fc-accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
           <p style={{ fontSize: 13, color: "var(--fc-text-muted)" }}>Cargando publicación...</p>
           <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
         </div>
@@ -373,7 +373,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
       {/* ── Top bar: back + "Ver publicación" ───────────────────────────────── */}
       <div style={{
         padding: "10px 16px",
-        borderBottom: "1px solid var(--hairline)",
+        borderBottom: "1px solid var(--fc-border)",
         display: "flex", alignItems: "center", gap: 10, flexShrink: 0,
       }}>
         {onBack && (
@@ -386,15 +386,15 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
           <span style={{ fontSize: 10, color: "var(--fc-text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
             {pc.label}
           </span>
-          <span style={{ fontSize: 10, color: "var(--hairline)" }}>Â·</span>
+          <span style={{ fontSize: 10, color: "var(--fc-border)" }}>Â·</span>
           <span style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>{formatDate(conversation.lastMessageTime)}</span>
         </div>
         {postData.permalink && (
           <a href={postData.permalink} target="_blank" rel="noopener noreferrer"
             style={{
               padding: "5px 10px", borderRadius: 6,
-              background: "var(--surface-hover)",
-              border: "1px solid var(--hairline)",
+              background: "var(--fc-surface-hover)",
+              border: "1px solid var(--fc-border)",
               color: "var(--fc-accent)", fontSize: 10, fontWeight: 600,
               textDecoration: "none", display: "flex", alignItems: "center", gap: 4,
             }}
@@ -411,8 +411,8 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
         {/* ── Post card (Meta Business Suite style) ────────────────────────── */}
         <div style={{
           margin: "12px 16px",
-          background: "var(--panel-bg)",
-          border: "1px solid var(--glass-border)",
+          background: "var(--fc-surface)",
+          border: "1px solid var(--fc-glass-border)",
           borderRadius: 10,
           overflow: "hidden",
         }}>
@@ -425,7 +425,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
                                 <img
                   src={pageAvatar}
                   alt={pageName}
-                  style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--glass-border)" }}
+                  style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--fc-glass-border)" }}
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = "none";
                     const parent = (e.target as HTMLImageElement).parentElement;
@@ -447,7 +447,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
               <div style={{
                 position: "absolute", bottom: -2, right: -2,
                 width: 16, height: 16, borderRadius: "50%",
-                background: pc.color, border: "2px solid var(--panel-bg)",
+                background: pc.color, border: "2px solid var(--fc-surface)",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
                 <pc.icon style={{ width: 8, height: 8, color: "#fff" }} />
@@ -456,7 +456,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
 
             {/* Page name + date */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-text)", display: "flex", alignItems: "center", gap: 4 }}>
+              <div style={{ fontSize: 13, fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--fc-text)", letterSpacing: "-0.01em", display: "flex", alignItems: "center", gap: 4 }}>
                 {pageName}
               </div>
               <div style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>
@@ -490,7 +490,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "8px 14px",
-            borderTop: "1px solid var(--hairline)",
+            borderTop: "1px solid var(--fc-border)",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span style={{ fontSize: 15 }}></span>
@@ -523,7 +523,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
             postData.comments.map((comment, i) => (
               <div key={comment.id || i} style={{
                 display: "flex", gap: 10, padding: "10px 0",
-                borderBottom: i < postData.comments.length - 1 ? "1px solid var(--hairline)" : "none",
+                borderBottom: i < postData.comments.length - 1 ? "1px solid var(--fc-border)" : "none",
               }}>
                 {/* Commenter avatar */}
                 <div style={{ flexShrink: 0 }}>
@@ -554,13 +554,13 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
                 {/* Comment bubble (Meta Business Suite style) */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{
-                    background: "var(--surface-hover)",
+                    background: "var(--fc-surface-hover)",
                     borderRadius: "0 12px 12px 12px",
                     padding: "8px 12px",
                     display: "inline-block",
                     maxWidth: "100%",
                   }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--fc-text)", marginBottom: 2 }}>{comment.username}</div>
+                    <div style={{ fontSize: 12, fontFamily: "var(--font-display)", fontWeight: 700, color: "var(--fc-text)", letterSpacing: "-0.01em", marginBottom: 2 }}>{comment.username}</div>
                     <p style={{ fontSize: 13, color: "var(--fc-text-secondary)", margin: 0, lineHeight: 1.5, wordBreak: "break-word" }}>{comment.text}</p>
                   </div>
 
@@ -590,13 +590,13 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
 
       {/* ── Reply box (Meta: "Comentar como [Página]") ─────────────────────── */}
       <div style={{
-        borderTop: "1px solid var(--hairline)",
+        borderTop: "1px solid var(--fc-border)",
         padding: "10px 14px",
         background: "var(--fc-bg)",
         flexShrink: 0,
       }}>
         {replyTarget && (
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6, padding: "4px 8px", background: "var(--surface-hover)", borderRadius: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6, padding: "4px 8px", background: "var(--fc-surface-hover)", borderRadius: 6 }}>
             <span style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>Respondiendo a</span>
             <span style={{ fontSize: 11, fontWeight: 700, color: "var(--fc-accent)" }}>@{replyTarget.username}</span>
             <button onClick={() => setReplyTarget(null)} style={{ marginLeft: "auto", fontSize: 10, color: "var(--fc-text-muted)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>âœ</button>
@@ -615,7 +615,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
               {pageName.charAt(0).toUpperCase()}
             </div>
           )}
-          <div style={{ flex: 1, display: "flex", alignItems: "center", background: "var(--surface-hover)", borderRadius: 20, border: "1px solid var(--hairline)", padding: "0 12px", gap: 8 }}>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", background: "var(--fc-surface-hover)", borderRadius: 20, border: "1px solid var(--fc-border)", padding: "0 12px", gap: 8 }}>
             <span style={{ fontSize: 10, color: "var(--fc-text-muted)", whiteSpace: "nowrap" }}>como {pageName}</span>
             <input
               value={replyText}
@@ -707,7 +707,7 @@ export function ChatView({
     return (
     <>
       {/* --- Chat Header --- */}
-      <div className="flex flex-col gap-2 md:gap-3 p-3 md:p-4 shrink-0 bg-transparent border-b border-[var(--glass-border)]">
+      <div className="flex flex-col gap-2 md:gap-3 p-3 md:p-4 shrink-0 bg-transparent border-b border-[var(--fc-glass-border)]">
         {/* Top Row: User Info */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 md:gap-3 text-[11px] text-[var(--fc-text-muted)]">
@@ -728,7 +728,7 @@ export function ChatView({
           <div className="flex items-center gap-2">
             <button 
               onClick={onClose}
-              className="flex items-center gap-1 md:gap-1.5 px-2 py-1.5 md:px-3 md:py-1.5 rounded-2xl font-semibold text-[10px] md:text-[11px] bg-transparent border border-[var(--glass-border)] transition-colors hover:bg-[var(--surface-hover)]"
+              className="flex items-center gap-1 md:gap-1.5 px-2 py-1.5 md:px-3 md:py-1.5 rounded-2xl font-semibold text-[10px] md:text-[11px] bg-transparent border border-[var(--fc-glass-border)] transition-colors hover:bg-[var(--fc-surface-hover)]"
               style={{ color: conversation.closed ? "var(--fc-success)" : "var(--fc-text-secondary)" }}
             >
               <CheckCircle2 style={{ width: 14, height: 14 }} />
@@ -758,14 +758,14 @@ export function ChatView({
               display: "flex", alignItems: "center", gap: 12,
               margin: "12px 0", padding: "0 20px",
             }}>
-              <div style={{ flex: 1, height: 1, background: "var(--hairline)" }} />
+              <div style={{ flex: 1, height: 1, background: "var(--fc-border)" }} />
               <span style={{
                 fontSize: 10, color: "var(--fc-text-muted)",
                 fontWeight: 500, whiteSpace: "nowrap",
               }}>
                 {group.date}
               </span>
-              <div style={{ flex: 1, height: 1, background: "var(--hairline)" }} />
+              <div style={{ flex: 1, height: 1, background: "var(--fc-border)" }} />
             </div>
 
             {group.msgs.map(msg => (
@@ -793,11 +793,11 @@ export function ChatView({
                     position: "relative",
                     padding: "10px 14px",
                     background: msg.incoming
-                      ? "var(--surface-hover)"
+                      ? "var(--fc-surface-hover)"
                       : "linear-gradient(135deg, #006AFF, #006AFF)",
-                    border: msg.incoming ? "1px solid var(--hairline)" : "none",
+                    border: msg.incoming ? "1px solid var(--fc-border)" : "none",
                     borderRadius: msg.incoming ? "4px 16px 16px 16px" : "16px 4px 16px 16px",
-                    boxShadow: msg.incoming ? "none" : "var(--shadow-hard)",
+                    boxShadow: msg.incoming ? "none" : "var(--fc-shadow-hard)",
                   }}>
                     {msg.text && (
                       <p style={{
@@ -851,7 +851,7 @@ export function ChatView({
                         right: msg.incoming ? -10 : "auto",
                         left: !msg.incoming ? -10 : "auto",
                         background: "var(--fc-bg)",
-                        border: "1px solid var(--hairline)",
+                        border: "1px solid var(--fc-border)",
                         borderRadius: "50%",
                         padding: "2px 4px",
                         fontSize: 12,
@@ -911,9 +911,9 @@ export function ChatView({
       {/* --- Suggested Replies --- */}
       {showReplies && (
         <div style={{
-          borderTop: "1px solid var(--hairline)",
+          borderTop: "1px solid var(--fc-border)",
           padding: "8px 16px",
-          background: "var(--hairline)",
+          background: "var(--fc-border)",
           flexShrink: 0,
         }}>
           <div style={{
@@ -938,20 +938,20 @@ export function ChatView({
                 style={{
                   padding: "5px 10px", fontSize: 11,
                   color: "var(--fc-text-secondary)",
-                  background: "var(--surface-hover)",
-                  border: "1px solid var(--hairline)",
+                  background: "var(--fc-surface-hover)",
+                  border: "1px solid var(--fc-border)",
                   borderRadius: 16, cursor: "pointer",
                   transition: "all 0.15s",
                   whiteSpace: "nowrap", fontFamily: "inherit",
                 }}
                 onMouseEnter={e => {
                   e.currentTarget.style.background = "rgba(155,123,232,0.08)";
-                  e.currentTarget.style.borderColor = "rgba(155,123,232,0.2)";
+                  e.currentTarget.style.borderColor = "var(--fc-border)";
                   e.currentTarget.style.color = "var(--fc-module-aria)";
                 }}
                 onMouseLeave={e => {
-                  e.currentTarget.style.background = "var(--surface-hover)";
-                  e.currentTarget.style.borderColor = "var(--hairline)";
+                  e.currentTarget.style.background = "var(--fc-surface-hover)";
+                  e.currentTarget.style.borderColor = "var(--fc-border)";
                   e.currentTarget.style.color = "rgba(255,255,255,0.6)";
                 }}
               >
@@ -965,9 +965,9 @@ export function ChatView({
       {/* --- Emojis --- */}
       {showEmojis && (
         <div style={{
-          borderTop: "1px solid var(--hairline)",
+          borderTop: "1px solid var(--fc-border)",
           padding: "8px 16px",
-          background: "var(--hairline)",
+          background: "var(--fc-border)",
           flexShrink: 0,
         }}>
           <div style={{
@@ -1013,9 +1013,9 @@ export function ChatView({
       {/* --- Input Bar (always visible at bottom) --- */}
       <div style={{
         padding: "10px 16px",
-        borderTop: "1px solid var(--hairline)",
+        borderTop: "1px solid var(--fc-border)",
         flexShrink: 0,
-        background: "var(--hairline)",
+        background: "var(--fc-border)",
       }}>
         <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
           {/* Toolbar icons */}
@@ -1036,7 +1036,7 @@ export function ChatView({
                   border: "none", borderRadius: 6, cursor: "pointer",
                   transition: "all 0.15s",
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
+                onMouseEnter={e => e.currentTarget.style.background = "var(--fc-surface-hover)"}
                 onMouseLeave={e => e.currentTarget.style.background = btn.active ? "rgba(155,123,232,0.08)" : "transparent"}
               >
                 <btn.icon style={{
@@ -1050,8 +1050,8 @@ export function ChatView({
           {/* Text input */}
           <div style={{
             flex: 1, display: "flex", alignItems: "flex-end", gap: 8,
-            background: "var(--surface-hover)",
-            border: "1px solid var(--hairline)",
+            background: "var(--fc-surface-hover)",
+            border: "1px solid var(--fc-border)",
             borderRadius: 10, padding: "4px 4px 4px 14px",
           }}>
             <textarea
@@ -1078,7 +1078,7 @@ export function ChatView({
               style={{
                 width: 32, height: 32,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                background: input.trim() ? "linear-gradient(135deg, var(--fc-module-aria), var(--fc-module-aria))" : "var(--row-hover)",
+                background: input.trim() ? "linear-gradient(135deg, var(--fc-module-aria), var(--fc-module-aria))" : "var(--fc-row-hover)",
                 border: "none", borderRadius: 8,
                 cursor: input.trim() ? "pointer" : "default",
                 transition: "all 0.2s", flexShrink: 0,
@@ -1102,7 +1102,7 @@ export function ChatView({
               borderRadius: 6, cursor: "pointer", flexShrink: 0,
               transition: "all 0.15s",
             }}
-            onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
+            onMouseEnter={e => e.currentTarget.style.background = "var(--fc-surface-hover)"}
             onMouseLeave={e => e.currentTarget.style.background = "transparent"}
           >
             <ThumbsUp style={{ width: 18, height: 18, color: "var(--fc-text-muted)" }} />
@@ -1118,7 +1118,7 @@ export function ProfileSection({ title, defaultOpen = true, children }: {
     }) {
     const [open, setOpen] = useState(defaultOpen);
     return (
-    <div style={{ borderBottom: "1px solid var(--hairline)" }}>
+    <div style={{ borderBottom: "1px solid var(--fc-border)" }}>
       <button
         onClick={() => setOpen(!open)}
         style={{
@@ -1126,7 +1126,7 @@ export function ProfileSection({ title, defaultOpen = true, children }: {
           padding: "12px 16px", background: "transparent", border: "none",
           cursor: "pointer", transition: "all 0.15s",
         }}
-        onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
+        onMouseEnter={e => e.currentTarget.style.background = "var(--fc-surface-hover)"}
         onMouseLeave={e => e.currentTarget.style.background = "transparent"}
       >
         <span style={{
@@ -1215,7 +1215,7 @@ export function ContactProfile({
     return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       {/* Profile Header */}
-      <div style={{ padding: "20px 16px 16px", borderBottom: "1px solid var(--hairline)", flexShrink: 0, position: "relative" }}>
+      <div style={{ padding: "20px 16px 16px", borderBottom: "1px solid var(--fc-border)", flexShrink: 0, position: "relative" }}>
         <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", color: "var(--fc-accent)", cursor: "pointer", padding: 4 }}>
           <X style={{ width: 14, height: 14 }} />
         </button>
@@ -1223,7 +1223,7 @@ export function ContactProfile({
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
           <div style={{ margin: "0 auto 10px", position: "relative" }}>
                         <Avatar src={resolveContactAvatar(conversation.contactAvatar, conversation.contactId, (conversation as any)?._pageId, conversation.platform)} name={displayName} size={60} color={pc.color} />
-            <div style={{ position: "absolute", bottom: 0, right: 0, background: "var(--fc-surface)", borderRadius: "50%", padding: 2, border: "1px solid var(--hairline)" }}>
+            <div style={{ position: "absolute", bottom: 0, right: 0, background: "var(--fc-surface)", borderRadius: "50%", padding: 2, border: "1px solid var(--fc-border)" }}>
               <PlatformIcon platform={conversation.platform} size={12} />
             </div>
           </div>
@@ -1268,7 +1268,7 @@ export function ContactProfile({
                 { label: "Enviados", value: outgoingCount, color: "#8b5cf6" },
                 ...(conversation.createdAt ? [{ label: "Inicio", value: new Date(conversation.createdAt).toLocaleDateString("es-MX", { day: "2-digit", month: "short" }), color: "#f59e0b" as string }] : []),
               ].map((s, i) => (
-                <div key={i} style={{ flex: 1, background: "var(--surface-hover)", borderRadius: 8, padding: "6px 4px", border: "1px solid var(--hairline)", textAlign: "center" }}>
+                <div key={i} style={{ flex: 1, background: "var(--fc-surface-hover)", borderRadius: 8, padding: "6px 4px", border: "1px solid var(--fc-border)", textAlign: "center" }}>
                   <p style={{ fontSize: typeof s.value === "number" ? 16 : 10, fontWeight: 800, color: s.color, margin: 0, lineHeight: 1 }}>{s.value}</p>
                   <p style={{ fontSize: 8, color: "var(--fc-text-muted)", margin: "2px 0 0", letterSpacing: "0.05em", textTransform: "uppercase" }}>{s.label}</p>
                 </div>
@@ -1279,19 +1279,19 @@ export function ContactProfile({
           {/* Assignment */}
           <div ref={assignRef} style={{ marginTop: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, width: "100%", position: "relative" }}>
             <div style={{ fontSize: 11, color: "var(--fc-text-secondary)", display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: conversation.assignedTo ? "var(--green)" : "var(--yellow)" }} />
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: conversation.assignedTo ? "var(--fc-success)" : "var(--yellow)" }} />
               <span>{conversation.assignedTo ? `Asignado: ${conversation.assignedTo}` : "Sin asignar"}</span>
             </div>
             <button onClick={() => setShowAssign(!showAssign)}
-              style={{ background: "transparent", border: "1px solid var(--glass-border)", color: "var(--fc-accent)", fontSize: 10, fontWeight: 600, padding: "4px 10px", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 4, marginTop: 4, fontFamily: "inherit" }}>
+              style={{ background: "transparent", border: "1px solid var(--fc-glass-border)", color: "var(--fc-accent)", fontSize: 10, fontWeight: 600, padding: "4px 10px", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 4, marginTop: 4, fontFamily: "inherit" }}>
               <span>Cambiar asignación</span>
               <ChevronDown style={{ width: 10, height: 10 }} />
             </button>
             {showAssign && (
-              <div style={{ position: "absolute", top: "105%", left: "50%", transform: "translateX(-50%)", background: "var(--panel-bg)", border: "1px solid var(--glass-border)", borderRadius: 8, boxShadow: "var(--shadow-hard)", zIndex: 9999, minWidth: 140, overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: "105%", left: "50%", transform: "translateX(-50%)", background: "var(--fc-surface)", border: "1px solid var(--fc-glass-border)", borderRadius: 8, boxShadow: "var(--fc-shadow-hard)", zIndex: 9999, minWidth: 140, overflow: "hidden" }}>
                 {TEAM_MEMBERS.map(member => (
                   <button key={member} onClick={() => { onAssign(member); setShowAssign(false); }}
-                    style={{ width: "100%", padding: "8px 12px", border: "none", borderBottom: "1px solid var(--hairline)", background: (conversation.assignedTo === member || (!conversation.assignedTo && member === "Sin asignar")) ? "var(--surface-hover)" : "transparent", color: "var(--fc-text-secondary)", fontSize: 11, textAlign: "left", cursor: "pointer", fontFamily: "inherit" }}>
+                    style={{ width: "100%", padding: "8px 12px", border: "none", borderBottom: "1px solid var(--fc-border)", background: (conversation.assignedTo === member || (!conversation.assignedTo && member === "Sin asignar")) ? "var(--fc-surface-hover)" : "transparent", color: "var(--fc-text-secondary)", fontSize: 11, textAlign: "left", cursor: "pointer", fontFamily: "inherit" }}>
                     {member}
                   </button>
                 ))}
@@ -1312,7 +1312,7 @@ export function ContactProfile({
               placeholder="Nota interna (Ctrl+Enter para guardar)..."
               rows={2}
               onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSaveNote(); }}
-              style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: 8, padding: "6px 8px", fontSize: 11, color: "var(--fc-text)", fontFamily: "inherit", resize: "vertical", outline: "none", boxSizing: "border-box" }}
+              style={{ width: "100%", background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border)", borderRadius: 8, padding: "6px 8px", fontSize: 11, color: "var(--fc-text)", fontFamily: "inherit", resize: "vertical", outline: "none", boxSizing: "border-box" }}
             />
             <button onClick={handleSaveNote} disabled={!noteText.trim() || savingNote}
               style={{ alignSelf: "flex-end", padding: "4px 12px", borderRadius: 8, background: "var(--fc-accent)", color: "#000", fontSize: 10, fontWeight: 700, border: "none", cursor: "pointer", opacity: (!noteText.trim() || savingNote) ? 0.5 : 1 }}>
@@ -1351,11 +1351,11 @@ export function ContactProfile({
           </div>
           <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
             <input value={newTag} onChange={e => setNewTag(e.target.value)} placeholder="Nueva etiqueta..."
-              style={{ flex: 1, background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: 6, padding: "4px 8px", fontSize: 11, color: "var(--fc-text)", fontFamily: "inherit", outline: "none" }}
+              style={{ flex: 1, background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border)", borderRadius: 6, padding: "4px 8px", fontSize: 11, color: "var(--fc-text)", fontFamily: "inherit", outline: "none" }}
               onKeyDown={e => { if (e.key === "Enter" && newTag.trim()) { onAddTag(newTag.trim()); setNewTag(""); }}}
             />
             <button onClick={() => { if (newTag.trim()) { onAddTag(newTag.trim()); setNewTag(""); }}}
-              style={{ padding: "4px 10px", borderRadius: 6, background: "var(--fc-surface)", border: "1px solid var(--hairline)", color: "var(--fc-text-secondary)", fontSize: 10, cursor: "pointer" }}>+</button>
+              style={{ padding: "4px 10px", borderRadius: 6, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", color: "var(--fc-text-secondary)", fontSize: 10, cursor: "pointer" }}>+</button>
           </div>
         </ProfileSection>
 
@@ -1409,7 +1409,7 @@ export function ContactProfile({
         <ProfileSection title="Pedidos">
            <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center", textAlign: "center", padding: "10px 0" }}>
               <span style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>No hay pedidos recientes.</span>
-              <button style={{ padding: "6px 12px", borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--fc-accent)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+              <button style={{ padding: "6px 12px", borderRadius: 8, background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border)", color: "var(--fc-accent)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
                 + Crear pedido
               </button>
            </div>
@@ -1419,18 +1419,18 @@ export function ContactProfile({
         <ProfileSection title="Citas">
            <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center", textAlign: "center", padding: "10px 0" }}>
               <span style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>No hay citas próximas.</span>
-              <button style={{ padding: "6px 12px", borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--fc-accent)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+              <button style={{ padding: "6px 12px", borderRadius: 8, background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border)", color: "var(--fc-accent)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
                 + Programar cita
               </button>
            </div>
         </ProfileSection>
 
         {/* Mensajes destacados / Multimedia */}
-        <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--hairline)", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
+        <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--fc-border)", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
           <span style={{ fontSize: 12, fontWeight: 600, color: "var(--fc-text)" }}>Mensajes destacados</span>
           <ChevronRight style={{ width: 14, height: 14, color: "var(--fc-text-muted)" }} />
         </div>
-        <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--hairline)", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
+        <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--fc-border)", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
           <span style={{ fontSize: 12, fontWeight: 600, color: "var(--fc-text)" }}>Multimedia y documentos</span>
           <ChevronRight style={{ width: 14, height: 14, color: "var(--fc-text-muted)" }} />
         </div>

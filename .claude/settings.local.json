@@ -3,7 +3,7 @@
     "allow": [
       "PowerShell(Get-Process *)",
       "PowerShell(Get-CimInstance *)",
-      "PowerShell(foreach \\($d in '.next','.swc','.vercel','dev','node_modules'\\) { $p = \"C:\\\\Users\\\\josse\\\\Documentos\\\\Zefirus\\\\$d\"; $m = Get-ChildItem -Force -Recurse -File $p -ErrorAction SilentlyContinue | Measure-Object Length -Sum; \"{0,-14} {1,7} files  {2,8:N1} MB\" -f $d, $m.Count, \\($m.Sum/1MB\\) })"
+      "PowerShell(foreach \\($d in '.next','.swc','.vercel','dev','node_modules'\\) { $p = \"C:\\\\Users\\\\josse\\\\Documentos\\\\FlowChart\\\\$d\"; $m = Get-ChildItem -Force -Recurse -File $p -ErrorAction SilentlyContinue | Measure-Object Length -Sum; \"{0,-14} {1,7} files  {2,8:N1} MB\" -f $d, $m.Count, \\($m.Sum/1MB\\) })"
     ]
   }
 }

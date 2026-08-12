@@ -3,7 +3,7 @@ tags: [home, índice]
 created: 2026-08-11
 ---
 
-# FlowChart / Zefirus — Base de Conocimiento
+# FlowChart / FlowChart — Base de Conocimiento
 
 > SaaS multi-tenant de marketing en Meta (Facebook + Instagram).
 > **Producción:** [flowchart.lat](https://flowchart.lat) · **Hosting:** Vercel · **DB:** PostgreSQL (Neon)

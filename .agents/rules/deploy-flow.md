@@ -2,7 +2,7 @@
 
 ## Git push
 
-El repositorio Zefirus en GitHub tiene Vercel conectado a la rama `main`.
+El repositorio FlowChart en GitHub tiene Vercel conectado a la rama `main`.
 Cada push a `main` dispara un deploy automático a producción.
 
 ### Flujo obligatorio

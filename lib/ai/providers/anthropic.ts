@@ -19,6 +19,7 @@ import type {
 } from "../types";
 import { LLMProviderError } from "../types";
 import { toOpenAISchema } from "../schema";
+import { env } from "@/lib/env";
 
 const ENDPOINT = "https://api.anthropic.com/v1/messages";
 const DEFAULT_MAX_TOKENS = 1024;
@@ -75,7 +76,7 @@ async function call(
   model: string,
   outputConfig?: Record<string, unknown>,
 ): Promise<AnthropicResponse> {
-  const key = process.env.ANTHROPIC_API_KEY;
+  const key = env.ANTHROPIC_API_KEY;
   if (!key) throw new LLMProviderError("anthropic", 500, "ANTHROPIC_API_KEY no configurada");
   const payload = buildPayload(opts);
   const body: Record<string, unknown> = {
@@ -93,7 +94,7 @@ async function call(
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify(body),
-    signal: opts.signal,
+    signal: opts.signal ?? AbortSignal.timeout(60_000),
   });
   if (!res.ok) {
     const e = (await res.json().catch(() => ({}))) as AnthropicResponse;
@@ -119,7 +120,7 @@ export const anthropicProvider: LLMProvider = {
   defaultModel: "claude-sonnet-4-6",
 
   isConfigured() {
-    return !!process.env.ANTHROPIC_API_KEY;
+    return !!env.ANTHROPIC_API_KEY;
   },
 
   async complete(opts: CompleteOptions): Promise<CompleteResult> {

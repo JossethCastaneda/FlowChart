@@ -4,7 +4,7 @@ tags: [arquitectura, índice]
 
 # Arquitectura — Índice
 
-Documentación de las decisiones y componentes estructurales de FlowChart/Zefirus.
+Documentación de las decisiones y componentes estructurales de FlowChart/FlowChart.
 
 ## Contenido
 

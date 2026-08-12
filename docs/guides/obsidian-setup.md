@@ -17,7 +17,7 @@ Obsidian es una aplicación de escritorio. No se instala como dependencia de npm
 2. En la pantalla de inicio, selecciona **"Open folder as vault"**.
 3. Navega a la carpeta `docs/` dentro del repositorio:
    ```
-   D:\Proyectos\Zefirus\docs\
+   D:\Proyectos\FlowChart\docs\
    ```
 4. Haz clic en **"Open"**.
 

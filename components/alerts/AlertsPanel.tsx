@@ -52,7 +52,7 @@ export default function AlertsPanel() {
     borderRadius: 6,
     fontSize: 10,
     fontWeight: active ? 700 : 500,
-    background: active ? "var(--surface-hover)" : "transparent",
+    background: active ? "var(--fc-surface-hover)" : "transparent",
     color: active ? "var(--fc-text)" : "var(--fc-text-muted)",
     border: active ? "1px solid var(--fc-border)" : "1px solid transparent",
     cursor: "pointer",
@@ -60,7 +60,7 @@ export default function AlertsPanel() {
   });
 
   return (
-    <div style={{ maxWidth: 700, margin: "0 auto", padding: "16px 0" }}>
+    <div style={{ padding: 0 }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <div>
@@ -80,7 +80,7 @@ export default function AlertsPanel() {
               display: "flex", alignItems: "center", gap: 4,
               padding: "5px 10px", borderRadius: 6, fontSize: 10, fontWeight: 600,
               color: soundEnabled ? "var(--fc-success)" : "var(--fc-text-muted)",
-              background: "var(--surface-hover)", border: "1px solid var(--fc-border)",
+              background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border)",
               cursor: "pointer",
             }}
           >
@@ -91,7 +91,7 @@ export default function AlertsPanel() {
             <button onClick={markAllRead} style={{
               display: "flex", alignItems: "center", gap: 4,
               padding: "5px 10px", borderRadius: 6, fontSize: 10, fontWeight: 600,
-              color: "var(--fc-accent)", background: "var(--surface-hover)",
+              color: "var(--fc-accent)", background: "var(--fc-surface-hover)",
               border: "1px solid var(--fc-border)", cursor: "pointer",
             }}>
               <CheckCheck size={11} /> Marcar todo leido
@@ -101,7 +101,7 @@ export default function AlertsPanel() {
             <button onClick={clearAll} style={{
               display: "flex", alignItems: "center", gap: 4,
               padding: "5px 10px", borderRadius: 6, fontSize: 10, fontWeight: 600,
-              color: "var(--fc-danger)", background: "var(--surface-hover)",
+              color: "var(--fc-danger)", background: "var(--fc-surface-hover)",
               border: "1px solid var(--fc-border)", cursor: "pointer",
             }}>
               <Trash2 size={11} /> Limpiar

@@ -9,6 +9,11 @@ import { logger } from "@/lib/logger";
 import { LLMProviderError } from "./types";
 
 export function normalizeUpstreamError(err: unknown): NextResponse {
+  if (err instanceof Error && err.name === "TimeoutError") {
+    logger.error("[Aria LLM] timeout", { message: err.message });
+    return apiError("La IA tardó demasiado en responder. Intenta de nuevo.", "TIMEOUT", 504);
+  }
+
   if (err instanceof LLMProviderError) {
     logger.error("[Aria LLM] upstream error", {
       provider: err.provider,

@@ -211,7 +211,7 @@ export default function PublicProjectPortal() {
         {/* Footer */}
         <div className="text-center mt-8 pb-8">
           <p className="text-[11px] text-[var(--fc-text-secondary)] font-medium uppercase tracking-widest">
-            Powered by Zefirus
+            Powered by FlowChart
           </p>
         </div>
 

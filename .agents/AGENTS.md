@@ -1,8 +1,8 @@
-# Reglas del Proyecto Zefirus
+# Reglas del Proyecto FlowChart
 
 ## 🚨 REGLA CRÍTICA: Flujo de Deploy (Git + Vercel)
 
-**El repositorio en GitHub se llama `Zefirus`. Vercel está conectado a la rama `main` de ese repositorio y hace deploy automático al detectar un push.**
+**El repositorio en GitHub se llama `FlowChart`. Vercel está conectado a la rama `main` de ese repositorio y hace deploy automático al detectar un push.**
 
 ### Flujo OBLIGATORIO — SIN EXCEPCIONES:
 

@@ -6,6 +6,7 @@
 import { getWorkspaceAiProvider, AriaInsightsJsonSchema, AriaInsightsZod } from "@/lib/ai";
 import type { AriaInsights } from "@/lib/ai";
 import { buildAriaContext } from "./context";
+import { checkAiLimit, recordAiUsage } from "@/lib/ai/metering";
 
 const SYSTEM =
   "Eres Aria, IA predictiva para equipos comerciales. Explicas y recomiendas SOLO " +
@@ -17,6 +18,11 @@ export async function generateAriaInsights(
   workspaceId: string,
   signal?: AbortSignal,
 ): Promise<AriaInsights> {
+  const limit = await checkAiLimit(workspaceId);
+  if (!limit.allowed) {
+    throw new Error(limit.message); // La UI mostrará este error al usuario
+  }
+
   const context = await buildAriaContext(workspaceId);
   const { provider, model } = await getWorkspaceAiProvider(workspaceId);
   const result = await provider.completeStructured<AriaInsights>({
@@ -36,5 +42,17 @@ export async function generateAriaInsights(
     maxTokens: 1500,
     signal,
   });
+
+  if (result.usage) {
+    await recordAiUsage(
+      workspaceId,
+      "crecimiento.insights",
+      result.model,
+      result.usage.promptTokens,
+      result.usage.completionTokens,
+      { provider: result.provider, feature: "aria-insights" }
+    );
+  }
+
   return result.data;
 }

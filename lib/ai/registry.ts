@@ -52,22 +52,40 @@ export function listProviders(): { id: ProviderId; configured: boolean; defaultM
 }
 
 export function getActiveProvider(): LLMProvider {
-  return PROVIDERS["openai"];
+  // Deterministic fallback based on environment variables
+  for (const id of PREFERENCE) {
+    if (PROVIDERS[id].isConfigured()) {
+      return PROVIDERS[id];
+    }
+  }
+  return PROVIDERS["gemini"]; // fallback to default even if not configured
 }
 
 export function hasAnyProvider(): boolean {
-  return PROVIDERS["openai"].isConfigured();
+  return PREFERENCE.some((id) => PROVIDERS[id].isConfigured());
 }
 
-/**
- * Obtiene el proveedor y el modelo real configurado en el Workspace.
- * Al eliminar el módulo de Agentes, FlowChart opera estrictamente con el
- * modelo más potente (GPT-4o) de manera centralizada.
- */
 export async function getWorkspaceAiProvider(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   workspaceId: string,
 ): Promise<{ provider: LLMProvider; model: string }> {
+  try {
+    const ws = await prisma.workspaceSettings.findUnique({
+      where: { workspaceId },
+      select: { extConfig: true },
+    });
+    const ext = (ws?.extConfig as Record<string, unknown>) || {};
+    // La configuración puede definir ariaProvider y ariaGenerativeModel
+    const preferredProviderId = ext.ariaProvider as string | undefined;
+    const preferredModel = ext.ariaGenerativeModel as string | undefined;
+
+    if (preferredProviderId && isProviderId(preferredProviderId) && PROVIDERS[preferredProviderId].isConfigured()) {
+      const provider = PROVIDERS[preferredProviderId];
+      return { provider, model: preferredModel || provider.defaultModel };
+    }
+  } catch (err) {
+    logger.warn("[AI Registry] Fallback a getActiveProvider por error al leer WorkspaceSettings", { workspaceId, error: String(err) });
+  }
+  
   const active = getActiveProvider();
-  return { provider: active, model: "gpt-4o" };
+  return { provider: active, model: active.defaultModel };
 }
