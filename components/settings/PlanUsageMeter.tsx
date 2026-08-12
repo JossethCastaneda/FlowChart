@@ -194,7 +194,7 @@ export function PlanLimitBanner({ feature, onUpgrade }: PlanLimitBannerProps) {
       {onUpgrade && (
         <button
           onClick={onUpgrade}
-          className="text-[11px] font-bold px-3 py-1.5 rounded-md transition-colors bg-transparent border whitespace-nowrap"
+          className="text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors bg-transparent border whitespace-nowrap"
           style={{
             borderColor: isCritical ? "var(--fc-danger)" : "var(--fc-warning)",
             color: isCritical ? "var(--fc-danger)" : "var(--fc-warning)"

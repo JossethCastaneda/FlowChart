@@ -111,7 +111,7 @@ export function PreferencesSettings() {
         )}
 
         {/* Cabecera de canales: apagado masivo por columna */}
-        <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_repeat(3,84px)] gap-2 pb-3 mb-1 border-b border-[var(--hairline)]">
+        <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_repeat(3,84px)] gap-2 pb-3 mb-1 border-b border-[var(--fc-border-subtle)]">
           <span className="text-[10px] font-bold tracking-widest uppercase text-[var(--fc-text-muted)] self-end">
             Avisarme cuando…
           </span>
@@ -141,7 +141,7 @@ export function PreferencesSettings() {
               <div
                 key={event}
                 className={`grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_repeat(3,84px)] gap-3 sm:gap-2 items-center py-4 ${
-                  last ? "" : "border-b border-[var(--hairline)]"
+                  last ? "" : "border-b border-[var(--fc-border-subtle)]"
                 }`}
               >
                 <div className="min-w-0 sm:pr-4">
@@ -194,7 +194,7 @@ export function PreferencesSettings() {
         description="Ajustes visuales de esta cuenta. Se sincronizan con todos tus dispositivos."
         icon={<Monitor className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
-        <div className="pb-6 mb-1 border-b border-[var(--hairline)]">
+        <div className="pb-6 mb-1 border-b border-[var(--fc-border-subtle)]">
           <label className="text-[13px] font-medium text-[var(--fc-text)] block mb-1">Tema</label>
           <p className="text-xs text-[var(--fc-text-muted)] mb-4 leading-relaxed max-w-xl">
             «Sistema» sigue la configuración de tu equipo. Tu elección queda guardada en la cuenta,

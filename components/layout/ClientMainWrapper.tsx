@@ -277,14 +277,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
     return () => media.removeEventListener("change", syncViewport);
   }, []);
   
-  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>(() => {
-    const initial: Record<string, boolean> = {};
-    NAV_GROUPS.forEach(g => {
-      const hasActive = g.items.some(m => pathname === m.route || pathname?.startsWith(m.route + "/"));
-      initial[g.key] = !hasActive; // true means collapsed
-    });
-    return initial;
-  });
+
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   const [mounted, setMounted] = useState(false);
@@ -306,22 +299,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
-  // Ensure the active group is uncollapsed when navigating
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
-    setCollapsedGroups(prev => {
-      const next = { ...prev };
-      let changed = false;
-      NAV_GROUPS.forEach(g => {
-        const hasActive = g.items.some(m => pathname === m.route || pathname?.startsWith(m.route + "/"));
-        if (hasActive && next[g.key]) {
-          next[g.key] = false;
-          changed = true;
-        }
-      });
-      return changed ? next : prev;
-    });
-  }, [pathname]);
+
 
   // Detect iframe on mount (client-side only)
   useEffect(() => {
@@ -581,43 +559,23 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           </div>
           <nav aria-label={lang === "es" ? "Navegación principal" : "Main navigation"} className="flex flex-1 flex-col px-3 pb-4 space-y-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
             {NAV_GROUPS.map((group) => {
-              const isCollapsed = collapsedGroups[group.key];
+              if (group.items.length === 0) return null;
               return (
                 <div key={group.key} className={group.key === "sistema" ? "mt-auto pt-4 border-t border-[var(--fc-border)]" : "mt-2"}>
-                  <div 
-                    className="sidebar-group-header px-2 pb-2 flex items-center justify-between cursor-pointer group/nav"
-                    role="button"
-                    tabIndex={0}
-                    aria-expanded={!isCollapsed}
-                    onClick={() => setCollapsedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        setCollapsedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }));
-                      }
-                    }}
-                  >
+                  <div className="sidebar-group-header px-2 pb-2">
                     <span style={{
                       fontFamily: "var(--fc-font-mono)",
                       fontSize: "9px",
                       fontWeight: 600,
-                      letterSpacing: "0.3em",
+                      letterSpacing: "0.12em",
                       textTransform: "uppercase",
-                      color: "var(--fc-text-muted)",
-                      transition: "color 0.2s"
-                    }} className="group-hover/nav:text-[var(--fc-text)]">
+                      color: "var(--fc-text-muted)"
+                    }}>
                       {group.title}
                     </span>
-                    <ChevronDown className={`w-3 h-3 text-[var(--fc-text-muted)] transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} />
                   </div>
-                  
-                  <div className="sidebar-group-content" style={{
-                    display: "grid",
-                    gridTemplateRows: isCollapsed ? "0fr" : "1fr",
-                    transition: "grid-template-rows 0.2s ease-out",
-                  }}>
-                    <div style={{ overflow: "hidden" }}>
-                      {group.items.map((m) => {
+                  <div className="flex flex-col space-y-[2px]">
+                    {group.items.map((m) => {
                         const isActive = pathname === m.route || pathname?.startsWith(m.route + "/");
                         const Icon = ICON_MAP[m.icon] || LayoutDashboard;
 
@@ -629,26 +587,27 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                             className={`nav-item ${isActive ? "active" : ""}`}
                             aria-current={isActive ? "page" : undefined}
                             data-mod={m.key}
-                            onClick={() => {
-                              setSidebarOpen(false);
-                            }}
-                            style={isActive ? { "--nav-color": m.color } as React.CSSProperties : {}}
+                            onClick={() => setSidebarOpen(false)}
+                            style={isActive ? { 
+                              backgroundColor: `color-mix(in srgb, ${m.color} 12%, transparent)`, 
+                              color: m.color,
+                              borderLeftColor: "transparent"
+                            } as React.CSSProperties : {}}
                           >
                             <HoloIcon
                               icon={Icon}
                               isActive={isActive}
                               className="w-[18px] h-[18px]"
-                              style={isActive ? { color: "var(--fc-text)" } : undefined}
+                              style={isActive ? { color: m.color } : undefined}
                             />
                             <span className="nav-full-name">{m.label}</span>
                             <span className="nav-short-name" aria-hidden="true">{m.label.slice(0, 3)}</span>
                             {isActive && (
-                              <HoloIcon icon={ChevronRight} isActive={true} className="w-3 h-3" style={{ opacity: 0.5, color: "var(--fc-text-secondary)" }} />
+                              <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: m.color, marginLeft: "auto" }}></div>
                             )}
                           </Link>
                         );
                       })}
-                    </div>
                   </div>
                 </div>
               );
@@ -699,43 +658,23 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         {/* Navigation */}
           <nav aria-label={lang === "es" ? "Navegación principal" : "Main navigation"} className="flex flex-1 flex-col px-3 pb-4 space-y-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
           {NAV_GROUPS.map((group) => {
-            const isCollapsed = collapsedGroups[group.key];
+            if (group.items.length === 0) return null;
             return (
               <div key={group.key} className={group.key === "sistema" ? "mt-auto pt-4 border-t border-[var(--fc-border-subtle)]" : "mt-2"}>
-                <div 
-                  className="sidebar-group-header px-2 pb-2 flex items-center justify-between cursor-pointer group/nav"
-                  role="button"
-                  tabIndex={0}
-                  aria-expanded={!isCollapsed}
-                  onClick={() => setCollapsedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      setCollapsedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }));
-                    }
-                  }}
-                >
+                <div className="sidebar-group-header px-2 pb-2">
                   <span style={{
-                    fontFamily: "var(--fc-font-sans)",
+                    fontFamily: "var(--fc-font-mono)",
                     fontSize: "9px",
                     fontWeight: 600,
-                    letterSpacing: "0.3em",
+                    letterSpacing: "0.12em",
                     textTransform: "uppercase",
-                    color: "var(--fc-text-muted)",
-                    transition: "color 0.2s"
-                  }} className="group-hover/nav:text-[var(--fc-text)]">
+                    color: "var(--fc-text-muted)"
+                  }}>
                     {group.title}
                   </span>
-                  <ChevronDown className={`w-3 h-3 text-[var(--fc-text-muted)] transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} />
                 </div>
-                
-                <div className="sidebar-group-content" style={{
-                  display: "grid",
-                  gridTemplateRows: isCollapsed ? "0fr" : "1fr",
-                  transition: "grid-template-rows 0.2s ease-out",
-                }}>
-                  <div style={{ overflow: "hidden" }}>
-                    {group.items.map((m) => {
+                <div className="flex flex-col space-y-[2px]">
+                  {group.items.map((m) => {
                 const isActive = pathname === m.route || pathname?.startsWith(m.route + "/");
                 const Icon = ICON_MAP[m.icon] || LayoutDashboard;
 
@@ -750,23 +689,26 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     onClick={() => {
                       if (!sidebarPinned) setSidebarOpen(false);
                     }}
-                    style={isActive ? { "--nav-color": m.color } as React.CSSProperties : {}}
+                    style={isActive ? { 
+                      backgroundColor: `color-mix(in srgb, ${m.color} 12%, transparent)`, 
+                      color: m.color,
+                      borderLeftColor: "transparent"
+                    } as React.CSSProperties : {}}
                   >
                     <HoloIcon
                       icon={Icon}
                       isActive={isActive}
                       className="w-[18px] h-[18px]"
-                      style={isActive ? { color: "var(--fc-text)" } : undefined}
+                      style={isActive ? { color: m.color } : undefined}
                     />
                     <span className="nav-full-name">{m.label}</span>
                     <span className="nav-short-name" aria-hidden="true">{m.label.slice(0, 3)}</span>
                     {isActive && (
-                      <HoloIcon icon={ChevronRight} isActive={true} className="w-3 h-3" style={{ opacity: 0.5, color: "var(--fc-text-secondary)" }} />
+                      <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: m.color, marginLeft: "auto" }}></div>
                     )}
                   </Link>
                 );
               })}
-                  </div>
                 </div>
               </div>
             );

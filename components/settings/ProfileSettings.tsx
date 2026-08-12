@@ -165,17 +165,17 @@ export function ProfileSettings() {
         icon={<User className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
         {/* Identidad + avatar */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6 mb-8 pb-8 border-b border-[var(--hairline)]">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6 mb-8 pb-8 border-b border-[var(--fc-border-subtle)]">
           <div className="relative group shrink-0">
             {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- avatar externo (OAuth/Blob) sin loader configurado
               <img
                 src={avatarUrl}
                 alt=""
-                className="w-20 h-20 rounded-full border border-blue-500/20 object-cover"
+                className="w-20 h-20 rounded-full border border-[var(--fc-border-strong)] object-cover"
               />
             ) : (
-              <div className="w-20 h-20 rounded-full bg-[var(--fc-surface)] border border-blue-500/20 flex items-center justify-center font-display text-3xl text-[var(--fc-accent)]">
+              <div className="w-20 h-20 rounded-full bg-[var(--fc-surface)] border border-[var(--fc-border-strong)] flex items-center justify-center font-display text-3xl text-[var(--fc-accent)]">
                 {initial}
               </div>
             )}
@@ -185,7 +185,7 @@ export function ProfileSettings() {
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
               aria-label="Cambiar foto de perfil"
-              className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity flex items-center justify-center text-white disabled:cursor-not-allowed"
+              className="absolute inset-0 rounded-full bg-[var(--fc-surface-overlay)] opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity flex items-center justify-center text-[var(--fc-text)] disabled:cursor-not-allowed"
             >
               {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
             </button>
@@ -207,7 +207,7 @@ export function ProfileSettings() {
             <div className="text-xs text-[var(--fc-text-secondary)] mt-2 flex items-center gap-1.5 flex-wrap">
               <span>{workspace?.name ? `En ${workspace.name}:` : "Rol:"}</span>
               <span
-                className="px-2 py-0.5 rounded-full bg-[var(--surface-hover)] font-semibold text-[10px] uppercase tracking-wider"
+                className="px-2 py-0.5 rounded-full bg-[var(--fc-surface-raised)] font-semibold text-[10px] uppercase tracking-wider text-[var(--fc-text-secondary)]"
                 style={{ color: roleInfo.color }}
               >
                 {roleInfo.label}
@@ -241,7 +241,7 @@ export function ProfileSettings() {
         </div>
 
         {/* Datos editables */}
-        <div className="max-w-xl space-y-5">
+        <div className="w-full space-y-5">
           <Field
             label="Nombre de visualización"
             value={profileName}
@@ -295,14 +295,14 @@ export function ProfileSettings() {
         description="Vincula proveedores para iniciar sesión más rápido. Tu correo siempre identifica la cuenta."
         icon={<Plug className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
-        <div className="flex flex-col gap-3 max-w-xl">
+        <div className="flex flex-col gap-3 w-full">
           <ProviderRow
             name="Correo y contraseña"
             detail={profile?.email || "—"}
             connected={providers.includes("email")}
             disconnectedLabel="Sin contraseña"
             icon={
-              <div className="p-2 bg-black/20 rounded-lg">
+              <div className="p-2 bg-[var(--fc-surface-overlay)] rounded-lg">
                 <Mail className="w-5 h-5 text-[var(--fc-text-secondary)]" />
               </div>
             }
@@ -314,7 +314,7 @@ export function ProfileSettings() {
             connected={providers.includes("google")}
             onConnect={() => linkProvider("google")}
             icon={
-              <div className="p-2 bg-white rounded-lg">
+              <div className="p-2 bg-[var(--fc-surface-overlay)] rounded-lg">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -331,7 +331,7 @@ export function ProfileSettings() {
             connected={providers.includes("facebook")}
             onConnect={() => linkProvider("facebook")}
             icon={
-              <div className="p-2 bg-white rounded-lg">
+              <div className="p-2 bg-[var(--fc-surface-overlay)] rounded-lg">
                 <svg className="w-5 h-5" fill="#1877F2" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                 </svg>
@@ -360,25 +360,25 @@ function ProviderRow({
   disconnectedLabel?: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-[var(--surface-hover)] border border-[var(--hairline)]">
+    <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-[var(--fc-surface)] border border-[var(--fc-border-strong)] transition-colors hover:border-[var(--fc-accent)]/50">
       <div className="flex items-center gap-4 min-w-0">
         {icon}
         <div className="min-w-0">
-          <p className="text-sm text-[var(--fc-text)] font-medium">{name}</p>
-          <p className="text-xs text-[var(--fc-text-muted)] mt-0.5 truncate">{detail}</p>
+          <p className="text-[14px] text-[var(--fc-text)] font-medium leading-tight">{name}</p>
+          <p className="text-[12px] text-[var(--fc-text-muted)] mt-1 truncate leading-tight">{detail}</p>
         </div>
       </div>
 
       {connected ? (
-        <span className="text-xs font-semibold text-emerald-400 bg-emerald-400/10 px-2.5 py-1 rounded-md shrink-0">
+        <span className="text-[11px] font-bold text-[#0E7A80] bg-[color-mix(in_srgb,#0E7A80_12%,transparent)] px-3 py-1.5 rounded-[6px] shrink-0">
           Conectado
         </span>
       ) : onConnect ? (
-        <button onClick={onConnect} className="btn-primary text-xs !py-1.5 !px-3 shrink-0">
+        <button onClick={onConnect} className="text-[11px] font-bold text-[#0E7A80] bg-[color-mix(in_srgb,#0E7A80_12%,transparent)] px-3 py-1.5 rounded-[6px] shrink-0 transition-opacity hover:opacity-80 uppercase tracking-wide">
           Vincular
         </button>
       ) : (
-        <span className="text-xs font-semibold text-[var(--fc-text-secondary)] bg-slate-400/10 px-2.5 py-1 rounded-md shrink-0">
+        <span className="text-[11px] font-bold text-[var(--fc-text-secondary)] bg-[var(--fc-surface-hover)] px-3 py-1.5 rounded-[6px] shrink-0">
           {disconnectedLabel}
         </span>
       )}

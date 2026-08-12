@@ -64,6 +64,14 @@
   --color-slate-500: var(--fc-text-disabled);
   --color-gray-400: var(--fc-text-tertiary);
   --color-gray-500: var(--fc-text-disabled);
+
+  /* Radios de borde (marca) */
+  --radius-sm: var(--fc-radius-sm);
+  --radius-md: var(--fc-radius-md);
+  --radius-lg: var(--fc-radius-lg);
+  --radius-xl: var(--fc-radius-xl);
+  --radius-2xl: var(--fc-radius-xl); /* Cap ceiling per tokens */
+  --radius-3xl: var(--fc-radius-xl);
 }
 
 @layer base {

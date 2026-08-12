@@ -358,7 +358,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
           ) : undefined
         }
       >
-        <div className="max-w-2xl">
+        <div className="w-full">
           <SettingsRow
             label="Revisión por líder obligatoria"
             description="Las tareas pasan por la aprobación de un líder antes de cerrarse. Puedes sobreescribirlo por área."
@@ -424,7 +424,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.97 }}
-                  className="rounded-xl overflow-hidden glass-panel"
+                  className="rounded-2xl overflow-hidden glass-panel"
                   style={{
                     border: `1px solid ${area.color}25`,
                     background: isOpen ? `${area.color}05` : undefined,
@@ -475,7 +475,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                         }}
                         title={`Eliminar ${area.name}`}
                         aria-label={`Eliminar área ${area.name}`}
-                        className="p-1.5 rounded-md text-[var(--fc-text-muted)] hover:text-red-500 hover:bg-red-500/10 transition-colors shrink-0"
+                        className="p-1.5 rounded-lg text-[var(--fc-text-muted)] hover:text-red-500 hover:bg-red-500/10 transition-colors shrink-0"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -491,7 +491,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                         exit={{ height: 0, opacity: 0 }}
                         className="overflow-hidden"
                       >
-                        <div className="p-4 border-t border-[var(--hairline)] bg-black/10 space-y-5">
+                        <div className="p-4 pt-2 space-y-6">
                           {/* Identidad del área */}
                           <div className="flex flex-col sm:flex-row gap-4">
                             <div className="flex-1">
@@ -542,7 +542,8 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                                   className="w-6 h-6 rounded-full transition-transform hover:scale-110 disabled:cursor-not-allowed"
                                   style={{
                                     background: c,
-                                    border: area.color === c ? "2px solid var(--fc-text)" : "2px solid transparent",
+                                    boxShadow: area.color === c ? `0 0 0 2px var(--fc-surface), 0 0 0 4px ${c}` : "none",
+                                    border: "none",
                                   }}
                                 />
                               ))}
@@ -550,7 +551,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                           </div>
 
                           {/* Pestañas */}
-                          <div className="flex p-1 rounded-lg bg-[var(--surface-hover)] border border-[var(--fc-border)] w-full sm:w-fit">
+                          <div className="flex p-1 rounded-xl bg-[var(--surface-hover)] border border-[var(--fc-border)] w-full sm:w-fit">
                             {(
                               [
                                 { id: "equipo", label: "Equipo", icon: Users },
@@ -561,13 +562,13 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                               <button
                                 key={t.id}
                                 onClick={() => setTabs((prev) => ({ ...prev, [area.id]: t.id }))}
-                                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all relative"
+                                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all relative"
                                 style={{ color: tab === t.id ? "var(--fc-text)" : "var(--fc-text-muted)" }}
                               >
                                 {tab === t.id && (
                                   <motion.div
                                     layoutId={`area-tab-${area.id}`}
-                                    className="absolute inset-0 bg-[var(--fc-surface)] rounded-md border border-[var(--fc-border)] shadow-sm"
+                                    className="absolute inset-0 bg-[var(--fc-surface)] rounded-lg border border-[var(--fc-border)] shadow-sm"
                                   />
                                 )}
                                 <t.icon className="w-3.5 h-3.5 relative z-10" />
@@ -664,7 +665,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                                       initial={{ opacity: 0, x: -8 }}
                                       animate={{ opacity: 1, x: 0 }}
                                       exit={{ opacity: 0, scale: 0.96 }}
-                                      className="flex flex-wrap sm:flex-nowrap items-center gap-2 p-1.5 bg-[var(--fc-surface)] rounded-lg border border-[var(--hairline)]"
+                                      className="flex flex-wrap sm:flex-nowrap items-center gap-2 p-1.5 bg-[var(--fc-surface)] rounded-xl border border-[var(--hairline)]"
                                     >
                                       <input
                                         value={t.name}
@@ -692,7 +693,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                                         <button
                                           onClick={() => removeType(area.id, t.id)}
                                           aria-label={`Eliminar tipo ${t.name}`}
-                                          className="text-[var(--fc-text-muted)] hover:text-red-500 hover:bg-red-500/10 p-1.5 rounded-md shrink-0 transition-colors"
+                                          className="text-[var(--fc-text-muted)] hover:text-red-500 hover:bg-red-500/10 p-1.5 rounded-lg shrink-0 transition-colors"
                                         >
                                           <X className="w-3.5 h-3.5" />
                                         </button>
@@ -708,7 +709,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                                 {canEdit && (
                                   <button
                                     onClick={() => addType(area.id)}
-                                    className="self-start inline-flex items-center gap-1.5 text-[11px] font-medium text-[var(--fc-accent)] hover:bg-[var(--fc-accent)]/10 p-1.5 rounded-md transition-colors"
+                                    className="self-start inline-flex items-center gap-1.5 text-[11px] font-medium text-[var(--fc-accent)] hover:bg-[var(--fc-accent)]/10 p-1.5 rounded-lg transition-colors"
                                   >
                                     <Plus className="w-3.5 h-3.5" /> Agregar tipo de solicitud
                                   </button>
@@ -728,7 +729,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                                 return (
                                   <div
                                     key={scope.id}
-                                    className="rounded-xl border border-[var(--hairline)] bg-[var(--fc-surface)]/40 overflow-hidden"
+                                    className="rounded-2xl border border-[var(--hairline)] bg-[var(--fc-surface)]/40 overflow-hidden"
                                   >
                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border-b border-[var(--hairline)]">
                                       <div className="flex items-start gap-2.5 min-w-0">
@@ -774,11 +775,11 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                                         return (
                                           <div
                                             key={p.key}
-                                            className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-[var(--fc-surface)] border border-[var(--hairline)]"
+                                            className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-[var(--fc-surface)] border border-[var(--hairline)]"
                                           >
                                             <div className="flex items-center gap-2.5 min-w-0">
                                               <div
-                                                className="w-7 h-7 rounded-md flex items-center justify-center shrink-0"
+                                                className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
                                                 style={{
                                                   background: checked
                                                     ? sensitive

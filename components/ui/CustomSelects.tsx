@@ -278,3 +278,66 @@ export function CustomCreatableSelect({ value, options, onChange, placeholder, d
     </div>
   );
 }
+
+
+export function CustomSelect({ value, options, onChange, placeholder, disabled, ro, colorValue }: any) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedOpt = options.find((o: any) => o.value === value || o.id === value);
+  const displayLabel = selectedOpt ? (selectedOpt.label || selectedOpt.name) : placeholder;
+  const displayColor = selectedOpt ? (selectedOpt.color || (colorValue ? colorValue(selectedOpt) : null)) : null;
+
+  return (
+    <div ref={ref} className="relative w-full text-left">
+      <div 
+        onClick={() => !ro && !disabled && setOpen(!open)}
+        className={`flex items-center justify-between w-full bg-[var(--fc-surface)] border border-[var(--fc-border)] text-[var(--fc-text)] text-[13px] rounded-lg px-3 py-2.5 transition-all ${ro || disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-[var(--fc-border-hover)]'}`}
+      >
+        <div className="truncate flex-1">
+          {selectedOpt ? (
+             <div className="flex items-center gap-2.5">
+                {displayColor && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: displayColor }}></div>}
+                <span>{displayLabel}</span>
+             </div>
+          ) : (
+             <span className="opacity-50">{placeholder}</span>
+          )}
+        </div>
+        {!ro && <ChevronDown className="w-3.5 h-3.5 opacity-50 ml-2 shrink-0" />}
+      </div>
+      
+      {open && !ro && !disabled && (
+        <div className="absolute top-full left-0 right-0 z-50 mt-1.5 bg-[var(--fc-surface-raised)] border border-[var(--fc-border-strong)] rounded-xl shadow-[var(--fc-shadow-overlay)] max-h-[260px] overflow-y-auto flex flex-col gap-1 p-2">
+          {options.map((o: any) => {
+            const val = o.value || o.id;
+            const lbl = o.label || o.name;
+            const col = o.color || (colorValue ? colorValue(o) : null);
+            const isSelected = value === val;
+            return (
+              <div 
+                key={val} 
+                onClick={() => { onChange(val); setOpen(false); }} 
+                className={`px-3 py-2 flex items-center gap-2.5 cursor-pointer text-[13px] rounded-lg transition-colors ${isSelected ? 'bg-[var(--fc-surface-hover)] font-semibold text-[var(--fc-text)]' : 'text-[var(--fc-text-secondary)] hover:bg-[var(--fc-surface-hover)] hover:text-[var(--fc-text)]'}`}
+              >
+                {col && <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: col }}></div>}
+                <span className="flex-1 truncate">{lbl}</span>
+                {isSelected && <Check className="w-3.5 h-3.5 shrink-0 text-[var(--fc-text)]" />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

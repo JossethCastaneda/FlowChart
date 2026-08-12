@@ -119,7 +119,7 @@ export function WorkspaceSettings() {
         description="Identidad de tu espacio de trabajo dentro de Sodare."
         icon={<Globe className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
-        <div className="max-w-xl space-y-6">
+        <div className="w-full space-y-6">
           <Field
             label="Nombre del workspace"
             value={workspaceName}
@@ -150,7 +150,7 @@ export function WorkspaceSettings() {
             }
           />
 
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-3 items-end">
             <ReadOnlyStat label="Identificador (slug)" value={workspace.slug || "—"} />
             <ReadOnlyStat label="Plan actual" value={workspace.plan || "free"} accent />
           </div>
@@ -182,7 +182,7 @@ export function WorkspaceSettings() {
           ) : undefined
         }
       >
-        <div className="max-w-2xl">
+        <div className="w-full">
           <SettingsRow
             label="Zona horaria"
             description="Base para vencimientos, recordatorios y reportes programados."

@@ -32,7 +32,7 @@ export const settingsItemVariants: import("framer-motion").Variants = {
 };
 
 export const inputClass =
-  "w-full bg-[var(--surface-hover)] border border-white/5 text-[var(--fc-text)] text-[13px] rounded-lg px-3 py-2.5 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] disabled:opacity-60 disabled:cursor-not-allowed";
+  "w-full bg-[var(--fc-surface)] border border-[var(--fc-border)] text-[var(--fc-text)] text-[13px] rounded-md px-3 py-2.5 outline-none transition-all duration-200 focus:border-[var(--fc-accent)] focus:ring-1 focus:ring-[var(--fc-accent)] disabled:opacity-60 disabled:cursor-not-allowed";
 
 // ── Contenedor de página ────────────────────────────────────────────────────
 
@@ -82,10 +82,10 @@ export function SettingsCard({
     <motion.section
       id={id}
       variants={settingsItemVariants}
-      className={`glass-panel rounded-2xl border relative overflow-hidden ${
+      className={`glass-panel rounded-lg border relative overflow-hidden ${
         danger
-          ? "border-red-500/20 bg-red-500/5 shadow-[0_8px_30px_rgb(239,68,68,0.05)]"
-          : "border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
+          ? "border-[var(--fc-danger)] bg-[var(--fc-danger-wash)] shadow-[var(--fc-shadow-overlay)]"
+          : "border-[var(--fc-border-subtle)]"
       } ${className}`}
     >
       <div
@@ -126,7 +126,7 @@ export function SettingsCard({
       </div>
 
       {footer && (
-        <div className="px-6 sm:px-8 py-4 border-t border-[var(--hairline)] bg-[var(--surface-hover)]/40">
+        <div className="px-6 sm:px-8 py-4 border-t border-[var(--fc-border-subtle)] bg-[var(--fc-surface-raised)]">
           {footer}
         </div>
       )}
@@ -152,7 +152,7 @@ export function SettingsRow({
   return (
     <div
       className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-6 py-4 ${
-        last ? "" : "border-b border-[var(--hairline)]"
+        last ? "" : "border-b border-[var(--fc-border-subtle)]"
       }`}
     >
       <div className="min-w-0 sm:pr-4">
@@ -205,8 +205,8 @@ export function Toggle({
         disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
       } ${
         checked
-          ? "bg-gradient-to-r from-blue-500 to-cyan-400 shadow-[inset_0_1px_1px_rgba(0,0,0,0.2),0_0_8px_rgba(34,211,238,0.3)]"
-          : "bg-[var(--surface-hover)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)] border border-white/5"
+          ? "bg-[var(--fc-accent)]"
+          : "bg-[var(--fc-surface-raised)] border border-[var(--fc-border)]"
       }`}
     >
       <motion.span
@@ -291,7 +291,7 @@ export function ReadOnlyStat({
   accent?: boolean;
 }) {
   return (
-    <div className="flex-1 p-4 rounded-xl bg-[var(--surface-hover)] border border-[var(--hairline)]">
+    <div className="flex-1 p-4 rounded-lg bg-[var(--fc-surface-raised)] border border-[var(--fc-border-subtle)]">
       <div className="text-[11px] font-semibold text-[var(--fc-text-muted)] uppercase tracking-wider mb-2">
         {label}
       </div>
@@ -344,7 +344,7 @@ export function SaveBar({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 12 }}
-      className="sticky bottom-4 z-30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 pl-4 rounded-xl border border-[rgba(59,130,246,0.25)] bg-[var(--fc-surface)]/95 backdrop-blur-md shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
+      className="sticky bottom-4 z-30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 pl-4 rounded-xl border border-[var(--fc-border-strong)] bg-[var(--fc-surface-overlay)] shadow-[var(--fc-shadow-overlay)]"
     >
       <span className="text-[13px] text-[var(--fc-text-secondary)] flex items-center gap-2">
         <span className="w-1.5 h-1.5 rounded-full bg-[var(--fc-warning)] animate-pulse" />
@@ -378,7 +378,7 @@ export function SettingsSkeleton({ cards = 2 }: { cards?: number }) {
       {Array.from({ length: cards }).map((_, i) => (
         <div
           key={i}
-          className="h-40 bg-[var(--fc-surface)] rounded-2xl border border-[var(--surface-hover)]"
+          className="h-40 bg-[var(--fc-surface)] rounded-lg border border-[var(--fc-border-subtle)]"
         />
       ))}
     </div>
@@ -397,7 +397,7 @@ export function SettingsEmpty({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="text-center p-8 border border-dashed border-[var(--fc-border)] rounded-xl bg-[var(--surface-hover)]/30">
+    <div className="text-center p-8 border border-dashed border-[var(--fc-border)] rounded-lg bg-[var(--fc-surface-raised)]">
       {icon && <div className="flex justify-center mb-3 text-[var(--fc-text-muted)]">{icon}</div>}
       <p className="text-[13px] text-[var(--fc-text-secondary)] mb-1">{title}</p>
       {description && <p className="text-[11px] text-[var(--fc-text-muted)]">{description}</p>}
@@ -409,7 +409,7 @@ export function SettingsEmpty({
 /** Aviso de permisos insuficientes, con el mismo tono en todas las pestañas. */
 export function SettingsRestricted({ message }: { message: string }) {
   return (
-    <div className="glass-panel p-8 text-center rounded-2xl border border-white/5">
+    <div className="glass-panel p-8 text-center rounded-lg border border-[var(--fc-border-subtle)] bg-[var(--fc-surface-raised)]">
       <AlertTriangle className="w-6 h-6 text-[var(--fc-warning)] mx-auto mb-3" />
       <p className="text-sm text-[var(--fc-text-secondary)]">{message}</p>
     </div>

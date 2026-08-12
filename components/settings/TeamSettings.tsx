@@ -276,7 +276,7 @@ export function TeamSettings() {
           )}
         </div>
 
-        <div className="mt-6 flex flex-col md:flex-row md:items-center justify-between gap-4 max-w-3xl pt-2 border-t border-[var(--hairline)]">
+        <div className="mt-6 flex flex-col md:flex-row md:items-center justify-between gap-4 max-w-3xl pt-2 border-t border-[var(--fc-border-subtle)]">
           <p className="text-[11px] text-[var(--fc-text-muted)] leading-relaxed max-w-md">
             <strong className="text-[var(--fc-text-secondary)]">Miembro</strong> trabaja en los módulos que su
             área habilite. <strong className="text-[var(--fc-text-secondary)]">Admin</strong> además gestiona
@@ -300,7 +300,7 @@ export function TeamSettings() {
         </div>
 
         {lastInvite?.emailSent && (
-          <div className="mt-4 p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-xl max-w-2xl">
+          <div className="mt-4 p-4 bg-[var(--fc-success-wash)] border border-[var(--fc-success)]/20 rounded-xl max-w-2xl">
             <p className="text-[13px] text-emerald-400 flex items-center gap-2">
               <CheckCircle className="w-4 h-4 shrink-0" /> Invitación enviada a {lastInvite.email}. Expira en 7 días.
             </p>
@@ -308,12 +308,12 @@ export function TeamSettings() {
         )}
 
         {lastInvite && !lastInvite.emailSent && lastInvite.inviteUrl && (
-          <div className="mt-4 p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl max-w-2xl">
+          <div className="mt-4 p-4 bg-[var(--fc-warning-wash)] border border-[var(--fc-warning)]/20 rounded-xl max-w-2xl">
             <p className="text-[11px] text-[var(--fc-warning)] mb-2 font-semibold tracking-widest uppercase">
               No pudimos enviar el correo — comparte este enlace
             </p>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <code className="w-full sm:flex-1 text-xs text-[var(--fc-text-secondary)] break-all bg-black/20 p-2.5 rounded-lg border border-[var(--hairline)]">
+              <code className="w-full sm:flex-1 text-xs text-[var(--fc-text-secondary)] break-all bg-[var(--fc-surface-overlay)] p-2.5 rounded-lg border border-[var(--fc-border-subtle)]">
                 {lastInvite.inviteUrl}
               </code>
               <button
@@ -345,7 +345,7 @@ export function TeamSettings() {
                   animate="visible"
                   exit="exit"
                   layout
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-[var(--surface-hover)] border border-white/5"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-[var(--fc-surface-raised)] border border-[var(--fc-border-subtle)]"
                 >
                   <div className="min-w-0">
                     <p className="text-sm text-[var(--fc-text)] font-medium truncate">{invite.email}</p>
@@ -356,7 +356,7 @@ export function TeamSettings() {
                   </div>
                   <button
                     onClick={() => handleCancelInvite(invite.id, invite.email)}
-                    className="bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-xs px-3 py-1.5 hover:bg-red-500/20 transition-colors shrink-0 self-start sm:self-auto"
+                    className="bg-[var(--fc-danger-wash)] border border-[var(--fc-danger)]/20 rounded-lg text-[var(--fc-danger)] text-xs px-3 py-1.5 hover:bg-[var(--fc-danger)]/20 transition-colors shrink-0 self-start sm:self-auto"
                   >
                     Cancelar
                   </button>
@@ -398,7 +398,7 @@ export function TeamSettings() {
                     animate="visible"
                     exit="exit"
                     layout
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-[var(--surface-hover)] border border-white/5"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-[var(--fc-surface-raised)] border border-[var(--fc-border-subtle)]"
                   >
                     <div className="flex items-center gap-4 min-w-0">
                       {member.user.image ? (
@@ -406,10 +406,10 @@ export function TeamSettings() {
                         <img
                           src={member.user.image}
                           alt=""
-                          className="w-10 h-10 rounded-full border border-blue-500/20 object-cover shrink-0"
+                          className="w-10 h-10 rounded-full border border-[var(--fc-border-strong)] object-cover shrink-0"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-[var(--fc-surface)] border border-blue-500/20 flex items-center justify-center text-[var(--fc-accent)] text-sm font-semibold shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-[var(--fc-surface)] border border-[var(--fc-border-strong)] flex items-center justify-center text-[var(--fc-accent)] text-sm font-semibold shrink-0">
                           {(member.user.name || member.user.email || "?")[0].toUpperCase()}
                         </div>
                       )}
@@ -439,7 +439,7 @@ export function TeamSettings() {
                         </select>
                       ) : (
                         <span
-                          className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md bg-white/5"
+                          className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-[var(--fc-surface-overlay)]"
                           style={{ color: meta.color }}
                         >
                           {meta.label}
@@ -472,7 +472,7 @@ export function TeamSettings() {
                           onClick={() => handleRemoveMember(member)}
                           title="Remover del workspace"
                           aria-label={`Remover a ${member.user.name || member.user.email}`}
-                          className="p-2 rounded-lg bg-red-500/5 border border-red-500/10 hover:bg-red-500/10 text-red-500 transition-colors"
+                          className="p-2 rounded-lg bg-[var(--fc-danger-wash)] border border-[var(--fc-danger)]/10 hover:bg-[var(--fc-danger)]/10 text-[var(--fc-danger)] transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

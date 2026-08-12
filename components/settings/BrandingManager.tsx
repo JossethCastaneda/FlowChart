@@ -220,7 +220,7 @@ export function BrandingManager() {
             >
               {logoUrl ? (
                 <div className="flex items-center gap-4">
-                  <div className="h-14 w-28 rounded-lg bg-[var(--fc-surface)] border border-[var(--hairline)] flex items-center justify-center overflow-hidden shrink-0">
+                  <div className="h-14 w-28 rounded-xl bg-[var(--fc-surface)] border border-[var(--hairline)] flex items-center justify-center overflow-hidden shrink-0">
                     {/* eslint-disable-next-line @next/next/no-img-element -- logo subido por el cliente (Blob o data URL) */}
                     <img src={logoUrl} alt="Logo actual" className="max-h-10 max-w-24 object-contain" />
                   </div>
@@ -308,7 +308,7 @@ export function BrandingManager() {
                 value={isValidHex(accentColor) ? accentColor : DEFAULT_ACCENT}
                 onChange={(e) => patch({ accentColor: e.target.value })}
                 disabled={!isAdmin}
-                className="w-11 h-11 p-1 bg-transparent border border-[var(--fc-border)] rounded-lg cursor-pointer disabled:cursor-not-allowed"
+                className="w-11 h-11 p-1 bg-transparent border border-[var(--fc-border)] rounded-xl cursor-pointer disabled:cursor-not-allowed"
               />
               <input
                 id="accent-hex"
@@ -332,10 +332,11 @@ export function BrandingManager() {
                   className="w-7 h-7 rounded-full transition-transform hover:scale-110 disabled:cursor-not-allowed flex items-center justify-center"
                   style={{
                     background: color,
-                    border:
+                    boxShadow:
                       accentColor.toLowerCase() === color
-                        ? "2px solid var(--fc-text)"
-                        : "2px solid transparent",
+                        ? `0 0 0 2px var(--fc-surface), 0 0 0 4px ${color}`
+                        : "none",
+                    border: "none",
                   }}
                 >
                   {accentColor.toLowerCase() === color && (
@@ -387,7 +388,7 @@ export function BrandingManager() {
             <p className="text-[10px] font-bold tracking-widest uppercase text-[var(--fc-text-muted)] mb-2">
               Lo que ve el cliente
             </p>
-            <div className="rounded-xl border border-[var(--hairline)] bg-[var(--fc-surface)] overflow-hidden">
+            <div className="rounded-2xl border border-[var(--hairline)] bg-[var(--fc-surface)] overflow-hidden">
               <div className="h-1" style={{ background: tokens["--accent"] }} />
               <div className="p-4">
                 <div className="flex items-center gap-2.5 mb-4">
@@ -415,7 +416,7 @@ export function BrandingManager() {
                 <button
                   type="button"
                   tabIndex={-1}
-                  className="w-full py-2 rounded-lg text-[11px] font-bold pointer-events-none"
+                  className="w-full py-2 rounded-xl text-[11px] font-bold pointer-events-none"
                   style={{ background: tokens["--accent"], color: tokens["--accent-contrast"] }}
                 >
                   Aprobar contenido
@@ -429,7 +430,7 @@ export function BrandingManager() {
               <p className="text-[10px] font-bold tracking-widest uppercase text-[var(--fc-text-muted)] mb-2">
                 Lo que ve tu equipo
               </p>
-              <div className="rounded-xl border border-[var(--hairline)] bg-[var(--fc-surface)] overflow-hidden flex h-[124px]">
+              <div className="rounded-2xl border border-[var(--hairline)] bg-[var(--fc-surface)] overflow-hidden flex h-[124px]">
                 {/* Barra lateral con el elemento activo teñido */}
                 <div className="w-[38%] bg-[var(--fc-bg)] p-2 space-y-1.5 border-r border-[var(--hairline)]">
                   <div

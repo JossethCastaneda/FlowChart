@@ -127,10 +127,13 @@ export function ConnectedMetaBadge({
   }
 
   if (!profile) {
+    const isIg = module.includes("instagram");
     return (
       <BadgeConnectDropdown 
-        onConnectFacebook={() => openConnectPopup(module, fetchIntegrations)}
+        onConnectFacebook={() => openConnectPopup(module.replace('instagram', 'facebook'), fetchIntegrations)}
         onConnectInstagram={() => openConnectPopup(module.replace('facebook', 'instagram'), fetchIntegrations)}
+        label={labelToUse}
+        isIg={isIg}
       />
     );
   }
@@ -165,9 +168,11 @@ export function ConnectedMetaBadge({
       </div>
       <div style={{ display: "flex", gap: 2, paddingLeft: 4, borderLeft: "1px solid var(--fc-border)", marginLeft: 4 }}>
         <BadgeConnectDropdown 
-          onConnectFacebook={() => openConnectPopup(`${module}?force=1`, fetchIntegrations)}
+          onConnectFacebook={() => openConnectPopup(`${module.replace('instagram', 'facebook')}?force=1`, fetchIntegrations)}
           onConnectInstagram={() => openConnectPopup(`${module.replace('facebook', 'instagram')}?force=1`, fetchIntegrations)}
           isSmallIcon={true}
+          label={labelToUse}
+          isIg={module.includes("instagram")}
         />
 
         <button
@@ -207,10 +212,14 @@ function BadgeConnectDropdown({
   onConnectFacebook,
   onConnectInstagram,
   isSmallIcon = false,
+  label = "Conectar Facebook",
+  isIg = false,
 }: {
   onConnectFacebook: () => void;
   onConnectInstagram: () => void;
   isSmallIcon?: boolean;
+  label?: string;
+  isIg?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -264,8 +273,8 @@ function BadgeConnectDropdown({
             padding: "6px 12px",
             borderRadius: 16,
             background: "var(--fc-surface)",
-            border: "1px solid rgba(0,132,255,0.2)",
-            color: "#0084ff",
+            border: isIg ? "1px solid rgba(214, 36, 159, 0.2)" : "1px solid rgba(0,132,255,0.2)",
+            color: isIg ? "#d6249f" : "#0084ff",
             fontSize: 12,
             fontWeight: 600,
             cursor: "pointer",
@@ -274,8 +283,8 @@ function BadgeConnectDropdown({
           onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(1.1)")}
           onMouseLeave={(e) => (e.currentTarget.style.filter = "none")}
         >
-          <FacebookIcon size={14} />
-          Conectar Facebook
+          {isIg ? <InstagramIcon size={14} /> : <FacebookIcon size={14} />}
+          {label}
           <ChevronDown style={{ width: 12, height: 12, opacity: 0.7, transform: isOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }} />
         </button>
       )}

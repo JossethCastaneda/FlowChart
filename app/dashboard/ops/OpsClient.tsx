@@ -13,6 +13,7 @@ import {
   Download, ShieldCheck, RotateCcw, AlertOctagon
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { CustomSelect } from "@/components/ui/CustomSelects";
 import { useSession } from "next-auth/react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { parseWorkflow, findUserArea, estimateEtaHours, etaDate, getPermissions, type WorkflowConfig, type Area, type AreaPermissions } from "@/lib/workflow-config";
@@ -850,17 +851,21 @@ function CreateModal({ onClose, onSave, areas, projects }: { onClose: () => void
             <div style={{ background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border-subtle)", borderRadius: 12, padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
               <div>
                 <label style={{ ...lbl, fontSize: 11, marginBottom: 8, display: "flex", alignItems: "center", gap: 6, color: "var(--fc-accent)", opacity: 0.9 }}><Briefcase size={14} /> Cliente (Opcional)</label>
-                <select style={{ ...inp, cursor: "pointer", fontSize: 13, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", color: "var(--fc-text)", borderRadius: 8, transition: "all 0.2s" }} value={form.clientName} onChange={e => { set("clientName", e.target.value); set("projectId", ""); }}>
-                  <option value="">-- Todos los clientes --</option>
-                  {clients.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+                <CustomSelect
+                  value={form.clientName}
+                  onChange={(val: any) => { set("clientName", val); set("projectId", ""); }}
+                  placeholder="-- Todos los clientes --"
+                  options={[{ value: "", label: "-- Todos los clientes --" }, ...clients.map(c => ({ value: c, label: c }))]}
+                />
               </div>
               <div>
                 <label style={{ ...lbl, fontSize: 11, marginBottom: 8, display: "flex", alignItems: "center", gap: 6, color: "var(--fc-accent)", opacity: 0.9 }}><Target size={14} /> Proyecto</label>
-                <select style={{ ...inp, cursor: "pointer", fontSize: 13, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", color: "var(--fc-text)", borderRadius: 8, transition: "all 0.2s" }} value={form.projectId} onChange={e => set("projectId", e.target.value)}>
-                  <option value="">-- Seleccionar Proyecto --</option>
-                  {filteredProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
+                <CustomSelect
+                  value={form.projectId}
+                  onChange={(val: any) => set("projectId", val)}
+                  placeholder="-- Seleccionar Proyecto --"
+                  options={[{ value: "", label: "-- Seleccionar Proyecto --" }, ...filteredProjects.map(p => ({ value: p.id, label: p.name, color: p.color }))]}
+                />
               </div>
             </div>
 
@@ -869,14 +874,12 @@ function CreateModal({ onClose, onSave, areas, projects }: { onClose: () => void
                   el servidor por disponibilidad y carga dentro del área. */}
               <div>
                 <label style={{ ...lbl, fontSize: 11, marginBottom: 8, display: "flex", alignItems: "center", gap: 6, color: "var(--fc-success)", opacity: 0.9 }}><Users size={14} /> {t.area}</label>
-                <select
-                  style={{ ...inp, cursor: "pointer", fontSize: 13, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", color: "var(--fc-text)", borderRadius: 8, transition: "all 0.2s" }}
+                <CustomSelect
                   value={form.targetAreaId}
-                  onChange={e => set("targetAreaId", e.target.value)}
-                >
-                  <option value="">{t.pickArea}</option>
-                  {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                </select>
+                  onChange={(val: any) => set("targetAreaId", val)}
+                  placeholder={t.pickArea}
+                  options={[{ value: "", label: t.pickArea }, ...areas.map(a => ({ value: a.id, label: a.name, color: a.color }))]}
+                />
                 <p style={{ fontSize: 10, color: "var(--fc-text-muted)", margin: "6px 2px 0", lineHeight: 1.4 }}>
                   {t.autoAssignHint}
                 </p>
@@ -893,15 +896,21 @@ function CreateModal({ onClose, onSave, areas, projects }: { onClose: () => void
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               <div>
                 <label style={{ ...lbl, fontSize: 11, marginBottom: 8, display: "flex", alignItems: "center", gap: 6, color: "var(--fc-warning)", opacity: 0.9 }}><AlertTriangle size={14} /> {t.priority}</label>
-                <select style={{ ...inp, cursor: "pointer", fontSize: 13, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", color: "var(--fc-text)", borderRadius: 8, transition: "all 0.2s" }} value={form.priority} onChange={e => set("priority", e.target.value)}>
-                  {PRIORITIES.map(p => <option key={p} value={p}>{PRIO_CFG[p].label}</option>)}
-                </select>
+                <CustomSelect
+                  value={form.priority}
+                  onChange={(val: any) => set("priority", val)}
+                  placeholder={t.priority}
+                  options={PRIORITIES.map(p => ({ value: p, label: PRIO_CFG[p].label, color: PRIO_CFG[p].c }))}
+                />
               </div>
               <div>
                 <label style={{ ...lbl, fontSize: 11, marginBottom: 8, display: "flex", alignItems: "center", gap: 6, color: "var(--fc-warning)", opacity: 0.9 }}><Clock size={14} /> {t.status}</label>
-                <select style={{ ...inp, cursor: "pointer", fontSize: 13, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", color: "var(--fc-text)", borderRadius: 8, transition: "all 0.2s" }} value={form.status} onChange={e => set("status", e.target.value)}>
-                  {STATUSES.map(s => <option key={s} value={s}>{STATUS_CFG[s].label}</option>)}
-                </select>
+                <CustomSelect
+                  value={form.status}
+                  onChange={(val: any) => set("status", val)}
+                  placeholder={t.status}
+                  options={STATUSES.map(s => ({ value: s, label: STATUS_CFG[s].label, color: STATUS_CFG[s].c }))}
+                />
               </div>
             </div>
 

@@ -13,7 +13,7 @@ import { openConnectPopup } from "@/lib/connect-popup";
 import { CustomCrmModal } from "@/components/integrations/CustomCrmModal";
 import { useLanguage } from "@/components/layout/LanguageContext";
 import {
-  MetaIcon,
+  MetaIcon, FacebookIcon, GoogleIcon,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   MessengerIcon,
   InstagramIcon,
@@ -117,8 +117,8 @@ const ALL_CHANNELS: ChannelDef[] = [
   {
     provider: "meta_ads",
     name: "Meta Ads",
-    description: "Campañas publicitarias, audiencias y presupuestos en Meta.",
-    Icon: MetaIcon, iconBg: "#0081FB",
+      description: "Campañas publicitarias, audiencias y presupuestos en Meta.",
+      Icon: MetaIcon, iconBg: "#0081FB",
     badges: [{ label: "ADS", color: "var(--fc-accent)" }],
     managePage: "/dashboard/integrations/meta-ads",
   },
@@ -126,7 +126,7 @@ const ALL_CHANNELS: ChannelDef[] = [
     provider: "meta_community",
     name: "Facebook Pages",
     description: "Gestiona páginas, publicaciones y comentarios de Facebook.",
-    Icon: MetaIcon, iconBg: "#2563eb",
+    Icon: FacebookIcon, iconBg: "#ffffff", iconLight: true,
     badges: [{ label: "PÁGINAS", color: "var(--fc-accent)" }],
     managePage: "/dashboard/integrations/facebook",
   },
@@ -134,7 +134,7 @@ const ALL_CHANNELS: ChannelDef[] = [
     provider: "instagram",
     name: "Instagram",
     description: "Automatiza conversaciones, responde mensajes y comentarios.",
-    Icon: InstagramIcon, iconBg: "linear-gradient(135deg,#833AB4,#FD1D1D,#F77737)",
+    Icon: InstagramIcon, iconBg: "#ffffff", iconLight: true,
     badges: [{ label: "POSTS", color: "#bc5fb2" }, { label: "DMS", color: "#bc5fb2" }],
     managePage: "/dashboard/integrations/instagram",
   },

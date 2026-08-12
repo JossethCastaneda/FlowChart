@@ -166,7 +166,7 @@ export function SecuritySettings() {
         icon={<Lock className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
         {hasPassword ? (
-          <div className="flex flex-col gap-4 max-w-md">
+          <div className="flex flex-col gap-4 w-full">
             <Field
               label="Contraseña actual"
               type="password"
@@ -242,7 +242,7 @@ export function SecuritySettings() {
             </div>
           </div>
         ) : (
-          <div className="flex items-start gap-3 p-4 rounded-xl bg-[var(--surface-hover)] border border-[var(--hairline)] max-w-xl">
+          <div className="flex items-start gap-3 p-4 rounded-xl bg-[var(--fc-surface-raised)] border border-[var(--fc-border-subtle)] w-full">
             <KeyRound className="w-4 h-4 text-[var(--fc-text-muted)] mt-0.5 shrink-0" />
             <p className="text-[13px] text-[var(--fc-text-secondary)] leading-relaxed">
               Entras con Google o Facebook. Administra la seguridad de tu cuenta (contraseña,
@@ -258,7 +258,7 @@ export function SecuritySettings() {
         description="Cierra la sesión en este dispositivo o abandona el workspace actual."
         icon={<Shield className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
-        <div className="max-w-2xl">
+        <div className="w-full">
           <SettingsRow
             label="Cerrar sesión"
             description="Termina la sesión en este navegador."
@@ -299,44 +299,46 @@ export function SecuritySettings() {
         icon={<AlertTriangle className="w-5 h-5 text-red-500" />}
         tone="danger"
       >
-        <div className="space-y-4">
+        <div className="space-y-3 w-full">
           {isOwner && (
-            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
-                <span className="text-sm font-semibold text-red-500 tracking-wide">
-                  Eliminar workspace
-                </span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-[var(--fc-surface)] border border-[var(--fc-danger-wash)] rounded-xl transition-colors hover:border-[var(--fc-danger)]">
+              <div className="flex flex-col gap-1.5 min-w-0">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-[var(--fc-danger)] shrink-0" />
+                  <span className="text-[14px] font-medium text-[var(--fc-text)] leading-tight">
+                    Eliminar workspace
+                  </span>
+                </div>
+                <p className="text-[12px] text-[var(--fc-text-muted)] leading-tight">
+                  Borra <strong>{workspace?.name}</strong> con todos sus proyectos, tareas, clientes, integraciones y reportes.
+                </p>
               </div>
-              <p className="text-xs text-red-400/80 mb-4 leading-relaxed max-w-2xl">
-                Borra <strong>{workspace?.name}</strong> con todos sus proyectos, tareas, clientes,
-                integraciones y reportes. Los demás miembros perderán el acceso de inmediato.
-              </p>
               <button
                 onClick={handleDeleteWorkspace}
                 disabled={deleteWorkspaceMutation.isPending}
-                className="px-5 py-2.5 bg-red-500/20 border border-red-500/30 text-red-500 font-semibold text-xs tracking-wider uppercase rounded-lg hover:bg-red-500/30 transition-colors disabled:opacity-60"
+                className="text-[11px] font-bold text-red-500 bg-[color-mix(in_srgb,red_12%,transparent)] px-4 py-2 rounded-[8px] shrink-0 transition-opacity hover:opacity-80 uppercase tracking-wide disabled:opacity-50"
               >
                 {deleteWorkspaceMutation.isPending ? "Eliminando..." : "Eliminar workspace"}
               </button>
             </div>
           )}
 
-          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
-              <span className="text-sm font-semibold text-red-500 tracking-wide">
-                Eliminar mi cuenta
-              </span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-[var(--fc-surface)] border border-[var(--fc-danger-wash)] rounded-xl transition-colors hover:border-[var(--fc-danger)]">
+            <div className="flex flex-col gap-1.5 min-w-0">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
+                <span className="text-[14px] font-medium text-[var(--fc-text)] leading-tight">
+                  Eliminar mi cuenta
+                </span>
+              </div>
+              <p className="text-[12px] text-[var(--fc-text-muted)] leading-tight">
+                Borra tu usuario, preferencias y accesos de forma permanente.
+              </p>
             </div>
-            <p className="text-xs text-red-400/80 mb-4 leading-relaxed max-w-2xl">
-              Borra tu usuario, tus preferencias y tus accesos. Si eres el único propietario de algún
-              workspace, primero deberás transferirlo o eliminarlo.
-            </p>
             <button
               onClick={handleDeleteAccount}
               disabled={deleteAccountMutation.isPending}
-              className="px-5 py-2.5 bg-red-500/20 border border-red-500/30 text-red-500 font-semibold text-xs tracking-wider uppercase rounded-lg hover:bg-red-500/30 transition-colors disabled:opacity-60"
+              className="text-[11px] font-bold text-red-500 bg-[color-mix(in_srgb,red_12%,transparent)] px-4 py-2 rounded-[8px] shrink-0 transition-opacity hover:opacity-80 uppercase tracking-wide disabled:opacity-50"
             >
               {deleteAccountMutation.isPending ? "Eliminando..." : "Eliminar mi cuenta"}
             </button>
