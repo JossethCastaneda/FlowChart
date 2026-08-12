@@ -6,11 +6,16 @@ export class StripeBillingProvider implements BillingProvider {
   private webhookSecret: string;
 
   constructor() {
-    const secretKey = process.env.STRIPE_SECRET_KEY || "sk_test_mock"; // Fallback for tsc
+    let secretKey = process.env.STRIPE_SECRET_KEY;
+    if (!secretKey) {
+      if (process.env.NODE_ENV === "production" && process.env.npm_lifecycle_event !== "build" && process.env.NEXT_PHASE !== "phase-production-build") {
+        throw new Error("STRIPE_SECRET_KEY is required in production environment");
+      }
+      secretKey = "sk_test_mock"; // Fallback for tsc/dev
+    }
     
-    // STRIPE 32: Use explicit API version
+    // STRIPE 32: Use SDK default API version to avoid runtime/type mismatches
     this.stripe = new Stripe(secretKey, {
-      apiVersion: "2024-06-20" as any, 
       appInfo: {
         name: "FlowChart AI",
         version: "0.1.0"

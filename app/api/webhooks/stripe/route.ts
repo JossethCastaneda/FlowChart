@@ -50,7 +50,10 @@ export async function POST(req: Request) {
 
       switch (event.type) {
         case "customer.subscription.created":
-        case "customer.subscription.updated": {
+        case "customer.subscription.updated":
+        case "customer.subscription.deleted":
+        case "customer.subscription.paused":
+        case "customer.subscription.resumed": {
           const subscription = data;
           const customerId = subscription.customer;
 
@@ -59,47 +62,79 @@ export async function POST(req: Request) {
           });
 
           if (billingCustomer) {
+            const status = subscription.status; // active, past_due, unpaid, canceled, trialing, paused
+            
             await tx.subscription.upsert({
               where: { stripeSubscriptionId: subscription.id },
               create: {
                 workspaceId: billingCustomer.workspaceId,
                 stripeSubscriptionId: subscription.id,
-                status: subscription.status,
+                status: status,
                 plan: subscription.items?.data?.[0]?.price?.id || "unknown",
                 currentPeriodEnd: new Date(subscription.current_period_end * 1000),
                 cancelAtPeriodEnd: subscription.cancel_at_period_end
               },
               update: {
-                status: subscription.status,
+                status: status,
                 plan: subscription.items?.data?.[0]?.price?.id || "unknown",
                 currentPeriodEnd: new Date(subscription.current_period_end * 1000),
                 cancelAtPeriodEnd: subscription.cancel_at_period_end
               }
             });
 
-            // Trigger Entitlement Update if active
-            if (subscription.status === "active") {
-              await tx.workspaceEntitlement.upsert({
-                where: { workspaceId: billingCustomer.workspaceId },
-                create: {
-                  workspaceId: billingCustomer.workspaceId,
-                  // Default budget values for an active sub
-                  monthlyAiBudget: 100.0
-                },
-                update: {
-                  // Keep existing budget or update if plan dictates
-                }
-              });
+            // Trigger Entitlement Update based on Subscription State
+            let budget = 0;
+            if (status === "active" || status === "trialing") {
+              budget = 100.0; // Normal active budget
+            } else if (status === "past_due") {
+              budget = 10.0; // Grace period budget
+            } else {
+              budget = 0.0; // unpaid, canceled, paused
             }
+
+            await tx.workspaceEntitlement.upsert({
+              where: { workspaceId: billingCustomer.workspaceId },
+              create: {
+                workspaceId: billingCustomer.workspaceId,
+                monthlyAiBudget: budget
+              },
+              update: {
+                monthlyAiBudget: budget
+              }
+            });
           }
           break;
         }
-        case "customer.subscription.deleted": {
-          const subscription = data;
-          await tx.subscription.update({
-            where: { stripeSubscriptionId: subscription.id },
-            data: { status: "canceled" }
+
+        case "invoice.payment_succeeded":
+        case "invoice.payment_failed": {
+          const invoice = data;
+          const customerId = invoice.customer;
+          
+          const billingCustomer = await tx.billingCustomer.findUnique({
+            where: { stripeCustomerId: customerId }
           });
+
+          if (billingCustomer) {
+            await tx.invoice.upsert({
+              where: { stripeInvoiceId: invoice.id },
+              create: {
+                workspaceId: billingCustomer.workspaceId,
+                stripeInvoiceId: invoice.id,
+                status: invoice.status,
+                currency: invoice.currency,
+                amountDue: invoice.amount_due,
+                amountPaid: invoice.amount_paid,
+                hostedInvoiceUrl: invoice.hosted_invoice_url,
+              },
+              update: {
+                status: invoice.status,
+                amountDue: invoice.amount_due,
+                amountPaid: invoice.amount_paid,
+                hostedInvoiceUrl: invoice.hosted_invoice_url,
+              }
+            });
+          }
           break;
         }
         default:

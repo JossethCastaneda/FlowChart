@@ -8,7 +8,7 @@ tags: [generado, api, endpoints]
 > No lo edites manualmente — se sobreescribe en cada generación.
 > Fuente: `scripts/docs-graph.mjs`
 
-Total: **160 route handlers** en 32 grupos.
+Total: **161 route handlers** en 32 grupos.
 
 ## `/api/ads/`
 
@@ -37,6 +37,7 @@ Total: **160 route handlers** en 32 grupos.
 
 | Ruta | Métodos | Archivo |
 |------|---------|--------|
+| `/api/billing/checkout` | `POST` | `app/api/billing/checkout/route.ts` |
 | `/api/billing/portal` | `POST` | `app/api/billing/portal/route.ts` |
 
 ## `/api/briefs/`

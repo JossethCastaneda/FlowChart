@@ -8,7 +8,7 @@ tags: [generado, entidades, prisma, dominio]
 > No lo edites manualmente — se sobreescribe en cada generación.
 > Fuente: `scripts/docs-graph.mjs`
 
-Total: **96 modelos** en el schema de Prisma.
+Total: **97 modelos** en el schema de Prisma.
 
 ## Core (Identidad y tenant)
 
@@ -125,6 +125,7 @@ Total: **96 modelos** en el schema de Prisma.
 | **Subscription** | `workspaceId`, `stripeSubscriptionId`, `status`, `plan`, `currentPeriodEnd` |
 | **BillingEvent** | `stripeEventId`, `eventType`, `livemode`, `processingStatus`, `error` |
 | **BillingUsageEvent** | `workspaceId`, `aiUsageId`, `stripeMeterEventIdentifier`, `meterName`, `quantity` |
+| **Invoice** | `workspaceId`, `stripeInvoiceId`, `status`, `currency`, `amountDue` |
 
 ## Relacionado
 

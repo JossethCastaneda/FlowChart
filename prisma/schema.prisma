@@ -127,6 +127,7 @@ model Workspace {
   entitlement             WorkspaceEntitlement?
   billingCustomer         BillingCustomer?
   subscription            Subscription?
+  invoices                Invoice[]
 }
 
 // ------------------------------------------------------
@@ -2261,11 +2262,30 @@ model BillingEvent {
 }
 
 model BillingUsageEvent {
-  id                         String   @id @default(cuid())
+  id                         String    @id @default(cuid())
   workspaceId                String
-  aiUsageId                  String   @unique
-  stripeMeterEventIdentifier String   @unique
+  aiUsageId                  String    @unique
+  stripeMeterEventIdentifier String    @unique
   meterName                  String
   quantity                   Int
-  reportedAt                 DateTime @default(now())
+  status                     String    @default("PENDING") // PENDING, SENT, FAILED
+  attempts                   Int       @default(0)
+  lastError                  String?   @db.Text
+  sentAt                     DateTime?
+  reportedAt                 DateTime  @default(now())
+}
+
+model Invoice {
+  id               String    @id @default(cuid())
+  workspaceId      String
+  stripeInvoiceId  String    @unique
+  status           String
+  currency         String
+  amountDue        Int
+  amountPaid       Int
+  hostedInvoiceUrl String?   @db.Text
+  billingPeriod    String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  workspace        Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
