@@ -303,12 +303,12 @@ export default function DateRangePicker({
 
       {/* Dropdown Panel */}
       {showDatePicker && (
-        <div className="absolute top-full right-0 mt-2 z-[9999] bg-[#0d121f] border border-white/10 rounded-xl shadow-[0_25px_80px_rgba(0,0,0,0.7),inset_0_0_0_1px_rgba(255,255,255,0.05)] flex flex-col overflow-hidden max-w-[95vw] sm:max-w-none">
+        <div className="absolute top-full right-0 mt-2 z-[9999] bg-[var(--fc-surface)] border border-[var(--fc-border)] rounded-xl shadow-[0_25px_80px_rgba(0,0,0,0.7),inset_0_0_0_1px_rgba(255,255,255,0.05)] flex flex-col overflow-hidden max-w-[95vw] sm:max-w-none">
           {/* Main content area */}
           <div className="flex flex-col sm:flex-row">
 
             {/* -- LEFT: Presets -- */}
-            <div className="w-full sm:w-[170px] border-b sm:border-b-0 sm:border-r border-white/10 overflow-y-auto max-h-[150px] sm:max-h-[400px] py-2 flex flex-col">
+            <div className="w-full sm:w-[170px] border-b sm:border-b-0 sm:border-r border-[var(--fc-border)] overflow-y-auto max-h-[150px] sm:max-h-[400px] py-2 flex flex-col">
               {DATE_PRESETS.map(p => {
                 const active = pendingPreset === p.id;
                 return (
@@ -361,10 +361,10 @@ export default function DateRangePicker({
                 </button>
 
                 <div className="flex gap-4 sm:gap-20">
-                  <span className="text-xs sm:text-[13px] font-semibold text-white">
+                  <span className="text-xs sm:text-[13px] font-semibold text-[var(--fc-text)]">
                     {MONTH_NAMES_LONG[calMonth.getMonth()]} {calMonth.getFullYear()}
                   </span>
-                  <span className="text-xs sm:text-[13px] font-semibold text-white hidden sm:block">
+                  <span className="text-xs sm:text-[13px] font-semibold text-[var(--fc-text)] hidden sm:block">
                     {MONTH_NAMES_LONG[nextMonth.getMonth()]} {nextMonth.getFullYear()}
                   </span>
                 </div>

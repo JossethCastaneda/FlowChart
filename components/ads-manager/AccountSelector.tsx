@@ -75,8 +75,8 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-2 w-full sm:min-w-[220px] px-3 py-2 rounded-lg text-sm font-medium text-left cursor-pointer transition-colors shadow-sm
           ${isOpen 
-            ? "bg-white/5 border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.15)]" 
-            : "bg-[#0a0f1e]/60 border border-white/10 hover:bg-white/5 hover:border-blue-500/40"
+            ? "bg-[var(--fc-surface-raised)] border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.15)]" 
+            : "bg-[var(--fc-surface)] border border-[var(--fc-border)] hover:bg-[var(--fc-surface-raised)] hover:border-blue-500/40"
           }`}
       >
         <div className="p-1 rounded bg-gradient-to-br from-emerald-500 to-[#2b9a67] shadow-[0_2px_8px_rgba(16,185,129,0.4)]">
@@ -85,7 +85,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
         <span className="flex-1 truncate text-[13px]">
           {selectedAccountId === "all" ? `Todas las cuentas (${accounts.length})` : selectedAccount ? selectedAccount.name.split(" — ")[0] : "Seleccionar Cuenta"}
         </span>
-        <div className="bg-white/5 text-white px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider">
+        <div className="bg-[var(--fc-surface-raised)] text-[var(--fc-text)] px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider">
            {accounts.length}
         </div>
         <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
@@ -101,21 +101,21 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.98 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute top-full left-0 sm:left-auto sm:right-auto mt-2 bg-[#0d121f] border border-white/10 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.6),inset_0_0_0_1px_rgba(255,255,255,0.05)] overflow-hidden flex flex-col w-[90vw] sm:w-[650px] max-w-full"
+            className="absolute top-full left-0 sm:left-auto sm:right-auto mt-2 bg-[var(--fc-surface)] border border-[var(--fc-border)] rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.6),inset_0_0_0_1px_rgba(255,255,255,0.05)] overflow-hidden flex flex-col w-[90vw] sm:w-[650px] max-w-full"
           >
             {/* Top Search Bar */}
-            <div className="p-3 border-b border-white/10 bg-white/[0.02]">
-              <div className="flex items-center gap-2 px-3 py-2 bg-[#0d121f] border border-white/10 rounded-lg">
+            <div className="p-3 border-b border-[var(--fc-border)] bg-white/[0.02]">
+              <div className="flex items-center gap-2 px-3 py-2 bg-[var(--fc-surface)] border border-[var(--fc-border)] rounded-lg">
                 <HoloIcon icon={Search} variant="cyan" isActive={true} className="w-4 h-4 shrink-0" />
                 <input
                   type="text" autoFocus
                   placeholder="Buscar cuenta por nombre o ID..."
                   value={search} onChange={(e) => setSearch(e.target.value)}
-                  className="bg-transparent border-none text-white text-xs sm:text-sm w-full outline-none font-medium placeholder:text-white/30"
+                  className="bg-transparent border-none text-[var(--fc-text)] text-xs sm:text-sm w-full outline-none font-medium placeholder:text-[var(--fc-text)]/30"
                 />
                 <div className="hidden sm:flex gap-1 shrink-0">
-                  <span className="text-[10px] text-white/40 bg-white/5 px-1.5 py-0.5 rounded border border-white/10">⌘</span>
-                  <span className="text-[10px] text-white/40 bg-white/5 px-1.5 py-0.5 rounded border border-white/10">K</span>
+                  <span className="text-[10px] text-[var(--fc-text)]/40 bg-[var(--fc-surface-raised)] px-1.5 py-0.5 rounded border border-[var(--fc-border)]">⌘</span>
+                  <span className="text-[10px] text-[var(--fc-text)]/40 bg-[var(--fc-surface-raised)] px-1.5 py-0.5 rounded border border-[var(--fc-border)]">K</span>
                 </div>
               </div>
             </div>
@@ -124,8 +124,8 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
             <div className="flex flex-col sm:flex-row h-[380px] max-h-[60vh]">
               
               {/* Left Sidebar: Portfolios */}
-              <div className="w-full sm:w-[200px] border-b sm:border-b-0 sm:border-r border-white/10 flex flex-col bg-white/[0.01] shrink-0 h-[140px] sm:h-auto">
-                <div className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider flex items-center justify-between text-white/40">
+              <div className="w-full sm:w-[200px] border-b sm:border-b-0 sm:border-r border-[var(--fc-border)] flex flex-col bg-white/[0.01] shrink-0 h-[140px] sm:h-auto">
+                <div className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider flex items-center justify-between text-[var(--fc-text)]/40">
                   Portfolios
                 </div>
                 
@@ -142,15 +142,15 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                         initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }}
                         onClick={() => setSelectedPortfolio(portName)}
                         className={`flex items-center gap-3 w-full p-2.5 rounded-lg mb-1 text-left transition-colors ${
-                          isSelected ? "bg-blue-500/10 border border-blue-500/30 text-white shadow-[inset_0_0_20px_rgba(59,130,246,0.05)]" : "border border-transparent text-white/60 hover:bg-white/5"
+                          isSelected ? "bg-blue-500/10 border border-blue-500/30 text-[var(--fc-text)] shadow-[inset_0_0_20px_rgba(59,130,246,0.05)]" : "border border-transparent text-[var(--fc-text)]/60 hover:bg-[var(--fc-surface-raised)]"
                         }`}
                       >
-                        <div className={`w-8 h-8 rounded-md flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-md ${bgColor}`}>
+                        <div className={`w-8 h-8 rounded-md flex items-center justify-center text-[var(--fc-text)] font-bold text-sm shrink-0 shadow-md ${bgColor}`}>
                           {portName.includes("LID") ? <HoloIcon icon={Folder} variant="emerald" isActive={true} className="w-4 h-4" /> : initial}
                         </div>
                         <div className="flex-1 overflow-hidden flex flex-col">
-                          <div className={`font-bold text-xs truncate ${isSelected ? "text-white" : "text-white/80"}`}>{portName}</div>
-                          <div className={`text-[10px] font-medium ${isSelected ? "text-white/70" : "text-white/40"}`}>{items.length} cuentas</div>
+                          <div className={`font-bold text-xs truncate ${isSelected ? "text-[var(--fc-text)]" : "text-[var(--fc-text)]/80"}`}>{portName}</div>
+                          <div className={`text-[10px] font-medium ${isSelected ? "text-[var(--fc-text)]/70" : "text-[var(--fc-text)]/40"}`}>{items.length} cuentas</div>
                         </div>
                         {isSelected && <HoloIcon icon={ChevronRight} variant="cyan" isActive={true} className="w-3.5 h-3.5" />}
                       </motion.button>
@@ -161,7 +161,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                 <div className="p-3 border-t border-white/5">
                   <motion.button 
                     whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                    className="w-full p-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-md text-[11px] font-bold text-white flex items-center justify-center gap-1.5 transition-colors"
+                    className="w-full p-2 bg-[var(--fc-surface-raised)] hover:bg-white/10 border border-white/5 rounded-md text-[11px] font-bold text-[var(--fc-text)] flex items-center justify-center gap-1.5 transition-colors"
                   >
                     + Nuevo Portfolio
                   </motion.button>
@@ -169,11 +169,11 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
               </div>
 
               {/* Right Content: Accounts */}
-              <div className="flex-1 flex flex-col bg-[#0d121f] overflow-hidden min-h-0">
+              <div className="flex-1 flex flex-col bg-[var(--fc-surface)] overflow-hidden min-h-0">
                 <div className="px-5 pt-4 pb-3 flex justify-between items-start">
                   <div className="flex flex-col gap-1">
-                    <h3 className="text-base font-bold text-white tracking-tight">{selectedPortfolio}</h3>
-                    <p className="text-[11px] text-white/50">Gestiona las cuentas asignadas a este portfolio.</p>
+                    <h3 className="text-base font-bold text-[var(--fc-text)] tracking-tight">{selectedPortfolio}</h3>
+                    <p className="text-[11px] text-[var(--fc-text)]/50">Gestiona las cuentas asignadas a este portfolio.</p>
                   </div>
                   <motion.button whileHover={{ rotate: 90 }} transition={{ duration: 0.2 }}>
                     <HoloIcon icon={Settings} variant="cyan" isActive={true} className="w-4 h-4 cursor-pointer" />
@@ -181,14 +181,14 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                 </div>
                 
                 <div className="px-5 pb-3 mb-2 border-b border-white/5 flex justify-between items-center">
-                  <span className="text-[11px] font-bold text-white/70">
+                  <span className="text-[11px] font-bold text-[var(--fc-text)]/70">
                     {displayedAccounts.length} {displayedAccounts.length === 1 ? 'cuenta encontrada' : 'cuentas encontradas'}
                   </span>
                 </div>
 
                 <div className="overflow-y-auto flex-1 px-5 pb-5 custom-scrollbar">
                   {displayedAccounts.length === 0 && selectedAccountId !== "all" ? (
-                    <div className="text-center py-8 text-white/40 flex flex-col items-center gap-3">
+                    <div className="text-center py-8 text-[var(--fc-text)]/40 flex flex-col items-center gap-3">
                       <HoloIcon icon={Search} variant="cyan" isActive={false} className="w-6 h-6 opacity-30" />
                       <div className="text-xs font-bold">No hay cuentas coincidentes</div>
                       <div className="text-[10px] max-w-[180px]">Intenta buscar con otro término o selecciona otro portfolio.</div>
@@ -205,15 +205,15 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                           className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors ${
                             selectedAccountId === "all" 
                               ? "bg-blue-500/10 border border-blue-500/50 shadow-[0_4px_20px_rgba(59,130,246,0.15)]" 
-                              : "bg-white/[0.015] border border-white/5 hover:bg-white/5"
+                              : "bg-white/[0.015] border border-white/5 hover:bg-[var(--fc-surface-raised)]"
                           }`}
                         >
                           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center shrink-0 border border-blue-500/30">
                             <HoloIcon icon={Command} variant="cyan" isActive={true} className="w-4 h-4" />
                           </div>
                           <div className="flex-1 overflow-hidden flex flex-col gap-0.5">
-                            <div className={`font-bold text-[13px] ${selectedAccountId === "all" ? "text-cyan-400" : "text-white"}`}>Vista Global (Todas)</div>
-                            <div className="text-[10px] text-white/50 font-medium">Agrega la data de las {accounts.length} cuentas</div>
+                            <div className={`font-bold text-[13px] ${selectedAccountId === "all" ? "text-cyan-400" : "text-[var(--fc-text)]"}`}>Vista Global (Todas)</div>
+                            <div className="text-[10px] text-[var(--fc-text)]/50 font-medium">Agrega la data de las {accounts.length} cuentas</div>
                           </div>
                           {selectedAccountId === "all" && (
                             <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,1)]" />
@@ -234,25 +234,25 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                             className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors ${
                               isSelected 
                                 ? "bg-blue-500/10 border border-blue-500/50 shadow-[0_4px_20px_rgba(59,130,246,0.15)]" 
-                                : "bg-white/[0.015] border border-white/5 hover:bg-white/5"
+                                : "bg-white/[0.015] border border-white/5 hover:bg-[var(--fc-surface-raised)]"
                             }`}
                           >
-                            <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center shrink-0 border border-white/10">
+                            <div className="w-10 h-10 rounded-lg bg-[var(--fc-surface-raised)] flex items-center justify-center shrink-0 border border-[var(--fc-border)]">
                               <HoloIcon icon={CreditCard} variant="pink" isActive={isSelected} className="w-4 h-4" />
                             </div>
                             <div className="flex-1 overflow-hidden flex flex-col gap-1">
                               <div className="flex items-center gap-2 overflow-hidden">
-                                <span className={`font-bold text-[13px] truncate ${isSelected ? "text-cyan-400" : "text-white"}`}>
+                                <span className={`font-bold text-[13px] truncate ${isSelected ? "text-cyan-400" : "text-[var(--fc-text)]"}`}>
                                   {acc.name.split(" — ")[0]}
                                 </span>
                                 {acc.id === topSpendId && (acc.spend || 0) > 0 && (
-                                  <span className="shrink-0 text-[9px] font-bold text-emerald-400 bg-[#0d121f] border border-emerald-500/40 rounded px-1.5 py-0.5 tracking-wider shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                                  <span className="shrink-0 text-[9px] font-bold text-emerald-400 bg-[var(--fc-surface)] border border-emerald-500/40 rounded px-1.5 py-0.5 tracking-wider shadow-[0_0_10px_rgba(16,185,129,0.2)]">
                                     TOP
                                   </span>
                                 )}
                               </div>
-                              <div className="text-[10px] text-white/50 flex gap-3 items-center font-medium">
-                                <span>ID: <span className="text-white/80">{acc.id.replace("act_", "")}</span></span>
+                              <div className="text-[10px] text-[var(--fc-text)]/50 flex gap-3 items-center font-medium">
+                                <span>ID: <span className="text-[var(--fc-text)]/80">{acc.id.replace("act_", "")}</span></span>
                                 {(acc.spend || 0) > 0 && (
                                   <span className="flex items-center gap-1.5">
                                     <span className="w-1 h-1 rounded-full bg-white/30" />

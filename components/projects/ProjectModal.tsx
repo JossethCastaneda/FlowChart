@@ -161,21 +161,21 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
   // Let's keep the wizard for consistency but allow clicking tabs to jump.
   
   return createPortal(
-    <div onClick={onClose} className="fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto p-4 sm:p-6 bg-[#0a0f1e]/80 backdrop-blur-sm">
-      <div onClick={e => e.stopPropagation()} className="w-full max-w-2xl bg-[#0d121f] border border-white/10 rounded-xl shadow-2xl flex flex-col my-auto relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div onClick={onClose} className="fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto p-4 sm:p-6 bg-[var(--fc-bg)]/80 backdrop-blur-sm">
+      <div onClick={e => e.stopPropagation()} className="w-full max-w-2xl bg-[var(--fc-surface)] border border-[var(--fc-border)] rounded-xl shadow-2xl flex flex-col my-auto relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-[#111827]">
-          <h2 className="text-sm font-bold text-white tracking-widest uppercase">{title}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+        <div className="px-6 py-4 border-b border-[var(--fc-border)] flex items-center justify-between bg-[var(--fc-surface-raised)]">
+          <h2 className="text-sm font-bold text-[var(--fc-text)] tracking-widest uppercase">{title}</h2>
+          <button onClick={onClose} className="text-[var(--fc-text-tertiary)] hover:text-[var(--fc-text)] transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Stepper Progress */}
-        <div className="px-6 py-4 border-b border-white/5 bg-[#0d121f]">
+        <div className="px-6 py-4 border-b border-[var(--fc-border-subtle)] bg-[var(--fc-surface)]">
           <div className="flex items-center justify-between relative">
-            <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-white/5 -z-10 -translate-y-1/2"></div>
+            <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-[var(--fc-surface-raised)] -z-10 -translate-y-1/2"></div>
             {steps.map((step) => (
               <button 
                 key={step.id}
@@ -183,14 +183,14 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
                   // Only allow jumping tabs if not in create mode, or if previous steps are valid
                   if (!isCreate || step.id < currentStep) setCurrentStep(step.id);
                 }}
-                className={`flex flex-col items-center gap-2 bg-[#0d121f] px-2 ${
-                  currentStep === step.id ? "text-blue-400" : currentStep > step.id ? "text-emerald-500 cursor-pointer hover:text-emerald-400" : "text-gray-500 cursor-not-allowed"
+                className={`flex flex-col items-center gap-2 bg-[var(--fc-surface)] px-2 ${
+                  currentStep === step.id ? "text-blue-400" : currentStep > step.id ? "text-emerald-500 cursor-pointer hover:text-emerald-400" : "text-[var(--fc-text-disabled)] cursor-not-allowed"
                 } ${!isCreate ? "cursor-pointer hover:text-blue-300" : ""}`}
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors bg-[#0d121f] ${
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors bg-[var(--fc-surface)] ${
                   currentStep === step.id ? "border-blue-400 text-blue-400" : 
                   currentStep > step.id ? "border-emerald-500 bg-emerald-500/10 text-emerald-500" : 
-                  "border-gray-700 text-gray-500"
+                  "border-gray-700 text-[var(--fc-text-disabled)]"
                 }`}>
                   {currentStep > step.id && isCreate ? <Check className="w-4 h-4" /> : step.icon}
                 </div>
@@ -208,16 +208,16 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
             <div className="space-y-5 animate-in slide-in-from-right-4 fade-in duration-300">
               <div className="space-y-4">
                 <div>
-                  <label className={`text-[11px] font-bold uppercase tracking-wider mb-1.5 block ${errors.includes("alias") ? "text-red-400" : "text-gray-400"}`}>
+                  <label className={`text-[11px] font-bold uppercase tracking-wider mb-1.5 block ${errors.includes("alias") ? "text-red-400" : "text-[var(--fc-text-tertiary)]"}`}>
                     Alias del Proyecto {errors.includes("alias") && "*"}
                   </label>
                   <input type="text" value={form.alias} readOnly={ro} placeholder="Ej. Lanzamiento Q3"
-                    className={`fc-input w-full bg-white/5 border ${errors.includes("alias") ? "border-red-500/50 focus:border-red-500" : "border-white/10 focus:border-blue-500/50"} rounded px-3 py-2 text-sm text-white outline-none transition-colors`}
+                    className={`fc-input w-full bg-[var(--fc-surface-raised)] border ${errors.includes("alias") ? "border-red-500/50 focus:border-red-500" : "border-[var(--fc-border)] focus:border-blue-500/50"} rounded px-3 py-2 text-sm text-[var(--fc-text)] outline-none transition-colors`}
                     onChange={e => set("alias", e.target.value)} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-gray-400">Cliente</label>
+                    <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-[var(--fc-text-tertiary)]">Cliente</label>
                     <CustomCreatableSelect
                       value={form.client}
                       options={clientOptions}
@@ -227,7 +227,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-gray-400">Vertical / Industria</label>
+                    <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-[var(--fc-text-tertiary)]">Vertical / Industria</label>
                     <CustomCreatableSelect
                       value={form.vertical}
                       options={verticalOptions}
@@ -246,7 +246,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
             <div className="space-y-5 animate-in slide-in-from-right-4 fade-in duration-300">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-gray-400">Fanpages (Facebook)</label>
+                  <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-[var(--fc-text-tertiary)]">Fanpages (Facebook)</label>
                   <CustomMultiSelectPictures
                     values={Array.isArray(form.fanpage) ? form.fanpage : form.fanpage ? [form.fanpage] : []}
                     options={fanpageOptions}
@@ -256,7 +256,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-gray-400">Instagram</label>
+                  <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-[var(--fc-text-tertiary)]">Instagram</label>
                   <CustomMultiSelectPictures
                     values={Array.isArray(form.instagram) ? form.instagram : form.instagram ? [form.instagram] : []}
                     options={instagramOptions}
@@ -267,9 +267,9 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
                 </div>
               </div>
               <div>
-                <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-gray-400">Página Web (URL)</label>
+                <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-[var(--fc-text-tertiary)]">Página Web (URL)</label>
                 <input type="url" value={form.website} readOnly={ro} placeholder="https://sitio.com" 
-                  className="fc-input w-full bg-white/5 border border-white/10 focus:border-blue-500/50 rounded px-3 py-2 text-sm text-white outline-none transition-colors" 
+                  className="fc-input w-full bg-[var(--fc-surface-raised)] border border-[var(--fc-border)] focus:border-blue-500/50 rounded px-3 py-2 text-sm text-[var(--fc-text)] outline-none transition-colors" 
                   onChange={e => set("website", e.target.value)} />
               </div>
             </div>
@@ -279,7 +279,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
           {currentStep === 3 && (
             <div className="space-y-5 animate-in slide-in-from-right-4 fade-in duration-300">
               <div>
-                <label className={`text-[11px] font-bold uppercase tracking-wider mb-2 block ${errors.includes("channels") ? "text-red-400" : "text-gray-400"}`}>
+                <label className={`text-[11px] font-bold uppercase tracking-wider mb-2 block ${errors.includes("channels") ? "text-red-400" : "text-[var(--fc-text-tertiary)]"}`}>
                   Plataformas a integrar {errors.includes("channels") && "(Selecciona al menos 1)"}
                 </label>
                 <div className="flex flex-wrap gap-2 mb-4">
@@ -293,8 +293,8 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
                         onClick={() => !disabled && toggleChannel(pl.id)}
                         className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded border transition-all ${
                           selected ? `border-current bg-current/10` : 
-                          disabled ? "border-white/5 text-gray-600 cursor-not-allowed opacity-50" : 
-                          "border-white/10 text-gray-400 hover:border-white/20 hover:text-gray-300"
+                          disabled ? "border-[var(--fc-border-subtle)] text-gray-600 cursor-not-allowed opacity-50" : 
+                          "border-[var(--fc-border)] text-[var(--fc-text-tertiary)] hover:border-white/20 hover:text-gray-300"
                         }`}
                         style={{ color: selected ? pl.color : undefined }}
                       >
@@ -308,7 +308,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
               </div>
 
               {form.channels.length === 0 && !errors.includes("channels") && (
-                <div className="text-center py-8 text-gray-500 text-xs border border-dashed border-white/10 rounded-lg">
+                <div className="text-center py-8 text-[var(--fc-text-disabled)] text-xs border border-dashed border-[var(--fc-border)] rounded-lg">
                   Selecciona una plataforma arriba para configurar sus cuentas y presupuesto.
                 </div>
               )}
@@ -326,14 +326,14 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
                           <span className="font-bold text-[11px] tracking-widest uppercase" style={{ color: pl.color }}>{pl.name}</span>
                         </div>
                         {!ro && (
-                          <button onClick={() => toggleChannel(ch.platformId)} className="text-gray-500 hover:text-red-400 transition-colors p-1">
+                          <button onClick={() => toggleChannel(ch.platformId)} className="text-[var(--fc-text-disabled)] hover:text-red-400 transition-colors p-1">
                             <X className="w-4 h-4" />
                           </button>
                         )}
                       </div>
 
                       <div className="mb-4">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 block">Cuentas Publicitarias</label>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--fc-text-tertiary)] mb-1.5 block">Cuentas Publicitarias</label>
                         <CustomMultiSelect 
                           values={ch.adAccounts}
                           options={accounts}
@@ -345,29 +345,29 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
 
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         <div>
-                          <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 block">Budget</label>
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--fc-text-tertiary)] mb-1.5 block">Budget</label>
                           <input type="text" value={ch.budget} readOnly={ro} placeholder="$0.00"
-                            className="fc-input w-full bg-white/5 border border-white/10 rounded px-2.5 py-1.5 text-xs text-white outline-none focus:border-blue-500/50 transition-colors"
+                            className="fc-input w-full bg-[var(--fc-surface-raised)] border border-[var(--fc-border)] rounded px-2.5 py-1.5 text-xs text-[var(--fc-text)] outline-none focus:border-blue-500/50 transition-colors"
                             onChange={e => setChannel(ch.platformId, "budget", e.target.value)} />
                         </div>
                         <div>
-                          <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 block">Período</label>
-                          <select className="fc-select w-full bg-[#111827] border border-white/10 rounded px-2.5 py-1.5 text-xs text-white outline-none focus:border-blue-500/50 transition-colors" value={ch.period} disabled={ro}
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--fc-text-tertiary)] mb-1.5 block">Período</label>
+                          <select className="fc-select w-full bg-[var(--fc-surface-raised)] border border-[var(--fc-border)] rounded px-2.5 py-1.5 text-xs text-[var(--fc-text)] outline-none focus:border-blue-500/50 transition-colors" value={ch.period} disabled={ro}
                             onChange={e => setChannel(ch.platformId, "period", e.target.value)}>
                             {["Diario","Semanal","Mensual","Anual"].map(b => <option key={b}>{b}</option>)}
                           </select>
                         </div>
                         <div>
-                          <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 block">Meta</label>
-                          <select className="fc-select w-full bg-[#111827] border border-white/10 rounded px-2.5 py-1.5 text-xs text-white outline-none focus:border-blue-500/50 transition-colors" value={ch.goal} disabled={ro}
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--fc-text-tertiary)] mb-1.5 block">Meta</label>
+                          <select className="fc-select w-full bg-[var(--fc-surface-raised)] border border-[var(--fc-border)] rounded px-2.5 py-1.5 text-xs text-[var(--fc-text)] outline-none focus:border-blue-500/50 transition-colors" value={ch.goal} disabled={ro}
                             onChange={e => setChannel(ch.platformId, "goal", e.target.value)}>
                             <option value="">—</option>{GOALS.map(g => <option key={g}>{g}</option>)}
                           </select>
                         </div>
                         <div>
-                          <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1.5 block">{CPR_MAP[ch.goal] || "CPR"}</label>
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--fc-text-tertiary)] mb-1.5 block">{CPR_MAP[ch.goal] || "CPR"}</label>
                           <input type="text" value={ch.cpr} readOnly={ro} placeholder="$0.00"
-                            className="fc-input w-full bg-white/5 border border-white/10 rounded px-2.5 py-1.5 text-xs text-white outline-none focus:border-blue-500/50 transition-colors"
+                            className="fc-input w-full bg-[var(--fc-surface-raised)] border border-[var(--fc-border)] rounded px-2.5 py-1.5 text-xs text-[var(--fc-text)] outline-none focus:border-blue-500/50 transition-colors"
                             onChange={e => setChannel(ch.platformId, "cpr", e.target.value)} />
                         </div>
                       </div>
@@ -383,29 +383,29 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
             <div className="space-y-5 animate-in slide-in-from-right-4 fade-in duration-300">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-gray-400">Buyer Persona</label>
+                  <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-[var(--fc-text-tertiary)]">Buyer Persona</label>
                   <input type="text" value={form.persona} readOnly={ro} placeholder="Mujeres 25-40, fitness" 
-                    className="fc-input w-full bg-white/5 border border-white/10 focus:border-blue-500/50 rounded px-3 py-2 text-sm text-white outline-none transition-colors" 
+                    className="fc-input w-full bg-[var(--fc-surface-raised)] border border-[var(--fc-border)] focus:border-blue-500/50 rounded px-3 py-2 text-sm text-[var(--fc-text)] outline-none transition-colors" 
                     onChange={e => set("persona", e.target.value)} />
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-gray-400">Geo-Targeting</label>
+                  <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-[var(--fc-text-tertiary)]">Geo-Targeting</label>
                   <input type="text" value={form.geo} readOnly={ro} placeholder="País / Ciudad" 
-                    className="fc-input w-full bg-white/5 border border-white/10 focus:border-blue-500/50 rounded px-3 py-2 text-sm text-white outline-none transition-colors" 
+                    className="fc-input w-full bg-[var(--fc-surface-raised)] border border-[var(--fc-border)] focus:border-blue-500/50 rounded px-3 py-2 text-sm text-[var(--fc-text)] outline-none transition-colors" 
                     onChange={e => set("geo", e.target.value)} />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-gray-400">Fecha Inicio</label>
+                  <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-[var(--fc-text-tertiary)]">Fecha Inicio</label>
                   <input type="date" value={form.dateStart} readOnly={ro} 
-                    className="fc-input w-full bg-white/5 border border-white/10 focus:border-blue-500/50 rounded px-3 py-2 text-sm text-white outline-none transition-colors [color-scheme:dark]" 
+                    className="fc-input w-full bg-[var(--fc-surface-raised)] border border-[var(--fc-border)] focus:border-blue-500/50 rounded px-3 py-2 text-sm text-[var(--fc-text)] outline-none transition-colors [color-scheme:dark]" 
                     onChange={e => set("dateStart", e.target.value)} />
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-gray-400">Fecha Fin</label>
+                  <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block text-[var(--fc-text-tertiary)]">Fecha Fin</label>
                   <input type="date" value={form.dateEnd} readOnly={ro} 
-                    className="fc-input w-full bg-white/5 border border-white/10 focus:border-blue-500/50 rounded px-3 py-2 text-sm text-white outline-none transition-colors [color-scheme:dark]" 
+                    className="fc-input w-full bg-[var(--fc-surface-raised)] border border-[var(--fc-border)] focus:border-blue-500/50 rounded px-3 py-2 text-sm text-[var(--fc-text)] outline-none transition-colors [color-scheme:dark]" 
                     onChange={e => set("dateEnd", e.target.value)} />
                 </div>
               </div>
@@ -415,15 +415,15 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
         </div>
 
         {/* Footer Actions */}
-        <div className="px-6 py-4 border-t border-white/10 bg-[#111827] flex items-center justify-between">
+        <div className="px-6 py-4 border-t border-[var(--fc-border)] bg-[var(--fc-surface-raised)] flex items-center justify-between">
           {!ro ? (
             <>
               {currentStep > 1 ? (
-                <button onClick={handleBack} className="text-[11px] font-bold uppercase tracking-wider text-gray-400 hover:text-white transition-colors flex items-center gap-1">
+                <button onClick={handleBack} className="text-[11px] font-bold uppercase tracking-wider text-[var(--fc-text-tertiary)] hover:text-[var(--fc-text)] transition-colors flex items-center gap-1">
                   <ChevronLeft className="w-4 h-4" /> Atrás
                 </button>
               ) : (
-                <button onClick={onClose} className="text-[11px] font-bold uppercase tracking-wider text-gray-500 hover:text-gray-300 transition-colors">
+                <button onClick={onClose} className="text-[11px] font-bold uppercase tracking-wider text-[var(--fc-text-disabled)] hover:text-gray-300 transition-colors">
                   Cancelar
                 </button>
               )}

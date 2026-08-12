@@ -174,7 +174,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
         {/* ── Navegación ── */}
         <nav
           aria-label="Secciones de configuración"
-          className="w-full md:w-60 shrink-0 flex flex-col md:overflow-y-auto md:overflow-x-hidden pb-4 md:pb-16 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/5 border-b md:border-b-0 border-[var(--surface-hover)]"
+          className="w-full md:w-60 shrink-0 flex flex-col md:overflow-y-auto md:overflow-x-hidden pb-4 md:pb-16 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[var(--fc-border)] border-b md:border-b-0 border-[var(--fc-border)]"
         >
           {/* Buscador: con 11 pantallas, encontrar "zona horaria" a ojo es lento */}
           <div className="relative mb-3 shrink-0">
@@ -185,7 +185,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Buscar ajuste…"
               aria-label="Buscar un ajuste"
-              className="w-full bg-[var(--surface-hover)] border border-white/5 text-[var(--fc-text)] text-xs rounded-lg pl-9 pr-8 py-2 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/40"
+              className="w-full bg-[var(--fc-surface-hover)] border border-[var(--fc-border)] text-[var(--fc-text)] text-xs rounded-lg pl-9 pr-8 py-2 outline-none transition-all focus:border-[var(--fc-accent)] focus:ring-1 focus:ring-[var(--fc-accent)]"
             />
             {query && (
               <button
@@ -208,7 +208,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
             {visibleGroups.map((group, groupIndex) => (
               <div key={group.group} className="flex flex-row md:flex-col gap-1 md:gap-0 shrink-0">
                 <div className="hidden md:block">
-                  {groupIndex > 0 && <div className="h-px bg-[var(--surface-hover)] mx-2 my-2.5" />}
+                  {groupIndex > 0 && <div className="h-px bg-[var(--fc-surface-hover)] mx-2 my-2.5" />}
                   <div className="text-[9px] font-extrabold tracking-widest uppercase text-[var(--fc-text-muted)] px-3 pb-2">
                     {group.group}
                   </div>
@@ -226,14 +226,14 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
                         aria-current={active ? "page" : undefined}
                         className={`relative flex items-center gap-2 md:gap-3 px-3 py-2 md:py-2.5 rounded-lg transition-colors text-sm md:text-[13px] whitespace-nowrap md:whitespace-normal ${
                           active
-                            ? "text-white font-semibold"
-                            : "text-[var(--fc-text-secondary)] hover:text-white hover:bg-[var(--surface-hover)]"
+                            ? "text-[var(--fc-text)] font-semibold"
+                            : "text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] hover:bg-[var(--fc-surface-hover)]"
                         }`}
                       >
                         {active && (
                           <motion.div
                             layoutId="settings-active-tab"
-                            className="absolute inset-0 bg-[rgba(59,130,246,0.08)] border border-[rgba(59,130,246,0.2)] rounded-lg shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                            className="absolute inset-0 bg-[var(--fc-surface-raised)] border border-[var(--fc-border)] rounded-lg shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
                             transition={{ type: "spring", stiffness: 350, damping: 30 }}
                           />
                         )}
@@ -270,7 +270,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
         </nav>
 
         {/* ── Contenido ── */}
-        <main className="flex-1 w-full overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/5 pb-16">
+        <main className="flex-1 w-full overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[var(--fc-border)] pb-16">
           <div className="max-w-4xl mx-auto">{children}</div>
         </main>
       </div>

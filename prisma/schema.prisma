@@ -218,6 +218,7 @@ model Project {
   metaSources             MetaSource[]
   waPhoneSources          WaPhoneSource[]
   drafts                  DraftPost[]
+  mediaAssets             MediaAsset[]
   alertsEnabled           Boolean                     @default(true)
   alertEmails             String[]
   crmIntegrationId        String? // Legacy: single analytics integration (kept for back-compat)
@@ -385,12 +386,32 @@ model Task {
   requesterId  String? // userId who raised the request
   workspaceId  String
   keyResultId  String?
+  briefId      String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   closedAt     DateTime? // stamped when status → Done (for auto-SLA)
 
+  // ── Aprobación por líder ────────────────────────────────────────────────
+  /// null = sin revisión pendiente | "pending" | "approved" | "rejected"
+  approvalState String?
+  submittedAt   DateTime? // cuando el ejecutor marcó la tarea como terminada
+  submittedById String? // quién la mandó a revisión
+  reviewedAt    DateTime?
+  reviewedById  String? // líder que aprobó/rechazó
+  rejectionNote String?   @db.Text
+  reworkCount   Int       @default(0) // cuántas veces fue devuelta
+
+  // ── Estancamiento (quién la tiene detenida) ─────────────────────────────
+  /// Último avance real (cambio de estado o de responsable). Base para medir
+  /// cuánto lleva detenida y en manos de quién.
+  lastProgressAt DateTime @default(now())
+  /// Usuario que la tiene detenida en el momento del último avance: el
+  /// responsable si está en curso, o el líder si espera aprobación.
+  holderId       String?
+
   workspace  Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   keyResult  KeyResult?     @relation(fields: [keyResultId], references: [id], onDelete: SetNull)
+  brief      Brief?         @relation(fields: [briefId], references: [id], onDelete: SetNull)
   parent     Task?          @relation("SubTasks", fields: [parentId], references: [id], onDelete: Cascade)
   children   Task[]         @relation("SubTasks")
   blockedBy  Task[]         @relation("TaskDependencies")
@@ -401,6 +422,11 @@ model Task {
   @@index([workspaceId])
   @@index([workspaceId, status])
   @@index([parentId])
+  @@index([briefId])
+  // Bandeja del líder: tareas esperando aprobación en el workspace.
+  @@index([workspaceId, approvalState])
+  // Reporte de estancamiento: qué lleva detenido y desde cuándo.
+  @@index([workspaceId, lastProgressAt])
 }
 
 model TaskComment {
@@ -447,6 +473,7 @@ model Brief {
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   project   Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  tasks     Task[]
 
   @@index([workspaceId])
   @@index([workspaceId, status])
@@ -460,6 +487,7 @@ model MediaAsset {
   id          String   @id @default(cuid())
   workspaceId String
   userId      String?
+  projectId   String?
   url         String
   fileName    String
   mimeType    String
@@ -472,8 +500,10 @@ model MediaAsset {
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  project   Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   @@index([workspaceId])
+  @@index([workspaceId, projectId])
 }
 
 model DraftPost {
@@ -1708,7 +1738,7 @@ model OptimizationClient {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  workspace   Workspace                    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace   Workspace                     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   projects    OptimizationClientProject[]
   adAccounts  OptimizationAdAccount[]
   objectives  OptimizationObjective[]
@@ -1892,9 +1922,9 @@ model OptimizationProposedAction {
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 
-  workspace   Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  client      OptimizationClient       @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
-  snapshot    OptimizationSnapshot     @relation(fields: [workspaceId, clientId, snapshotId], references: [workspaceId, clientId, id], onDelete: Cascade)
+  workspace   Workspace                     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client      OptimizationClient            @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
+  snapshot    OptimizationSnapshot          @relation(fields: [workspaceId, clientId, snapshotId], references: [workspaceId, clientId, id], onDelete: Cascade)
   evaluations OptimizationEvaluation[]
   approvals   OptimizationActionApproval[]
   executions  OptimizationActionExecution[]
@@ -1919,9 +1949,9 @@ model OptimizationActionApproval {
   actionFingerprint String
   createdAt         DateTime @default(now())
 
-  workspace Workspace                   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  client    OptimizationClient          @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
-  action    OptimizationProposedAction  @relation(fields: [workspaceId, clientId, actionId], references: [workspaceId, clientId, id], onDelete: Restrict)
+  workspace Workspace                  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client    OptimizationClient         @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
+  action    OptimizationProposedAction @relation(fields: [workspaceId, clientId, actionId], references: [workspaceId, clientId, id], onDelete: Restrict)
 
   @@index([workspaceId, clientId, actionId, createdAt])
   @@index([actionId, approverId, createdAt])
@@ -1950,9 +1980,9 @@ model OptimizationActionExecution {
   createdAt                 DateTime  @default(now())
   completedAt               DateTime?
 
-  workspace Workspace                   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  client    OptimizationClient          @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
-  action    OptimizationProposedAction  @relation(fields: [workspaceId, clientId, actionId], references: [workspaceId, clientId, id], onDelete: Restrict)
+  workspace Workspace                  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client    OptimizationClient         @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
+  action    OptimizationProposedAction @relation(fields: [workspaceId, clientId, actionId], references: [workspaceId, clientId, id], onDelete: Restrict)
 
   @@index([workspaceId, createdAt])
   @@index([workspaceId, clientId, actionId, createdAt])

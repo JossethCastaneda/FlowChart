@@ -34,7 +34,7 @@ const T = {
     periodo: "Últimos 7 días · todos los canales",
     pruebaSocial: "184 agencias y equipos internos en México y Colombia cierran su mes con FlowChart.",
     tituloForm: "Entra a tu tablero", subtituloForm: "Usa tu cuenta de trabajo para continuar.",
-    conMeta: "Continuar con Meta", conGoogle: "Continuar con Google", oCorreo: "o con tu correo",
+    conMeta: "Continuar con Facebook", conGoogle: "Continuar con Google", oCorreo: "o con tu correo",
     etiquetaCorreo: "Correo de trabajo", etiquetaPass: "Contraseña", olvide: "¿La olvidaste?",
     recordarme: "Recordarme en este equipo", ctaEntrar: "Iniciar sesión",
     sinCuenta: "¿Todavía no tienes cuenta?", crearUna: "Crear una",
@@ -53,7 +53,7 @@ const T = {
     periodo: "Last 7 days · all channels",
     pruebaSocial: "184 agencies and in-house teams across Mexico and Colombia close their month on FlowChart.",
     tituloForm: "Sign in to your board", subtituloForm: "Use your work account to continue.",
-    conMeta: "Continue with Meta", conGoogle: "Continue with Google", oCorreo: "or with email",
+    conMeta: "Continue with Facebook", conGoogle: "Continue with Google", oCorreo: "or with email",
     etiquetaCorreo: "Work email", etiquetaPass: "Password", olvide: "Forgot it?",
     recordarme: "Remember me on this device", ctaEntrar: "Sign in",
     sinCuenta: "Don't have an account yet?", crearUna: "Create one",
@@ -347,7 +347,7 @@ export default function LoginPage() {
 
             <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid var(--fc-border-subtle)", paddingTop: "16px" }}>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "14px" }}>
-                <span style={{ display: "flex", alignItems: "center", gap: "7px", fontSize: "12px", color: "var(--fc-text-tertiary)" }}><span style={{ width: "9px", height: "9px", borderRadius: "3px", background: "var(--fc-accent)" }}></span>Meta</span>
+                <span style={{ display: "flex", alignItems: "center", gap: "7px", fontSize: "12px", color: "var(--fc-text-tertiary)" }}><span style={{ width: "9px", height: "9px", borderRadius: "3px", background: "var(--fc-accent)" }}></span>Facebook</span>
                 <span style={{ display: "flex", alignItems: "center", gap: "7px", fontSize: "12px", color: "var(--fc-text-tertiary)" }}><span style={{ width: "9px", height: "9px", borderRadius: "3px", background: "var(--fc-accent-deep)" }}></span>Google</span>
                 <span style={{ display: "flex", alignItems: "center", gap: "7px", fontSize: "12px", color: "var(--fc-text-tertiary)" }}><span style={{ width: "9px", height: "9px", borderRadius: "3px", background: "var(--fc-warning)" }}></span>TikTok</span>
               </div>

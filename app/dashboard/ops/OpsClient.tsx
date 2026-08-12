@@ -820,9 +820,9 @@ function CreateModal({ onClose, onSave, areas, projects }: { onClose: () => void
       <motion.div 
         initial={{ y: 20, opacity: 0, scale: 0.95 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 20, opacity: 0, scale: 0.95 }} transition={{ type: "spring", damping: 25, stiffness: 300 }}
         onClick={e => e.stopPropagation()} 
-        style={{ width: "100%", maxWidth: 650, background: "rgba(18, 18, 20, 0.95)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 16, boxShadow: "0 20px 60px rgba(0,0,0,0.5)", overflow: "hidden", display: "flex", flexDirection: "column", maxHeight: "90vh" }}
+        style={{ width: "100%", maxWidth: 650, background: "var(--fc-surface-raised)", border: "1px solid var(--fc-border)", borderRadius: 16, boxShadow: "var(--fc-shadow-hard)", overflow: "hidden", display: "flex", flexDirection: "column", maxHeight: "90vh" }}
       >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", background: "rgba(0,0,0,0.2)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", borderBottom: "1px solid var(--fc-border)", background: "var(--fc-surface-hover)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg, var(--fc-accent), #2563eb)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 14px rgba(59,130,246,0.3)" }}>
               <CheckCircle2 style={{ width: 18, height: 18, color: "white" }} />
@@ -834,43 +834,43 @@ function CreateModal({ onClose, onSave, areas, projects }: { onClose: () => void
         
         <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 24, flex: 1, overflowY: "auto" }}>
           {/* SECCIÓN DETALLES */}
-          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.03)", borderRadius: 12, padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border-subtle)", borderRadius: 12, padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
             <div>
               <label style={{ ...lbl, fontSize: 11, marginBottom: 8, display: "flex", alignItems: "center", gap: 6, opacity: 0.8 }}><FileText size={14} /> {t.taskTitle} <span style={{ color: "var(--fc-danger)" }}>*</span></label>
-              <input style={{ ...inp, fontSize: 15, padding: "12px 16px", background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 8, transition: "all 0.2s" }} placeholder="Ej: Configurar campaña de Leads..." value={form.title} onChange={e => set("title", e.target.value)} autoFocus />
+              <input style={{ ...inp, fontSize: 15, padding: "12px 16px", background: "var(--fc-surface)", border: "1px solid var(--fc-border)", color: "var(--fc-text)", borderRadius: 8, transition: "all 0.2s" }} placeholder="Ej: Configurar campaña de Leads..." value={form.title} onChange={e => set("title", e.target.value)} autoFocus />
             </div>
             <div>
               <label style={{ ...lbl, fontSize: 11, marginBottom: 8, display: "flex", alignItems: "center", gap: 6, opacity: 0.8 }}><LayoutGrid size={14} /> {t.description}</label>
-              <textarea rows={3} style={{ ...inp, resize: "vertical", fontSize: 14, padding: "12px 16px", background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 8, transition: "all 0.2s" }} value={form.description} onChange={e => set("description", e.target.value)} placeholder="Agrega contexto, requerimientos, enlaces..." />
+              <textarea rows={3} style={{ ...inp, resize: "vertical", fontSize: 14, padding: "12px 16px", background: "var(--fc-surface)", border: "1px solid var(--fc-border)", color: "var(--fc-text)", borderRadius: 8, transition: "all 0.2s" }} value={form.description} onChange={e => set("description", e.target.value)} placeholder="Agrega contexto, requerimientos, enlaces..." />
             </div>
           </div>
 
           {/* SECCIÓN CLIENTE & ASIGNACIÓN */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.03)", borderRadius: 12, padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border-subtle)", borderRadius: 12, padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
               <div>
                 <label style={{ ...lbl, fontSize: 11, marginBottom: 8, display: "flex", alignItems: "center", gap: 6, color: "var(--fc-accent)", opacity: 0.9 }}><Briefcase size={14} /> Cliente (Opcional)</label>
-                <select style={{ ...inp, cursor: "pointer", fontSize: 13, background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 8, transition: "all 0.2s" }} value={form.clientName} onChange={e => { set("clientName", e.target.value); set("projectId", ""); }}>
+                <select style={{ ...inp, cursor: "pointer", fontSize: 13, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", color: "var(--fc-text)", borderRadius: 8, transition: "all 0.2s" }} value={form.clientName} onChange={e => { set("clientName", e.target.value); set("projectId", ""); }}>
                   <option value="">-- Todos los clientes --</option>
                   {clients.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <div>
                 <label style={{ ...lbl, fontSize: 11, marginBottom: 8, display: "flex", alignItems: "center", gap: 6, color: "var(--fc-accent)", opacity: 0.9 }}><Target size={14} /> Proyecto</label>
-                <select style={{ ...inp, cursor: "pointer", fontSize: 13, background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 8, transition: "all 0.2s" }} value={form.projectId} onChange={e => set("projectId", e.target.value)}>
+                <select style={{ ...inp, cursor: "pointer", fontSize: 13, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", color: "var(--fc-text)", borderRadius: 8, transition: "all 0.2s" }} value={form.projectId} onChange={e => set("projectId", e.target.value)}>
                   <option value="">-- Seleccionar Proyecto --</option>
                   {filteredProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
               </div>
             </div>
 
-            <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.03)", borderRadius: 12, padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border-subtle)", borderRadius: 12, padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
               {/* ÁREA — sustituye a "Responsable". Quién la ejecuta lo decide
                   el servidor por disponibilidad y carga dentro del área. */}
               <div>
                 <label style={{ ...lbl, fontSize: 11, marginBottom: 8, display: "flex", alignItems: "center", gap: 6, color: "var(--fc-success)", opacity: 0.9 }}><Users size={14} /> {t.area}</label>
                 <select
-                  style={{ ...inp, cursor: "pointer", fontSize: 13, background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 8, transition: "all 0.2s" }}
+                  style={{ ...inp, cursor: "pointer", fontSize: 13, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", color: "var(--fc-text)", borderRadius: 8, transition: "all 0.2s" }}
                   value={form.targetAreaId}
                   onChange={e => set("targetAreaId", e.target.value)}
                 >
@@ -883,23 +883,23 @@ function CreateModal({ onClose, onSave, areas, projects }: { onClose: () => void
               </div>
               <div>
                 <label style={{ ...lbl, fontSize: 11, marginBottom: 8, display: "flex", alignItems: "center", gap: 6, color: "var(--fc-success)", opacity: 0.9 }}><CalendarIcon size={14} /> {t.dueDate}</label>
-                <input type="date" style={{ ...inp, cursor: "pointer", fontSize: 13, background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 8, transition: "all 0.2s" }} value={form.dueDate} onChange={e => set("dueDate", e.target.value)} />
+                <input type="date" style={{ ...inp, cursor: "pointer", fontSize: 13, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", color: "var(--fc-text)", borderRadius: 8, transition: "all 0.2s" }} value={form.dueDate} onChange={e => set("dueDate", e.target.value)} />
               </div>
             </div>
           </div>
 
           {/* SECCIÓN CLASIFICACIÓN & TAGS */}
-          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.03)", borderRadius: 12, padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border-subtle)", borderRadius: 12, padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               <div>
                 <label style={{ ...lbl, fontSize: 11, marginBottom: 8, display: "flex", alignItems: "center", gap: 6, color: "var(--fc-warning)", opacity: 0.9 }}><AlertTriangle size={14} /> {t.priority}</label>
-                <select style={{ ...inp, cursor: "pointer", fontSize: 13, background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 8, transition: "all 0.2s" }} value={form.priority} onChange={e => set("priority", e.target.value)}>
+                <select style={{ ...inp, cursor: "pointer", fontSize: 13, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", color: "var(--fc-text)", borderRadius: 8, transition: "all 0.2s" }} value={form.priority} onChange={e => set("priority", e.target.value)}>
                   {PRIORITIES.map(p => <option key={p} value={p}>{PRIO_CFG[p].label}</option>)}
                 </select>
               </div>
               <div>
                 <label style={{ ...lbl, fontSize: 11, marginBottom: 8, display: "flex", alignItems: "center", gap: 6, color: "var(--fc-warning)", opacity: 0.9 }}><Clock size={14} /> {t.status}</label>
-                <select style={{ ...inp, cursor: "pointer", fontSize: 13, background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 8, transition: "all 0.2s" }} value={form.status} onChange={e => set("status", e.target.value)}>
+                <select style={{ ...inp, cursor: "pointer", fontSize: 13, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", color: "var(--fc-text)", borderRadius: 8, transition: "all 0.2s" }} value={form.status} onChange={e => set("status", e.target.value)}>
                   {STATUSES.map(s => <option key={s} value={s}>{STATUS_CFG[s].label}</option>)}
                 </select>
               </div>
@@ -915,10 +915,10 @@ function CreateModal({ onClose, onSave, areas, projects }: { onClose: () => void
                   </motion.span>
                 ))}
               </div>
-              <input style={{ ...inp, fontSize: 13, background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 8, transition: "all 0.2s" }} placeholder={t.addTagPlaceholder} value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTag(tagInput); } }} />
+              <input style={{ ...inp, fontSize: 13, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", color: "var(--fc-text)", borderRadius: 8, transition: "all 0.2s" }} placeholder={t.addTagPlaceholder} value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTag(tagInput); } }} />
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
                 {TAG_PRESETS.filter(tg => !form.tags.includes(tg)).slice(0, 6).map(tg => (
-                  <button key={tg} onClick={() => addTag(tg)} style={{ fontSize: 10, padding: "4px 12px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.03)", color: "var(--fc-text-secondary)", cursor: "pointer", borderRadius: 16, transition: "background 0.2s" }}>
+                  <button key={tg} onClick={() => addTag(tg)} style={{ fontSize: 10, padding: "4px 12px", border: "1px solid var(--fc-border)", background: "var(--fc-surface-hover)", color: "var(--fc-text-secondary)", cursor: "pointer", borderRadius: 16, transition: "background 0.2s" }}>
                     + {tg}
                   </button>
                 ))}
@@ -927,8 +927,8 @@ function CreateModal({ onClose, onSave, areas, projects }: { onClose: () => void
           </div>
         </div>
         
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, padding: "20px 24px", borderTop: "1px solid rgba(255,255,255,0.05)", background: "rgba(0,0,0,0.4)" }}>
-          <button onClick={onClose} style={{ padding: "10px 24px", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "var(--fc-text-secondary)", cursor: "pointer", fontSize: 13, fontWeight: 600, borderRadius: 8, transition: "all 0.2s" }}>{t.cancel}</button>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, padding: "20px 24px", borderTop: "1px solid var(--fc-border)", background: "var(--fc-surface)" }}>
+          <button onClick={onClose} style={{ padding: "10px 24px", background: "transparent", border: "1px solid var(--fc-border)", color: "var(--fc-text-secondary)", cursor: "pointer", fontSize: 13, fontWeight: 600, borderRadius: 8, transition: "all 0.2s" }}>{t.cancel}</button>
           <button onClick={submit} disabled={saving || !form.title.trim()} style={{ padding: "10px 32px", fontSize: 13, fontWeight: 700, borderRadius: 8, background: "linear-gradient(135deg, var(--fc-accent), #2563eb)", border: "none", color: "white", cursor: saving || !form.title.trim() ? "not-allowed" : "pointer", opacity: saving || !form.title.trim() ? 0.5 : 1, transition: "all 0.2s", boxShadow: saving || !form.title.trim() ? "none" : "0 4px 14px rgba(59,130,246,0.4)" }}>
             {saving ? <Loader2 className="animate-spin" style={{ width: 18, height: 18 }} /> : t.create}
           </button>
