@@ -18,7 +18,10 @@ export default async function BillingPage() {
     return <div className="p-8 text-white">No active workspace selected.</div>;
   }
 
-  const [entitlement, subscription, usage] = await Promise.all([
+  const now = new Date();
+  const period = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
+
+  const [entitlement, subscription, budgetBalance] = await Promise.all([
     prisma.workspaceEntitlement.findUnique({
       where: { workspaceId }
     }),
@@ -26,21 +29,25 @@ export default async function BillingPage() {
       where: { workspaceId },
       orderBy: { currentPeriodEnd: "desc" }
     }),
-    prisma.aiUsage.aggregate({
-      where: { workspaceId },
-      _sum: { customerChargeUsd: true }
+    prisma.workspaceAiBudgetBalance.findUnique({
+      where: {
+        workspaceId_period: {
+          workspaceId,
+          period
+        }
+      }
     })
   ]);
 
-  const usageSum = usage?._sum?.customerChargeUsd;
-  const totalUsage = usageSum ? Number(usageSum) : 0;
+  const spentUsd = budgetBalance?.spentUsd ? Number(budgetBalance.spentUsd) : 0;
+  const reservedUsd = budgetBalance?.reservedUsd ? Number(budgetBalance.reservedUsd) : 0;
 
   return (
     <BillingClient 
       initialWorkspaceId={workspaceId} 
       entitlement={entitlement}
       subscription={subscription}
-      totalUsage={totalUsage}
+      budgetBalance={{ spentUsd, reservedUsd }}
     />
   );
 }

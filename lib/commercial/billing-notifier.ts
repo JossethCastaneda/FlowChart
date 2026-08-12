@@ -53,7 +53,7 @@ export class BillingNotifier {
         }
 
         // Use Resend idempotency headers
-        // Resend officially supports Idempotency-Key
+        // Resend officially supports X-Entity-Ref-ID (X-Entity-Ref) to avoid double-sends
         const emailParams = this.buildEmailTemplate(notif);
 
         await resend.emails.send({
@@ -62,7 +62,8 @@ export class BillingNotifier {
           subject: emailParams.subject,
           html: emailParams.html,
           headers: {
-            "Idempotency-Key": notif.idempotencyKey
+            "X-Entity-Ref-ID": notif.idempotencyKey,
+            "X-Entity-Ref": notif.idempotencyKey
           }
         });
 

@@ -8,7 +8,7 @@ tags: [generado, entidades, prisma, dominio]
 > No lo edites manualmente — se sobreescribe en cada generación.
 > Fuente: `scripts/docs-graph.mjs`
 
-Total: **114 modelos** en el schema de Prisma.
+Total: **113 modelos** en el schema de Prisma.
 
 ## Core (Identidad y tenant)
 
@@ -126,6 +126,7 @@ Total: **114 modelos** en el schema de Prisma.
 | **BillingEvent** | `stripeEventId`, `eventType`, `livemode`, `processingStatus`, `error` |
 | **BillingUsageEvent** | `workspaceId`, `aiUsageId`, `stripeMeterEventIdentifier`, `meterName`, `quantity` |
 | **Invoice** | `workspaceId`, `stripeInvoiceId`, `status`, `currency`, `amountDue` |
+| **WorkspaceAiBudgetBalance** | `workspaceId`, `period`, `spentUsd`, `reservedUsd`, `workspace` |
 | **AiReservationLedger** | `workspaceId`, `idempotencyKey`, `feature`, `reservedCostUsd`, `status` |
 | **ExternalCostRate** | `provider`, `component`, `unit`, `amount`, `currency` |
 | **Plan** | `key`, `name`, `description`, `versions` |
@@ -133,13 +134,11 @@ Total: **114 modelos** en el schema de Prisma.
 | **PlanPrice** | `planVersionId`, `stripePriceId`, `billingPeriod`, `planVersion` |
 | **Module** | `key`, `name`, `description`, `category`, `status` |
 | **PlanModule** | `planVersionId`, `moduleId`, `inclusion`, `usageLimit`, `planVersion` |
-| **Addon** | `key`, `name`, `description`, `versions` |
-| **AddonVersion** | `addonId`, `monthlyPrice`, `annualPrice`, `stripePriceId`, `status` |
-| **SubscriptionAddon** | `subscriptionId`, `addonId`, `quantity`, `subscription` |
 | **AiPackage** | `key`, `name`, `versions` |
-| **AiPackageVersion** | `packageId`, `status`, `baseFeeUsd`, `includedUnits`, `variableUnitPrice` |
+| **AiPackageVersion** | `packageId`, `status`, `feeMode`, `baseFeeUsd`, `includedUnits` |
 | **BillingLedgerEntry** | `workspaceId`, `type`, `source`, `sourceId`, `quantity` |
 | **BillingProfile** | `workspaceId`, `legalName`, `entityType`, `billingEmail`, `country` |
+| **BillingRecoveryPolicy** | `version`, `gracePeriodDays`, `notificationSchedule`, `aiRestrictionPointDays`, `serviceRestrictionDays` |
 | **FiscalDocument** | `workspaceId`, `invoiceId`, `status`, `uuid`, `xmlUrl` |
 | **BillingNotification** | `workspaceId`, `invoiceId`, `type`, `recipient`, `channel` |
 | **BillingRecoveryCase** | `workspaceId`, `invoiceId`, `status`, `gracePeriodEnd`, `restrictedAt` |

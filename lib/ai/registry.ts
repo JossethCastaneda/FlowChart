@@ -67,7 +67,7 @@ export function hasAnyProvider(): boolean {
 
 export async function getWorkspaceAiProvider(
   workspaceId: string,
-): Promise<{ provider: LLMProvider; model: string }> {
+): Promise<{ provider: LLMProvider; model: string; providerMode: "SMART" | "LOCKED" }> {
   try {
     const ws = await prisma.workspaceSettings.findUnique({
       where: { workspaceId },
@@ -77,15 +77,16 @@ export async function getWorkspaceAiProvider(
     // La configuración puede definir ariaProvider y ariaGenerativeModel
     const preferredProviderId = ext.ariaProvider as string | undefined;
     const preferredModel = ext.ariaGenerativeModel as string | undefined;
+    const providerMode = ext.providerMode === "LOCKED" ? "LOCKED" : "SMART";
 
     if (preferredProviderId && isProviderId(preferredProviderId) && PROVIDERS[preferredProviderId].isConfigured()) {
       const provider = PROVIDERS[preferredProviderId];
-      return { provider, model: preferredModel || provider.defaultModel };
+      return { provider, model: preferredModel || provider.defaultModel, providerMode };
     }
   } catch (err) {
     logger.warn("[AI Registry] Fallback a getActiveProvider por error al leer WorkspaceSettings", { workspaceId, error: String(err) });
   }
   
   const active = getActiveProvider();
-  return { provider: active, model: active.defaultModel };
+  return { provider: active, model: active.defaultModel, providerMode: "SMART" };
 }

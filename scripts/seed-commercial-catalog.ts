@@ -122,10 +122,10 @@ async function main() {
           create: {
             planVersionId: pv.id,
             moduleId: m.id,
-            isIncluded: true
+            inclusion: "INCLUDED"
           },
           update: {
-            isIncluded: true
+            inclusion: "INCLUDED"
           }
         });
       }

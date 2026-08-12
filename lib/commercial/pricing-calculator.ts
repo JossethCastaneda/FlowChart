@@ -9,14 +9,12 @@ export interface PricingEstimateParams {
   billingPeriod: "MONTHLY" | "ANNUALLY";
   seats: number;
   workspaces: number;
-  addons?: string[];
 }
 
 export interface PricingEstimateResult {
   basePriceUsd: Prisma.Decimal;
   seatCostUsd: Prisma.Decimal;
   workspaceCostUsd: Prisma.Decimal;
-  addonsCostUsd: Prisma.Decimal;
   subtotalUsd: Prisma.Decimal;
   discountUsd: Prisma.Decimal;
   totalUsd: Prisma.Decimal;
@@ -63,31 +61,7 @@ export class PricingCalculator {
       workspaceCostUsd = wsPrice.mul(extraWorkspaces);
     }
 
-    // Calculate Addons
-    let addonsCostUsd = new Prisma.Decimal(0);
-    if (params.addons && params.addons.length > 0) {
-      const addons = await prisma.addon.findMany({
-        where: { key: { in: params.addons } },
-        include: {
-          versions: {
-            where: { status: "ACTIVE" },
-            orderBy: { id: "desc" },
-            take: 1
-          }
-        }
-      });
-      
-      for (const addon of addons) {
-        if (addon.versions.length > 0) {
-          const addonVersion = addon.versions[0];
-          addonsCostUsd = addonsCostUsd.add(
-            isAnnual ? addonVersion.annualPrice : addonVersion.monthlyPrice
-          );
-        }
-      }
-    }
-
-    const subtotalUsd = basePriceUsd.add(seatCostUsd).add(workspaceCostUsd).add(addonsCostUsd);
+    const subtotalUsd = basePriceUsd.add(seatCostUsd).add(workspaceCostUsd);
     
     // Optional: Annual discount is already factored into base, but if we wanted to show explicit discount:
     const discountUsd = new Prisma.Decimal(0); 
@@ -98,7 +72,6 @@ export class PricingCalculator {
       basePriceUsd,
       seatCostUsd,
       workspaceCostUsd,
-      addonsCostUsd,
       subtotalUsd,
       discountUsd,
       totalUsd,

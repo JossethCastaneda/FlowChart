@@ -129,6 +129,7 @@ model Workspace {
   subscription            Subscription?
   invoices                Invoice[]
   aiReservationLedgers    AiReservationLedger[]
+  aiBudgetBalances        WorkspaceAiBudgetBalance[]
   billingLedgerEntries    BillingLedgerEntry[]
   billingProfile          BillingProfile?
   fiscalDocuments         FiscalDocument[]
@@ -2254,7 +2255,6 @@ model Subscription {
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
   workspace            Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  subscriptionAddons   SubscriptionAddon[]
 }
 
 model BillingEvent {
@@ -2302,6 +2302,21 @@ model Invoice {
 // -----------------------------------------------------------------------------
 // COMMERCIAL & FINANCIAL OS (CF-0 to CF-11)
 // -----------------------------------------------------------------------------
+
+model WorkspaceAiBudgetBalance {
+  id          String   @id @default(cuid())
+  workspaceId String
+  period      String   // e.g. "2026-08"
+  spentUsd    Decimal  @default(0.00) @db.Decimal(19,4)
+  reservedUsd Decimal  @default(0.00) @db.Decimal(19,4)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, period])
+  @@index([workspaceId, period])
+}
 
 model AiReservationLedger {
   id              String    @id @default(cuid())
@@ -2397,36 +2412,6 @@ model PlanModule {
   @@unique([planVersionId, moduleId])
 }
 
-model Addon {
-  id          String         @id @default(cuid())
-  key         String         @unique
-  name        String
-  description String?
-  versions    AddonVersion[]
-  createdAt   DateTime       @default(now())
-}
-
-model AddonVersion {
-  id            String  @id @default(cuid())
-  addonId       String
-  monthlyPrice  Decimal @db.Decimal(19, 4)
-  annualPrice   Decimal @db.Decimal(19, 4)
-  stripePriceId String
-  status        String  @default("ACTIVE")
-  addon         Addon   @relation(fields: [addonId], references: [id], onDelete: Cascade)
-}
-
-model SubscriptionAddon {
-  id             String @id @default(cuid())
-  subscriptionId String
-  addonId        String
-  quantity       Int    @default(1)
-
-  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-  // Assuming addon references Addon model directly for simplicity
-  createdAt    DateTime     @default(now())
-}
-
 model AiPackage {
   id        String             @id @default(cuid())
   key       String             @unique // GEMINI, GPT, CLAUDE, SMART
@@ -2439,6 +2424,7 @@ model AiPackageVersion {
   id                String  @id @default(cuid())
   packageId         String
   status            String  @default("ACTIVE")
+  feeMode           String  @default("INCLUDED_IN_PLAN") // INCLUDED_IN_PLAN, SEPARATE, WAIVED, CUSTOM
   baseFeeUsd        Decimal @db.Decimal(19, 4)
   includedUnits     Int     @default(0)
   variableUnitPrice Decimal @db.Decimal(19, 6) // price per unit
@@ -2485,6 +2471,19 @@ model BillingProfile {
   updatedAt DateTime @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model BillingRecoveryPolicy {
+  id                      String   @id @default(cuid())
+  version                 Int      @default(1)
+  gracePeriodDays         Int      @default(3)
+  notificationSchedule    Json     @default("[]") // [1, 2, 3] days
+  aiRestrictionPointDays  Int      @default(3)
+  serviceRestrictionDays  Int      @default(7)
+  unpaidBehavior          String   @default("suspend") // suspend | cancel
+  cancellationBehavior    String   @default("revoke_access")
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 }
 
 model FiscalDocument {

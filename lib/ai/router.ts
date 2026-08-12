@@ -81,68 +81,109 @@ export interface RoutedModel {
   provider: LLMProvider;
   modelId: string;
   providerModelId: string;
+  tier?: ModelTier;
+}
+
+export interface RouteAiRequestOptions {
+  requirements: ModelRequirements;
+  workspaceId: string;
+  moduleKey?: ModuleKey;
+  taskId?: string;
 }
 
 export async function routeAiRequest(
-  requirements: ModelRequirements,
-  workspaceId: string
+  options: RouteAiRequestOptions
 ): Promise<RoutedModel> {
+  const { requirements, workspaceId, moduleKey, taskId } = options;
   const pref = await getWorkspaceAiProvider(workspaceId);
   const preferredModelId = pref.model;
+  const providerMode = pref.providerMode; // SMART | LOCKED
   
+  // 1. Determine Required Tier based on Module & Task
+  let targetTier: ModelTier | null = null;
+  if (moduleKey) {
+    const policy = new SmartAiEconomicRouter().getPolicy(moduleKey);
+    targetTier = policy.preferredTier;
+  }
+  
+  // Task-level strict overrides
+  if (taskId === "mmm_math" || taskId === "math") targetTier = "E0";
+  if (taskId === "synthesis") targetTier = "E3";
+
+  // E0 constraint check
+  if (targetTier === "E0") {
+    throw new Error("[AI Router] E0 constraint violation: Task requires deterministic mathematical truth. LLM cannot be used.");
+  }
+
+  // 2. LOCKED Mode Constraint
+  if (providerMode === "LOCKED") {
+    const matchedProvider = AI_CATALOG.find(c => c.id === pref.provider.id);
+    const matchedModel = matchedProvider?.models.find(m => m.id === preferredModelId);
+    
+    if (!matchedProvider || !matchedModel) {
+      // Fallback if catalog missing
+      return {
+        provider: pref.provider,
+        modelId: preferredModelId,
+        providerModelId: preferredModelId,
+      };
+    }
+    
+    if (!satisfiesRequirements(matchedModel.capabilities, requirements)) {
+      logger.warn("[AI Router] LOCKED mode model does not strictly satisfy requirements, but forcing due to LOCKED policy", { preferredModelId, requirements });
+    }
+    return {
+      provider: pref.provider,
+      modelId: preferredModelId,
+      providerModelId: matchedModel.providerModelId
+    };
+  }
+  
+  // 3. SMART Mode Routing (Least cost capable model satisfying Tier + Requirements)
   const candidates: Array<{ model: typeof AI_CATALOG[0]["models"][0]; providerId: string }> = [];
   
   for (const p of AI_CATALOG) {
-    const providerImpl = getProvider(p.id);
+    const providerImpl = getProvider(p.id as any);
     if (!providerImpl.isConfigured()) continue;
     
     for (const m of p.models) {
       if (satisfiesRequirements(m.capabilities, requirements)) {
+        // Filter by target tier mapped to power
+        if (targetTier === "E1" && m.power > 3) continue; // Don't overspend if E1 is enough
+        if (targetTier === "E2" && m.power < 4) continue; // Must have at least E2 power
+        if (targetTier === "E3" && m.power < 5) continue; // Must have E3 power
         candidates.push({ model: m, providerId: p.id });
       }
     }
   }
   
   if (candidates.length === 0) {
+    // Relax tier constraints if no candidate found, but keep requirements
+    logger.warn("[AI Router] No models matched tier constraints, relaxing tier filter.");
+    for (const p of AI_CATALOG) {
+      if (!getProvider(p.id as any).isConfigured()) continue;
+      for (const m of p.models) {
+        if (satisfiesRequirements(m.capabilities, requirements)) {
+          candidates.push({ model: m, providerId: p.id });
+        }
+      }
+    }
+  }
+
+  if (candidates.length === 0) {
     logger.error("[AI Router] No configured models satisfy the requirements", { requirements });
     throw new Error(`No available AI models satisfy the requirements: ${requirements.required.join(", ")}`);
   }
 
-  const preferredMatch = candidates.find(c => c.model.id === preferredModelId);
-  if (preferredMatch) {
-    return {
-      provider: getProvider(preferredMatch.providerId as any),
-      modelId: preferredMatch.model.id,
-      providerModelId: preferredMatch.model.providerModelId
-    };
-  }
-  
-  if (requirements.preferred && requirements.preferred.length > 0) {
-    const preferredCapsMatch = candidates.filter(c => 
-      requirements.preferred!.every(cap => c.model.capabilities.includes(cap))
-    );
-    if (preferredCapsMatch.length > 0) {
-      return {
-        provider: getProvider(preferredCapsMatch[0].providerId as any),
-        modelId: preferredCapsMatch[0].model.id,
-        providerModelId: preferredCapsMatch[0].model.providerModelId
-      };
-    }
-  }
+  // Sort candidates by cost (input + output) for SMART routing
+  candidates.sort((a, b) => (a.model.inputPerM + a.model.outputPerM) - (b.model.inputPerM + b.model.outputPerM));
 
-  // C. Fallback: Return the first capable candidate (which follows catalog order, e.g. Gemini > GPT > Claude)
-  const fallback = candidates[0];
-  
-  logger.warn("[AI Router] Falling back from preferred model due to unmet capabilities", {
-    workspaceId,
-    preferredModelId,
-    fallbackModelId: fallback.model.id,
-    requirements
-  });
+  // The first candidate is now the least-cost capable model
+  const smartChoice = candidates[0];
   
   return {
-    provider: getProvider(fallback.providerId as any),
-    modelId: fallback.model.id,
-    providerModelId: fallback.model.providerModelId
+    provider: getProvider(smartChoice.providerId as any),
+    modelId: smartChoice.model.id,
+    providerModelId: smartChoice.model.providerModelId
   };
 }

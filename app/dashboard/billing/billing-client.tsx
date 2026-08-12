@@ -8,12 +8,12 @@ export function BillingClient({
   initialWorkspaceId,
   entitlement,
   subscription,
-  totalUsage
+  budgetBalance
 }: { 
   initialWorkspaceId: string | null;
   entitlement: any;
   subscription: any;
-  totalUsage: number;
+  budgetBalance: { spentUsd: number; reservedUsd: number };
 }) {
   const { data: session } = useSession();
   const router = useRouter();
@@ -107,22 +107,29 @@ export function BillingClient({
           <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500 mb-2">AI Usage & Ledger</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-zinc-400 text-sm mb-1">Un-invoiced AI Subtotal</p>
-              <p className="text-3xl font-bold text-white">${totalUsage.toFixed(2)} <span className="text-sm font-normal text-zinc-500">USD</span></p>
+              <p className="text-zinc-400 text-sm mb-1">Spent (Un-invoiced)</p>
+              <p className="text-3xl font-bold text-white">${budgetBalance.spentUsd.toFixed(2)} <span className="text-sm font-normal text-zinc-500">USD</span></p>
             </div>
             <div>
-              <p className="text-zinc-400 text-sm mb-1">Monthly AI Budget</p>
-              <p className="text-3xl font-bold text-white">${entitlement?.monthlyAiBudget ? Number(entitlement.monthlyAiBudget).toFixed(2) : "0.00"} <span className="text-sm font-normal text-zinc-500">USD</span></p>
+              <p className="text-zinc-400 text-sm mb-1">Reserved (In-Flight)</p>
+              <p className="text-3xl font-bold text-amber-500">${budgetBalance.reservedUsd.toFixed(2)} <span className="text-sm font-normal text-zinc-500">USD</span></p>
             </div>
           </div>
           <div className="mt-6">
-             <div className="w-full bg-zinc-800 rounded-full h-2 mb-2">
+             <div className="w-full bg-zinc-800 rounded-full h-2 mb-2 relative overflow-hidden">
                 <div 
-                  className="bg-blue-600 h-2 rounded-full" 
-                  style={{ width: `${Math.min(100, (totalUsage / Math.max(1, Number(entitlement?.monthlyAiBudget || 10))) * 100)}%` }}
+                  className="bg-blue-600 h-full absolute left-0" 
+                  style={{ width: `${Math.min(100, (budgetBalance.spentUsd / Math.max(1, Number(entitlement?.monthlyAiBudget || 10))) * 100)}%` }}
+                ></div>
+                <div 
+                  className="bg-amber-500 h-full absolute opacity-50" 
+                  style={{ 
+                    left: `${Math.min(100, (budgetBalance.spentUsd / Math.max(1, Number(entitlement?.monthlyAiBudget || 10))) * 100)}%`,
+                    width: `${Math.min(100, (budgetBalance.reservedUsd / Math.max(1, Number(entitlement?.monthlyAiBudget || 10))) * 100)}%` 
+                  }}
                 ></div>
              </div>
-             <p className="text-xs text-zinc-500">Usage is synchronized to Stripe continuously via Meter Events.</p>
+             <p className="text-xs text-zinc-500">Usage is synchronized to Stripe continuously via Meter Events. Reserved budget represents AI tasks currently in progress.</p>
           </div>
         </div>
       </div>

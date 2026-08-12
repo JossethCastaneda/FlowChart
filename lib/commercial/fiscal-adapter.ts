@@ -39,33 +39,25 @@ export class MexicoFiscalAdapter extends FiscalAdapter {
     try {
       // In a real implementation, this would call a PAC (Proveedor Autorizado de Certificación)
       // or Stripe's native Mexican electronic invoicing integration.
-      console.log(`[Fiscal:MX] Issuing CFDI 4.0 for invoice ${invoiceId} (RFC: ${profile.taxId})`);
-      
-      const mockUuid = `cfdi-uuid-${Date.now()}`;
+      console.log(`[Fiscal:MX] Queuing CFDI 4.0 for invoice ${invoiceId} (RFC: ${profile.taxId})`);
       
       const doc = await prisma.fiscalDocument.create({
         data: {
           workspaceId: profile.workspaceId,
           invoiceId,
-          status: "ISSUED",
-          uuid: mockUuid,
-          xmlUrl: `https://storage.flowchart.com/cfdi/${mockUuid}.xml`,
-          pdfUrl: `https://storage.flowchart.com/cfdi/${mockUuid}.pdf`,
-          issuedAt: new Date(),
+          status: "PENDING_PAC", // Do not mark ISSUED without a real PAC
           jurisdiction: "MX",
           metadata: {
             cfdiUse: profile.fiscalMetadata.cfdiUse,
-            taxRegime: profile.fiscalMetadata.taxRegime
+            taxRegime: profile.fiscalMetadata.taxRegime,
+            pendingReason: "Awaiting PAC integration"
           }
         }
       });
 
       return {
         success: true,
-        documentId: doc.id,
-        uuid: doc.uuid || undefined,
-        pdfUrl: doc.pdfUrl || undefined,
-        xmlUrl: doc.xmlUrl || undefined
+        documentId: doc.id
       };
     } catch (e: any) {
       return { success: false, error: e.message };

@@ -57,6 +57,48 @@ export async function reserve(
       );
     }
 
+    const period = new Date().toISOString().slice(0, 7); // e.g., "2026-08"
+
+    // Upsert equivalent via raw query for atomic locking (because Prisma upsert doesn't lock for update)
+    await tx.$executeRaw`
+      INSERT INTO "WorkspaceAiBudgetBalance" ("id", "workspaceId", "period", "spentUsd", "reservedUsd", "createdAt", "updatedAt")
+      VALUES (gen_random_uuid(), ${workspaceId}, ${period}, 0, 0, NOW(), NOW())
+      ON CONFLICT ("workspaceId", "period") DO NOTHING;
+    `;
+
+    // Now select FOR UPDATE to lock the row for this transaction
+    const balances = await tx.$queryRaw<any[]>`
+      SELECT "spentUsd", "reservedUsd" FROM "WorkspaceAiBudgetBalance"
+      WHERE "workspaceId" = ${workspaceId} AND "period" = ${period}
+      FOR UPDATE;
+    `;
+
+    if (!balances || balances.length === 0) {
+      throw new Error("Failed to lock AiBudgetBalance");
+    }
+
+    const currentSpent = Number(balances[0].spentUsd);
+    const currentReserved = Number(balances[0].reservedUsd);
+    const totalSpentAndReserved = currentSpent + currentReserved;
+
+    const entitlementData = await tx.workspaceEntitlement.findUnique({ where: { workspaceId } });
+    if (entitlementData?.monthlyAiBudget && (totalSpentAndReserved + estimatedCost) > Number(entitlementData.monthlyAiBudget)) {
+      throw new AiError(
+        ErrorCode.AI_BUDGET_EXCEEDED,
+        "Monthly AI budget exceeded including pending reservations",
+        "finops",
+        true
+      );
+    }
+
+    // Atomic increment
+    await tx.$executeRaw`
+      UPDATE "WorkspaceAiBudgetBalance"
+      SET "reservedUsd" = "reservedUsd" + ${estimatedCost},
+          "updatedAt" = NOW()
+      WHERE "workspaceId" = ${workspaceId} AND "period" = ${period};
+    `;
+
     // Insert atomic reservation ledger entry
     await tx.aiReservationLedger.create({
       data: {
@@ -67,28 +109,6 @@ export async function reserve(
         status: "RESERVED"
       }
     });
-
-    // Summing budget and validating (transaction-safe)
-    const currentUsage = await tx.aiUsage.aggregate({
-      where: { workspaceId, createdAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) } },
-      _sum: { customerChargeUsd: true }
-    });
-    const currentReserved = await tx.aiReservationLedger.aggregate({
-      where: { workspaceId, status: "RESERVED" },
-      _sum: { reservedCostUsd: true }
-    });
-
-    const totalSpentAndReserved = (Number(currentUsage._sum.customerChargeUsd) || 0) + (Number(currentReserved._sum.reservedCostUsd) || 0);
-
-    const entitlementData = await tx.workspaceEntitlement.findUnique({ where: { workspaceId } });
-    if (entitlementData?.monthlyAiBudget && totalSpentAndReserved > Number(entitlementData.monthlyAiBudget)) {
-      throw new AiError(
-        ErrorCode.AI_BUDGET_EXCEEDED,
-        "Monthly AI budget exceeded including pending reservations",
-        "finops",
-        true
-      );
-    }
 
     // 4. Create the tracking request
     const request = await tx.aiRequest.create({
@@ -158,7 +178,7 @@ export async function settle(
         },
       });
 
-      // STRIPE 13 & 14 & 15: Create an idempotent billing meter event for usage 
+    // STRIPE 13 & 14 & 15: Create an idempotent billing meter event for usage 
       if (run.customerCharge && run.customerCharge > 0) {
         const meterEventId = `meter_${runIdempotencyKey}`;
         
@@ -181,14 +201,31 @@ export async function settle(
       }
     }
 
-    // Release the reservation lock
-    await tx.aiReservationLedger.update({
-      where: { idempotencyKey: context.requestId }, // request ID is the idempotency key for the reservation
-      data: {
-        status: "SETTLED",
-        settledAt: new Date()
-      }
+    // Release the reservation lock and update the balance
+    const reservation = await tx.aiReservationLedger.findUnique({
+      where: { idempotencyKey: context.requestId }
     });
+
+    if (reservation && reservation.status === "RESERVED") {
+      await tx.aiReservationLedger.update({
+        where: { idempotencyKey: context.requestId },
+        data: {
+          status: "SETTLED",
+          settledAt: new Date()
+        }
+      });
+      
+      const period = reservation.createdAt.toISOString().slice(0, 7);
+      const totalCustomerCharge = runs.reduce((sum, run) => sum + (run.customerCharge || 0), 0);
+
+      await tx.$executeRaw`
+        UPDATE "WorkspaceAiBudgetBalance"
+        SET "reservedUsd" = GREATEST("reservedUsd" - ${Number(reservation.reservedCostUsd)}, 0),
+            "spentUsd" = "spentUsd" + ${totalCustomerCharge},
+            "updatedAt" = NOW()
+        WHERE "workspaceId" = ${context.workspaceId} AND "period" = ${period};
+      `;
+    }
   });
 }
 
@@ -205,12 +242,27 @@ export async function release(context: ReservationContext, errorReason?: string)
       },
     });
 
-    await tx.aiReservationLedger.update({
-      where: { idempotencyKey: context.requestId },
-      data: {
-        status: "RELEASED",
-        settledAt: new Date()
-      }
+    const reservation = await tx.aiReservationLedger.findUnique({
+      where: { idempotencyKey: context.requestId }
     });
+
+    if (reservation && reservation.status === "RESERVED") {
+      await tx.aiReservationLedger.update({
+        where: { idempotencyKey: context.requestId },
+        data: {
+          status: "RELEASED",
+          settledAt: new Date()
+        }
+      });
+      
+      const period = reservation.createdAt.toISOString().slice(0, 7);
+
+      await tx.$executeRaw`
+        UPDATE "WorkspaceAiBudgetBalance"
+        SET "reservedUsd" = GREATEST("reservedUsd" - ${Number(reservation.reservedCostUsd)}, 0),
+            "updatedAt" = NOW()
+        WHERE "workspaceId" = ${context.workspaceId} AND "period" = ${period};
+      `;
+    }
   });
 }

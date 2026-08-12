@@ -30,9 +30,14 @@ export async function generateOptimizationPlan(
 ): Promise<OptimizationPlan> {
   // 1. Route to a model that supports structured output and reasoning
   const route = await routeAiRequest({
-    required: ["structured_output"],
-    preferred: ["reasoning", "long_context"]
-  }, workspaceId);
+    requirements: {
+      required: ["structured_output"],
+      preferred: ["reasoning", "long_context"]
+    },
+    workspaceId,
+    moduleKey: "optimization",
+    taskId: "planner"
+  });
 
   const provider = route.provider;
 
