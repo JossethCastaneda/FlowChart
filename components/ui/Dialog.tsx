@@ -14,7 +14,8 @@ export const Dialog: React.FC<DialogProps> = ({ isOpen, onClose, children, title
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    const t = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(t);
   }, []);
 
   useEffect(() => {

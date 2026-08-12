@@ -12,7 +12,7 @@ export function CommandMenu() {
   const router = useRouter();
 
   useEffect(() => {
-    setMounted(true);
+    const t = setTimeout(() => setMounted(true), 0);
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
@@ -20,7 +20,10 @@ export function CommandMenu() {
       }
     };
     document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
+    return () => {
+      clearTimeout(t);
+      document.removeEventListener("keydown", down);
+    }
   }, []);
 
   if (!open || !mounted) return null;

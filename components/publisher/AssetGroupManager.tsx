@@ -91,6 +91,7 @@ export function AssetGroupManager() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchGroups();
     fetchTargets();
   }, [fetchGroups, fetchTargets]);

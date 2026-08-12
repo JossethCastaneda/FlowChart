@@ -114,12 +114,12 @@ Total: **92 modelos** en el schema de Prisma.
 | **OptimizationActionExecution** | `workspaceId`, `clientId`, `actionId`, `operation`, `status` |
 | **OptimizationEvaluation** | `workspaceId`, `clientId`, `sourceSnapshotId`, `outcomeSnapshotId`, `analysisResultId` |
 | **OptimizationAuditEvent** | `workspaceId`, `clientId`, `snapshotId`, `actionId`, `actorId` |
-| **AiRequest** | `workspaceId`, `feature`, `status`, `completedAt`, `workspace` |
+| **AiRequest** | `workspaceId`, `idempotencyKey`, `feature`, `status`, `completedAt` |
 | **AiRun** | `requestId`, `workspaceId`, `provider`, `model`, `actualProviderModelId` |
-| **AiUsage** | `workspaceId`, `requestId`, `route`, `model`, `provider` |
+| **AiUsage** | `workspaceId`, `requestId`, `idempotencyKey`, `route`, `model` |
 | **AiModelPricing** | `provider`, `providerModelId`, `inputPrice`, `outputPrice`, `cachedInputPrice` |
 | **FeaturePricing** | `feature`, `pricingMode`, `fixedCost`, `creditsCost`, `currency` |
-| **WorkspaceEntitlement** | `workspaceId`, `allowedFeatures`, `monthlyAiBudget`, `dailyAutopilotAiBudget`, `maxAiCostPerRun` |
+| **WorkspaceEntitlement** | `workspaceId`, `saasPlan`, `allowedFeatures`, `monthlyAiBudget`, `dailyAutopilotAiBudget` |
 | **RateLimit** | `key`, `count`, `resetAt` |
 
 ## Relacionado

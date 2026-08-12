@@ -24,7 +24,8 @@ export function DataTable<T>({ columns, data, loading, emptyText = "Sin datos" }
     // For now we'll just use a local state that could be linked to localStorage
     const saved = localStorage.getItem("fc-density");
     if (saved === "compact" || saved === "comfortable") {
-      setDensity(saved);
+      const t = setTimeout(() => setDensity(saved), 0);
+      return () => clearTimeout(t);
     }
   }, []);
 
