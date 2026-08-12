@@ -1,3 +1,16 @@
+export interface NormalizedBillingEvent {
+  id: string;
+  type: string;
+  livemode: boolean;
+  data: unknown;
+}
+
+export interface WebhookVerificationResult {
+  success: boolean;
+  event?: NormalizedBillingEvent;
+  error?: string;
+}
+
 export interface BillingProvider {
   /**
    * Creates a customer representation in the underlying billing system.
@@ -20,7 +33,17 @@ export interface BillingProvider {
   reportUsageCharge(workspaceId: string, amount: number, description: string): Promise<void>;
 
   /**
+   * Used for metered billing (Phase C). Reports usage to modern Stripe Billing Meters.
+   * @param workspaceId FlowChart workspace ID
+   * @param idempotencyKey Unique key derived from AiUsage
+   * @param meterName Stripe Meter name
+   * @param quantity Amount of units consumed
+   */
+  sendMeterEvent(workspaceId: string, idempotencyKey: string, meterName: string, quantity: number): Promise<void>;
+
+  /**
    * Creates a hosted checkout session URL.
+
    */
   createCheckout(workspaceId: string, plan: string): Promise<string>;
 
@@ -41,8 +64,9 @@ export interface BillingProvider {
 
   /**
    * Verifies incoming webhooks from the billing provider.
+   * Takes a raw Buffer to preserve bytes for signature verification.
    */
-  verifyWebhook(payload: any, signature: string): Promise<boolean>;
+  verifyWebhook(payload: Buffer | string, signature: string): Promise<WebhookVerificationResult>;
 }
 
 export class MockBillingProvider implements BillingProvider {
@@ -58,6 +82,10 @@ export class MockBillingProvider implements BillingProvider {
 
   async reportUsageCharge(workspaceId: string, amount: number, description: string): Promise<void> {
     console.log(`[MockBilling] Reported usage charge of $${amount} to workspace ${workspaceId} for ${description}`);
+  }
+
+  async sendMeterEvent(workspaceId: string, idempotencyKey: string, meterName: string, quantity: number): Promise<void> {
+    console.log(`[MockBilling] Sent meter event ${meterName} (${quantity}) for workspace ${workspaceId} with id ${idempotencyKey}`);
   }
 
   async createCheckout(workspaceId: string, plan: string): Promise<string> {
@@ -77,8 +105,17 @@ export class MockBillingProvider implements BillingProvider {
     console.log(`[MockBilling] Refunded $${amount} to workspace ${workspaceId} for ${reason}`);
   }
 
-  async verifyWebhook(payload: any, signature: string): Promise<boolean> {
+  async verifyWebhook(payload: Buffer | string, signature: string): Promise<WebhookVerificationResult> {
     console.log(`[MockBilling] Verified webhook with signature ${signature}`);
-    return true;
+    return {
+      success: true,
+      event: {
+        id: "mock_evt_123",
+        type: "mock.event",
+        livemode: false,
+        data: {}
+      }
+    };
   }
 }
+

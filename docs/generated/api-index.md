@@ -8,7 +8,7 @@ tags: [generado, api, endpoints]
 > No lo edites manualmente — se sobreescribe en cada generación.
 > Fuente: `scripts/docs-graph.mjs`
 
-Total: **158 route handlers** en 31 grupos.
+Total: **160 route handlers** en 32 grupos.
 
 ## `/api/ads/`
 
@@ -32,6 +32,12 @@ Total: **158 route handlers** en 31 grupos.
 | `/api/auth/forgot-password` | `POST` | `app/api/auth/forgot-password/route.ts` |
 | `/api/auth/register` | `POST` | `app/api/auth/register/route.ts` |
 | `/api/auth/reset-password` | `POST` | `app/api/auth/reset-password/route.ts` |
+
+## `/api/billing/`
+
+| Ruta | Métodos | Archivo |
+|------|---------|--------|
+| `/api/billing/portal` | `POST` | `app/api/billing/portal/route.ts` |
 
 ## `/api/briefs/`
 
@@ -288,6 +294,7 @@ Total: **158 route handlers** en 31 grupos.
 |------|---------|--------|
 | `/api/webhooks/meta` | `GET` `POST` | `app/api/webhooks/meta/route.ts` |
 | `/api/webhooks/resubscribe` | `POST` | `app/api/webhooks/resubscribe/route.ts` |
+| `/api/webhooks/stripe` | `POST` | `app/api/webhooks/stripe/route.ts` |
 | `/api/webhooks/subscribe` | `GET` `POST` | `app/api/webhooks/subscribe/route.ts` |
 | `/api/webhooks/tiktok` | `GET` `POST` | `app/api/webhooks/tiktok/route.ts` |
 | `/api/webhooks/whatsapp` | `GET` `POST` | `app/api/webhooks/whatsapp/route.ts` |
