@@ -144,7 +144,7 @@ describe("FinOps: Entitlements & Reservations", () => {
     const ctx = await reserve("ws_1", "optimization_planner", 0.05, "idem_key_1");
     
     expect(prisma.$transaction).toHaveBeenCalledOnce();
-    expect(ctx.requestId).toBe("req_123");
+    expect(ctx.reservationId).toBe("req_123");
     expect(prisma.aiRequest.create).toHaveBeenCalledOnce();
   });
   
@@ -160,7 +160,7 @@ describe("FinOps: Entitlements & Reservations", () => {
     });
     
     const ctx = await reserve("ws_1", "optimization_planner", 0.05, "idem_key_1");
-    expect(ctx.requestId).toBe("req_exist_1");
+    expect(ctx.reservationId).toBe("req_exist_1");
     expect(prisma.aiRequest.create).not.toHaveBeenCalled();
     expect(prisma.workspaceEntitlement.findUnique).not.toHaveBeenCalled();
   });
@@ -169,7 +169,7 @@ describe("FinOps: Entitlements & Reservations", () => {
     vi.mocked(prisma.aiUsage.upsert).mockResolvedValue({ id: "usage_1" } as any);
     
     await settle(
-      { workspaceId: "ws_1", requestId: "req_123", feature: "optimization_planner", estimatedCost: 0.1 },
+      { workspaceId: "ws_1", reservationId: "req_123", idempotencyKey: "idem_123", feature: "optimization_planner", estimatedCost: 0.1 },
       [{ runId: "run_1", route: "/api/opt", model: "gpt-4", provider: "openai", tokensIn: 10, tokensOut: 20, providerCost: 0.04, customerCharge: 0.05 }]
     );
 

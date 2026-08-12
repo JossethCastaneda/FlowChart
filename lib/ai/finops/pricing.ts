@@ -1,7 +1,8 @@
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 export interface ProviderCostResult {
-  cost: number | null;
+  cost: Prisma.Decimal | null;
   currency: string;
 }
 
@@ -26,14 +27,19 @@ export async function calculateProviderCost(
     return { cost: null, currency: "USD" };
   }
 
-  // Cost calculation assumes prices are per 1 token to keep math simple.
+  // Cost calculation uses Prisma.Decimal for financial precision
   // E.g., if API charges $2.50 per 1M tokens, the DB should store 0.0000025.
-  let totalCost = 0;
-  totalCost += inputTokens * Number(pricing.inputPrice);
-  totalCost += outputTokens * Number(pricing.outputPrice);
-
+  let totalCost = new Prisma.Decimal(0);
+  
+  if (inputTokens > 0) {
+    totalCost = totalCost.add(new Prisma.Decimal(inputTokens).mul(pricing.inputPrice));
+  }
+  if (outputTokens > 0) {
+    totalCost = totalCost.add(new Prisma.Decimal(outputTokens).mul(pricing.outputPrice));
+  }
+  
   if (cachedTokens > 0 && pricing.cachedInputPrice) {
-    totalCost += cachedTokens * Number(pricing.cachedInputPrice);
+    totalCost = totalCost.add(new Prisma.Decimal(cachedTokens).mul(pricing.cachedInputPrice));
   }
 
   return {

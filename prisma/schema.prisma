@@ -2245,16 +2245,16 @@ model BillingCustomer {
 }
 
 model Subscription {
-  id                   String              @id @default(cuid())
-  workspaceId          String              @unique
-  stripeSubscriptionId String              @unique
+  id                   String    @id @default(cuid())
+  workspaceId          String    @unique
+  stripeSubscriptionId String    @unique
   status               String
   plan                 String
   currentPeriodEnd     DateTime
-  cancelAtPeriodEnd    Boolean             @default(false)
-  createdAt            DateTime            @default(now())
-  updatedAt            DateTime            @updatedAt
-  workspace            Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  cancelAtPeriodEnd    Boolean   @default(false)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  workspace            Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
 model BillingEvent {
@@ -2304,13 +2304,16 @@ model Invoice {
 // -----------------------------------------------------------------------------
 
 model WorkspaceAiBudgetBalance {
-  id          String   @id @default(cuid())
-  workspaceId String
-  period      String   // e.g. "2026-08"
-  spentUsd    Decimal  @default(0.00) @db.Decimal(19,4)
-  reservedUsd Decimal  @default(0.00) @db.Decimal(19,4)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                         String   @id @default(cuid())
+  workspaceId                String
+  period                     String // e.g. "2026-08"
+  customerAiAllowance        Decimal  @default(0.00) @db.Decimal(19, 4) // Maximum billable to customer
+  customerBilledUsd          Decimal  @default(0.00) @db.Decimal(19, 4) // Actual amount billed to customer
+  customerReservedUsd        Decimal  @default(0.00) @db.Decimal(19, 4) // Amount currently locked for in-flight requests
+  internalProviderSpendLimit Decimal  @default(0.00) @db.Decimal(19, 4) // Hard limit on internal API costs
+  internalProviderCostUsd    Decimal  @default(0.00) @db.Decimal(19, 4) // Actual API cost incurred
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
@@ -2474,16 +2477,16 @@ model BillingProfile {
 }
 
 model BillingRecoveryPolicy {
-  id                      String   @id @default(cuid())
-  version                 Int      @default(1)
-  gracePeriodDays         Int      @default(3)
-  notificationSchedule    Json     @default("[]") // [1, 2, 3] days
-  aiRestrictionPointDays  Int      @default(3)
-  serviceRestrictionDays  Int      @default(7)
-  unpaidBehavior          String   @default("suspend") // suspend | cancel
-  cancellationBehavior    String   @default("revoke_access")
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  id                     String   @id @default(cuid())
+  version                Int      @default(1)
+  gracePeriodDays        Int      @default(3)
+  notificationSchedule   Json     @default("[]") // [1, 2, 3] days
+  aiRestrictionPointDays Int      @default(3)
+  serviceRestrictionDays Int      @default(7)
+  unpaidBehavior         String   @default("suspend") // suspend | cancel
+  cancellationBehavior   String   @default("revoke_access")
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 }
 
 model FiscalDocument {

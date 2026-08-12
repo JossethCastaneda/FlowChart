@@ -104,8 +104,7 @@ export class FiscalRegistry {
 
     const adapter = this.getAdapter(profile.country);
     if (!adapter) {
-      // If no local fiscal requirements, fallback to standard Stripe Invoice
-      return { success: true, message: `No specific fiscal adapter required for ${profile.country}` };
+      return { success: false, error: "REQUIRES_FISCAL_REVIEW", message: `No specific fiscal adapter configured for ${profile.country}` };
     }
 
     return adapter.issueDocument(invoiceId, profile);

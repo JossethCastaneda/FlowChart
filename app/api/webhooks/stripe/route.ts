@@ -139,8 +139,12 @@ export async function POST(req: Request) {
               });
 
               if (event.type === "invoice.payment_failed") {
+                // Fetch active Recovery Policy (assumes version 1 is active, or order by latest)
+                const policy = await tx.billingRecoveryPolicy.findFirst({ orderBy: { version: 'desc' } });
+                const graceDays = policy?.gracePeriodDays || 3;
+                
                 // Create a Recovery Case and Notification
-                const gracePeriod = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days grace
+                const gracePeriod = new Date(Date.now() + graceDays * 24 * 60 * 60 * 1000);
                 await tx.billingRecoveryCase.create({
                   data: {
                     workspaceId: billingCustomer.workspaceId,

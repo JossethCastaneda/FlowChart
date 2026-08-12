@@ -101,7 +101,7 @@ export class TelemetryTracker {
     
     // Calculate provider cost using FinOps pricing
     const { cost } = await calculateProviderCost(run.provider, run.model, run.inputTokens, run.outputTokens);
-    run.costEstimateUsd = cost || 0;
+    run.costEstimateUsd = cost ? cost.toNumber() : 0;
     
     await prisma.aiRun.update({
       where: { id: run.id },
@@ -126,12 +126,12 @@ export class TelemetryTracker {
     run.endedAt = new Date();
     run.error = error.message;
     
-    let cost = 0;
+    let cost: number = 0;
     if (usage) {
       run.inputTokens = usage.promptTokens;
       run.outputTokens = usage.completionTokens;
       const calc = await calculateProviderCost(run.provider, run.model, run.inputTokens, run.outputTokens);
-      cost = calc.cost || 0;
+      cost = calc.cost ? calc.cost.toNumber() : 0;
       run.costEstimateUsd = cost;
     }
     

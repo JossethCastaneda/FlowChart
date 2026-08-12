@@ -11,71 +11,103 @@ export interface PricingEstimateParams {
   workspaces: number;
 }
 
-export interface PricingEstimateResult {
-  basePriceUsd: Prisma.Decimal;
-  seatCostUsd: Prisma.Decimal;
-  workspaceCostUsd: Prisma.Decimal;
-  subtotalUsd: Prisma.Decimal;
-  discountUsd: Prisma.Decimal;
-  totalUsd: Prisma.Decimal;
-  currency: string;
+export interface ProfitabilitySimulationResult {
+  RevenueBeforeTax: Prisma.Decimal;
+  ProviderCost: Prisma.Decimal;
+  VercelCost: Prisma.Decimal;
+  NeonCost: Prisma.Decimal;
+  StripeCost: Prisma.Decimal;
+  OtherAttributedCost: Prisma.Decimal;
+  TotalAttributedCost: Prisma.Decimal;
+  ContributionAmount: Prisma.Decimal;
+  ContributionMarginPercent: Prisma.Decimal;
+  MarkupPercent: Prisma.Decimal;
+  TargetMarginPercent: Prisma.Decimal;
+  MinimumMarginPercent: Prisma.Decimal;
+  MarginStatus: "HEALTHY" | "WARNING" | "CRITICAL";
+  TaxableBase: Prisma.Decimal;
+  TaxAmount: Prisma.Decimal;
+  CustomerTotal: Prisma.Decimal;
 }
 
 export class PricingCalculator {
-  /**
-   * Calculate estimated cost for a given plan configuration.
-   */
-  async estimatePlan(params: PricingEstimateParams): Promise<PricingEstimateResult> {
+
+  async simulateProfitability(
+    planKey: PlanKey,
+    billingPeriod: "MONTHLY" | "ANNUALLY",
+    scenario: "LOW" | "EXPECTED" | "HEAVY" | "STRESS"
+  ): Promise<ProfitabilitySimulationResult> {
     const plan = await prisma.plan.findUnique({
-      where: { key: params.planKey },
-      include: {
-        versions: {
-          where: { status: "ACTIVE" },
-          orderBy: { version: "desc" },
-          take: 1
-        }
-      }
+      where: { key: planKey },
+      include: { versions: { where: { status: "ACTIVE" }, orderBy: { version: "desc" }, take: 1 } }
     });
 
-    if (!plan || plan.versions.length === 0) {
-      throw new Error(`Plan ${params.planKey} not found or has no active versions.`);
-    }
-
+    if (!plan || plan.versions.length === 0) throw new Error(`Plan not found`);
     const version = plan.versions[0];
-    const isAnnual = params.billingPeriod === "ANNUALLY";
-    const basePriceUsd = isAnnual ? version.annualPriceUsd : version.basePriceUsd;
+    const isAnnual = billingPeriod === "ANNUALLY";
+    const RevenueBeforeTax = isAnnual ? version.annualPriceUsd : version.basePriceUsd;
+
+    // Simulation heuristics based on scenario
+    let aiCost = new Prisma.Decimal(0);
+    let neonCost = new Prisma.Decimal(0);
+    let vercelCost = new Prisma.Decimal(0);
+
+    const multipliers: Record<string, number> = { LOW: 0.2, EXPECTED: 1.0, HEAVY: 3.0, STRESS: 10.0 };
+    const mult = multipliers[scenario];
+
+    // Base expected costs (mocked logic for simulation based on DB rates)
+    aiCost = new Prisma.Decimal(2.5 * mult); 
+    neonCost = new Prisma.Decimal(0.5 * mult);
+    vercelCost = new Prisma.Decimal(1.0); // Fixed per seat mostly
+
+    const StripeCost = RevenueBeforeTax.mul(0.036).add(0.30); // Approx stripe fee
+    const TotalAttributedCost = aiCost.add(neonCost).add(vercelCost).add(StripeCost);
+    const ContributionAmount = RevenueBeforeTax.sub(TotalAttributedCost);
     
-    // Calculate additional seats
-    let seatCostUsd = new Prisma.Decimal(0);
-    const extraSeats = Math.max(0, params.seats - version.includedSeats);
-    if (extraSeats > 0) {
-      const seatPrice = isAnnual ? new Prisma.Decimal(12) : new Prisma.Decimal(15);
-      seatCostUsd = seatPrice.mul(extraSeats);
+    const RevenueNum = Number(RevenueBeforeTax);
+    const CostNum = Number(TotalAttributedCost);
+    
+    let ContributionMarginPercent = new Prisma.Decimal(0);
+    if (RevenueNum > 0) {
+       ContributionMarginPercent = new Prisma.Decimal((Number(ContributionAmount) / RevenueNum) * 100);
     }
 
-    // Calculate additional workspaces
-    let workspaceCostUsd = new Prisma.Decimal(0);
-    const extraWorkspaces = Math.max(0, params.workspaces - version.includedWs);
-    if (extraWorkspaces > 0) {
-      const wsPrice = isAnnual ? new Prisma.Decimal(24) : new Prisma.Decimal(30);
-      workspaceCostUsd = wsPrice.mul(extraWorkspaces);
+    let MarkupPercent = new Prisma.Decimal(0);
+    if (CostNum > 0) {
+       MarkupPercent = new Prisma.Decimal((RevenueNum - CostNum) / CostNum * 100);
     }
 
-    const subtotalUsd = basePriceUsd.add(seatCostUsd).add(workspaceCostUsd);
+    const TargetMarginPercent = new Prisma.Decimal(75);
+    const MinimumMarginPercent = new Prisma.Decimal(40);
     
-    // Optional: Annual discount is already factored into base, but if we wanted to show explicit discount:
-    const discountUsd = new Prisma.Decimal(0); 
-    
-    const totalUsd = subtotalUsd.sub(discountUsd);
+    let MarginStatus: "HEALTHY" | "WARNING" | "CRITICAL" = "HEALTHY";
+    if (ContributionMarginPercent.lessThan(MinimumMarginPercent)) {
+      MarginStatus = "CRITICAL";
+    } else if (ContributionMarginPercent.lessThan(TargetMarginPercent)) {
+      MarginStatus = "WARNING";
+    }
+
+    const TaxableBase = RevenueBeforeTax;
+    const TaxAmount = TaxableBase.mul(0.16); // e.g. 16% IVA
+    const CustomerTotal = TaxableBase.add(TaxAmount);
 
     return {
-      basePriceUsd,
-      seatCostUsd,
-      workspaceCostUsd,
-      subtotalUsd,
-      discountUsd,
-      totalUsd,
-      currency: "USD"
+      RevenueBeforeTax,
+      ProviderCost: aiCost,
+      VercelCost: vercelCost,
+      NeonCost: neonCost,
+      StripeCost,
+      OtherAttributedCost: new Prisma.Decimal(0),
+      TotalAttributedCost,
+      ContributionAmount,
+      ContributionMarginPercent,
+      MarkupPercent,
+      TargetMarginPercent,
+      MinimumMarginPercent,
+      MarginStatus,
+      TaxableBase,
+      TaxAmount,
+      CustomerTotal
     };
   }
 

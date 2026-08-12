@@ -104,18 +104,42 @@ export function BillingClient({
         </div>
 
         <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-lg shadow-sm text-zinc-200 col-span-1 md:col-span-2">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500 mb-2">AI Usage & Ledger</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500 mb-2">Current Period AI Billing</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div>
-              <p className="text-zinc-400 text-sm mb-1">Spent (Un-invoiced)</p>
-              <p className="text-3xl font-bold text-white">${budgetBalance.spentUsd.toFixed(2)} <span className="text-sm font-normal text-zinc-500">USD</span></p>
+              <p className="text-zinc-400 text-xs mb-1">Period Start</p>
+              <p className="text-sm text-white">{subscription?.currentPeriodStart ? new Date(subscription.currentPeriodStart).toLocaleDateString() : "N/A"}</p>
             </div>
             <div>
-              <p className="text-zinc-400 text-sm mb-1">Reserved (In-Flight)</p>
-              <p className="text-3xl font-bold text-amber-500">${budgetBalance.reservedUsd.toFixed(2)} <span className="text-sm font-normal text-zinc-500">USD</span></p>
+              <p className="text-zinc-400 text-xs mb-1">Period End (Cutoff)</p>
+              <p className="text-sm text-white">{subscription?.currentPeriodEnd ? new Date(subscription.currentPeriodEnd).toLocaleDateString() : "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-zinc-400 text-xs mb-1">Included Allowance</p>
+              <p className="text-sm text-white">${Number(entitlement?.monthlyAiBudget || 0).toFixed(2)} USD</p>
+            </div>
+            <div>
+              <p className="text-zinc-400 text-xs mb-1">Uninvoiced Subtotal</p>
+              <p className="text-sm font-bold text-amber-500">${budgetBalance.spentUsd.toFixed(2)} USD</p>
             </div>
           </div>
-          <div className="mt-6">
+          
+          <div className="bg-zinc-800 p-4 rounded-md mb-4 flex justify-between items-center text-sm">
+             <div>
+               <p className="text-zinc-400">Overage</p>
+               <p className="text-white">${Math.max(0, budgetBalance.spentUsd - Number(entitlement?.monthlyAiBudget || 0)).toFixed(2)} USD</p>
+             </div>
+             <div>
+               <p className="text-zinc-400">Tax Estimate (16%)</p>
+               <p className="text-white">${(budgetBalance.spentUsd * 0.16).toFixed(2)} USD</p>
+             </div>
+             <div className="text-right">
+               <p className="text-zinc-400">Estimated Total</p>
+               <p className="text-lg font-bold text-white">${(budgetBalance.spentUsd * 1.16).toFixed(2)} USD</p>
+             </div>
+          </div>
+
+          <div className="mt-2">
              <div className="w-full bg-zinc-800 rounded-full h-2 mb-2 relative overflow-hidden">
                 <div 
                   className="bg-blue-600 h-full absolute left-0" 
@@ -129,7 +153,7 @@ export function BillingClient({
                   }}
                 ></div>
              </div>
-             <p className="text-xs text-zinc-500">Usage is synchronized to Stripe continuously via Meter Events. Reserved budget represents AI tasks currently in progress.</p>
+             <p className="text-xs text-zinc-500">Includes uninvoiced eligible ledger entries for this period. Reserved tasks: ${budgetBalance.reservedUsd.toFixed(2)} USD.</p>
           </div>
         </div>
       </div>

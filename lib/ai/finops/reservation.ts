@@ -4,7 +4,8 @@ import { AiError, ErrorCode } from "../errors";
 
 export interface ReservationContext {
   workspaceId: string;
-  requestId: string;
+  reservationId: string;
+  idempotencyKey: string;
   feature: string;
   estimatedCost: number;
 }
@@ -27,9 +28,14 @@ export async function reserve(
     });
 
     if (existing) {
+      const existingReservation = await tx.aiReservationLedger.findUnique({
+        where: { idempotencyKey }
+      });
       return {
         workspaceId,
         requestId: existing.id,
+        reservationId: existingReservation?.id || "",
+        idempotencyKey,
         feature,
         estimatedCost
       };
@@ -61,14 +67,24 @@ export async function reserve(
 
     // Upsert equivalent via raw query for atomic locking (because Prisma upsert doesn't lock for update)
     await tx.$executeRaw`
-      INSERT INTO "WorkspaceAiBudgetBalance" ("id", "workspaceId", "period", "spentUsd", "reservedUsd", "createdAt", "updatedAt")
-      VALUES (gen_random_uuid(), ${workspaceId}, ${period}, 0, 0, NOW(), NOW())
+      INSERT INTO "WorkspaceAiBudgetBalance" (
+        "id", "workspaceId", "period", 
+        "customerAiAllowance", "customerBilledUsd", "customerReservedUsd", 
+        "internalProviderSpendLimit", "internalProviderCostUsd", 
+        "createdAt", "updatedAt"
+      )
+      VALUES (
+        gen_random_uuid(), ${workspaceId}, ${period}, 
+        0, 0, 0, 
+        0, 0, 
+        NOW(), NOW()
+      )
       ON CONFLICT ("workspaceId", "period") DO NOTHING;
     `;
 
     // Now select FOR UPDATE to lock the row for this transaction
     const balances = await tx.$queryRaw<any[]>`
-      SELECT "spentUsd", "reservedUsd" FROM "WorkspaceAiBudgetBalance"
+      SELECT "customerBilledUsd", "customerReservedUsd", "customerAiAllowance" FROM "WorkspaceAiBudgetBalance"
       WHERE "workspaceId" = ${workspaceId} AND "period" = ${period}
       FOR UPDATE;
     `;
@@ -77,12 +93,12 @@ export async function reserve(
       throw new Error("Failed to lock AiBudgetBalance");
     }
 
-    const currentSpent = Number(balances[0].spentUsd);
-    const currentReserved = Number(balances[0].reservedUsd);
-    const totalSpentAndReserved = currentSpent + currentReserved;
+    const currentSpent = Number(balances[0].customerBilledUsd);
+    const currentReserved = Number(balances[0].customerReservedUsd);
+    const allowance = Number(balances[0].customerAiAllowance);
 
-    const entitlementData = await tx.workspaceEntitlement.findUnique({ where: { workspaceId } });
-    if (entitlementData?.monthlyAiBudget && (totalSpentAndReserved + estimatedCost) > Number(entitlementData.monthlyAiBudget)) {
+    // If there is an allowance > 0, we check the limit. Otherwise we assume unrestricted/pay-as-you-go based on recovery policy
+    if (allowance > 0 && currentSpent + currentReserved + estimatedCost > allowance) {
       throw new AiError(
         ErrorCode.AI_BUDGET_EXCEEDED,
         "Monthly AI budget exceeded including pending reservations",
@@ -94,13 +110,13 @@ export async function reserve(
     // Atomic increment
     await tx.$executeRaw`
       UPDATE "WorkspaceAiBudgetBalance"
-      SET "reservedUsd" = "reservedUsd" + ${estimatedCost},
+      SET "customerReservedUsd" = "customerReservedUsd" + ${estimatedCost},
           "updatedAt" = NOW()
       WHERE "workspaceId" = ${workspaceId} AND "period" = ${period};
     `;
 
     // Insert atomic reservation ledger entry
-    await tx.aiReservationLedger.create({
+    const reservationRecord = await tx.aiReservationLedger.create({
       data: {
         workspaceId,
         idempotencyKey,
@@ -123,6 +139,8 @@ export async function reserve(
     return {
       workspaceId,
       requestId: request.id,
+      reservationId: reservationRecord.id,
+      idempotencyKey,
       feature,
       estimatedCost,
     };
@@ -149,7 +167,7 @@ export async function settle(
   await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     // Mark request as completed
     await tx.aiRequest.update({
-      where: { id: context.requestId },
+      where: { id: context.reservationId },
       data: { 
         status: "SUCCEEDED",
         completedAt: new Date()
@@ -158,14 +176,14 @@ export async function settle(
 
     // Record individual usages idempotently
     for (const run of runs) {
-      const runIdempotencyKey = `${context.requestId}-${run.runId}`;
+      const runIdempotencyKey = `${context.reservationId}-${run.runId}`;
       
       const usage = await tx.aiUsage.upsert({
         where: { idempotencyKey: runIdempotencyKey },
         update: {}, // if it exists, do nothing
         create: {
           workspaceId: context.workspaceId,
-          requestId: context.requestId,
+          requestId: context.reservationId,
           idempotencyKey: runIdempotencyKey,
           route: run.route,
           model: run.model,
@@ -203,12 +221,12 @@ export async function settle(
 
     // Release the reservation lock and update the balance
     const reservation = await tx.aiReservationLedger.findUnique({
-      where: { idempotencyKey: context.requestId }
+      where: { idempotencyKey: context.idempotencyKey }
     });
 
     if (reservation && reservation.status === "RESERVED") {
       await tx.aiReservationLedger.update({
-        where: { idempotencyKey: context.requestId },
+        where: { idempotencyKey: context.idempotencyKey },
         data: {
           status: "SETTLED",
           settledAt: new Date()
@@ -220,8 +238,8 @@ export async function settle(
 
       await tx.$executeRaw`
         UPDATE "WorkspaceAiBudgetBalance"
-        SET "reservedUsd" = GREATEST("reservedUsd" - ${Number(reservation.reservedCostUsd)}, 0),
-            "spentUsd" = "spentUsd" + ${totalCustomerCharge},
+        SET "customerReservedUsd" = GREATEST("customerReservedUsd" - ${Number(reservation.reservedCostUsd)}, 0),
+            "customerBilledUsd" = "customerBilledUsd" + ${totalCustomerCharge},
             "updatedAt" = NOW()
         WHERE "workspaceId" = ${context.workspaceId} AND "period" = ${period};
       `;
@@ -235,7 +253,7 @@ export async function settle(
 export async function release(context: ReservationContext, errorReason?: string): Promise<void> {
   await prisma.$transaction(async (tx) => {
     await tx.aiRequest.update({
-      where: { id: context.requestId },
+      where: { id: context.reservationId },
       data: { 
         status: "FAILED",
         completedAt: new Date()
@@ -243,12 +261,12 @@ export async function release(context: ReservationContext, errorReason?: string)
     });
 
     const reservation = await tx.aiReservationLedger.findUnique({
-      where: { idempotencyKey: context.requestId }
+      where: { idempotencyKey: context.idempotencyKey }
     });
 
     if (reservation && reservation.status === "RESERVED") {
       await tx.aiReservationLedger.update({
-        where: { idempotencyKey: context.requestId },
+        where: { idempotencyKey: context.idempotencyKey },
         data: {
           status: "RELEASED",
           settledAt: new Date()
@@ -259,7 +277,7 @@ export async function release(context: ReservationContext, errorReason?: string)
 
       await tx.$executeRaw`
         UPDATE "WorkspaceAiBudgetBalance"
-        SET "reservedUsd" = GREATEST("reservedUsd" - ${Number(reservation.reservedCostUsd)}, 0),
+        SET "customerReservedUsd" = GREATEST("customerReservedUsd" - ${Number(reservation.reservedCostUsd)}, 0),
             "updatedAt" = NOW()
         WHERE "workspaceId" = ${context.workspaceId} AND "period" = ${period};
       `;

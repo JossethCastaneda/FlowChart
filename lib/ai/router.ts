@@ -82,6 +82,11 @@ export interface RoutedModel {
   modelId: string;
   providerModelId: string;
   tier?: ModelTier;
+  auditTrail?: {
+    reason: string;
+    candidatesConsidered: string[];
+    selectedMode: "SMART" | "LOCKED";
+  };
 }
 
 export interface RouteAiRequestOptions {
@@ -126,16 +131,28 @@ export async function routeAiRequest(
         provider: pref.provider,
         modelId: preferredModelId,
         providerModelId: preferredModelId,
+        auditTrail: {
+          reason: "Model missing from catalog, fallback forced",
+          candidatesConsidered: [preferredModelId],
+          selectedMode: "LOCKED"
+        }
       };
     }
     
+    // Strict PROVIDER_LOCKED verification
     if (!satisfiesRequirements(matchedModel.capabilities, requirements)) {
-      logger.warn("[AI Router] LOCKED mode model does not strictly satisfy requirements, but forcing due to LOCKED policy", { preferredModelId, requirements });
+      throw new Error(`[AI Router] STRICT ENFORCEMENT: LOCKED mode model (${preferredModelId}) lacks required capabilities: ${requirements.required.join(", ")}`);
     }
+    
     return {
       provider: pref.provider,
       modelId: preferredModelId,
-      providerModelId: matchedModel.providerModelId
+      providerModelId: matchedModel.providerModelId,
+      auditTrail: {
+        reason: "User enforced PROVIDER_LOCKED policy",
+        candidatesConsidered: [preferredModelId],
+        selectedMode: "LOCKED"
+      }
     };
   }
   
@@ -175,15 +192,21 @@ export async function routeAiRequest(
     throw new Error(`No available AI models satisfy the requirements: ${requirements.required.join(", ")}`);
   }
 
-  // Sort candidates by cost (input + output) for SMART routing
-  candidates.sort((a, b) => (a.model.inputPerM + a.model.outputPerM) - (b.model.inputPerM + b.model.outputPerM));
+  // Sort candidates by power (lowest power first to minimize cost), then by catalog order
+  candidates.sort((a, b) => a.model.power - b.model.power);
 
-  // The first candidate is now the least-cost capable model
+  // The first candidate is now the least-power capable model (closest to target tier)
   const smartChoice = candidates[0];
   
   return {
     provider: getProvider(smartChoice.providerId as any),
     modelId: smartChoice.model.id,
-    providerModelId: smartChoice.model.providerModelId
+    providerModelId: smartChoice.model.providerModelId,
+    tier: targetTier || "E1",
+    auditTrail: {
+      reason: `SMART routing selected least-power capable model (Power: ${smartChoice.model.power}) satisfying requirements.`,
+      candidatesConsidered: candidates.map(c => c.model.id),
+      selectedMode: "SMART"
+    }
   };
 }

@@ -126,7 +126,7 @@ Total: **113 modelos** en el schema de Prisma.
 | **BillingEvent** | `stripeEventId`, `eventType`, `livemode`, `processingStatus`, `error` |
 | **BillingUsageEvent** | `workspaceId`, `aiUsageId`, `stripeMeterEventIdentifier`, `meterName`, `quantity` |
 | **Invoice** | `workspaceId`, `stripeInvoiceId`, `status`, `currency`, `amountDue` |
-| **WorkspaceAiBudgetBalance** | `workspaceId`, `period`, `spentUsd`, `reservedUsd`, `workspace` |
+| **WorkspaceAiBudgetBalance** | `workspaceId`, `period`, `customerAiAllowance`, `customerBilledUsd`, `customerReservedUsd` |
 | **AiReservationLedger** | `workspaceId`, `idempotencyKey`, `feature`, `reservedCostUsd`, `status` |
 | **ExternalCostRate** | `provider`, `component`, `unit`, `amount`, `currency` |
 | **Plan** | `key`, `name`, `description`, `versions` |

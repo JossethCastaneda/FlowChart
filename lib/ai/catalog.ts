@@ -15,10 +15,6 @@ export interface CatalogModel {
   providerModelId: string;
   label: string;
   note: string;
-  /** USD por 1 millón de tokens de entrada. */
-  inputPerM: number;
-  /** USD por 1 millón de tokens de salida. */
-  outputPerM: number;
   /** Potencia relativa 1–5 (capacidad de razonamiento/calidad de salida). */
   power: 1 | 2 | 3 | 4 | 5;
   performance: string;
@@ -62,8 +58,6 @@ export const AI_CATALOG: CatalogProvider[] = [
         providerModelId: "gemini-1.5-flash-latest",
         label: "Gemini 1.5 Flash",
         note: "Rápido y económico (recomendado)",
-        inputPerM: 0.35,
-        outputPerM: 1.05,
         power: 3,
         performance: "Respuestas casi instantáneas en toda la plataforma; ideal para la operación diaria.",
         capabilities: ["text", "structured_output", "vision", "tool_calling", "long_context", "streaming"],
@@ -73,8 +67,6 @@ export const AI_CATALOG: CatalogProvider[] = [
         providerModelId: "gemini-1.5-pro-latest",
         label: "Gemini 1.5 Pro",
         note: "Más capacidad, algo más lento",
-        inputPerM: 3.5,
-        outputPerM: 10.5,
         power: 4,
         performance: "Mayor profundidad de análisis en tareas complejas.",
         capabilities: ["text", "structured_output", "vision", "tool_calling", "long_context", "reasoning", "streaming"],
@@ -101,8 +93,6 @@ export const AI_CATALOG: CatalogProvider[] = [
         providerModelId: "gpt-4o",
         label: "GPT-4o",
         note: "Equilibrado (recomendado)",
-        inputPerM: 5,
-        outputPerM: 15,
         power: 4,
         performance: "Equilibrio sólido entre razonamiento y velocidad.",
         capabilities: ["text", "structured_output", "vision", "tool_calling", "streaming"],
@@ -112,8 +102,6 @@ export const AI_CATALOG: CatalogProvider[] = [
         providerModelId: "gpt-4o-mini",
         label: "GPT-4o mini",
         note: "Multimodal económico",
-        inputPerM: 0.15,
-        outputPerM: 0.6,
         power: 3,
         performance: "Alta calidad a una fracción del costo.",
         capabilities: ["text", "structured_output", "vision", "tool_calling", "streaming"],
@@ -123,8 +111,6 @@ export const AI_CATALOG: CatalogProvider[] = [
         providerModelId: "o1-mini",
         label: "o1-mini",
         note: "Razonamiento estructurado",
-        inputPerM: 3,
-        outputPerM: 12,
         power: 5,
         performance: "Razonamiento profundo para resolución de problemas complejos.",
         capabilities: ["text", "reasoning", "streaming"], // usually no tool_calling/structured_output for o1-mini in some APIs, mapping conservatively
@@ -151,8 +137,6 @@ export const AI_CATALOG: CatalogProvider[] = [
         providerModelId: "claude-3-opus-20240229",
         label: "Claude 3 Opus",
         note: "Máxima capacidad",
-        inputPerM: 15,
-        outputPerM: 75,
         power: 5,
         performance: "La máxima capacidad del catálogo; profundidad y criterio superiores.",
         capabilities: ["text", "vision", "tool_calling", "long_context", "streaming"],
@@ -162,8 +146,6 @@ export const AI_CATALOG: CatalogProvider[] = [
         providerModelId: "claude-3-5-sonnet-20240620",
         label: "Claude 3.5 Sonnet",
         note: "Balance costo/calidad (recomendado)",
-        inputPerM: 3,
-        outputPerM: 15,
         power: 4,
         performance: "Análisis matizado y velocidad superior.",
         capabilities: ["text", "vision", "tool_calling", "long_context", "structured_output", "streaming"],
@@ -173,8 +155,6 @@ export const AI_CATALOG: CatalogProvider[] = [
         providerModelId: "claude-3-haiku-20240307",
         label: "Claude 3 Haiku",
         note: "Rápido y económico",
-        inputPerM: 0.25,
-        outputPerM: 1.25,
         power: 3,
         performance: "Rápido y confiable; excelente relación velocidad-calidad.",
         capabilities: ["text", "vision", "tool_calling", "streaming"],

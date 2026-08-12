@@ -1,6 +1,9 @@
 import prisma from "../prisma";
 import { Resend } from "resend";
 
+if (!process.env.RESEND_API_KEY && process.env.NODE_ENV === "production") {
+  throw new Error("RESEND_API_KEY is required in production");
+}
 const resend = new Resend(process.env.RESEND_API_KEY || "re_mock");
 
 export class BillingNotifier {
@@ -56,8 +59,11 @@ export class BillingNotifier {
         // Resend officially supports X-Entity-Ref-ID (X-Entity-Ref) to avoid double-sends
         const emailParams = this.buildEmailTemplate(notif);
 
-        await resend.emails.send({
-          from: "billing@flowchart.com",
+        const fromEmail = process.env.RESEND_FROM_EMAIL;
+        if (!fromEmail) throw new Error("RESEND_FROM_EMAIL is not configured");
+
+        const response = await resend.emails.send({
+          from: fromEmail,
           to: emailTo,
           subject: emailParams.subject,
           html: emailParams.html,
@@ -67,13 +73,18 @@ export class BillingNotifier {
           }
         });
 
+        if (response.error) {
+           throw new Error(response.error.message);
+        }
+
         // Mark sent
         await prisma.billingNotification.update({
           where: { id: notif.id },
           data: {
             status: "SENT",
             sentAt: new Date(),
-            lastError: null
+            lastError: null,
+            providerMsgId: response.data?.id
           }
         });
       } catch (err: any) {
