@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { checkAiLimit, recordAiUsage } from "@/lib/ai/metering";
 import prisma from "@/lib/prisma";
 import * as limits from "@/lib/plan-limits";
+import { Prisma } from "@prisma/client";
 
 vi.mock("@/lib/prisma", () => {
   return {
@@ -102,8 +103,8 @@ describe("AI Metering (metering.ts)", () => {
         model: "gpt-4",
         tokensIn: 10,
         tokensOut: 20,
-        providerCostUsd: 0.04,
-        customerChargeUsd: 0.05,
+        providerCostUsd: new Prisma.Decimal(0.04),
+        customerChargeUsd: new Prisma.Decimal(0.05),
         feature: "test-feature",
       });
       

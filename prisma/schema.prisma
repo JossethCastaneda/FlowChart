@@ -128,6 +128,12 @@ model Workspace {
   billingCustomer         BillingCustomer?
   subscription            Subscription?
   invoices                Invoice[]
+  aiReservationLedgers    AiReservationLedger[]
+  billingLedgerEntries    BillingLedgerEntry[]
+  billingProfile          BillingProfile?
+  fiscalDocuments         FiscalDocument[]
+  billingNotifications    BillingNotification[]
+  billingRecoveryCases    BillingRecoveryCase[]
 }
 
 // ------------------------------------------------------
@@ -2140,8 +2146,8 @@ model AiRun {
   outputTokens Int @default(0)
   cachedTokens Int @default(0)
 
-  providerCost Float? // Null if unknown, real provider cost in USD
-  currency     String @default("USD")
+  providerCost Decimal? @db.Decimal(19, 4) // Null if unknown, real provider cost in USD
+  currency     String   @default("USD")
 
   fallbackFromRunId String? // If this run was a fallback, point to failed run
   errorCode         String?
@@ -2163,8 +2169,8 @@ model AiUsage {
   provider          String?
   tokensIn          Int      @default(0)
   tokensOut         Int      @default(0)
-  providerCostUsd   Float? // Exact cost from the provider
-  customerChargeUsd Float? // Price billed to the customer (ledger value)
+  providerCostUsd   Decimal? @db.Decimal(19, 4) // Exact cost from the provider
+  customerChargeUsd Decimal? @db.Decimal(19, 4) // Price billed to the customer (ledger value)
   feature           String?
   createdAt         DateTime @default(now())
 
@@ -2180,9 +2186,9 @@ model AiModelPricing {
   id               String    @id @default(cuid())
   provider         String
   providerModelId  String
-  inputPrice       Float // Cost per 1 token (or 1M, handled by calc logic)
-  outputPrice      Float
-  cachedInputPrice Float?
+  inputPrice       Decimal   @db.Decimal(19, 6) // Cost per 1 token (or 1M, handled by calc logic)
+  outputPrice      Decimal   @db.Decimal(19, 6)
+  cachedInputPrice Decimal?  @db.Decimal(19, 6)
   currency         String    @default("USD")
   effectiveFrom    DateTime  @default(now())
   effectiveTo      DateTime?
@@ -2195,7 +2201,7 @@ model FeaturePricing {
   id          String   @id @default(cuid())
   feature     String   @unique // e.g. "optimization_planner"
   pricingMode String // INCLUDED, CREDITS, USAGE_BASED, FIXED, OVERAGE
-  fixedCost   Float? // If FIXED
+  fixedCost   Decimal? @db.Decimal(19, 4) // If FIXED
   creditsCost Int? // If CREDITS
   currency    String   @default("USD")
   createdAt   DateTime @default(now())
@@ -2203,14 +2209,14 @@ model FeaturePricing {
 }
 
 model WorkspaceEntitlement {
-  id              String   @id @default(cuid())
-  workspaceId     String   @unique
-  saasPlan        String   @default("FREE") // SaaS product plan
-  allowedFeatures String[] // ["AI_GENERATION", "AUTOPILOT"]
-  monthlyAiBudget Float? // Financial limit in USD
-
-  dailyAutopilotAiBudget Float?
-  maxAiCostPerRun        Float?
+  id                     String   @id @default(cuid())
+  workspaceId            String   @unique
+  saasPlan               String   @default("FREE") // SaaS product plan
+  allowedFeatures        String[] // ["AI_GENERATION", "AUTOPILOT"]
+  monthlyAiBudget        Decimal? @db.Decimal(19, 4) // Financial limit in USD
+  autopilotEnabled       Boolean  @default(false)
+  dailyAutopilotAiBudget Decimal? @db.Decimal(19, 4)
+  maxAiCostPerRun        Decimal? @db.Decimal(19, 4)
   availableCredits       Int      @default(0)
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
@@ -2238,16 +2244,17 @@ model BillingCustomer {
 }
 
 model Subscription {
-  id                   String    @id @default(cuid())
-  workspaceId          String    @unique
-  stripeSubscriptionId String    @unique
+  id                   String              @id @default(cuid())
+  workspaceId          String              @unique
+  stripeSubscriptionId String              @unique
   status               String
   plan                 String
   currentPeriodEnd     DateTime
-  cancelAtPeriodEnd    Boolean   @default(false)
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-  workspace            Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  cancelAtPeriodEnd    Boolean             @default(false)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  workspace            Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  subscriptionAddons   SubscriptionAddon[]
 }
 
 model BillingEvent {
@@ -2290,4 +2297,240 @@ model Invoice {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   workspace        Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+// -----------------------------------------------------------------------------
+// COMMERCIAL & FINANCIAL OS (CF-0 to CF-11)
+// -----------------------------------------------------------------------------
+
+model AiReservationLedger {
+  id              String    @id @default(cuid())
+  workspaceId     String
+  idempotencyKey  String    @unique
+  feature         String
+  reservedCostUsd Decimal   @db.Decimal(19, 4)
+  status          String    @default("RESERVED") // RESERVED, SETTLED, RELEASED
+  createdAt       DateTime  @default(now())
+  settledAt       DateTime?
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, status])
+}
+
+model ExternalCostRate {
+  id            String    @id @default(cuid())
+  provider      String // Vercel, Neon, Stripe, OpenAI, Anthropic, Google
+  component     String // e.g., platform_fee, compute, storage, gpt-4o-input
+  unit          String // e.g., month, 1M_tokens, GB, charge
+  amount        Decimal   @db.Decimal(19, 6)
+  currency      String    @default("USD")
+  effectiveFrom DateTime  @default(now())
+  effectiveTo   DateTime?
+  sourceUrl     String?   @db.Text
+  notes         String?   @db.Text
+  createdAt     DateTime  @default(now())
+}
+
+model Plan {
+  id          String        @id @default(cuid())
+  key         String        @unique // STARTER, PRO, AGENCY, ENTERPRISE
+  name        String
+  description String?
+  versions    PlanVersion[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model PlanVersion {
+  id             String    @id @default(cuid())
+  planId         String
+  version        Int
+  status         String    @default("DRAFT") // DRAFT, SCHEDULED, ACTIVE, RETIRED
+  effectiveFrom  DateTime  @default(now())
+  effectiveTo    DateTime?
+  basePriceUsd   Decimal   @db.Decimal(19, 4)
+  annualPriceUsd Decimal   @db.Decimal(19, 4)
+  includedSeats  Int       @default(1)
+  includedWs     Int       @default(1) // Workspaces/Projects
+
+  plan      Plan         @relation(fields: [planId], references: [id], onDelete: Cascade)
+  modules   PlanModule[]
+  prices    PlanPrice[]
+  createdAt DateTime     @default(now())
+}
+
+model PlanPrice {
+  id            String      @id @default(cuid())
+  planVersionId String
+  stripePriceId String
+  billingPeriod String // MONTHLY, ANNUALLY
+  planVersion   PlanVersion @relation(fields: [planVersionId], references: [id], onDelete: Cascade)
+}
+
+model Module {
+  id                 String       @id @default(cuid())
+  key                String       @unique
+  name               String
+  description        String?      @db.Text
+  category           String
+  status             String       @default("ACTIVE")
+  implementationType String // FULL_STACK, BACKEND, FRONTEND, INFRASTRUCTURE
+  isPurchasable      Boolean      @default(false)
+  isAddon            Boolean      @default(false)
+  frontendRoute      String?
+  planModules        PlanModule[]
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+}
+
+model PlanModule {
+  id            String @id @default(cuid())
+  planVersionId String
+  moduleId      String
+  inclusion     String // INCLUDED, OPTIONAL, NOT_AVAILABLE
+  usageLimit    Int?
+
+  planVersion PlanVersion @relation(fields: [planVersionId], references: [id], onDelete: Cascade)
+  module      Module      @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([planVersionId, moduleId])
+}
+
+model Addon {
+  id          String         @id @default(cuid())
+  key         String         @unique
+  name        String
+  description String?
+  versions    AddonVersion[]
+  createdAt   DateTime       @default(now())
+}
+
+model AddonVersion {
+  id            String  @id @default(cuid())
+  addonId       String
+  monthlyPrice  Decimal @db.Decimal(19, 4)
+  annualPrice   Decimal @db.Decimal(19, 4)
+  stripePriceId String
+  status        String  @default("ACTIVE")
+  addon         Addon   @relation(fields: [addonId], references: [id], onDelete: Cascade)
+}
+
+model SubscriptionAddon {
+  id             String @id @default(cuid())
+  subscriptionId String
+  addonId        String
+  quantity       Int    @default(1)
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  // Assuming addon references Addon model directly for simplicity
+  createdAt    DateTime     @default(now())
+}
+
+model AiPackage {
+  id        String             @id @default(cuid())
+  key       String             @unique // GEMINI, GPT, CLAUDE, SMART
+  name      String
+  versions  AiPackageVersion[]
+  createdAt DateTime           @default(now())
+}
+
+model AiPackageVersion {
+  id                String  @id @default(cuid())
+  packageId         String
+  status            String  @default("ACTIVE")
+  baseFeeUsd        Decimal @db.Decimal(19, 4)
+  includedUnits     Int     @default(0)
+  variableUnitPrice Decimal @db.Decimal(19, 6) // price per unit
+
+  package   AiPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+}
+
+model BillingLedgerEntry {
+  id          String    @id @default(cuid())
+  workspaceId String
+  type        String // SUBSCRIPTION, MODULE, AI_BASE, AI_USAGE, CREDIT, TAX
+  source      String // Stripe Invoice ID, etc
+  sourceId    String?
+  quantity    Int       @default(1)
+  unit        String // month, ai_billable_unit
+  unitAmount  Decimal   @db.Decimal(19, 4)
+  subtotal    Decimal   @db.Decimal(19, 4)
+  currency    String    @default("USD")
+  periodStart DateTime?
+  periodEnd   DateTime?
+  createdAt   DateTime  @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model BillingProfile {
+  id             String  @id @default(cuid())
+  workspaceId    String  @unique
+  legalName      String?
+  entityType     String? // BUSINESS, INDIVIDUAL
+  billingEmail   String?
+  country        String?
+  address        String? @db.Text
+  taxIdType      String?
+  taxId          String?
+  fiscalMetadata Json?
+
+  notifyOwner           Boolean @default(true)
+  paymentFailedEmail    Boolean @default(true)
+  invoiceAvailableEmail Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model FiscalDocument {
+  id           String    @id @default(cuid())
+  workspaceId  String
+  invoiceId    String?
+  status       String // ISSUED, CANCELED
+  uuid         String?   @unique // CFDI UUID
+  xmlUrl       String?
+  pdfUrl       String?
+  issuedAt     DateTime?
+  canceledAt   DateTime?
+  jurisdiction String    @default("MX")
+  metadata     Json?
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+}
+
+model BillingNotification {
+  id             String    @id @default(cuid())
+  workspaceId    String
+  invoiceId      String?
+  type           String // INVOICE_AVAILABLE, PAYMENT_FAILED, PAST_DUE, etc.
+  recipient      String
+  channel        String // EMAIL, WHATSAPP, IN_APP
+  status         String    @default("PENDING") // PENDING, SENT, FAILED
+  idempotencyKey String    @unique
+  attempts       Int       @default(0)
+  providerMsgId  String?
+  lastError      String?
+  sentAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model BillingRecoveryCase {
+  id             String    @id @default(cuid())
+  workspaceId    String
+  invoiceId      String
+  status         String    @default("ACTIVE") // ACTIVE, RESOLVED, CANCELED
+  gracePeriodEnd DateTime?
+  restrictedAt   DateTime?
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }

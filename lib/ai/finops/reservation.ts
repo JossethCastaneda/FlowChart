@@ -47,7 +47,50 @@ export async function reserve(
       );
     }
 
-    // 3. Create the tracking request
+    // 3. Durably Reserve estimated financial capacity
+    if (check.maxCostPerRun !== undefined && estimatedCost > check.maxCostPerRun) {
+      throw new AiError(
+        ErrorCode.AI_BUDGET_EXCEEDED,
+        `Estimated cost (${estimatedCost}) exceeds max cost per run (${check.maxCostPerRun})`,
+        "finops",
+        false
+      );
+    }
+
+    // Insert atomic reservation ledger entry
+    await tx.aiReservationLedger.create({
+      data: {
+        workspaceId,
+        idempotencyKey,
+        feature,
+        reservedCostUsd: estimatedCost,
+        status: "RESERVED"
+      }
+    });
+
+    // Summing budget and validating (transaction-safe)
+    const currentUsage = await tx.aiUsage.aggregate({
+      where: { workspaceId, createdAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) } },
+      _sum: { customerChargeUsd: true }
+    });
+    const currentReserved = await tx.aiReservationLedger.aggregate({
+      where: { workspaceId, status: "RESERVED" },
+      _sum: { reservedCostUsd: true }
+    });
+
+    const totalSpentAndReserved = (Number(currentUsage._sum.customerChargeUsd) || 0) + (Number(currentReserved._sum.reservedCostUsd) || 0);
+
+    const entitlementData = await tx.workspaceEntitlement.findUnique({ where: { workspaceId } });
+    if (entitlementData?.monthlyAiBudget && totalSpentAndReserved > Number(entitlementData.monthlyAiBudget)) {
+      throw new AiError(
+        ErrorCode.AI_BUDGET_EXCEEDED,
+        "Monthly AI budget exceeded including pending reservations",
+        "finops",
+        true
+      );
+    }
+
+    // 4. Create the tracking request
     const request = await tx.aiRequest.create({
       data: {
         workspaceId,
@@ -119,8 +162,6 @@ export async function settle(
       if (run.customerCharge && run.customerCharge > 0) {
         const meterEventId = `meter_${runIdempotencyKey}`;
         
-        // We ensure we don't emit to Stripe twice by relying on Prisma unique constraint
-        // If tx.billingUsageEvent.findUnique returns nothing, we insert and trigger async push
         const existingMeter = await tx.billingUsageEvent.findUnique({
           where: { stripeMeterEventIdentifier: meterEventId }
         });
@@ -132,17 +173,22 @@ export async function settle(
               aiUsageId: usage.id,
               stripeMeterEventIdentifier: meterEventId,
               meterName: "ai_billable_units", // the commercial unit (e.g. cents)
-              quantity: Math.ceil(run.customerCharge * 100), // explicit conversion from USD to billable units
+              quantity: Math.round(run.customerCharge * 100), // explicit conversion from USD to billable units (cents)
             }
           });
-
-          // Normally, we would emit a queue message or background job here to actually POST to Stripe.
-          // The actual Stripe API call shouldn't block the transaction. 
-          // For now, we simulate the side-effect via an out-of-band console log or asynchronous fetch
           console.log(`[Billing Meter] Enqueued usage sync for ${meterEventId} to Stripe.`);
         }
       }
     }
+
+    // Release the reservation lock
+    await tx.aiReservationLedger.update({
+      where: { idempotencyKey: context.requestId }, // request ID is the idempotency key for the reservation
+      data: {
+        status: "SETTLED",
+        settledAt: new Date()
+      }
+    });
   });
 }
 
@@ -150,11 +196,21 @@ export async function settle(
  * Releases the reservation in case of overall failure (e.g., all fallbacks failed).
  */
 export async function release(context: ReservationContext, errorReason?: string): Promise<void> {
-  await prisma.aiRequest.update({
-    where: { id: context.requestId },
-    data: { 
-      status: "FAILED",
-      completedAt: new Date()
-    },
+  await prisma.$transaction(async (tx) => {
+    await tx.aiRequest.update({
+      where: { id: context.requestId },
+      data: { 
+        status: "FAILED",
+        completedAt: new Date()
+      },
+    });
+
+    await tx.aiReservationLedger.update({
+      where: { idempotencyKey: context.requestId },
+      data: {
+        status: "RELEASED",
+        settledAt: new Date()
+      }
+    });
   });
 }

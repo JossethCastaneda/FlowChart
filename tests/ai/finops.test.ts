@@ -3,14 +3,17 @@ import { calculateProviderCost } from "@/lib/ai/finops/pricing";
 import { reserve, settle, release } from "@/lib/ai/finops/reservation";
 import { checkEntitlement } from "@/lib/ai/finops/entitlements";
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 const { mockPrisma } = vi.hoisted(() => {
   const mPrisma: any = {
     $transaction: vi.fn(async (cb) => cb(mPrisma)),
     aiModelPricing: { findFirst: vi.fn() },
     workspaceEntitlement: { findUnique: vi.fn() },
-    aiUsage: { aggregate: vi.fn(), create: vi.fn(), upsert: vi.fn() },
+    aiUsage: { aggregate: vi.fn().mockResolvedValue({ _sum: { customerChargeUsd: 0 } }), create: vi.fn(), upsert: vi.fn() },
     aiRequest: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
+    aiReservationLedger: { create: vi.fn(), update: vi.fn(), aggregate: vi.fn().mockResolvedValue({ _sum: { reservedCostUsd: 0 } }) },
+    billingUsageEvent: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn() }
   };
   return { mockPrisma: mPrisma };
 });
@@ -30,9 +33,9 @@ describe("FinOps: Pricing", () => {
       id: "price_1",
       provider: "openai",
       providerModelId: "gpt-4o",
-      inputPrice: 0.000005,
-      outputPrice: 0.000015,
-      cachedInputPrice: 0.0000025,
+      inputPrice: new Prisma.Decimal(0.000005),
+      outputPrice: new Prisma.Decimal(0.000015),
+      cachedInputPrice: new Prisma.Decimal(0.0000025),
       currency: "USD",
       effectiveFrom: new Date(),
       effectiveTo: null,
@@ -73,7 +76,8 @@ describe("FinOps: Entitlements & Reservations", () => {
       workspaceId: "ws_1",
       saasPlan: "PRO",
       allowedFeatures: ["optimization_planner"],
-      monthlyAiBudget: 100,
+      monthlyAiBudget: new Prisma.Decimal(100),
+      autopilotEnabled: false,
       dailyAutopilotAiBudget: null,
       maxAiCostPerRun: null,
       availableCredits: 0,
@@ -95,7 +99,8 @@ describe("FinOps: Entitlements & Reservations", () => {
       workspaceId: "ws_1",
       saasPlan: "PRO",
       allowedFeatures: ["optimization_planner"],
-      monthlyAiBudget: 100,
+      monthlyAiBudget: new Prisma.Decimal(100),
+      autopilotEnabled: false,
       dailyAutopilotAiBudget: null,
       maxAiCostPerRun: null,
       availableCredits: 0,
@@ -118,6 +123,7 @@ describe("FinOps: Entitlements & Reservations", () => {
       saasPlan: "PRO",
       allowedFeatures: ["optimization_planner"],
       monthlyAiBudget: null,
+      autopilotEnabled: false,
       dailyAutopilotAiBudget: null,
       maxAiCostPerRun: null,
       availableCredits: 0,
@@ -160,6 +166,8 @@ describe("FinOps: Entitlements & Reservations", () => {
   });
 
   it("settle marks request succeeded and creates usages using upsert for idempotency", async () => {
+    vi.mocked(prisma.aiUsage.upsert).mockResolvedValue({ id: "usage_1" } as any);
+    
     await settle(
       { workspaceId: "ws_1", requestId: "req_123", feature: "optimization_planner", estimatedCost: 0.1 },
       [{ runId: "run_1", route: "/api/opt", model: "gpt-4", provider: "openai", tokensIn: 10, tokensOut: 20, providerCost: 0.04, customerCharge: 0.05 }]

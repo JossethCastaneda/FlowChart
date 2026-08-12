@@ -5,23 +5,31 @@ import prisma from '@/lib/prisma';
 
 // Mock Prisma
 vi.mock('@/lib/prisma', () => {
-  return {
-    default: {
-      billingUsageEvent: {
-        findMany: vi.fn(),
-        update: vi.fn(),
-        updateMany: vi.fn(),
-        create: vi.fn(),
-      },
-      billingCustomer: {
-        findUnique: vi.fn(),
-        create: vi.fn(),
-      },
-      workspaceMember: {
-        findUnique: vi.fn(),
-      }
+  const mPrisma: any = {
+    $transaction: vi.fn(async (cb) => cb(mPrisma)),
+    $queryRaw: vi.fn().mockResolvedValue([{
+      id: 'evt_1',
+      workspaceId: 'ws_1',
+      stripeMeterEventIdentifier: 'm_1',
+      meterName: 'tokens',
+      quantity: 100,
+      attempts: 0
+    }]),
+    billingUsageEvent: {
+      findMany: vi.fn(),
+      update: vi.fn(),
+      updateMany: vi.fn(),
+      create: vi.fn(),
+    },
+    billingCustomer: {
+      findUnique: vi.fn(),
+      create: vi.fn(),
+    },
+    workspaceMember: {
+      findUnique: vi.fn(),
     }
   };
+  return { default: mPrisma };
 });
 
 describe('Stripe Stage 8 Billing Matrix', () => {
@@ -53,7 +61,7 @@ describe('Stripe Stage 8 Billing Matrix', () => {
       const mockEvents = [
         { id: 'evt_1', workspaceId: 'ws_1', stripeMeterEventIdentifier: 'm_1', meterName: 'tokens', quantity: 100, attempts: 0 }
       ];
-      (prisma.billingUsageEvent.findMany as any).mockResolvedValue(mockEvents);
+      (prisma.$queryRaw as any).mockResolvedValue(mockEvents);
       (prisma.billingCustomer.findUnique as any).mockResolvedValue({ stripeCustomerId: 'cus_123' });
 
       const dispatcher = new BillingOutboxDispatcher();
@@ -73,7 +81,7 @@ describe('Stripe Stage 8 Billing Matrix', () => {
       const mockEvents = [
         { id: 'evt_1', workspaceId: 'ws_1', stripeMeterEventIdentifier: 'm_1', meterName: 'tokens', quantity: 100, attempts: 0 }
       ];
-      (prisma.billingUsageEvent.findMany as any).mockResolvedValue(mockEvents);
+      (prisma.$queryRaw as any).mockResolvedValue(mockEvents);
       (prisma.billingCustomer.findUnique as any).mockResolvedValue({ stripeCustomerId: 'cus_123' });
 
       const dispatcher = new BillingOutboxDispatcher();
@@ -84,6 +92,39 @@ describe('Stripe Stage 8 Billing Matrix', () => {
       expect(prisma.billingUsageEvent.update).toHaveBeenCalledWith({
         where: { id: 'evt_1' },
         data: expect.objectContaining({ status: 'FAILED', lastError: 'Stripe API Timeout' })
+      });
+    });
+
+    it('prevents concurrent dispatch of the same pending event', async () => {
+      // Setup the scenario where the second dispatcher doesn't find the event 
+      // because the first one's SQL query already claimed it.
+      const mockEvent = { id: 'evt_1', workspaceId: 'ws_1', stripeMeterEventIdentifier: 'm_1', meterName: 'tokens', quantity: 100, attempts: 0 };
+      
+      // Dispatcher 1 finds it
+      (prisma.$queryRaw as any).mockResolvedValueOnce([mockEvent]);
+      // Dispatcher 2 finds nothing
+      (prisma.$queryRaw as any).mockResolvedValueOnce([]);
+
+      const dispatcher1 = new BillingOutboxDispatcher();
+      const dispatcher2 = new BillingOutboxDispatcher();
+
+      (dispatcher1 as any).provider.sendMeterEvent = vi.fn().mockResolvedValue(true);
+      (dispatcher2 as any).provider.sendMeterEvent = vi.fn().mockResolvedValue(true);
+      (prisma.billingCustomer.findUnique as any).mockResolvedValue({ stripeCustomerId: 'cus_123' });
+
+      await Promise.all([
+        dispatcher1.flushOutbox(),
+        dispatcher2.flushOutbox()
+      ]);
+
+      // Assert only 1 sendMeterEvent was called
+      expect((dispatcher1 as any).provider.sendMeterEvent).toHaveBeenCalledTimes(1);
+      expect((dispatcher2 as any).provider.sendMeterEvent).toHaveBeenCalledTimes(0);
+      
+      // Assert the update was called for dispatcher 1
+      expect(prisma.billingUsageEvent.update).toHaveBeenCalledWith({
+        where: { id: 'evt_1' },
+        data: expect.objectContaining({ status: 'SENT' })
       });
     });
   });

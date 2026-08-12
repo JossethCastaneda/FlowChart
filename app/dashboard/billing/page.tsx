@@ -32,7 +32,8 @@ export default async function BillingPage() {
     })
   ]);
 
-  const totalUsage = usage?._sum?.customerChargeUsd || 0;
+  const usageSum = usage?._sum?.customerChargeUsd;
+  const totalUsage = usageSum ? Number(usageSum) : 0;
 
   return (
     <BillingClient 

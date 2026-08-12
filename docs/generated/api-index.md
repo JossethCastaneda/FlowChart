@@ -8,7 +8,7 @@ tags: [generado, api, endpoints]
 > No lo edites manualmente — se sobreescribe en cada generación.
 > Fuente: `scripts/docs-graph.mjs`
 
-Total: **161 route handlers** en 32 grupos.
+Total: **163 route handlers** en 32 grupos.
 
 ## `/api/ads/`
 
@@ -72,6 +72,8 @@ Total: **161 route handlers** en 32 grupos.
 
 | Ruta | Métodos | Archivo |
 |------|---------|--------|
+| `/api/cron/billing` | `GET` | `app/api/cron/billing/route.ts` |
+| `/api/cron/flush-outbox` | `GET` | `app/api/cron/flush-outbox/route.ts` |
 | `/api/cron/instagram-resubscribe` | `GET` | `app/api/cron/instagram-resubscribe/route.ts` |
 | `/api/cron/mmm-ingest` | `GET` | `app/api/cron/mmm-ingest/route.ts` |
 | `/api/cron/sync-ads` | `GET` | `app/api/cron/sync-ads/route.ts` |

@@ -37,6 +37,9 @@ const WHITELIST = [
   // Solicitudes técnicas de Meta
   "app/api/meta/data-deletion/route.ts",
   "app/api/meta/deauthorize/route.ts",
+  // Facturación y Portal
+  "app/api/billing/checkout/route.ts",
+  "app/api/billing/portal/route.ts",
 ];
 
 function getApiRoutes(dir: string, fileList: string[] = []): string[] {

@@ -74,62 +74,84 @@ export function BillingClient({
   if (!session) return <div>Loading...</div>;
 
   return (
-    <div className="p-8 space-y-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold tracking-tight text-white">Billing & Usage</h1>
+    <div className="p-8 space-y-8 max-w-6xl mx-auto">
+      <div className="flex justify-between items-end">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-white">Commercial & Financial OS</h1>
+          <p className="text-gray-400 mt-1">Manage your subscriptions, modules, AI fleet capacity, and invoices.</p>
+        </div>
+        <button
+          onClick={handleManageBilling}
+          disabled={loadingPortal}
+          className="bg-zinc-800 hover:bg-zinc-700 text-white font-medium py-2 px-4 rounded transition-colors disabled:opacity-50 border border-zinc-700"
+        >
+          {loadingPortal ? "Redirecting..." : "Stripe Customer Portal"}
+        </button>
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
-        {/* Subscription Info */}
-        <div className="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-sm text-gray-200">
-          <h2 className="text-xl font-semibold mb-4 text-white">Current Plan: {subscription ? subscription.plan : "Free"}</h2>
-          <p className="text-gray-400 mb-6">Status: <span className="font-bold text-white">{subscription ? subscription.status : "Inactive"}</span></p>
-          <p className="text-gray-400 mb-6">Manage your subscription, payment methods, and invoices securely via Stripe.</p>
-          
-          <div className="space-y-4">
-            <button
-              onClick={handleManageBilling}
-              disabled={loadingPortal}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors disabled:opacity-50"
-            >
-              {loadingPortal ? "Opening Portal..." : "Manage Billing"}
-            </button>
-            <div className="text-sm text-gray-500">
-              * Requires an active subscription or previous billing setup.
-            </div>
+      {/* Overview Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-lg shadow-sm text-zinc-200 col-span-1">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500 mb-2">Current Plan</h2>
+          <div className="flex items-baseline gap-2 mb-4">
+            <span className="text-3xl font-bold text-white">{subscription?.saasPlan || "Starter"}</span>
+            <span className="text-zinc-500 text-sm">/ {subscription?.billingPeriod || "month"}</span>
+          </div>
+          <div className="space-y-2 text-sm text-zinc-400">
+            <p>Status: <span className={`font-medium ${subscription?.status === 'ACTIVE' ? 'text-green-400' : 'text-zinc-300'}`}>{subscription?.status || "Free"}</span></p>
+            <p>Next invoice: {subscription?.currentPeriodEnd ? new Date(subscription.currentPeriodEnd).toLocaleDateString() : "N/A"}</p>
           </div>
         </div>
 
-        {/* Upgrade Options */}
-        <div className="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-sm text-gray-200">
-          <h2 className="text-xl font-semibold mb-4 text-white">Upgrade Plan</h2>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center bg-gray-800 p-4 rounded border border-gray-700">
-              <div>
-                <p className="font-medium text-white">Pro Plan</p>
-                <p className="text-sm text-gray-400">$100/mo included AI budget</p>
-              </div>
+        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-lg shadow-sm text-zinc-200 col-span-1 md:col-span-2">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500 mb-2">AI Usage & Ledger</h2>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-zinc-400 text-sm mb-1">Un-invoiced AI Subtotal</p>
+              <p className="text-3xl font-bold text-white">${totalUsage.toFixed(2)} <span className="text-sm font-normal text-zinc-500">USD</span></p>
+            </div>
+            <div>
+              <p className="text-zinc-400 text-sm mb-1">Monthly AI Budget</p>
+              <p className="text-3xl font-bold text-white">${entitlement?.monthlyAiBudget ? Number(entitlement.monthlyAiBudget).toFixed(2) : "0.00"} <span className="text-sm font-normal text-zinc-500">USD</span></p>
+            </div>
+          </div>
+          <div className="mt-6">
+             <div className="w-full bg-zinc-800 rounded-full h-2 mb-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full" 
+                  style={{ width: `${Math.min(100, (totalUsage / Math.max(1, Number(entitlement?.monthlyAiBudget || 10))) * 100)}%` }}
+                ></div>
+             </div>
+             <p className="text-xs text-zinc-500">Usage is synchronized to Stripe continuously via Meter Events.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Plans & Modules section */}
+      <div className="mt-12">
+        <h2 className="text-2xl font-bold text-white mb-6">Upgrade Plan & Modules</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {["STARTER", "PRO", "AGENCY", "ENTERPRISE"].map((planName) => (
+            <div key={planName} className="bg-zinc-900 border border-zinc-800 p-6 rounded-lg flex flex-col">
+              <h3 className="text-lg font-bold text-white mb-2">{planName}</h3>
+              <p className="text-zinc-400 text-sm mb-6 flex-grow">
+                {planName === "STARTER" && "Essential tools for individuals. (Briefs, Analytics locked)"}
+                {planName === "PRO" && "Advanced tools for professionals. (Includes Briefs & Reporting)"}
+                {planName === "AGENCY" && "Scale your marketing operations. (Includes Aria & Advanced Models)"}
+                {planName === "ENTERPRISE" && "Custom solutions for large teams. (All Modules Included)"}
+              </p>
               <button
-                onClick={() => handleSubscribe("pro")}
+                onClick={() => handleSubscribe(planName.toLowerCase())}
                 disabled={loadingCheckout}
-                className="bg-gray-200 hover:bg-white text-black font-medium py-2 px-4 rounded transition-colors disabled:opacity-50"
+                className="w-full bg-white hover:bg-zinc-200 text-black font-medium py-2 px-4 rounded transition-colors disabled:opacity-50"
               >
-                {loadingCheckout ? "..." : "Subscribe"}
+                {loadingCheckout ? "..." : "Select Plan"}
               </button>
             </div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* Usage section placeholder */}
-      <div className="bg-gray-900 border border-gray-800 p-6 rounded-lg shadow-sm text-gray-200">
-        <h2 className="text-xl font-semibold mb-4 text-white">AI Consumption</h2>
-        <p className="text-gray-400 mb-4">View your unbilled AI usage before it synchronizes to your invoice.</p>
-        <div className="bg-gray-800 p-4 rounded border border-gray-700 text-sm text-gray-300">
-          <p>Total AI Usage Generated: <span className="text-white font-bold">{totalUsage.toFixed(2)} Credits</span></p>
-          <p>Monthly Budget: <span className="text-white font-bold">{entitlement ? entitlement.monthlyAiBudget : 0} Credits</span></p>
+          ))}
         </div>
       </div>
+
     </div>
   );
 }

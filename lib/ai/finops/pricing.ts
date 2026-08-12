@@ -29,11 +29,11 @@ export async function calculateProviderCost(
   // Cost calculation assumes prices are per 1 token to keep math simple.
   // E.g., if API charges $2.50 per 1M tokens, the DB should store 0.0000025.
   let totalCost = 0;
-  totalCost += inputTokens * pricing.inputPrice;
-  totalCost += outputTokens * pricing.outputPrice;
+  totalCost += inputTokens * Number(pricing.inputPrice);
+  totalCost += outputTokens * Number(pricing.outputPrice);
 
   if (cachedTokens > 0 && pricing.cachedInputPrice) {
-    totalCost += cachedTokens * pricing.cachedInputPrice;
+    totalCost += cachedTokens * Number(pricing.cachedInputPrice);
   }
 
   return {

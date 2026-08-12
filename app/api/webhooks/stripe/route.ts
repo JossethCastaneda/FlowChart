@@ -137,6 +137,53 @@ export async function POST(req: Request) {
                   hostedInvoiceUrl: invoice.hosted_invoice_url,
                 }
               });
+
+              if (event.type === "invoice.payment_failed") {
+                // Create a Recovery Case and Notification
+                const gracePeriod = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days grace
+                await tx.billingRecoveryCase.create({
+                  data: {
+                    workspaceId: billingCustomer.workspaceId,
+                    invoiceId: invoice.id,
+                    status: "ACTIVE",
+                    gracePeriodEnd: gracePeriod
+                  }
+                });
+                
+                await tx.billingNotification.create({
+                  data: {
+                    workspaceId: billingCustomer.workspaceId,
+                    invoiceId: invoice.id,
+                    type: "PAYMENT_FAILED",
+                    recipient: "OWNER",
+                    channel: "EMAIL",
+                    idempotencyKey: `notif_pf_${invoice.id}_${event.id}`
+                  }
+                });
+              } else if (event.type === "invoice.payment_succeeded") {
+                // Resolve any active recovery cases for this workspace
+                await tx.billingRecoveryCase.updateMany({
+                  where: { 
+                    workspaceId: billingCustomer.workspaceId,
+                    status: "ACTIVE"
+                  },
+                  data: {
+                    status: "RESOLVED"
+                  }
+                });
+                
+                // Enqueue notification for invoice available
+                await tx.billingNotification.create({
+                  data: {
+                    workspaceId: billingCustomer.workspaceId,
+                    invoiceId: invoice.id,
+                    type: "INVOICE_AVAILABLE",
+                    recipient: "OWNER",
+                    channel: "EMAIL",
+                    idempotencyKey: `notif_is_${invoice.id}_${event.id}`
+                  }
+                });
+              }
             }
             break;
           }

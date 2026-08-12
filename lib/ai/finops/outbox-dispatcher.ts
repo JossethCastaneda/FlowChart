@@ -13,47 +13,32 @@ export class BillingOutboxDispatcher {
    * Utilizes an atomic lease via SQL to prevent Vercel concurrency duplication.
    */
   async flushOutbox(batchSize: number = 50) {
-    // 1. Atomic Lease: find eligible and mark as PROCESSING
-    // Since Prisma updateMany doesn't return the updated records in a way we can iterate easily without a lease ID,
-    // we use a time-based lease. If it stays PROCESSING for > 5 min, we consider it stale.
-    const staleThreshold = new Date(Date.now() - 5 * 60 * 1000);
-    const now = new Date();
+    // 1. True Atomic Lease via PostgreSQL row locks
+    // We update up to batchSize eligible rows to PROCESSING and return them.
+    // FOR UPDATE SKIP LOCKED ensures concurrent dispatchers never wait on the same rows.
+    const claimedEvents = await prisma.$queryRaw<any[]>`
+      UPDATE "BillingUsageEvent"
+      SET 
+        status = 'PROCESSING', 
+        "lastAttemptAt" = NOW()
+      WHERE id IN (
+        SELECT id FROM "BillingUsageEvent"
+        WHERE attempts < 5
+        AND (
+          status = 'PENDING'
+          OR (status = 'FAILED' AND "nextAttemptAt" <= NOW())
+          OR (status = 'PROCESSING' AND "lastAttemptAt" <= NOW() - INTERVAL '5 minutes')
+        )
+        ORDER BY "reportedAt" ASC
+        LIMIT ${batchSize}
+        FOR UPDATE SKIP LOCKED
+      )
+      RETURNING *;
+    `;
 
-    const eligibleEvents = await prisma.billingUsageEvent.findMany({
-      where: {
-        attempts: { lt: 5 },
-        OR: [
-          { status: "PENDING" },
-          { 
-            status: "FAILED", 
-            nextAttemptAt: { lte: now } 
-          },
-          {
-            status: "PROCESSING",
-            lastAttemptAt: { lte: staleThreshold }
-          }
-        ]
-      },
-      take: batchSize,
-      orderBy: { reportedAt: "asc" }
-    });
+    if (!claimedEvents || claimedEvents.length === 0) return;
 
-    if (eligibleEvents.length === 0) return;
-
-    const eventIds = eligibleEvents.map(e => e.id);
-
-    // Atomically claim the specific IDs
-    await prisma.billingUsageEvent.updateMany({
-      where: {
-        id: { in: eventIds },
-      },
-      data: {
-        status: "PROCESSING",
-        lastAttemptAt: now,
-      }
-    });
-
-    for (const event of eligibleEvents) {
+    for (const event of claimedEvents) {
       try {
         const stripeCustomerId = await this.resolveCustomer(event.workspaceId);
 
