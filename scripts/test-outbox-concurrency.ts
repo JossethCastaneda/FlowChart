@@ -1,14 +1,7 @@
 import { PrismaClient, Prisma } from "@prisma/client";
-import { Pool } from "pg";
-import { PrismaPg } from "@prisma/adapter-pg";
 import { BillingOutboxDispatcher } from "../lib/ai/finops/outbox-dispatcher";
-import * as dotenv from "dotenv";
+import prisma from "../lib/prisma";
 
-dotenv.config();
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
 let WORKSPACE_ID = "test_workspace_outbox_concurrency";
 
 async function setup() {
@@ -35,20 +28,19 @@ async function setup() {
     where: { workspaceId: WORKSPACE_ID }
   });
 
-  const eventValues = Array.from({ length: 50 }).map((_, i) => `(
-    'evt_test_${Date.now()}_${i}',
-    '${WORKSPACE_ID}',
-    'usage_test_${Date.now()}_${i}',
-    'mtr_test_${Date.now()}_${i}',
-    'ai_compute',
-    1,
-    'PENDING'
-  )`).join(',');
+  const events = Array.from({ length: 50 }).map((_, i) => ({
+    id: `evt_test_${Date.now()}_${i}`,
+    workspaceId: WORKSPACE_ID,
+    aiUsageId: `usage_test_${Date.now()}_${i}`,
+    stripeMeterEventIdentifier: `mtr_test_${Date.now()}_${i}`,
+    meterName: 'ai_compute',
+    quantity: 1,
+    status: 'PENDING'
+  }));
 
-  await prisma.$executeRawUnsafe(`
-    INSERT INTO "BillingUsageEvent" (id, "workspaceId", "aiUsageId", "stripeMeterEventIdentifier", "meterName", quantity, status)
-    VALUES ${eventValues}
-  `);
+  await prisma.billingUsageEvent.createMany({
+    data: events
+  });
 }
 
 async function runTest() {
@@ -56,7 +48,12 @@ async function runTest() {
   console.log("Firing 5 concurrent dispatchers...");
   const dispatchers = Array.from({ length: 5 }).map(() => new BillingOutboxDispatcher().flushOutbox(20));
   
-  await Promise.allSettled(dispatchers);
+  const results = await Promise.allSettled(dispatchers);
+  results.forEach((res, i) => {
+    if (res.status === 'rejected') {
+      console.error(`Dispatcher ${i} failed:`, res.reason);
+    }
+  });
 
   // Check results
   const processed = await prisma.billingUsageEvent.findMany({

@@ -1,5 +1,5 @@
 import { PrismaClient, Prisma } from "@prisma/client";
-export type { Prisma };
+export { Prisma };
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import { env } from "@/lib/env";
@@ -71,9 +71,9 @@ function createPrismaClient(): PrismaClient {
     ssl: true,
     // Optimización Vercel Serverless: Reducir max y idleTimeout para evitar
     // Connection Exhaustion en PgBouncer ante picos de lambdas concurrentes.
-    max: env.NODE_ENV === "production" ? 2 : 5,
+    max: env.NODE_ENV === "production" ? 2 : 20,
     idleTimeoutMillis: env.NODE_ENV === "production" ? 1_000 : 30_000,
-    connectionTimeoutMillis: 10_000,
+    connectionTimeoutMillis: 30_000,
   });
 
   const adapter = new PrismaPg(pool);

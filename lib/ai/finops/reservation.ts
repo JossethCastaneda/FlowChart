@@ -155,7 +155,7 @@ export async function reserve(
       feature,
       estimatedCost,
     };
-  });
+  }, { maxWait: 15000, timeout: 20000 });
 }
 
 /**

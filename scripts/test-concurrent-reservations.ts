@@ -23,8 +23,9 @@ async function run() {
         periodEnd,
         customerBilledUsd: 0,
         customerReservedUsd: 0,
+        customerAiAllowance: 50.00
       },
-      update: { customerBilledUsd: 0, customerReservedUsd: 0 }
+      update: { customerBilledUsd: 0, customerReservedUsd: 0, customerAiAllowance: 50.00 }
     });
 
     await prisma.workspaceEntitlement.upsert({
@@ -54,7 +55,10 @@ async function run() {
     const failed = results.filter(r => r.status === 'rejected');
     
     console.log(`Successfully reserved ${successful.length} items`);
-    console.log(`Rejected ${failed.length} items due to budget constraint`);
+    console.log(`Rejected ${failed.length} items`);
+    if (failed.length > 0) {
+      console.log(`First rejection reason:`, (failed[0] as any).reason);
+    }
 
     if (successful.length !== 50 || failed.length !== 10) {
       console.error(`❌ CONCURRENT OVERSPEND BUG DETECTED. Expected 50 successful, 10 failed.`);
