@@ -87,6 +87,22 @@ check-db.mjs
 ts-prune-results.txt
 docx_output*.html
 
+# Root-level scratch/diagnostic one-offs removed in the staging-integration
+# cleanup (2026-08-17) — exact paths only, prevents accidental re-add
+/all_tables.sql
+/filter.js
+/list_tables.js
+/old_schema.prisma
+/schema_full.sql
+/next_migration.sql
+/empty.prisma
+/preview.html
+/lint-errors-clean.json
+/lint-errors-final.json
+/fix-icons.js
+/fix-brand-icons.js
+/gen-icons.js
+
 # Migration scripts (contain DB credentials)
 scripts/migrate-db.mts
 scripts/check-id.ts
