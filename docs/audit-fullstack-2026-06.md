@@ -1,5 +1,9 @@
 # Auditoría Full-Stack — FlowChart (2026-06-26)
 
+> Nota histórica: los hallazgos de `db-sync` reflejan junio de 2026. El comando
+> fue neutralizado el 2026-08-17 y build/release ya no sincronizan el esquema.
+> Ver [[architecture/database-migration-policy|política vigente]].
+
 > Auditoría **de solo lectura** del estado actual del repo. **No se aplicaron cambios estructurales**
 > a propósito: el árbol de trabajo tiene un **refactor masivo sin commitear en vuelo** (ver §0) y
 > editar encima crearía una colisión a tres bandas. Se documentan hallazgos y recomendaciones.

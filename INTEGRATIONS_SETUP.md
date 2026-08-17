@@ -198,14 +198,15 @@ ngrok http 3000
 
 ## Prisma (InsightsCache)
 
-Si se agregó el modelo `InsightsCache` al schema:
+Si se agrega o modifica el modelo `InsightsCache`, el cambio debe expresarse
+como una migración forward-only revisada. La cadena activa comienza en
+`prisma/migrations/20260817000000_canonical_baseline`; consulta
+`docs/architecture/database-migration-policy.md` antes de preparar una
+migración nueva.
 
-```bash
-# En la branch de Neon (desarrollo)
-npx prisma db push
-
-# NO usar prisma migrate deploy — el proyecto usa db push exclusivamente
-```
+`db push` está deshabilitado por política. Las migraciones solo se prueban en
+`MIGRATION_TEST_DB_URL`; ningún comando de migración se ejecuta contra
+producción durante desarrollo o build.
 
 ---
 

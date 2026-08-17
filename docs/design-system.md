@@ -152,7 +152,7 @@ Datos: `.stat-table`, `.data-row`, `.table-*`, `.badge-*`, `.status-dot-*`, `.st
 
 - **Next.js 16 (App Router)** — leer `node_modules/next/dist/docs/` ante dudas; hay
   breaking changes vs. conocimiento previo. `next dev --webpack` en dev; build de Vercel
-  corre `scripts/db-sync.mjs && prisma generate && next build`.
+  corre `prisma generate && next build`; el build no sincroniza la base de datos.
 - **React 19**, **TypeScript strict** (CI corre `npx tsc --noEmit` — mantener verde).
 - **Tailwind CSS v4** vía `@tailwindcss/postcss`. Configuración 100% en CSS (`@theme`).
 - **Recharts 3** (gráficas), **framer-motion** (usar con moderación), **cmdk** (⌘K),

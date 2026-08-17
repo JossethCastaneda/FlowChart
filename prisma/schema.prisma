@@ -135,6 +135,8 @@ model Workspace {
   fiscalDocuments         FiscalDocument[]
   billingNotifications    BillingNotification[]
   billingRecoveryCases    BillingRecoveryCase[]
+  assetGroups             AssetGroup[]
+  modelDecisions          ModelDecision[]
 }
 
 // ------------------------------------------------------
@@ -507,6 +509,7 @@ model MediaAsset {
   size        Int
   width       Int?
   height      Int?
+  tags        String[] @default([])
   status      String   @default("ready") // uploading, ready, processing_failed
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -517,6 +520,24 @@ model MediaAsset {
 
   @@index([workspaceId])
   @@index([workspaceId, projectId])
+}
+
+// Publisher asset collections already present in production and consumed by
+// the publisher UI. The API implementation remains a separate runtime gap.
+model AssetGroup {
+  id          String   @id
+  workspaceId String
+  name        String
+  description String?
+  color       String?  @default("#35D3D9")
+  type        String   @default("publish")
+  assets      Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
 }
 
 model DraftPost {
@@ -655,6 +676,7 @@ model ScheduledPost {
   reviewNote        String?   @db.Text // comentario del revisor (p. ej. motivo de rechazo)
   error             String?   @db.Text // error message if publish failed
   externalIds       Json? // { facebook: "post_id", instagram: "media_id" }
+  targets           Json? // Per-destination publishing configuration
   qStashMessageId   String? // ID del mensaje programado en QStash
   pageName          String? // Facebook page name used
   pageId            String? // Facebook page ID used
@@ -2153,10 +2175,29 @@ model AiRun {
   fallbackFromRunId String? // If this run was a fallback, point to failed run
   errorCode         String?
 
-  request   AiRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  request   AiRequest      @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  workspace Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  decision  ModelDecision?
 
   @@index([requestId])
+  @@index([workspaceId])
+}
+
+// Preserved production routing-audit entity. Runtime persistence is not yet
+// wired, so its presence does not imply that routing decisions are recorded.
+model ModelDecision {
+  id           String   @id
+  workspaceId  String
+  aiRunId      String   @unique
+  reason       String
+  candidates   String[]
+  selectedMode String
+  powerTier    String
+  createdAt    DateTime @default(now())
+
+  aiRun     AiRun     @relation(fields: [aiRunId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
   @@index([workspaceId])
 }
 
@@ -2250,6 +2291,7 @@ model Subscription {
   stripeSubscriptionId String    @unique
   status               String
   plan                 String
+  currentPeriodStart   DateTime  @default(now())
   currentPeriodEnd     DateTime
   cancelAtPeriodEnd    Boolean   @default(false)
   createdAt            DateTime  @default(now())
@@ -2304,30 +2346,30 @@ model Invoice {
 // -----------------------------------------------------------------------------
 
 model WorkspaceAiBudgetBalance {
-  id                         String   @id @default(cuid())
-  workspaceId                String
-  
+  id          String @id @default(cuid())
+  workspaceId String
+
   // Exact commercial billing period boundaries (removes YYYY-MM ambiguity)
-  periodStart                DateTime
-  periodEnd                  DateTime
+  periodStart DateTime
+  periodEnd   DateTime
 
   // Customer Included AI Allowance: The maximum monetary value (USD) included in the subscription plan
-  customerAiAllowance        Decimal  @default(0.00) @db.Decimal(19, 4) 
-  
+  customerAiAllowance Decimal @default(0.00) @db.Decimal(19, 4)
+
   // Customer Billable AI Usage: The actual amount (USD) billed to the customer during this period
-  customerBilledUsd          Decimal  @default(0.00) @db.Decimal(19, 4) 
-  
+  customerBilledUsd Decimal @default(0.00) @db.Decimal(19, 4)
+
   // Amount currently locked for in-flight requests to prevent double-spending
-  customerReservedUsd        Decimal  @default(0.00) @db.Decimal(19, 4) 
-  
+  customerReservedUsd Decimal @default(0.00) @db.Decimal(19, 4)
+
   // Internal Provider Spend Limit: The hard limit on our raw API costs, ensuring we don't bleed margin
-  internalProviderSpendLimit Decimal  @default(0.00) @db.Decimal(19, 4) 
-  
+  internalProviderSpendLimit Decimal @default(0.00) @db.Decimal(19, 4)
+
   // Actual API cost incurred with providers (OpenAI, Anthropic, etc.)
-  internalProviderCostUsd    Decimal  @default(0.00) @db.Decimal(19, 4) 
-  
-  createdAt                  DateTime @default(now())
-  updatedAt                  DateTime @updatedAt
+  internalProviderCostUsd Decimal @default(0.00) @db.Decimal(19, 4)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
@@ -2499,6 +2541,8 @@ model BillingRecoveryPolicy {
   serviceRestrictionDays Int      @default(7)
   unpaidBehavior         String   @default("suspend") // suspend | cancel
   cancellationBehavior   String   @default("revoke_access")
+  hardLimitUsd           Decimal  @default(0.00) @db.Decimal(19, 4)
+  graceBudgetPercent     Float    @default(50.0)
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 }

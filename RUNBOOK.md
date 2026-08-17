@@ -6,18 +6,16 @@ Tres preguntas, nada más.
 
 ## 1. ¿Cómo se despliega?
 
-```
-git push origin <rama>:main
-```
-
-Vercel detecta el push a `main` y despliega automáticamente (~2 minutos).
+La integración autorizada se prepara exclusivamente en `staging`; ningún agente
+empuja o mezcla directamente en `main`. Antes de commit/push/merge se presenta
+el diff y se espera aprobación humana.
 
 **Pre-deploy checklist:**
 
 ```bash
 npx tsc --noEmit            # 0 errores
 npx vitest run               # todos pasan
-SKIP_DB_SYNC=1 npx next build  # build exitoso
+npm run build               # no muta el esquema
 ```
 
 **Variables de entorno:** Vercel → Settings → Environment Variables. Hay 48
@@ -30,8 +28,12 @@ variables. Las críticas son:
 | `META_APP_ID` | Meta Graph API | OAuth + Inbox rotos |
 | `ENCRYPTION_KEY` | AES-256-GCM | Tokens ilegibles |
 
-**Build command en Vercel:** `npm run build` (ejecuta `db-sync.mjs` + `next build`).
-Si el esquema de Prisma cambió, `db-sync` aplica `prisma db push` automáticamente.
+**Build command en Vercel:** `npm run build` (genera Prisma y compila Next.js).
+El build no aplica cambios de esquema.
+
+Los cambios de base siguen: migración versionada → clone aislado
+`MIGRATION_TEST_DB_URL` → revisión → gate humano → deploy explícito → verificación
+read-only. Nunca se usa sincronización implícita ni aceptación de pérdida de datos.
 
 ---
 
@@ -58,7 +60,7 @@ Si el esquema de Prisma cambió, `db-sync` aplica `prisma db push` automáticame
 
 ```bash
 # Verificar esquema vs código
-npx prisma db pull     # lee el esquema de la DB
+npx prisma db pull --print  # imprime el esquema sin sobrescribir schema.prisma
 npx prisma validate    # valida contra schema.prisma
 ```
 

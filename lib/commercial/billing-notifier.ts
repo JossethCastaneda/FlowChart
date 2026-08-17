@@ -1,18 +1,22 @@
 import prisma from "../prisma";
 import { Resend } from "resend";
 
-if (!process.env.RESEND_API_KEY) {
-  // Fail closed unconditionally
-  throw new Error("RESEND_API_KEY is missing. Cannot dispatch fiscal notifications.");
-}
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export class BillingNotifier {
   /**
    * Dispatches pending billing notifications (like dunning or invoice available).
    * It uses idempotency keys and retry logic.
    */
   async dispatchPending(batchSize = 20) {
+    const apiKey = process.env.RESEND_API_KEY;
+    const fromEmail = process.env.RESEND_FROM_EMAIL;
+    if (!apiKey) {
+      throw new Error("RESEND_API_KEY is missing. Cannot dispatch fiscal notifications.");
+    }
+    if (!fromEmail) {
+      throw new Error("RESEND_FROM_EMAIL is not configured");
+    }
+    const resend = new Resend(apiKey);
+
     // Atomic lease similar to outbox dispatcher
     const claimedNotifications = await prisma.$queryRaw<any[]>`
       UPDATE "BillingNotification"
@@ -59,9 +63,6 @@ export class BillingNotifier {
         // Use Resend idempotency headers
         // Resend officially supports X-Entity-Ref-ID (X-Entity-Ref) to avoid double-sends
         const emailParams = this.buildEmailTemplate(notif);
-
-        const fromEmail = process.env.RESEND_FROM_EMAIL;
-        if (!fromEmail) throw new Error("RESEND_FROM_EMAIL is not configured");
 
         const response = await resend.emails.send({
           from: fromEmail,

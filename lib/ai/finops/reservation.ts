@@ -2,14 +2,19 @@ import prisma, { Prisma } from "@/lib/prisma";
 import { checkEntitlement } from "./entitlements";
 import { AiError, ErrorCode } from "../errors";
 
-function getCurrentMonthBoundaries() {
+async function getBillingPeriod(workspaceId: string, tx: Prisma.TransactionClient) {
+  const sub = await tx.subscription.findUnique({
+    where: { workspaceId }
+  });
+  if (sub && (sub.status === "active" || sub.status === "past_due" || sub.status === "trialing")) {
+    return { start: sub.currentPeriodStart, end: sub.currentPeriodEnd };
+  }
+  // Fallback to calendar month if no commercial subscription exists
   const now = new Date();
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
   const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
   return { start, end };
 }
-import { checkEntitlement } from "./entitlements";
-import { AiError, ErrorCode } from "../errors";
 
 export interface ReservationContext {
   workspaceId: string;
@@ -73,7 +78,7 @@ export async function reserve(
       );
     }
 
-    const { start: periodStart, end: periodEnd } = getCurrentMonthBoundaries();
+    const { start: periodStart, end: periodEnd } = await getBillingPeriod(workspaceId, tx);
 
     // Upsert equivalent via raw query for atomic locking (because Prisma upsert doesn't lock for update)
     await tx.$executeRaw`
@@ -244,7 +249,7 @@ export async function settle(
         }
       });
       
-      const { start: periodStart, end: periodEnd } = getCurrentMonthBoundaries();
+      const { start: periodStart, end: periodEnd } = await getBillingPeriod(context.workspaceId, tx);
       const totalCustomerCharge = runs.reduce((sum, run) => sum + (run.customerCharge || 0), 0);
 
       await tx.$executeRaw`
@@ -284,7 +289,7 @@ export async function release(context: ReservationContext, errorReason?: string)
         }
       });
       
-      const { start: periodStart, end: periodEnd } = getCurrentMonthBoundaries();
+      const { start: periodStart, end: periodEnd } = await getBillingPeriod(context.workspaceId, tx);
 
       await tx.$executeRaw`
         UPDATE "WorkspaceAiBudgetBalance"

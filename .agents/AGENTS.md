@@ -21,3 +21,14 @@
 
 ### Regla de oro:
 > **Ningún agente puede integrar cambios en `main` bajo NINGUNA circunstancia. Todo pase a "producción" autorizado por humanos se enviará siempre a la rama `staging` y se mantendrá controlado ahí.**
+
+## Seguridad absoluta de base de datos
+
+- Una base real, compartida o de identidad incierta nunca se resetea, trunca, elimina ni sincroniza destructivamente.
+- Una base desconocida se clasifica como `REAL_SHARED`.
+- No usar sincronización directa con aceptación de pérdida de datos ni limpieza destructiva para satisfacer constraints.
+- Ninguna shadow database puede apuntar a producción, recovery, safety o una base compartida.
+- Los experimentos usan exclusivamente `MIGRATION_TEST_DB_URL`, después de probar que su identidad es distinta y que es desechable.
+- El flujo de cambio es: **EXPAND → BACKFILL → VERIFY → CUTOVER → CONTRACT LATER**.
+- Fallar una migración no autoriza SQL manual de emergencia ni reescribir el historial aplicado.
+- Producción requiere artefacto revisado, validación aislada y gate humano; build/release nunca mutan el esquema implícitamente.

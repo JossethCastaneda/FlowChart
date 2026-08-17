@@ -93,5 +93,5 @@ seguridad multi-tenant) está en nivel competitivo.
 6. Import/export de contactos (CSV) y biblioteca de assets reutilizable.
 
 > Nota: todos los cambios de esquema de esta ronda son **aditivos** y se aplican en el
-> próximo `db push`. El CRM se auto-puebla con cada mensaje entrante; para histórico,
+> próxima migración revisada. El CRM se auto-puebla con cada mensaje entrante; para histórico,
 > correr `node scripts/backfill-contacts.mjs`.

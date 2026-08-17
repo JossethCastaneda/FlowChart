@@ -43,15 +43,10 @@ function createPrismaClient(): PrismaClient {
     env.STORAGE_DATABASE_URL ||
     "";
 
-  // Log which DB we're actually connecting to
+  // Report configuration source without exposing endpoint identity in logs.
   if (connectionString) {
-    try {
-      const host = new URL(connectionString).host;
-      const source = env.DATABASE_URL ? 'DATABASE_URL' : env.STORAGE_POSTGRES_PRISMA_URL ? 'STORAGE_POSTGRES_PRISMA_URL' : 'STORAGE_DATABASE_URL';
-      // Use console.log here deliberately — logger.ts may not be initialized yet
-      // during PrismaClient singleton creation at module load time.
-      console.log(`[db-sync] target database host: ${host} (source: ${source})`);
-    } catch { /* ignore parse errors on malformed URLs */ }
+    const source = env.DATABASE_URL ? "DATABASE_URL" : env.STORAGE_POSTGRES_PRISMA_URL ? "STORAGE_POSTGRES_PRISMA_URL" : "STORAGE_DATABASE_URL";
+    console.log(`[Prisma] database configured (source: ${source})`);
   }
 
   if (!connectionString) {

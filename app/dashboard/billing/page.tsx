@@ -19,8 +19,6 @@ export default async function BillingPage() {
   }
 
   const now = new Date();
-  const period = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
-
   const [entitlement, subscription, budgetBalance] = await Promise.all([
     prisma.workspaceEntitlement.findUnique({
       where: { workspaceId }
@@ -29,18 +27,18 @@ export default async function BillingPage() {
       where: { workspaceId },
       orderBy: { currentPeriodEnd: "desc" }
     }),
-    prisma.workspaceAiBudgetBalance.findUnique({
+    prisma.workspaceAiBudgetBalance.findFirst({
       where: {
-        workspaceId_period: {
-          workspaceId,
-          period
-        }
-      }
+        workspaceId,
+        periodStart: { lte: now },
+        periodEnd: { gt: now },
+      },
+      orderBy: { periodStart: "desc" },
     })
   ]);
 
-  const spentUsd = budgetBalance?.spentUsd ? Number(budgetBalance.spentUsd) : 0;
-  const reservedUsd = budgetBalance?.reservedUsd ? Number(budgetBalance.reservedUsd) : 0;
+  const spentUsd = budgetBalance?.customerBilledUsd ? Number(budgetBalance.customerBilledUsd) : 0;
+  const reservedUsd = budgetBalance?.customerReservedUsd ? Number(budgetBalance.customerReservedUsd) : 0;
 
   return (
     <BillingClient 

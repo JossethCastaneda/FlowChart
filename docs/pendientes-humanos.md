@@ -21,29 +21,23 @@ Un agente no debe ejecutar `filter-repo` sobre un repo con 70+ ramas — el ries
 
 ---
 
-## 2. db-sync.mjs — decidir migración vs push
+## 2. Crear clone dedicado para remediación de migraciones
 
 **Prioridad:** ALTA
 
-`package.json` → `build` ejecuta `scripts/db-sync.mjs`, que corre
-`npx prisma db push --accept-data-loss` en cada deploy (línea 147),
-con errores silenciados como "no fatal" (línea 149).
-
-Consecuencias:
-- 76 modelos en el schema, solo 5 migraciones (última: 2026-06-08) → 2 meses de deriva
-- No hay camino de rollback si una columna se borra por accidente
-- `--accept-data-loss` acepta destructive changes sin confirmación
-
-**Decisión pendiente:** ¿migrar a `prisma migrate` con migraciones versionadas, o mantener `db push` con guardrails más estrictos?
+El camino destructivo de `db-sync` quedó neutralizado localmente. Falta crear un
+branch Neon dedicado desde producción y exponerlo únicamente como
+`MIGRATION_TEST_DB_URL`. No reutilizar recovery, safety ni `TEST_DB_URL`.
 
 ---
 
-## 3. Aplicar migraciones pendientes
+## 3. Validar y aprobar el baseline canónico
 
 **Prioridad:** MEDIA (depende de decisión #2)
 
-Si se decide migrar a `prisma migrate`, hay que generar una migración baseline
-que capture el estado actual del schema y aplicarla a producción.
+El baseline debe probarse primero desde vacío y sobre el clone de producción.
+Solo después se revisará la mutación de metadata necesaria en producción. No hay
+autorización actual para deploy, resolve, push o ejecución SQL productiva.
 
 ---
 
@@ -104,7 +98,9 @@ Las seeds ya están creadas en `prisma/seed.e2e.ts` con IDs determinísticos.
 
 **Prioridad:** ALTA (Bloquea la Fase A)
 
-Actualmente `DATABASE_URL` apunta a Neon (`ep-long-unit-ape6kzxh-pooler.c-7.us-east-1.aws.neon.tech`). Las reglas de saneamiento y el propio guardián en `seed.e2e.ts` prohíben inyectar semillas si no es explícitamente una base local o se confirma que es una rama de desarrollo. 
+Actualmente `DATABASE_URL` apunta a Neon. Las reglas de saneamiento y el propio
+guardián en `seed.e2e.ts` prohíben inyectar semillas si no es explícitamente una
+base local o se confirma que es una rama de desarrollo.
 
 El humano debe:
 1. Proveer una base de datos local en `DATABASE_URL` en `.env.local` y asegurarse de aplicar el esquema.

@@ -1,17 +1,12 @@
 # Regla: Sin escrituras a la base de datos
 
-## Comandos bloqueados — SIN EXCEPCIONES
+## Bases reales, compartidas o desconocidas
 
-Los siguientes comandos **nunca** deben ejecutarse desde el agente:
+Son de solo lectura. Se prohíben deploy/resolve/push/reset/execute, DDL, truncados,
+deletes amplios, restores y cualquier sincronización implícita.
 
-- `prisma db push`
-- `prisma migrate deploy`
-- `prisma migrate dev`
-- `prisma migrate reset`
-- `prisma db seed`
-- `node scripts/db-sync.mjs`
-- `npm run db:*` (cualquier script db)
-- `node scripts/truncate-db.mjs`
+Una identidad desconocida se trata como `REAL_SHARED`. Recovery y safety son
+evidencia histórica, no bases desechables.
 
 ## Razón
 
@@ -22,8 +17,11 @@ Un `db push` o `migrate` ejecutado sin coordinación puede:
 2. Resetear secuencias de IDs
 3. Corromper relaciones FK existentes
 
-## Alternativa segura
+## Única excepción para experimentos
 
-Si necesitas documentar un cambio de esquema, crea un archivo SQL en
-`docs/pending-migrations/` con el DDL necesario. El humano lo revisará
-y aplicará manualmente.
+Solo `MIGRATION_TEST_DB_URL`, tras verificar que es distinta de todos los demás
+targets y que el humano la autorizó como dedicada. El cambio debe seguir
+EXPAND → BACKFILL → VERIFY → CUTOVER → CONTRACT LATER.
+
+Producción usa artefactos versionados, prueba aislada, revisión y gate humano.
+`scripts/db-sync.mjs` existe únicamente como comando de rechazo y no conecta.
