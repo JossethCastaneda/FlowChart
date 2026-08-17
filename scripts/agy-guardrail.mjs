@@ -21,21 +21,14 @@ const BLOCKED_COMMANDS = [
   [/\bprisma\s+(db\s+push|migrate\s+(deploy|dev|reset)|db\s+seed)\b/i,
     "Escritura de esquema bloqueada. prisma db push / migrate pueden corromper la DB de producción."],
 
-  // db-sync script — invoked by `npm run build`, mutates schema
+  // Deprecated sync entrypoint. It is a refusal tombstone, but direct calls are
+  // still blocked so agents use the reviewed migration workflow.
   [/\bdb-sync\.mjs\b/i,
-    "db-sync.mjs bloqueado. Sincroniza esquema contra la DB remota — peligroso sin revisión."],
+    "db-sync.mjs está deprecado. Usa el flujo de migración aislada y revisada."],
 
   // npm run db:* — any db-related npm script
   [/\bnpm\s+run\s+db:/i,
     "npm run db:* bloqueado. Estos scripts pueden mutar la base de datos."],
-
-  // npm run build — invokes db-sync as part of build
-  [/\bnpm\s+run\s+build\b/i,
-    "npm run build bloqueado. El build invoca db-sync. Usa: SKIP_DB_SYNC=1 npx next build"],
-
-  // Direct build without SKIP_DB_SYNC — checked programmatically below
-  // (regex negative lookahead doesn't work across the whole command string)
-
 
   // truncate-db script
   [/\btruncate-db\.mjs\b/i,
@@ -183,15 +176,6 @@ async function main() {
         console.log(JSON.stringify({ decision: "deny", reason }));
         return;
       }
-    }
-
-    // Special check: `npx next build` without SKIP_DB_SYNC prefix
-    if (/\bnpx\s+next\s+build\b/i.test(cmd) && !/SKIP_DB_SYNC/i.test(cmd)) {
-      console.log(JSON.stringify({
-        decision: "deny",
-        reason: "next build sin SKIP_DB_SYNC bloqueado. Usa: SKIP_DB_SYNC=1 npx next build",
-      }));
-      return;
     }
 
     // Not blocked → allow

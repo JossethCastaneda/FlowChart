@@ -71,8 +71,9 @@ npm install
 # 2. Configurar entorno
 cp .env.example .env.local   # rellena los valores (ver tabla abajo)
 
-# 3. Crear el esquema en la DB
-npm run db:push              # o db:migrate para migraciones versionadas
+# 3. Crear una DB local desechable desde migraciones revisadas
+# (nunca apuntar estos pasos a una DB real/compartida)
+npm run db:migrate
 
 # 4. Desarrollo
 npm run dev                  # http://localhost:3000
@@ -105,7 +106,7 @@ npm run dev                  # http://localhost:3000
 | `npm run build` | `prisma generate` + build de producción |
 | `npm run lint` | ESLint |
 | `npm test` | Tests unitarios (Vitest) |
-| `npm run db:push` | Sincroniza el esquema con la DB (sin migración) |
+| `npm run db:push` | Rechaza la sincronización directa; usar migraciones revisadas |
 | `npm run db:migrate` | Crea/aplica migraciones |
 | `npm run db:studio` | Prisma Studio |
 | `npm run db:reencrypt` | Re-cifra tokens guardados en texto plano (ver abajo) |

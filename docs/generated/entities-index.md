@@ -8,7 +8,7 @@ tags: [generado, entidades, prisma, dominio]
 > No lo edites manualmente — se sobreescribe en cada generación.
 > Fuente: `scripts/docs-graph.mjs`
 
-Total: **113 modelos** en el schema de Prisma.
+Total: **115 modelos** en el schema de Prisma.
 
 ## Core (Identidad y tenant)
 
@@ -57,6 +57,7 @@ Total: **113 modelos** en el schema de Prisma.
 | **Capturista** | `userId`, `user` |
 | **Channel** | `projectId`, `name`, `type`, `config`, `project` |
 | **MediaAsset** | `workspaceId`, `userId`, `projectId`, `url`, `fileName` |
+| **AssetGroup** | `workspaceId`, `name`, `description`, `color`, `type` |
 | **DraftPost** | `workspaceId`, `projectId`, `authorId`, `baseContent`, `baseMediaUrls` |
 | **Transmission** | `draftId`, `workspaceId`, `channel`, `accountId`, `accountName` |
 | **PublishJob** | `transmissionId`, `step`, `status`, `attempts`, `maxAttempts` |
@@ -116,13 +117,14 @@ Total: **113 modelos** en el schema de Prisma.
 | **OptimizationAuditEvent** | `workspaceId`, `clientId`, `snapshotId`, `actionId`, `actorId` |
 | **AiRequest** | `workspaceId`, `idempotencyKey`, `feature`, `status`, `completedAt` |
 | **AiRun** | `requestId`, `workspaceId`, `provider`, `model`, `actualProviderModelId` |
+| **ModelDecision** | `workspaceId`, `aiRunId`, `reason`, `candidates`, `selectedMode` |
 | **AiUsage** | `workspaceId`, `requestId`, `idempotencyKey`, `route`, `model` |
 | **AiModelPricing** | `provider`, `providerModelId`, `inputPrice`, `outputPrice`, `cachedInputPrice` |
 | **FeaturePricing** | `feature`, `pricingMode`, `fixedCost`, `creditsCost`, `currency` |
 | **WorkspaceEntitlement** | `workspaceId`, `saasPlan`, `allowedFeatures`, `monthlyAiBudget`, `autopilotEnabled` |
 | **RateLimit** | `key`, `count`, `resetAt` |
 | **BillingCustomer** | `workspaceId`, `stripeCustomerId`, `workspace` |
-| **Subscription** | `workspaceId`, `stripeSubscriptionId`, `status`, `plan`, `currentPeriodEnd` |
+| **Subscription** | `workspaceId`, `stripeSubscriptionId`, `status`, `plan`, `currentPeriodStart` |
 | **BillingEvent** | `stripeEventId`, `eventType`, `livemode`, `processingStatus`, `error` |
 | **BillingUsageEvent** | `workspaceId`, `aiUsageId`, `stripeMeterEventIdentifier`, `meterName`, `quantity` |
 | **Invoice** | `workspaceId`, `stripeInvoiceId`, `status`, `currency`, `amountDue` |

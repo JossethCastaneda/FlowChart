@@ -10,6 +10,7 @@ Documentación de las decisiones y componentes estructurales de FlowChart/FlowCh
 
 - [[stack|Stack Tecnológico]] — Frameworks, versiones y herramientas
 - [[multi-tenant|Modelo Multi-Tenant]] — Workspaces, proyectos, roles
+- [[database-migration-policy|Política de migraciones]] — Targets, gates y flujo seguro
 
 ## Relacionado
 

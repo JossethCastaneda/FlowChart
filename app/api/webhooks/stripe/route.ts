@@ -71,12 +71,14 @@ export async function POST(req: Request) {
                   stripeSubscriptionId: subscription.id,
                   status: status,
                   plan: planPriceId,
+                  currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
                   currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
                   cancelAtPeriodEnd: (subscription as any).cancel_at_period_end
                 },
                 update: {
                   status: status,
                   plan: planPriceId,
+                  currentPeriodStart: new Date((subscription as any).current_period_start * 1000),
                   currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
                   cancelAtPeriodEnd: (subscription as any).cancel_at_period_end
                 }
@@ -96,7 +98,7 @@ export async function POST(req: Request) {
                   console.error("[Stripe Webhook] CRITICAL: No active BillingRecoveryPolicy found. Defaulting budget to 0.");
                   budget = 0;
                 } else {
-                  budget = Math.max(policy.hardLimitUsd, maxBudget * (policy.graceBudgetPercent / 100));
+                  budget = Math.max(Number(policy.hardLimitUsd) || 0, maxBudget * (policy.graceBudgetPercent / 100));
                 }
               } else {
                 budget = 0;

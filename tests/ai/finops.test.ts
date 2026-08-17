@@ -8,24 +8,32 @@ import { Prisma } from "@prisma/client";
 const { mockPrisma } = vi.hoisted(() => {
   const mPrisma: any = {
     $transaction: vi.fn(async (cb) => cb(mPrisma)),
+    $executeRaw: vi.fn().mockResolvedValue(1),
+    $queryRaw: vi.fn().mockResolvedValue([{ customerBilledUsd: 0, customerReservedUsd: 0, customerAiAllowance: 0 }]),
     aiModelPricing: { findFirst: vi.fn() },
     workspaceEntitlement: { findUnique: vi.fn() },
+    subscription: { findUnique: vi.fn().mockResolvedValue(null) },
     aiUsage: { aggregate: vi.fn().mockResolvedValue({ _sum: { customerChargeUsd: 0 } }), create: vi.fn(), upsert: vi.fn() },
     aiRequest: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
-    aiReservationLedger: { create: vi.fn(), update: vi.fn(), aggregate: vi.fn().mockResolvedValue({ _sum: { reservedCostUsd: 0 } }) },
+    aiReservationLedger: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), aggregate: vi.fn().mockResolvedValue({ _sum: { reservedCostUsd: 0 } }) },
     billingUsageEvent: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn() }
   };
   return { mockPrisma: mPrisma };
 });
 
-vi.mock("@/lib/prisma", () => ({
-  default: mockPrisma,
-  prisma: mockPrisma,
-}));
+vi.mock("@/lib/prisma", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/prisma")>();
+  return { ...actual, default: mockPrisma, prisma: mockPrisma };
+});
 
 describe("FinOps: Pricing", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPrisma.subscription.findUnique.mockResolvedValue(null);
+    mockPrisma.$executeRaw.mockResolvedValue(1);
+    mockPrisma.$queryRaw.mockResolvedValue([{ customerBilledUsd: 0, customerReservedUsd: 0, customerAiAllowance: 0 }]);
+    mockPrisma.aiReservationLedger.findUnique.mockResolvedValue(null);
+    mockPrisma.aiReservationLedger.create.mockResolvedValue({ id: "res_123" });
   });
 
   it("calculates cost accurately if pricing is found", async () => {
@@ -61,6 +69,11 @@ describe("FinOps: Pricing", () => {
 describe("FinOps: Entitlements & Reservations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPrisma.subscription.findUnique.mockResolvedValue(null);
+    mockPrisma.$executeRaw.mockResolvedValue(1);
+    mockPrisma.$queryRaw.mockResolvedValue([{ customerBilledUsd: 0, customerReservedUsd: 0, customerAiAllowance: 0 }]);
+    mockPrisma.aiReservationLedger.findUnique.mockResolvedValue(null);
+    mockPrisma.aiReservationLedger.create.mockResolvedValue({ id: "res_123" });
   });
 
   it("checkEntitlement fails if workspace has no entitlement", async () => {
@@ -144,7 +157,8 @@ describe("FinOps: Entitlements & Reservations", () => {
     const ctx = await reserve("ws_1", "optimization_planner", 0.05, "idem_key_1");
     
     expect(prisma.$transaction).toHaveBeenCalledOnce();
-    expect(ctx.reservationId).toBe("req_123");
+    expect(ctx.requestId).toBe("req_123");
+    expect(ctx.reservationId).toBe("res_123");
     expect(prisma.aiRequest.create).toHaveBeenCalledOnce();
   });
   
@@ -158,9 +172,11 @@ describe("FinOps: Entitlements & Reservations", () => {
       createdAt: new Date(),
       completedAt: null,
     });
+    vi.mocked(prisma.aiReservationLedger.findUnique).mockResolvedValue({ id: "res_exist_1" } as never);
     
     const ctx = await reserve("ws_1", "optimization_planner", 0.05, "idem_key_1");
-    expect(ctx.reservationId).toBe("req_exist_1");
+    expect(ctx.requestId).toBe("req_exist_1");
+    expect(ctx.reservationId).toBe("res_exist_1");
     expect(prisma.aiRequest.create).not.toHaveBeenCalled();
     expect(prisma.workspaceEntitlement.findUnique).not.toHaveBeenCalled();
   });
@@ -169,7 +185,7 @@ describe("FinOps: Entitlements & Reservations", () => {
     vi.mocked(prisma.aiUsage.upsert).mockResolvedValue({ id: "usage_1" } as any);
     
     await settle(
-      { workspaceId: "ws_1", reservationId: "req_123", idempotencyKey: "idem_123", feature: "optimization_planner", estimatedCost: 0.1 },
+      { workspaceId: "ws_1", requestId: "req_123", reservationId: "res_123", idempotencyKey: "idem_123", feature: "optimization_planner", estimatedCost: 0.1 },
       [{ runId: "run_1", route: "/api/opt", model: "gpt-4", provider: "openai", tokensIn: 10, tokensOut: 20, providerCost: 0.04, customerCharge: 0.05 }]
     );
 
@@ -181,7 +197,7 @@ describe("FinOps: Entitlements & Reservations", () => {
     });
 
     expect(prisma.aiUsage.upsert).toHaveBeenCalledWith({
-      where: { idempotencyKey: "req_123-run_1" },
+      where: { idempotencyKey: "res_123-run_1" },
       update: {},
       create: expect.objectContaining({
         workspaceId: "ws_1",
