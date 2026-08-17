@@ -31,6 +31,17 @@ Recovery y safety son evidencia histórica y no deben eliminarse ni reutilizarse
 como bases de prueba. Los hashes canónicos de las dos filas legado se guardan en
 la auditoría Codex del 2026-08-17 sin exponer IDs ni montos.
 
+## Corrección posterior del verificador
+
+Un preflight posterior falló cerrado al serializar `estimatedCostUsd` como
+JavaScript `Number`. La investigación conservó la cronología y probó
+`ROOT_CAUSE = HASH_CANONICALIZATION_DRIFT`: recovery mantuvo su identidad y la
+consulta histórica con `estimatedCostUsd::text` reprodujo los hashes originales.
+No hubo reparación de DB, cambio de entorno ni daño productivo. El contrato
+rastreado exige texto PostgreSQL, string JSON, UTF-8, SHA-256 y ningún newline.
+El preflight productivo continúa pendiente de repetición.
+
 Relacionado: [[../audits/2026-08-17-codex-migration-zero-trust|Auditoría Codex]] ·
+[[../audits/2026-08-17-codex-recovery-hash-verifier-correction|Corrección del verificador]] ·
 [[../architecture/database-migration-policy|Política de migraciones]] ·
 [[../migrations/legacy/README|Historial legacy forense]]
