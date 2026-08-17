@@ -40,6 +40,7 @@ created: 2026-08-11
 - [[audits/2026-08-17-codex-migration-zero-trust|Auditoría zero-trust de migraciones]]
 - [[audits/2026-08-17-codex-isolated-baseline-proof-final|Prueba final de baseline aislado]]
 - [[audits/2026-08-17-codex-final-canonical-migration-history|Finalización del historial canónico de migraciones]]
+- [[audits/2026-08-17-production-baseline-metadata-cutover|Cierre del cutover de metadata en producción]]
 - [[incidents/2026-08-aiusage-data-loss|Incidente y recuperación AiUsage]]
 
 ### ⚙️ Operaciones

@@ -39,9 +39,13 @@ JavaScript `Number`. La investigación conservó la cronología y probó
 consulta histórica con `estimatedCostUsd::text` reprodujo los hashes originales.
 No hubo reparación de DB, cambio de entorno ni daño productivo. El contrato
 rastreado exige texto PostgreSQL, string JSON, UTF-8, SHA-256 y ningún newline.
-El preflight productivo continúa pendiente de repetición.
+El preflight productivo se repitió con el verificador rastreado y pasó; el
+registro metadata-only del baseline en producción quedó autorizado y
+ejecutado por separado (ver [[../audits/2026-08-17-production-baseline-metadata-cutover|cierre
+del cutover]]). El destino de `estimatedCostUsd` sigue sin decidirse.
 
 Relacionado: [[../audits/2026-08-17-codex-migration-zero-trust|Auditoría Codex]] ·
 [[../audits/2026-08-17-codex-recovery-hash-verifier-correction|Corrección del verificador]] ·
+[[../audits/2026-08-17-production-baseline-metadata-cutover|Cierre del cutover]] ·
 [[../architecture/database-migration-policy|Política de migraciones]] ·
 [[../migrations/legacy/README|Historial legacy forense]]
