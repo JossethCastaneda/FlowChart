@@ -7,7 +7,6 @@
  *   GEMINI_API_KEY=tu_api_key_de_google_ai_studio
  */
 
-import { createOpenAI } from "@ai-sdk/openai";
 import {
   streamText,
   createUIMessageStreamResponse,
@@ -52,33 +51,6 @@ export const POST = withWorkspace(async (req, ctx) => {
   // Format para AI Gateway: "google/gemini-1.5-flash-latest"
   const gatewayModelId = `${gatewayProviderId}/${modelDef.providerModelId}`;
 
-  // Determinamos el API Key a usar: BYOK o Gateway Global
-  // 1. Si existe AI_GATEWAY_API_KEY, Vercel gestiona las llaves en Dashboard.
-  // 2. BYOK: pasamos la llave directamente como apiKey (al conectarse a Vercel AI Gateway, 
-  //    la enviará pero tal vez necesitemos pasarla en un header si usamos BYOK explícito.
-  //    Sin embargo, el Vercel AI Gateway documentation dice que podemos mandar la llave nativa 
-  //    en los headers de Authorization o pasarlo como api_key en el cliente si es compatible.)
-  const gatewayApiKey = env.AI_GATEWAY_API_KEY;
-  let nativeApiKey = "";
-
-  if (!gatewayApiKey) {
-    if (provider.id === "gemini") nativeApiKey = env.GEMINI_API_KEY ?? "";
-    else if (provider.id === "openai") nativeApiKey = env.OPENAI_API_KEY ?? "";
-    else if (provider.id === "anthropic") nativeApiKey = env.ANTHROPIC_API_KEY ?? "";
-
-    if (!nativeApiKey) {
-       return apiError(`No hay API Key configurada para ${providerDef.label}.`, "NO_AI_KEY", 503);
-    }
-  }
-
-  // Create Gateway Client
-  const gatewayClient = createOpenAI({
-    baseURL: "https://ai-gateway.vercel.sh/v1",
-    // Si usamos Dashboard, mandamos AI_GATEWAY_API_KEY
-    // Si usamos BYOK, enviamos la key nativa para que Gateway la use
-    apiKey: gatewayApiKey || nativeApiKey, 
-  });
-
   const lastUserMessage = messages.findLast((m) => m.role === "user");
   if (lastUserMessage) {
     logger.info("[/api/chat] Mensaje entrante", { userId: ctx.userId, workspaceId: ctx.workspaceId, model: gatewayModelId });
@@ -95,7 +67,7 @@ export const POST = withWorkspace(async (req, ctx) => {
 
   try {
     const result = streamText({
-      model: gatewayClient(gatewayModelId),
+      model: gatewayModelId,
       system:
         "Eres Aria, el asistente de inteligencia de FlowChart. " +
         "Responde siempre en el idioma del usuario. " +
