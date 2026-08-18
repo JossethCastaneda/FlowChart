@@ -3,7 +3,7 @@ import { AdminGuard } from "@/components/layout/PermissionsContext";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Equipo - Configuración | Sodare",
+  title: "Equipo - Configuración | FlowChart",
 };
 
 export default function TeamPage() {
