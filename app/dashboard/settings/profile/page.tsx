@@ -2,7 +2,7 @@ import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Perfil - Configuración | Sodare",
+  title: "Perfil - Configuración | FlowChart",
 };
 
 export default function ProfilePage() {

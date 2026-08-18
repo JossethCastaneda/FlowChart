@@ -1,0 +1,543 @@
+
+> flowchart@0.1.0 lint
+> eslint
+
+
+D:\Proyectos\Zefirus\app\.well-known\workflow\v1\flow\route.js
+  2:1  warning  Unused eslint-disable directive (no problems were reported)
+
+D:\Proyectos\Zefirus\app\.well-known\workflow\v1\step\route.js
+  313:11  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  354:11  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  396:11  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+D:\Proyectos\Zefirus\app\api\billing\checkout\route.ts
+  61:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\app\api\billing\portal\route.ts
+  52:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\app\api\cron\billing\route.ts
+  29:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\app\api\google\insights\route.ts
+  60:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\app\api\webhooks\stripe\route.ts
+   56:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   74:65  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   75:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   76:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   81:65  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   82:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   83:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  123:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  222:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  239:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\app\api\workspace\branding\logo\route.ts
+  40:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  77:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\app\dashboard\billing\billing-client.tsx
+  14:16  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-explicit-any
+  15:17  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-explicit-any
+  19:9   warning  'router' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  26:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+D:\Proyectos\Zefirus\app\dashboard\billing\billing-client.tsx:26:7
+  24 |   useEffect(() => {
+  25 |     if (initialWorkspaceId) {
+> 26 |       setWorkspaceId(initialWorkspaceId);
+     |       ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  27 |     }
+  28 |   }, [initialWorkspaceId]);
+  29 |  react-hooks/set-state-in-effect
+
+D:\Proyectos\Zefirus\app\dashboard\historial\page.tsx
+   6:28  warning  'Clock' is defined but never used     @typescript-eslint/no-unused-vars
+   8:45  warning  'Activity' is defined but never used  @typescript-eslint/no-unused-vars
+  50:32  warning  'error' is defined but never used     @typescript-eslint/no-unused-vars
+
+D:\Proyectos\Zefirus\app\dashboard\integrations\whatsapp\page.tsx
+  271:29  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  677:12  warning  'projects' is assigned a value but never used                                                              @typescript-eslint/no-unused-vars
+  723:8   warning  React Hook useCallback has a missing dependency: 'lang'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  740:29  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+  770:31  warning  Unexpected any. Specify a different type                                                                   @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\app\dashboard\ops\MyTasksView.tsx
+   8:10  warning  'PRIORITIES' is defined but never used    @typescript-eslint/no-unused-vars
+  15:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  18:38  warning  'members' is defined but never used       @typescript-eslint/no-unused-vars
+  23:15  warning  'now' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  66:97  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\app\dashboard\ops\OpsClient.tsx
+   12:17  warning  'ExternalLink' is defined but never used  @typescript-eslint/no-unused-vars
+  856:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  865:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  879:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  901:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  910:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\app\dashboard\proyectos\[id]\page.tsx
+     3:31   warning  'useMemo' is defined but never used                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+     6:75   warning  'Filter' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+     8:29   warning  'ChevronDown' is defined but never used                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+     8:42   warning  'ChevronUp' is defined but never used                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+     9:20   warning  'Smartphone' is defined but never used                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+    19:3    warning  'AreaChart' is defined but never used                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+    29:10   warning  'CustomTooltip' is defined but never used                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+    42:35   warning  'WidgetType' is defined but never used                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+    56:7    warning  'CPR_MAP' is assigned a value but never used                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+   111:31   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   111:46   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   115:43   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   121:36   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   126:38   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   134:38   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   143:36   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   148:38   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   154:7    warning  'parseGoal' is assigned a value but never used                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   253:63   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   310:10   warning  'TimeToggle' is defined but never used                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   325:44   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   327:30   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   356:44   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   364:46   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   365:69   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   369:10   warning  'expandedRows' is assigned a value but never used                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   369:24   warning  'setExpandedRows' is assigned a value but never used                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   370:10   warning  'activeIntegrations' is assigned a value but never used                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   371:10   warning  'heatMetricState' is assigned a value but never used                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   371:27   warning  'setHeatMetricState' is assigned a value but never used                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   377:50   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   379:46   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   426:78   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   432:21   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   441:30   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   448:152  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   494:60   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   507:15   warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+   554:21   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   580:18   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   581:27   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   699:46   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   736:35   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   737:46   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   752:43   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   762:17   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   762:25   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   776:35   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   777:32   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   794:43   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   794:295  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   794:303  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1019:62   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1388:70   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1455:77   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1482:30   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1483:31   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1483:39   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1492:77   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1516:62   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1516:70   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1523:78   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1523:86   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1533:45   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1535:77   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1535:82   warning  'name' is defined but never used                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  1535:88   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1562:55   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1562:63   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1572:64   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1572:72   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1590:42   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1592:77   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1592:82   warning  'name' is defined but never used                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  1592:88   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1642:77   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1642:88   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1670:30   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1676:31   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1676:39   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1685:77   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1685:88   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1729:77   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1729:88   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1783:25   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1852:81   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1861:50   warning  'ra2' is assigned a value but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  1867:37   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  1915:40   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  1989:44   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2010:77   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2010:88   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2024:44   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2063:31   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2068:31   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2068:39   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2077:77   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2077:88   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2110:65   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2110:332  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2110:340  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2138:62   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2138:326  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2138:334  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2183:52   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2220:86   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2221:97   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2273:19   warning  'funnelSteps' is assigned a value but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  2353:86   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2354:97   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2358:19   warning  'healthLabel' is assigned a value but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  2359:19   warning  'healthColor' is assigned a value but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  2363:19   warning  'dashOffset' is assigned a value but never used                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  2469:86   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2470:97   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2474:19   warning  'healthLabel' is assigned a value but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  2479:19   warning  'dashOffset' is assigned a value but never used                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  2522:19   warning  'funnelSteps' is assigned a value but never used                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  2548:81   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2587:29   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2588:30   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2618:49   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2692:50   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2694:68   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2694:149  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2695:38   warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  2709:139  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\app\dashboard\proyectos\page.tsx
+   12:10  warning  'WorkspaceSwitcher' is defined but never used                                                                    @typescript-eslint/no-unused-vars
+   18:28  warning  'Users' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+   18:35  warning  'Globe' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+   18:62  warning  'Rocket' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+   19:25  warning  'MoreHorizontal' is defined but never used                                                                       @typescript-eslint/no-unused-vars
+   19:41  warning  'Check' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+   19:76  warning  'CheckCircle' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+   25:5   warning  'PLATFORMS' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+   25:16  warning  'VERTICALS' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+   25:27  warning  'GOALS' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+   25:34  warning  'GOOGLE_PLATFORM' is defined but never used                                                                      @typescript-eslint/no-unused-vars
+   25:51  warning  'NO_BOT_PLATFORM' is defined but never used                                                                      @typescript-eslint/no-unused-vars
+   26:5   warning  'CPR_MAP' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+   26:24  warning  'STATUS_COLORS' is defined but never used                                                                        @typescript-eslint/no-unused-vars
+  137:10  warning  'CustomSelect' is defined but never used                                                                         @typescript-eslint/no-unused-vars
+  239:12  warning  'adsConnected' is assigned a value but never used                                                                @typescript-eslint/no-unused-vars
+  240:12  warning  'justConnected' is assigned a value but never used                                                               @typescript-eslint/no-unused-vars
+  255:8   warning  React Hook useEffect has a missing dependency: 'searchParams'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  284:11  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  286:11  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  722:10  warning  'mergeUnique' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+
+D:\Proyectos\Zefirus\app\dashboard\resumen\page.tsx
+    6:5   warning  'LayoutDashboard' is defined but never used        @typescript-eslint/no-unused-vars
+    6:56  warning  'Plug' is defined but never used                   @typescript-eslint/no-unused-vars
+    7:31  warning  'CheckCircle' is defined but never used            @typescript-eslint/no-unused-vars
+    9:5   warning  'BarChart3' is defined but never used              @typescript-eslint/no-unused-vars
+    9:16  warning  'Inbox' is defined but never used                  @typescript-eslint/no-unused-vars
+    9:23  warning  'Megaphone' is defined but never used              @typescript-eslint/no-unused-vars
+    9:34  warning  'Link2' is defined but never used                  @typescript-eslint/no-unused-vars
+  223:10  warning  'QuickPill' is defined but never used              @typescript-eslint/no-unused-vars
+  250:11  warning  'timeLabel' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  356:11  warning  'healthyCount' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  357:11  warning  'warningCount' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  362:11  warning  'dangerCount' is assigned a value but never used   @typescript-eslint/no-unused-vars
+
+D:\Proyectos\Zefirus\app\dashboard\settings\areas\page.tsx
+  13:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\app\dashboard\settings\inteligencia\page.tsx
+   86:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  112:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  136:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\app\login\page.tsx
+  1:1  warning  Unused eslint-disable directive (no problems were reported from '@next/next/no-html-link-for-pages')
+
+D:\Proyectos\Zefirus\check-db.js
+   1:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   2:20  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  14:14  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
+
+D:\Proyectos\Zefirus\components\integrations\IntegrationsView.tsx
+  16:27  warning  'GoogleIcon' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Proyectos\Zefirus\components\projects\OmnichannelHub.tsx
+    4:57   warning  'Globe' is defined but never used                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   31:117  warning  Unexpected any. Specify a different type                                                                                                                                                                               @typescript-eslint/no-explicit-any
+   55:73   warning  Unexpected any. Specify a different type                                                                                                                                                                               @typescript-eslint/no-explicit-any
+   57:42   warning  Unexpected any. Specify a different type                                                                                                                                                                               @typescript-eslint/no-explicit-any
+   60:9    warning  The 'connectedPlatforms' logical expression could make the dependencies of useEffect Hook (at line 91) change on every render. To fix this, wrap the initialization of 'connectedPlatforms' in its own useMemo() Hook  react-hooks/exhaustive-deps
+   60:57   warning  Unexpected any. Specify a different type                                                                                                                                                                               @typescript-eslint/no-explicit-any
+  223:42   warning  Unexpected any. Specify a different type                                                                                                                                                                               @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\components\publisher\AssetGroupManager.tsx
+   4:31  warning  'AlertCircle' is defined but never used   @typescript-eslint/no-unused-vars
+  19:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  20:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  24:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  50:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  99:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\components\settings\ProfileSettings.tsx
+  39:10  warning  'linking' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Proyectos\Zefirus\components\settings\TeamSettings.tsx
+   71:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  250:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\components\ui\BrandIcons.tsx
+    9:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   15:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   26:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   32:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   43:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   49:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   60:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   66:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   94:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  100:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  111:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  117:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  148:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  154:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  165:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  171:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  182:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  188:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  199:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  205:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  216:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  222:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  233:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  239:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  250:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  256:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  267:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  273:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  284:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  290:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  301:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  307:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  318:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  324:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  335:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  341:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  352:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  358:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  369:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  375:5  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+D:\Proyectos\Zefirus\components\ui\DataTable.tsx
+  69:68  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\components\ui\DeviceEmulator.tsx
+  4:16  warning  'Battery' is defined but never used  @typescript-eslint/no-unused-vars
+  4:25  warning  'Signal' is defined but never used   @typescript-eslint/no-unused-vars
+
+D:\Proyectos\Zefirus\filter.js
+  1:12  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+D:\Proyectos\Zefirus\fix-brand-icons.js
+  1:12  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+D:\Proyectos\Zefirus\fix-icons.js
+  1:12  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+D:\Proyectos\Zefirus\forensic.js
+  1:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:20  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+D:\Proyectos\Zefirus\forensic2.js
+  1:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:20  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+D:\Proyectos\Zefirus\forensic3.js
+  1:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:20  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+D:\Proyectos\Zefirus\gen-icons.js
+  1:7   warning  'fs' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  1:12  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+D:\Proyectos\Zefirus\lib\ai\finops\entitlements.ts
+  16:7  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\lib\ai\finops\outbox-dispatcher.ts
+  19:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  62:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\lib\ai\finops\reservation.ts
+  101:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  269:60  warning  'errorReason' is defined but never used   @typescript-eslint/no-unused-vars
+
+D:\Proyectos\Zefirus\lib\ai\finops\stripe-billing-provider.ts
+   37:28  warning  'workspaceId' is defined but never used   @typescript-eslint/no-unused-vars
+   37:49  warning  'plan' is defined but never used          @typescript-eslint/no-unused-vars
+   41:27  warning  'workspaceId' is defined but never used   @typescript-eslint/no-unused-vars
+   41:48  warning  'amount' is defined but never used        @typescript-eslint/no-unused-vars
+   41:64  warning  'description' is defined but never used   @typescript-eslint/no-unused-vars
+   59:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   90:28  warning  'workspaceId' is defined but never used   @typescript-eslint/no-unused-vars
+   90:49  warning  'newPlan' is defined but never used       @typescript-eslint/no-unused-vars
+   94:28  warning  'workspaceId' is defined but never used   @typescript-eslint/no-unused-vars
+   98:22  warning  'workspaceId' is defined but never used   @typescript-eslint/no-unused-vars
+   98:43  warning  'amount' is defined but never used        @typescript-eslint/no-unused-vars
+   98:59  warning  'reason' is defined but never used        @typescript-eslint/no-unused-vars
+  115:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\lib\ai\orchestration\run.ts
+  1:16  warning  'uuidv4' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\Proyectos\Zefirus\lib\ai\orchestration\tool-gateway.ts
+   8:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   8:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  37:81  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\lib\ai\router.ts
+  163:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  181:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  202:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\lib\commercial\billing-notifier.ts
+   17:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   91:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  104:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\lib\commercial\fiscal-adapter.ts
+   2:10  warning  'Prisma' is defined but never used        @typescript-eslint/no-unused-vars
+  22:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  33:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  62:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\lib\commercial\module-catalog.ts
+   1:10  warning  'PrismaClient' is defined but never used  @typescript-eslint/no-unused-vars
+  62:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  64:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\lib\i18n.ts
+   3:6   warning  'StringRecord' is defined but never used  @typescript-eslint/no-unused-vars
+   3:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  11:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\lib\integrations\google\google-ads.ts
+  211:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\lib\integrations\google\oauth.ts
+  28:3   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  45:20  warning  Unexpected any. Specify a different type                                                               @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\lib\optimization\ai\context-builder.ts
+  10:6   warning  'Metric' is defined but never used        @typescript-eslint/no-unused-vars
+  19:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\list_tables.js
+  1:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+D:\Proyectos\Zefirus\scratch\check-ads.ts
+  10:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  16:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  27:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\scripts\audit-cols.js
+  1:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:20  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+D:\Proyectos\Zefirus\scripts\audit-drift.js
+  1:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:20  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+D:\Proyectos\Zefirus\scripts\audit-hash.js
+  1:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:20  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:16  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+D:\Proyectos\Zefirus\scripts\audit-legacy.js
+  1:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:20  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+D:\Proyectos\Zefirus\scripts\billing-reconcile.ts
+  5:7  warning  'provider' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Proyectos\Zefirus\scripts\docs-graph.mjs
+  43:7  warning  'ALLOWED_EXTENSIONS' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Proyectos\Zefirus\scripts\execute-prod-recovery-strict.js
+   1:1   warning  A `require()` style import is forbidden     @typescript-eslint/no-require-imports
+   2:20  warning  A `require()` style import is forbidden     @typescript-eslint/no-require-imports
+  22:7   warning  'phase' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Proyectos\Zefirus\scripts\re-audit-aiusage.js
+  1:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:20  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  9:12  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
+
+D:\Proyectos\Zefirus\scripts\recover-aiusage.js
+  1:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:20  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  9:12  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
+
+D:\Proyectos\Zefirus\scripts\seed-commercial-catalog.ts
+  29:11  warning  'planVersion' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\Proyectos\Zefirus\scripts\test-concurrent-reservations.ts
+  60:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  70:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\scripts\test-creds.js
+  1:26  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+D:\Proyectos\Zefirus\scripts\test-outbox-concurrency.ts
+  1:10  warning  'PrismaClient' is defined but never used  @typescript-eslint/no-unused-vars
+  1:24  warning  'Prisma' is defined but never used        @typescript-eslint/no-unused-vars
+
+D:\Proyectos\Zefirus\step1-2.js
+   1:1   warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   2:20  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+   3:22  warning  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  35:11  warning  'e' is defined but never used            @typescript-eslint/no-unused-vars
+
+D:\Proyectos\Zefirus\tests\ai\evaluator.test.ts
+  68:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\tests\ai\finops.test.ts
+    3:27  warning  'release' is defined but never used       @typescript-eslint/no-unused-vars
+    9:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   90:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  113:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  169:77  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\tests\ai\orchestration.test.ts
+   5:10  warning  'AI_CATALOG' is defined but never used    @typescript-eslint/no-unused-vars
+  74:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\Proyectos\Zefirus\tests\ai\stripe-billing.test.ts
+    8:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   64:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   65:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   69:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   73:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   84:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   85:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   88:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  104:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  106:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  111:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  112:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  113:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  121:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  122:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 382 problems (1 error, 381 warnings)
+  0 errors and 8 warnings potentially fixable with the `--fix` option.
+

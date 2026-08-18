@@ -1,0 +1,11 @@
+
+> flowchart@0.1.0 typecheck
+> tsc --noEmit
+
+app/dashboard/billing/page.tsx(34,9): error TS2353: Object literal may only specify known properties, and 'workspaceId_period' does not exist in type 'WorkspaceAiBudgetBalanceWhereUniqueInput'.
+app/dashboard/billing/page.tsx(42,35): error TS2339: Property 'spentUsd' does not exist on type '{ id: string; workspaceId: string; createdAt: Date; updatedAt: Date; periodStart: Date; periodEnd: Date; customerAiAllowance: Decimal; customerBilledUsd: Decimal; customerReservedUsd: Decimal; internalProviderSpendLimit: Decimal; internalProviderCostUsd: Decimal; }'.
+app/dashboard/billing/page.tsx(42,67): error TS2339: Property 'spentUsd' does not exist on type '{ id: string; workspaceId: string; createdAt: Date; updatedAt: Date; periodStart: Date; periodEnd: Date; customerAiAllowance: Decimal; customerBilledUsd: Decimal; customerReservedUsd: Decimal; internalProviderSpendLimit: Decimal; internalProviderCostUsd: Decimal; }'.
+app/dashboard/billing/page.tsx(43,38): error TS2339: Property 'reservedUsd' does not exist on type '{ id: string; workspaceId: string; createdAt: Date; updatedAt: Date; periodStart: Date; periodEnd: Date; customerAiAllowance: Decimal; customerBilledUsd: Decimal; customerReservedUsd: Decimal; internalProviderSpendLimit: Decimal; internalProviderCostUsd: Decimal; }'.
+app/dashboard/billing/page.tsx(43,73): error TS2339: Property 'reservedUsd' does not exist on type '{ id: string; workspaceId: string; createdAt: Date; updatedAt: Date; periodStart: Date; periodEnd: Date; customerAiAllowance: Decimal; customerBilledUsd: Decimal; customerReservedUsd: Decimal; internalProviderSpendLimit: Decimal; internalProviderCostUsd: Decimal; }'.
+tests/ai/finops.test.ts(172,7): error TS2345: Argument of type '{ workspaceId: string; reservationId: string; idempotencyKey: string; feature: string; estimatedCost: number; }' is not assignable to parameter of type 'ReservationContext'.
+  Property 'requestId' is missing in type '{ workspaceId: string; reservationId: string; idempotencyKey: string; feature: string; estimatedCost: number; }' but required in type 'ReservationContext'.

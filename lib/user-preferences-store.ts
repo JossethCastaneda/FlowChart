@@ -19,7 +19,7 @@ import {
   type UserPreferences,
 } from "@/lib/product-profile";
 
-const STORAGE_KEY = "sodare:prefs";
+const STORAGE_KEY = "flowChart:prefs";
 
 let current: UserPreferences = { ...DEFAULT_USER_PREFERENCES };
 let hydrated = false;

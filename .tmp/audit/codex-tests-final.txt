@@ -1,0 +1,5551 @@
+
+> flowchart@0.1.0 test
+> vitest run
+
+
+[1m[46m RUN [49m[22m [36mv3.2.6 [39m[90mD:/Proyectos/Zefirus[39m
+
+ [32m✓[39m tests/tenant-isolation-functional.test.ts [2m([22m[2m27 tests[22m[2m)[22m[32m 55[2mms[22m[39m
+ [32m✓[39m tests/tenant-isolation.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 106[2mms[22m[39m
+ [31m❯[39m tests/sidebar-navigation.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 46[2mms[22m[39m
+   [32m✓[39m sidebar navigation contract[2m > [22mkeeps every module registered in one navigation group[32m 3[2mms[22m[39m
+   [32m✓[39m sidebar navigation contract[2m > [22mkeeps module routes unique and active accents on declared FlowChart tokens[32m 1[2mms[22m[39m
+   [32m✓[39m sidebar navigation contract[2m > [22mkeeps every visible module backed by a Next dashboard route[32m 2[2mms[22m[39m
+   [32m✓[39m sidebar navigation contract[2m > [22mdoes not leave shared icon/chart palettes on removed legacy tokens[32m 1[2mms[22m[39m
+   [32m✓[39m sidebar navigation contract[2m > [22muses a generic active marker instead of stale module selectors[32m 3[2mms[22m[39m
+   [32m✓[39m sidebar navigation contract[2m > [22mkeeps the mobile Sheet responsive and accessible[32m 2[2mms[22m[39m
+[31m   [31m×[31m sidebar navigation contract[2m > [22mdoes not let desktop pin state force the mobile Sheet open[39m[32m 18[2mms[22m[39m
+[31m     → expected '"use client";\n\nimport React, { useS…' to contain 'className="sidebar-group-content"'[39m
+   [32m✓[39m sidebar navigation contract[2m > [22mkeeps the documented shell stacking order[32m 1[2mms[22m[39m
+[31m   [31m×[31m sidebar navigation contract[2m > [22mkeeps the visible shell on canonical FlowChart tokens[39m[32m 12[2mms[22m[39m
+[31m     → expected '@import "./tokens.css";\r\n@import "t…' to contain '.fc-sidebar.sidebar-responsive {\n   …'[39m
+ [32m✓[39m tests/meta-api-version.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 248[2mms[22m[39m
+ [32m✓[39m tests/api-versions.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 252[2mms[22m[39m
+ [32m✓[39m tests/no-secrets.test.ts [2m([22m[2m1 test[22m[2m)[22m[33m 336[2mms[22m[39m
+   [33m[2m✓[22m[39m anti-secretos[2m > [22mno hay credenciales embebidas en el código fuente [33m 334[2mms[22m[39m
+ [32m✓[39m tests/crecimiento-engine.test.ts [2m([22m[2m20 tests[22m[2m)[22m[32m 50[2mms[22m[39m
+ [31m❯[39m tests/aria-copilot-llm.test.ts [2m([22m[2m13 tests[22m[2m | [22m[31m13 failed[39m[2m)[22m[32m 59[2mms[22m[39m
+[31m   [31m×[31m geminiProvider.complete (camino del copilot)[2m > [22marma el payload correcto: systemInstruction, roles user/model y maxOutputTokens[39m[32m 10[2mms[22m[39m
+[31m     → GEMINI_API_KEY no configurada[39m
+[31m   [31m×[31m geminiProvider.complete (camino del copilot)[2m > [22mdesactiva thinking en modelos flash (el razonamiento consume maxOutputTokens)[39m[32m 1[2mms[22m[39m
+[31m     → GEMINI_API_KEY no configurada[39m
+[31m   [31m×[31m geminiProvider.complete (camino del copilot)[2m > [22mNO manda thinkingConfig a modelos pro (no aceptan thinkingBudget 0)[39m[32m 1[2mms[22m[39m
+[31m     → GEMINI_API_KEY no configurada[39m
+[31m   [31m×[31m geminiProvider.complete (camino del copilot)[2m > [22mune respuestas multi-parte en un solo texto[39m[32m 1[2mms[22m[39m
+[31m     → GEMINI_API_KEY no configurada[39m
+[31m   [31m×[31m geminiProvider.complete (camino del copilot)[2m > [22mlanza error claro ante respuesta vacía (no burbuja vacía en el chat)[39m[32m 10[2mms[22m[39m
+[31m     → expected [Function] to throw error matching /vacía.*MAX_TOKENS/ but got 'GEMINI_API_KEY no configurada'[39m
+[31m   [31m×[31m geminiProvider.complete (camino del copilot)[2m > [22mpropaga errores HTTP como LLMProviderError con el status upstream[39m[32m 8[2mms[22m[39m
+[31m     → expected LLMProviderError: GEMINI_API_KEY no confi… { …(2) } to match object { provider: 'gemini', status: 429 }
+(1 matching property omitted from actual)[39m
+[31m   [31m×[31m geminiProvider.complete (camino del copilot)[2m > [22madjunta imágenes como inlineData en el último turno de usuario (GridIA multimodal)[39m[32m 1[2mms[22m[39m
+[31m     → GEMINI_API_KEY no configurada[39m
+[31m   [31m×[31m geminiProvider.complete (camino del copilot)[2m > [22mmueve mensajes role=system del historial a systemInstruction (Gemini no acepta role system)[39m[32m 1[2mms[22m[39m
+[31m     → GEMINI_API_KEY no configurada[39m
+[31m   [31m×[31m anthropicProvider.complete (camino del copilot)[2m > [22marma el payload correcto: system top-level, sin temperature/top_p, max_tokens presente[39m[32m 2[2mms[22m[39m
+[31m     → ANTHROPIC_API_KEY no configurada[39m
+[31m   [31m×[31m anthropicProvider.complete (camino del copilot)[2m > [22mune múltiples bloques de texto de la respuesta[39m[32m 1[2mms[22m[39m
+[31m     → ANTHROPIC_API_KEY no configurada[39m
+[31m   [31m×[31m anthropicProvider.complete (camino del copilot)[2m > [22mconvierte stop_reason refusal en error claro[39m[32m 2[2mms[22m[39m
+[31m     → expected LLMProviderError: ANTHROPIC_API_KEY no co… { …(2) } to match object { provider: 'anthropic', status: 502 }
+(1 matching property omitted from actual)[39m
+[31m   [31m×[31m anthropicProvider.complete (camino del copilot)[2m > [22madjunta imágenes como bloques image antes del texto (GridIA multimodal)[39m[32m 1[2mms[22m[39m
+[31m     → ANTHROPIC_API_KEY no configurada[39m
+[31m   [31m×[31m openaiProvider.complete — multimodal[2m > [22madjunta imágenes como image_url data-URL en el último mensaje de usuario[39m[32m 17[2mms[22m[39m
+[31m     → OPENAI_API_KEY no configurada[39m
+ [32m✓[39m tests/no-binary-docs.test.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 676[2mms[22m[39m
+   [33m[2m✓[22m[39m no-binary-docs[2m > [22mno file contains NUL bytes (0x00) [33m 343[2mms[22m[39m
+   [33m[2m✓[22m[39m no-binary-docs[2m > [22mno file contains mojibake (double-encoded UTF-8) [33m 330[2mms[22m[39m
+[90mstdout[2m | tests/ai/orchestration.test.ts[2m > [22m[2mAI Orchestration Pipeline[2m > [22m[2mshould process a context and output safe ProposedActions without executing them
+[22m[39m{"level":"info","ts":"2026-08-17T16:22:19.511Z","msg":"[Orchestrator] Starting optimization cycle","workspaceId":"ws-test","snapshotId":"client-test"}
+
+stderr | tests/ai/orchestration.test.ts > AI Orchestration Pipeline > should process a context and output safe ProposedActions without executing them
+{"level":"error","ts":"2026-08-17T16:22:19.514Z","msg":"[Orchestrator] AI Planner failed","workspaceId":"ws-test","error":{"name":"Error","message":"[AI Router] E0 constraint violation: Task requires deterministic mathematical truth. LLM cannot be used.","stack":"Error: [AI Router] E0 constraint violation: Task requires deterministic mathematical truth. LLM cannot be used.\n    at routeAiRequest (D:\\Proyectos\\Zefirus\\lib\\ai\\router.ts:120:11)\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at generateOptimizationPlan (D:\\Proyectos\\Zefirus\\lib\\optimization\\ai\\planner.ts:32:17)\n    at Module.orchestrateOptimization (D:\\Proyectos\\Zefirus\\lib\\optimization\\ai\\orchestrator.ts:34:12)\n    at D:\\Proyectos\\Zefirus\\tests\\ai\\orchestration.test.ts:111:29\n    at file:///D:/Proyectos/Zefirus/node_modules/@vitest/runner/dist/chunk-hooks.js:752:20"}}
+
+ [31m❯[39m tests/ai/orchestration.test.ts [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 16[2mms[22m[39m
+[31m   [31m×[31m AI Orchestration Pipeline[2m > [22mshould process a context and output safe ProposedActions without executing them[39m[32m 14[2mms[22m[39m
+[31m     → Failed to generate optimization plan[39m
+ [32m✓[39m tests/logger.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 36[2mms[22m[39m
+ [32m✓[39m tests/module-status.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 34[2mms[22m[39m
+ [32m✓[39m tests/optimization-execution-policy.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32m✓[39m tests/optimization-phase1.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 48[2mms[22m[39m
+ [32m✓[39m tests/ads-schemas.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+stderr | tests/ai/stripe-billing.test.ts > Stripe Stage 8 Billing Matrix > Outbox Dispatcher > marks events FAILED on Stripe error and increments attempts
+[OutboxDispatcher] Failed to dispatch event evt_1: Error: Stripe API Timeout
+    at D:\Proyectos\Zefirus\tests\ai\stripe-billing.test.ts:88:79
+    at file:///D:/Proyectos/Zefirus/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+    at file:///D:/Proyectos/Zefirus/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+    at file:///D:/Proyectos/Zefirus/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/Proyectos/Zefirus/node_modules/@vitest/runner/dist/chunk-hooks.js:1863:10)
+    at runTest (file:///D:/Proyectos/Zefirus/node_modules/@vitest/runner/dist/chunk-hooks.js:1574:12)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at runSuite (file:///D:/Proyectos/Zefirus/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)
+    at runSuite (file:///D:/Proyectos/Zefirus/node_modules/@vitest/runner/dist/chunk-hooks.js:1729:8)
+
+ [32m✓[39m tests/ai/stripe-billing.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 36[2mms[22m[39m
+stderr | tests/ai/metering.test.ts > AI Metering (metering.ts) > checkAiLimit > should fail-closed (return false) on DB error
+{"level":"error","ts":"2026-08-17T16:22:20.411Z","msg":"[METERING] Error checkAiLimit","workspaceId":"ws-123","error":"Error: DB Connection Error"}
+
+stderr | tests/ai/metering.test.ts > AI Metering (metering.ts) > recordAiUsage > should log error but not throw if create fails
+{"level":"error","ts":"2026-08-17T16:22:20.420Z","msg":"[METERING] Error al guardar AiUsage","workspaceId":"ws-123","route":"/api/test","error":"Error: DB Error"}
+
+ [32m✓[39m tests/ai/metering.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/optimization-service.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32m✓[39m tests/optimization-execution-service.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 41[2mms[22m[39m
+[90mstdout[2m | tests/auth.test.ts[2m > [22m[2mauthOptions configuration[2m > [22m[2mfacebook-sdk authorize[2m > [22m[2mmatches existing legacy user by Facebook ID when no Account record exists and email is null
+[22m[39m{"level":"info","ts":"2026-08-17T16:22:20.658Z","msg":"[AUTH] facebook-sdk authorization successful","userId":"758431820460507"}
+
+ [32m✓[39m tests/auth.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m tests/workflow-config.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/sla-calculator.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+[90mstdout[2m | tests/meta-fetch.test.ts
+[22m[39m[Prisma] database configured (source: DATABASE_URL)
+
+stderr | tests/meta-fetch.test.ts > metaFetch — camino único a la Graph API > 403 con código de rate-limit (4) sí reintenta hasta tener éxito
+{"level":"warn","ts":"2026-08-17T16:22:21.134Z","msg":"[META FETCH] Rate limit","status":403,"url":"https://graph.facebook.com/v25.0/me","retry":1,"maxRetries":3,"delayMs":2340}
+
+ [32m✓[39m tests/meta-fetch.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m tests/optimization-evaluation.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/ads-metrics.test.ts [2m([22m[2m38 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+stderr | tests/ai/router.test.ts > AI Router (registry.ts) > getWorkspaceAiProvider > should fallback to getActiveProvider if DB fails
+{"level":"warn","ts":"2026-08-17T16:22:21.459Z","msg":"[AI Registry] Fallback a getActiveProvider por error al leer WorkspaceSettings","workspaceId":"ws-123","error":"Error: DB Error"}
+
+ [32m✓[39m tests/ai/router.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+[90mstdout[2m | tests/ratelimit.test.ts
+[22m[39m[Prisma] database configured (source: DATABASE_URL)
+
+ [32m✓[39m tests/ratelimit.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/publish-single-post.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/optimization-overview.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+stderr | tests/encryption.test.ts > encryption > rejects plaintext (non-encrypted) input on decrypt
+{"level":"error","ts":"2026-08-17T16:22:21.839Z","msg":"[ENCRYPTION] Plaintext credential encountered! Rejecting to decrypt/use unencrypted token."}
+
+ [32m✓[39m tests/ads-boost.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/encryption.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/publish-to-meta.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/meta-scopes.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/meta-errors.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+[90mstdout[2m | tests/ai/finops.test.ts
+[22m[39m[Prisma] database configured (source: DATABASE_URL)
+
+ [32m✓[39m tests/analytics-sensitive.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/analytics-alerts.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/mmm-ingest.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+stderr | tests/ai/evaluator.test.ts > Deterministic Evaluator > should reject actions for non-existent entities
+{"level":"warn","ts":"2026-08-17T16:22:22.521Z","msg":"[Evaluator] Rejected action: Entity not found in active context","action":{"actionType":"PAUSE_CAMPAIGN","entity":{"type":"campaign","id":"camp-unknown"},"proposedValue":"PAUSED","expectedImpact":"Saves money","evidence":["High spend"]}}
+
+stderr | tests/ai/evaluator.test.ts > Deterministic Evaluator > should reject actions with no evidence
+{"level":"warn","ts":"2026-08-17T16:22:22.525Z","msg":"[Evaluator] Rejected action: No evidence provided","action":{"actionType":"PAUSE_CAMPAIGN","entity":{"type":"campaign","id":"camp-bad"},"proposedValue":"PAUSED","expectedImpact":"Saves money","evidence":[]}}
+
+stderr | tests/ai/evaluator.test.ts > Deterministic Evaluator > should reject unsupported action types
+{"level":"warn","ts":"2026-08-17T16:22:22.526Z","msg":"[Evaluator] Rejected action: Unsupported type","action":{"actionType":"DELETE_CAMPAIGN","entity":{"type":"campaign","id":"camp-bad"},"proposedValue":"DELETED","expectedImpact":"Gone","evidence":["Bad performance"]}}
+
+ [32m✓[39m tests/ai/evaluator.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/analytics-funnels.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/publish-post-workflow.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/creative-fatigue.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/analytics-overrides.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+[90mstdout[2m | tests/ai/finops.test.ts[2m > [22m[2mFinOps: Entitlements & Reservations[2m > [22m[2msettle marks request succeeded and creates usages using upsert for idempotency
+[22m[39m[Billing Meter] Enqueued usage sync for meter_res_123-run_1 to Stripe.
+
+ [32m✓[39m tests/ai/finops.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m tests/analytics-kpis.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/email-templates.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/ai-usage.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/ai/capabilities.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/migration-safety.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/guardrail.test.ts [2m([22m[2m22 tests[22m[2m)[22m[33m 5040[2mms[22m[39m
+   [33m[2m✓[22m[39m guardrail — browser navigation[2m > [22mallows an allowlist URL (vercel.com/docs) [33m 392[2mms[22m[39m
+   [33m[2m✓[22m[39m guardrail — browser navigation[2m > [22mrejects if ANY URL in the task is denied (mixed URLs) [33m 401[2mms[22m[39m
+   [33m[2m✓[22m[39m guardrail — browser navigation[2m > [22mallows mcp_chrome-devtools-mcp_navigate_page with allowed URL [33m 368[2mms[22m[39m
+   [33m[2m✓[22m[39m guardrail — unknown tools[2m > [22mdenies an unknown tool (fail-closed) [33m 325[2mms[22m[39m
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 16 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/aria-copilot-llm.test.ts > geminiProvider.complete (camino del copilot) > arma el payload correcto: systemInstruction, roles user/model y maxOutputTokens
+LLMProviderError: GEMINI_API_KEY no configurada
+ ❯ Object.complete lib/ai/providers/gemini.ts:90:21
+     88|   async complete(opts: CompleteOptions): Promise<CompleteResult> {
+     89|     const key = env.GEMINI_API_KEY;
+     90|     if (!key) throw new LLMProviderError("gemini", 500, "GEMINI_API_KE…
+       |                     ^
+     91|     const model = opts.model ?? this.defaultModel;
+     92|     const payload = buildPayload(opts);
+ ❯ tests/aria-copilot-llm.test.ts:57:36
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/16]⎯
+
+ FAIL  tests/aria-copilot-llm.test.ts > geminiProvider.complete (camino del copilot) > desactiva thinking en modelos flash (el razonamiento consume maxOutputTokens)
+LLMProviderError: GEMINI_API_KEY no configurada
+ ❯ Object.complete lib/ai/providers/gemini.ts:90:21
+     88|   async complete(opts: CompleteOptions): Promise<CompleteResult> {
+     89|     const key = env.GEMINI_API_KEY;
+     90|     if (!key) throw new LLMProviderError("gemini", 500, "GEMINI_API_KE…
+       |                     ^
+     91|     const model = opts.model ?? this.defaultModel;
+     92|     const payload = buildPayload(opts);
+ ❯ tests/aria-copilot-llm.test.ts:68:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/16]⎯
+
+ FAIL  tests/aria-copilot-llm.test.ts > geminiProvider.complete (camino del copilot) > NO manda thinkingConfig a modelos pro (no aceptan thinkingBudget 0)
+LLMProviderError: GEMINI_API_KEY no configurada
+ ❯ Object.complete lib/ai/providers/gemini.ts:90:21
+     88|   async complete(opts: CompleteOptions): Promise<CompleteResult> {
+     89|     const key = env.GEMINI_API_KEY;
+     90|     if (!key) throw new LLMProviderError("gemini", 500, "GEMINI_API_KE…
+       |                     ^
+     91|     const model = opts.model ?? this.defaultModel;
+     92|     const payload = buildPayload(opts);
+ ❯ tests/aria-copilot-llm.test.ts:74:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/16]⎯
+
+ FAIL  tests/aria-copilot-llm.test.ts > geminiProvider.complete (camino del copilot) > une respuestas multi-parte en un solo texto
+LLMProviderError: GEMINI_API_KEY no configurada
+ ❯ Object.complete lib/ai/providers/gemini.ts:90:21
+     88|   async complete(opts: CompleteOptions): Promise<CompleteResult> {
+     89|     const key = env.GEMINI_API_KEY;
+     90|     if (!key) throw new LLMProviderError("gemini", 500, "GEMINI_API_KE…
+       |                     ^
+     91|     const model = opts.model ?? this.defaultModel;
+     92|     const payload = buildPayload(opts);
+ ❯ tests/aria-copilot-llm.test.ts:82:36
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/16]⎯
+
+ FAIL  tests/aria-copilot-llm.test.ts > geminiProvider.complete (camino del copilot) > lanza error claro ante respuesta vacía (no burbuja vacía en el chat)
+AssertionError: expected [Function] to throw error matching /vacía.*MAX_TOKENS/ but got 'GEMINI_API_KEY no configurada'
+
+- Expected: 
+/vacía.*MAX_TOKENS/
+
++ Received: 
+"GEMINI_API_KEY no configurada"
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/16]⎯
+
+ FAIL  tests/aria-copilot-llm.test.ts > geminiProvider.complete (camino del copilot) > propaga errores HTTP como LLMProviderError con el status upstream
+AssertionError: expected LLMProviderError: GEMINI_API_KEY no confi… { …(2) } to match object { provider: 'gemini', status: 429 }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+- {
++ LLMProviderError {
+    "provider": "gemini",
+-   "status": 429,
++   "status": 500,
+  }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/16]⎯
+
+ FAIL  tests/aria-copilot-llm.test.ts > geminiProvider.complete (camino del copilot) > adjunta imágenes como inlineData en el último turno de usuario (GridIA multimodal)
+LLMProviderError: GEMINI_API_KEY no configurada
+ ❯ Object.complete lib/ai/providers/gemini.ts:90:21
+     88|   async complete(opts: CompleteOptions): Promise<CompleteResult> {
+     89|     const key = env.GEMINI_API_KEY;
+     90|     if (!key) throw new LLMProviderError("gemini", 500, "GEMINI_API_KE…
+       |                     ^
+     91|     const model = opts.model ?? this.defaultModel;
+     92|     const payload = buildPayload(opts);
+ ❯ tests/aria-copilot-llm.test.ts:103:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/16]⎯
+
+ FAIL  tests/aria-copilot-llm.test.ts > geminiProvider.complete (camino del copilot) > mueve mensajes role=system del historial a systemInstruction (Gemini no acepta role system)
+LLMProviderError: GEMINI_API_KEY no configurada
+ ❯ Object.complete lib/ai/providers/gemini.ts:90:21
+     88|   async complete(opts: CompleteOptions): Promise<CompleteResult> {
+     89|     const key = env.GEMINI_API_KEY;
+     90|     if (!key) throw new LLMProviderError("gemini", 500, "GEMINI_API_KE…
+       |                     ^
+     91|     const model = opts.model ?? this.defaultModel;
+     92|     const payload = buildPayload(opts);
+ ❯ tests/aria-copilot-llm.test.ts:118:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/16]⎯
+
+ FAIL  tests/aria-copilot-llm.test.ts > anthropicProvider.complete (camino del copilot) > arma el payload correcto: system top-level, sin temperature/top_p, max_tokens presente
+LLMProviderError: ANTHROPIC_API_KEY no configurada
+ ❯ call lib/ai/providers/anthropic.ts:80:19
+     78| ): Promise<AnthropicResponse> {
+     79|   const key = env.ANTHROPIC_API_KEY;
+     80|   if (!key) throw new LLMProviderError("anthropic", 500, "ANTHROPIC_AP…
+       |                   ^
+     81|   const payload = buildPayload(opts);
+     82|   const body: Record<string, unknown> = {
+ ❯ Object.complete lib/ai/providers/anthropic.ts:128:24
+ ❯ tests/aria-copilot-llm.test.ts:134:39
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/16]⎯
+
+ FAIL  tests/aria-copilot-llm.test.ts > anthropicProvider.complete (camino del copilot) > une múltiples bloques de texto de la respuesta
+LLMProviderError: ANTHROPIC_API_KEY no configurada
+ ❯ call lib/ai/providers/anthropic.ts:80:19
+     78| ): Promise<AnthropicResponse> {
+     79|   const key = env.ANTHROPIC_API_KEY;
+     80|   if (!key) throw new LLMProviderError("anthropic", 500, "ANTHROPIC_AP…
+       |                   ^
+     81|   const payload = buildPayload(opts);
+     82|   const body: Record<string, unknown> = {
+ ❯ Object.complete lib/ai/providers/anthropic.ts:128:24
+ ❯ tests/aria-copilot-llm.test.ts:155:39
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/16]⎯
+
+ FAIL  tests/aria-copilot-llm.test.ts > anthropicProvider.complete (camino del copilot) > convierte stop_reason refusal en error claro
+AssertionError: expected LLMProviderError: ANTHROPIC_API_KEY no co… { …(2) } to match object { provider: 'anthropic', status: 502 }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+- {
++ LLMProviderError {
+    "provider": "anthropic",
+-   "status": 502,
++   "status": 500,
+  }
+
+ ❯ tests/aria-copilot-llm.test.ts:161:5
+    159|   it("convierte stop_reason refusal en error claro", async () => {
+    160|     mockJsonResponse({ content: [], stop_reason: "refusal" });
+    161|     await expect(anthropicProvider.complete(CHAT)).rejects.toMatchObje…
+       |     ^
+    162|       provider: "anthropic",
+    163|       status: 502,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/16]⎯
+
+ FAIL  tests/aria-copilot-llm.test.ts > anthropicProvider.complete (camino del copilot) > adjunta imágenes como bloques image antes del texto (GridIA multimodal)
+LLMProviderError: ANTHROPIC_API_KEY no configurada
+ ❯ call lib/ai/providers/anthropic.ts:80:19
+     78| ): Promise<AnthropicResponse> {
+     79|   const key = env.ANTHROPIC_API_KEY;
+     80|   if (!key) throw new LLMProviderError("anthropic", 500, "ANTHROPIC_AP…
+       |                   ^
+     81|   const payload = buildPayload(opts);
+     82|   const body: Record<string, unknown> = {
+ ❯ Object.complete lib/ai/providers/anthropic.ts:128:24
+ ❯ tests/aria-copilot-llm.test.ts:169:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/16]⎯
+
+ FAIL  tests/aria-copilot-llm.test.ts > openaiProvider.complete — multimodal > adjunta imágenes como image_url data-URL en el último mensaje de usuario
+LLMProviderError: OPENAI_API_KEY no configurada
+ ❯ call lib/ai/providers/openai.ts:63:19
+     61| ): Promise<OpenAIResponse> {
+     62|   const key = env.OPENAI_API_KEY;
+     63|   if (!key) throw new LLMProviderError("openai", 500, "OPENAI_API_KEY …
+       |                   ^
+     64|   const body: Record<string, unknown> = {
+     65|     model,
+ ❯ Object.complete lib/ai/providers/openai.ts:93:24
+ ❯ tests/aria-copilot-llm.test.ts:188:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/16]⎯
+
+ FAIL  tests/sidebar-navigation.test.ts > sidebar navigation contract > does not let desktop pin state force the mobile Sheet open
+AssertionError: expected '"use client";\n\nimport React, { useS…' to contain 'className="sidebar-group-content"'
+
+- Expected
++ Received
+
+- className="sidebar-group-content"
++ "use client";
++
++ import React, { useState, useEffect, useRef, useCallback } from "react";
++ import Link from "next/link";
++ // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
++ import { GalaxyBackground } from "@/components/ui/GalaxyBackground";
++ import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
++ import { FlowChartLogo } from "@/components/ui/FlowChartLogo";
++ // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
++ import { NotificationBell } from "@/components/ui/NotificationBell";
++ import { AlertBellButton } from "@/components/alerts/AlertToast";
++ import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
++ import { WhatsAppPhonePrompt } from "@/components/ui/WhatsAppPhonePrompt";
++ import { Sheet } from "@/components/ui/Sheet";
++ import { useBrowserNotifications } from "@/hooks/useBrowserNotifications";
++ import { usePathname } from "next/navigation";
++ import { useSession, signOut } from "next-auth/react";
++ import { useHeaderStore } from "@/lib/header-store";
++ import { useTheme } from "next-themes";
++ import {
++   LayoutDashboard,
++   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
++   Users,
++   Settings,
++   Menu,
++   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
++   X,
++   Target,
++   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
++   Zap,
++   ChevronRight,
++   ChevronLeft,
++   Check,
++   LogOut,
++   FolderKanban,
++   Megaphone,
++   Plug,
++   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
++   MessageSquare,
++   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
++   BarChart3,
++   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
++   Ear,
++   Columns3,
++   MessageSquarePlus,
++   HelpCircle,
++   ChevronDown,
++   UserCheck,
++   UserMinus,
++   Coffee,
++   Utensils,
++   GraduationCap,
++   MinusCircle,
++   Languages,
++   Palette,
++   Bot,
++ } from "lucide-react";
++ import { showToast } from "@/components/ui/Toast";
++ import { useLanguage } from "@/components/layout/LanguageContext";
++
++ import { HoloIcon } from "@/components/ui/HoloIcon";
++
++ import { NAV_GROUPS } from "@/lib/flowchart-kit/nav-items";
++ import { MODULES } from "@/lib/flowchart-kit/modules";
++ import {
++   Activity,
++   MessagesSquare,
++   Sparkles,
++   Rocket,
++   Radar,
++   CheckCheck,
++   FileText,
++   FolderOpen,
++   Database,
++   Swords,
++   Link as LinkIcon,
++   Shield,
++   Webhook,
++   PieChart,
++   BrainCircuit,
++   Gauge,
++   type LucideIcon,
++ } from "lucide-react";
++
++ /* Mapa nombre-kebab (modules.ts) → componente Lucide.
++    Todo icono declarado en MODULES/FUTURE_MODULES debe existir aquí. */
++ const ICON_MAP: Record<string, LucideIcon> = {
++   "activity": Activity,
++   "folder-kanban": FolderKanban,
++   "messages-square": MessagesSquare,
++   "target": Target,
++   "sparkles": Sparkles,
++   "rocket": Rocket,
++   "megaphone": Megaphone,
++   "radar": Radar,
++   "columns-3": Columns3,
++   "bot": Bot,
++   "plug": Plug,
++   "settings": Settings,
++   "check-check": CheckCheck,
++   "file-text": FileText,
++   "folder-open": FolderOpen,
++   "database": Database,
++   "swords": Swords,
++   "link": LinkIcon,
++   "shield": Shield,
++   "webhook": Webhook,
++   "pie-chart": PieChart,
++   "brain-circuit": BrainCircuit,
++   "gauge": Gauge,
++ };
++
++
++
++ const TRANSLATIONS = {
++   es: {
++     inicio: "Inicio",
++     clientes: "Clientes",
++     planner: "Planner",
++     inbox: "Inbox",
++     analytics: "Analytics",
++     ads: "Ads",
++     listening: "Listening",
++     streams: "Streams",
++     gridia: "GridIA",
++     ops: "Ops",
++     integrations: "Integraciones",
++     admin: "Admin",
++     operacion: "Operación",
++     colapsar: "Colapsar",
++     expandir: "Expandir menú",
++     estado: "Estado",
++     recibe: "Recibe conversaciones",
++     noRecibe: "No recibe conversaciones",
++     enLinea: "En línea",
++     break: "Break",
++     almuerzo: "Almuerzo",
++     coach: "Coach",
++     ocupado: "Ocupado",
++     idioma: "Cambiar lenguaje",
++     apariencia: "Apariencia",
++     config: "Configuración",
++     logout: "Cerrar sesión",
++     superAdmin: "Super Administrador",
++     miembro: "Miembro de Equipo",
++     idiomaTitulo: "Seleccionar Idioma",
++     aparienciaTitulo: "Apariencia",
++     modoOscuro: "Original (Oscuro)",
++     modoClaro: "Claro",
++     modoSistema: "Sistema",
++   },
++   en: {
++     inicio: "Home",
++     clientes: "Clients",
++     planner: "Planner",
++     inbox: "Inbox",
++     analytics: "Analytics",
++     ads: "Ads",
++     listening: "Listening",
++     streams: "Streams",
++     gridia: "GridIA",
++     ops: "Ops",
++     integrations: "Integrations",
++     admin: "Admin",
++     operacion: "Operation",
++     colapsar: "Collapse",
++     expandir: "Expand menu",
++     estado: "Status",
++     recibe: "Receives conversations",
++     noRecibe: "Does not receive conversations",
++     enLinea: "Online",
++     break: "Break",
++     almuerzo: "Lunch",
++     coach: "Coach",
++     ocupado: "Busy",
++     idioma: "Change language",
++     apariencia: "Appearance",
++     config: "Settings",
++     logout: "Sign Out",
++     superAdmin: "Super Administrator",
++     miembro: "Team Member",
++     idiomaTitulo: "Select Language",
++     aparienciaTitulo: "Appearance",
++     modoOscuro: "Original (Dark)",
++     modoClaro: "Light",
++     modoSistema: "System",
++   }
++ };
++
++ // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
++ const getTranslatedNavItemName = (name: string, lang: 'es' | 'en') => {
++   const map: Record<string, string> = {
++     "Inicio": lang === 'es' ? "Inicio" : "Home",
++     "Clientes": lang === 'es' ? "Clientes" : "Clients",
++     "Planner": lang === 'es' ? "Planner" : "Planner",
++     "Inbox": lang === 'es' ? "Inbox" : "Inbox",
++     "Analytics": lang === 'es' ? "Analytics" : "Analytics",
++     "Ads": lang === 'es' ? "Ads" : "Ads",
++     "Listening": lang === 'es' ? "Listening" : "Listening",
++     "Streams": lang === 'es' ? "Streams" : "Streams",
++     "GridIA": lang === 'es' ? "GridIA" : "GridIA",
++     "Ops": lang === 'es' ? "Ops" : "Ops",
++     "Integraciones": lang === 'es' ? "Integraciones" : "Integrations",
++     "Resultados": lang === 'es' ? "Resultados" : "Results",
++     "Admin": lang === 'es' ? "Admin" : "Admin",
++   };
++   return map[name] || name;
++ };
++
++ const BREADCRUMB_MAP: Record<string, { es: string; en: string }> = {
++   dashboard: { es: "Inicio", en: "Home" },
++   proyectos: { es: "Clientes", en: "Clients" },
++   resumen: { es: "Resumen", en: "Overview" },
++   analytics: { es: "Analítica", en: "Analytics" },
++   portabilidad: { es: "Portabilidad", en: "Portability" },
++   briefing: { es: "Briefing", en: "Briefing" },
++   centurion: { es: "Centurion", en: "Centurion" },
++   crecimiento: { es: "Crecimiento", en: "Growth" },
++   studio: { es: "AI Studio", en: "AI Studio" },
++   scores: { es: "Scoreboard", en: "Scoreboard" },
++   "data-hub": { es: "Data Hub", en: "Data Hub" },
++   gridia: { es: "GridIA", en: "GridIA" },
++   historial: { es: "Historial", en: "History" },
++   inbox: { es: "Inbox 2.0", en: "Inbox 2.0" },
++   integrations: { es: "Integraciones", en: "Integrations" },
++   ops: { es: "Ops", en: "Ops" },
++   publisher: { es: "Publicador", en: "Publisher" },
++   reportes: { es: "Reportes", en: "Reports" },
++   settings: { es: "Configuración", en: "Settings" },
++   streams: { es: "Streams", en: "Streams" },
++   "analisis-resultados": { es: "Análisis de Resultados", en: "Performance Analysis" },
++   configuracion: { es: "Configuración", en: "Settings" },
++   reglas: { es: "Reglas", en: "Rules" },
++ };
++
++ /** Width of the invisible hover-trigger zone at the left edge */
++ const HOVER_TRIGGER_WIDTH = 20;
++ /** Delay (ms) before the sidebar auto-hides after mouse leaves */
++ const AUTO_HIDE_DELAY = 600;
++
++ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
++   const [sidebarOpen, setSidebarOpen] = useState(false);
++   // "sidebarPinned" persists across sessions — sidebar stays open without hover
++   const [sidebarPinned, setSidebarPinned] = useState(false);
++   const [isDesktopViewport, setIsDesktopViewport] = useState(false);
++   const pathname = usePathname();
++   const { theme, setTheme } = useTheme();
++   const { lang, setLang } = useLanguage();
++   const currentModule = MODULES.find(m => pathname === m.route || pathname?.startsWith(m.route + "/"));
++
++   // ── Global browser notifications (pop-up + sound) ──
++   useBrowserNotifications();
++
++   // Load pinned preference on mount
++   useEffect(() => {
++     // From 768px the desktop shell is active; CSS narrows it to compact mode
++     // only between 1024–1279px, per the design-system contract.
++     const media = window.matchMedia("(min-width: 768px)");
++     const syncViewport = () => {
++       const desktop = media.matches;
++       setIsDesktopViewport(desktop);
++       if (!desktop) {
++         setSidebarOpen(false);
++         return;
++       }
++       try {
++         const saved = localStorage.getItem("flowchart:sidebar-pinned");
++         if (saved === "true") {
++           setSidebarPinned(true);
++           setSidebarOpen(true);
++         }
++       } catch {}
++     };
++     syncViewport();
++     media.addEventListener("change", syncViewport);
++
++     return () => media.removeEventListener("change", syncViewport);
++   }, []);
++   
++
++
++   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
++   const [mounted, setMounted] = useState(false);
++   const [isEmbedded, setIsEmbedded] = useState(false);
++   const sidebarRef = useRef<HTMLElement>(null);
++   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
++   const showTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
++
++   const { data: session } = useSession();
++   const [avatarError, setAvatarError] = useState(false);
++
++   useEffect(() => {
++     // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
++     setAvatarError(false);
++   }, [session?.user?.image]);
++
++   useEffect(() => {
++     // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
++     setMounted(true);
++   }, []);
++
++
++
++   // Detect iframe on mount (client-side only)
++   useEffect(() => {
++     // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
++     try { setIsEmbedded(window.self !== window.top); } catch { setIsEmbedded(true); }
++   }, []);
++
++   // ── Auto show/hide on hover ──
++   const { breadcrumbs } = useHeaderStore();
++
++   const [projectNames, setProjectNames] = useState<Record<string, string>>({});
++
++   useEffect(() => {
++     if (!pathname) return;
++     const segments = pathname.split("/").filter(Boolean);
++     if (segments[1] === "proyectos" && segments[2]) {
++       const projectId = segments[2];
++       if (!projectNames[projectId]) {
++         fetch(`/api/projects/${projectId}`)
++           .then((r) => r.json())
++           .then((res) => {
++             if (res?.success && res?.data?.name) {
++               setProjectNames((prev) => ({
++                 ...prev,
++                 [projectId]: res.data.name,
++               }));
++             }
++           })
++           .catch(() => {});
++       }
++     }
++   }, [pathname, projectNames]);
++
++   const computedBreadcrumbs = React.useMemo(() => {
++     if (!pathname) return [];
++     const segments = pathname.split("/").filter(Boolean);
++     const list: { label: string; href?: string }[] = [];
++
++     let currentHref = "";
++     segments.forEach((seg, index) => {
++       if (seg === "dashboard") {
++         list.push({
++           label: lang === "es" ? BREADCRUMB_MAP.dashboard.es : BREADCRUMB_MAP.dashboard.en,
++           href: "/dashboard/resumen"
++         });
++         currentHref = "/dashboard";
++       } else if (index === 2 && segments[1] === "proyectos") {
++         currentHref += `/${seg}`;
++         const name = projectNames[seg] || (lang === "es" ? "Proyecto" : "Project");
++         list.push({ label: name, href: currentHref });
++       } else {
++         currentHref += `/${seg}`;
++         const mapped = BREADCRUMB_MAP[seg];
++         if (mapped) {
++           list.push({ label: lang === "es" ? mapped.es : mapped.en, href: currentHref });
++         } else {
++           const label = seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, " ");
++           list.push({ label, href: currentHref });
++         }
++       }
++     });
++
++     return list;
++   }, [pathname, projectNames, lang]);
++
++   // Show sidebar when mouse enters the left-edge trigger zone with 150ms debounce
++   const handleMouseEnterTrigger = useCallback(() => {
++     if (hideTimerRef.current) {
++       clearTimeout(hideTimerRef.current);
++       hideTimerRef.current = null;
++     }
++     if (showTimerRef.current) {
++       clearTimeout(showTimerRef.current);
++     }
++     showTimerRef.current = setTimeout(() => {
++       setSidebarOpen(true);
++     }, 150);
++   }, []);
++
++   // Clear debounce timer if mouse leaves trigger zone before opening
++   const handleMouseLeaveTrigger = useCallback(() => {
++     if (showTimerRef.current) {
++       clearTimeout(showTimerRef.current);
++       showTimerRef.current = null;
++     }
++   }, []);
++
++   // Keep sidebar visible while mouse is inside it (cancel hide and show timers)
++   const handleMouseEnterSidebar = useCallback(() => {
++     if (hideTimerRef.current) {
++       clearTimeout(hideTimerRef.current);
++       hideTimerRef.current = null;
++     }
++     if (showTimerRef.current) {
++       clearTimeout(showTimerRef.current);
++       showTimerRef.current = null;
++     }
++   }, []);
++
++   // Start auto-hide timer when mouse leaves sidebar (unless pinned)
++   const handleMouseLeaveSidebar = useCallback(() => {
++     if (sidebarPinned) return;
++     hideTimerRef.current = setTimeout(() => {
++       setSidebarOpen(false);
++     }, AUTO_HIDE_DELAY);
++   }, [sidebarPinned]);
++
++   // Toggle pinned state — persisted in localStorage
++   const toggleSidebarPin = useCallback(() => {
++     setSidebarPinned(prev => {
++       const next = !prev;
++       try { localStorage.setItem("flowchart:sidebar-pinned", String(next)); } catch {}
++       if (!next) setSidebarOpen(false);
++       return next;
++     });
++   }, []);
++
++   // Clean up timers on unmount
++   useEffect(() => {
++     return () => {
++       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
++       if (showTimerRef.current) clearTimeout(showTimerRef.current);
++     };
++   }, []);
++
++   // ── Activity status ──
++   const STATUS_OPTIONS = [
++     { key: "online_chat", dbStatus: "disponible" as const, label: "En línea (Recibe chat)", category: "recibe" as const, color: "var(--fc-success)", icon: UserCheck },
++     { key: "online_no_chat", dbStatus: "ausente" as const, label: "En línea", category: "no_recibe" as const, color: "var(--fc-warning)", icon: UserMinus },
++     { key: "break", dbStatus: "ausente" as const, label: "Break", category: "no_recibe" as const, color: "var(--fc-warning)", icon: Coffee },
++     { key: "almuerzo", dbStatus: "ausente" as const, label: "Almuerzo", category: "no_recibe" as const, color: "var(--fc-warning)", icon: Utensils },
++     { key: "coach", dbStatus: "ausente" as const, label: "Coach", category: "no_recibe" as const, color: "var(--fc-warning)", icon: GraduationCap },
++     { key: "ocupado", dbStatus: "ocupado" as const, label: "Ocupado", category: "no_recibe" as const, color: "var(--fc-danger)", icon: MinusCircle },
++   ];
++   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
++   const [activityStatus, setActivityStatus] = useState<"disponible" | "ocupado" | "ausente" | "offline">("disponible");
++   const [subStatus, setSubStatus] = useState<string>("online_chat");
++   const [userRole, setUserRole] = useState<string>("");
++   const [userMenuOpen, setUserMenuOpen] = useState(false);
++   const userMenuRef = useRef<HTMLDivElement>(null);
++
++   const [activePanel, setActivePanel] = useState<'main' | 'lang' | 'theme'>('main');
++
++   const changeTheme = (t: string) => {
++     setTheme(t);
++     setActivePanel('main');
++     showToast("success", lang === 'es' ? `Tema cambiado` : `Theme changed`);
++   };
++
++   const changeLang = (l: 'es' | 'en') => {
++     setLang(l);
++     localStorage.setItem("flowchart:lang", l);
++     setActivePanel('main');
++     showToast("success", l === 'es' ? `Idioma cambiado a Español` : `Language changed to English`);
++   };
++
++   const t = TRANSLATIONS[lang];
++
++   useEffect(() => {
++     fetch("/api/workspace/members/status")
++       .then(r => r.json())
++       .then(d => { 
++         if (d.activityStatus) {
++           setActivityStatus(d.activityStatus); 
++           const local = localStorage.getItem("flowchart:sub-status");
++           const matched = STATUS_OPTIONS.find(s => s.key === local);
++           if (matched && matched.dbStatus === d.activityStatus) {
++             setSubStatus(matched.key);
++           } else {
++             const def = STATUS_OPTIONS.find(s => s.dbStatus === d.activityStatus);
++             if (def) setSubStatus(def.key);
++           }
++         }
++         if (d.role) setUserRole(d.role); 
++       })
++       .catch(() => {});
++   // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO: [React] Refactor de hooks anti-patrón
++   }, []);
++
++   useEffect(() => {
++     const h = (e: MouseEvent) => { if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) setUserMenuOpen(false); };
++     document.addEventListener("mousedown", h);
++     return () => document.removeEventListener("mousedown", h);
++   }, []);
++
++   const changeStatus = async (statusKey: string) => {
++     const opt = STATUS_OPTIONS.find(o => o.key === statusKey);
++     if (!opt) return;
++
++     setSubStatus(statusKey);
++     setActivityStatus(opt.dbStatus);
++     localStorage.setItem("flowchart:sub-status", statusKey);
++     setUserMenuOpen(false);
++
++     try { 
++       await fetch("/api/workspace/members/status", { 
++         method: "PUT", 
++         headers: { "Content-Type": "application/json" }, 
++         body: JSON.stringify({ status: opt.dbStatus }) 
++       }); 
++     } catch {}
++   };
++
++   const currentStatusCfg = STATUS_OPTIONS.find(s => s.key === subStatus) || { key: "online_chat", dbStatus: "disponible" as const, label: "En línea", category: "recibe" as const, color: "var(--fc-success)", icon: UserCheck };
++
++   if (!pathname?.startsWith("/dashboard")) {
++     return <>{children}</>;
++   }
++
++   // When embedded in an iframe, skip the full layout (sidebar, topbar, background)
++   if (isEmbedded) {
++     return (
++       <div className="h-screen overflow-hidden flex flex-col" style={{ background: "var(--fc-bg)" }}>
++         {children}
++       </div>
++     );
++   }
++
++   // Whether the sidebar is visually shown (either auto-hover or pinned)
++   const sidebarVisible = sidebarOpen || sidebarPinned;
++
++   return (
++     <div className="h-screen overflow-hidden flex" style={{ background: "var(--fc-bg)" }}>
++
++       {/* Hover trigger zone — always active on desktop */}
++       <div
++         onMouseEnter={handleMouseEnterTrigger}
++         onMouseLeave={handleMouseLeaveTrigger}
++         className="hidden md:block"
++         style={{
++           position: "fixed",
++           top: 0,
++           left: 0,
++           bottom: 0,
++           width: sidebarPinned ? 0 : `${HOVER_TRIGGER_WIDTH}px`,
++           zIndex: 190,
++           background: "transparent",
++         }}
++       />
++
++       {/* Mobile Sidebar via Sheet */}
++       <Sheet
++         isOpen={sidebarOpen && (!isDesktopViewport || !sidebarPinned)}
++         onClose={() => setSidebarOpen(false)}
++         position="left"
++         className="md:hidden"
++         ariaLabel={lang === "es" ? "Navegación principal" : "Main navigation"}
++       >
++         <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
++           <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: "1px solid var(--fc-border)" }}>
++             <Link href="/dashboard/resumen" className="flex items-center gap-3" aria-label="Inicio">
++               <FlowChartLogo size="sm" showText={true} />
++             </Link>
++           </div>
++           <div style={{ padding: "12px 0 0" }}>
++             <WorkspaceSwitcher />
++           </div>
++           <nav aria-label={lang === "es" ? "Navegación principal" : "Main navigation"} className="flex flex-1 flex-col px-3 pb-4 space-y-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
++             {NAV_GROUPS.map((group) => {
++               if (group.items.length === 0) return null;
++               return (
++                 <div key={group.key} className={group.key === "sistema" ? "mt-auto pt-4 border-t border-[var(--fc-border)]" : "mt-2"}>
++                   <div className="sidebar-group-header px-2 pb-2">
++                     <span style={{
++                       fontFamily: "var(--fc-font-mono)",
++                       fontSize: "9px",
++                       fontWeight: 600,
++                       letterSpacing: "0.12em",
++                       textTransform: "uppercase",
++                       color: "var(--fc-text-muted)"
++                     }}>
++                       {group.title}
++                     </span>
++                   </div>
++                   <div className="flex flex-col space-y-[2px]">
++                     {group.items.map((m) => {
++                         const isActive = pathname === m.route || pathname?.startsWith(m.route + "/");
++                         const Icon = ICON_MAP[m.icon] || LayoutDashboard;
++
++                         return (
++                           <Link
++                             key={m.key}
++                             href={m.route}
++                             title={`✦ ${m.code} — ${m.tagline}`}
++                             className={`nav-item ${isActive ? "active" : ""}`}
++                             aria-current={isActive ? "page" : undefined}
++                             data-mod={m.key}
++                             onClick={() => setSidebarOpen(false)}
++                             style={isActive ? { 
++                               backgroundColor: `color-mix(in srgb, ${m.color} 12%, transparent)`, 
++                               color: m.color,
++                               borderLeftColor: "transparent"
++                             } as React.CSSProperties : {}}
++                           >
++                             <HoloIcon
++                               icon={Icon}
++                               isActive={isActive}
++                               className="w-[18px] h-[18px]"
++                               style={isActive ? { color: m.color } : undefined}
++                             />
++                             <span className="nav-full-name">{m.label}</span>
++                             <span className="nav-short-name" aria-hidden="true">{m.label.slice(0, 3)}</span>
++                             {isActive && (
++                               <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: m.color, marginLeft: "auto" }}></div>
++                             )}
++                           </Link>
++                         );
++                       })}
++                   </div>
++                 </div>
++               );
++             })}
++           </nav>
++         </div>
++       </Sheet>
++
++       {/* ─── Floating Sidebar (Desktop) / Sheet (Mobile) ─── */}
++       <aside
++         ref={sidebarRef}
++         className={`fc-sidebar sidebar-responsive ${sidebarVisible ? 'fc-sidebar--open' : ''} hidden md:flex`}
++         onMouseEnter={handleMouseEnterSidebar}
++         onMouseLeave={handleMouseLeaveSidebar}
++       >
++
++         {/* Logo */}
++         <div className="sidebar-logo-row flex items-center justify-between px-5 py-5" style={{ borderBottom: "1px solid var(--fc-border)" }}>
++           <Link href="/dashboard/resumen" className="flex items-center gap-3" aria-label="Inicio">
++             <FlowChartLogo size="sm" showText={true} />
++           </Link>
++           {/* Pin toggle — inside sidebar, no hamburger needed */}
++           <button
++             onClick={toggleSidebarPin}
++             title={sidebarPinned ? t.colapsar : t.expandir}
++             style={{
++               background: sidebarPinned ? "var(--fc-accent-wash)" : "transparent",
++               border: sidebarPinned ? "1px solid var(--fc-border-strong)" : "1px solid transparent",
++               borderRadius: 6,
++               padding: "4px 6px",
++               cursor: "pointer",
++               display: "flex",
++               alignItems: "center",
++               justifyContent: "center",
++               transition: "all 0.2s",
++               color: sidebarPinned ? "var(--fc-accent)" : "var(--fc-text-muted)",
++             }}
++           >
++             {sidebarPinned ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
++           </button>
++         </div>
++
++         {/* Workspace Switcher */}
++         <div style={{ padding: "12px 0 0" }}>
++           <WorkspaceSwitcher />
++         </div>
++
++         {/* Navigation */}
++           <nav aria-label={lang === "es" ? "Navegación principal" : "Main navigation"} className="flex flex-1 flex-col px-3 pb-4 space-y-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
++           {NAV_GROUPS.map((group) => {
++             if (group.items.length === 0) return null;
++             return (
++               <div key={group.key} className={group.key === "sistema" ? "mt-auto pt-4 border-t border-[var(--fc-border-subtle)]" : "mt-2"}>
++                 <div className="sidebar-group-header px-2 pb-2">
++                   <span style={{
++                     fontFamily: "var(--fc-font-mono)",
++                     fontSize: "9px",
++                     fontWeight: 600,
++                     letterSpacing: "0.12em",
++                     textTransform: "uppercase",
++                     color: "var(--fc-text-muted)"
++                   }}>
++                     {group.title}
++                   </span>
++                 </div>
++                 <div className="flex flex-col space-y-[2px]">
++                   {group.items.map((m) => {
++                 const isActive = pathname === m.route || pathname?.startsWith(m.route + "/");
++                 const Icon = ICON_MAP[m.icon] || LayoutDashboard;
++
++                 return (
++                   <Link
++                     key={m.key}
++                     href={m.route}
++                     title={`✦ ${m.code} — ${m.tagline}`}
++                     className={`nav-item ${isActive ? "active" : ""}`}
++                     aria-current={isActive ? "page" : undefined}
++                     data-mod={m.key}
++                     onClick={() => {
++                       if (!sidebarPinned) setSidebarOpen(false);
++                     }}
++                     style={isActive ? { 
++                       backgroundColor: `color-mix(in srgb, ${m.color} 12%, transparent)`, 
++                       color: m.color,
++                       borderLeftColor: "transparent"
++                     } as React.CSSProperties : {}}
++                   >
++                     <HoloIcon
++                       icon={Icon}
++                       isActive={isActive}
++                       className="w-[18px] h-[18px]"
++                       style={isActive ? { color: m.color } : undefined}
++                     />
++                     <span className="nav-full-name">{m.label}</span>
++                     <span className="nav-short-name" aria-hidden="true">{m.label.slice(0, 3)}</span>
++                     {isActive && (
++                       <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: m.color, marginLeft: "auto" }}></div>
++                     )}
++                   </Link>
++                 );
++               })}
++                 </div>
++               </div>
++             );
++           })}
++         </nav>
++
++         {/* NO collapse button — removed per user request */}
++       </aside>
++
++       {/* ─── Main Content ─── */}
++       <main className="flex-1 flex flex-col min-w-0 relative z-[1]">
++         {/* Mobile header */}
++         <header className="md:hidden flex items-center justify-between px-5 py-4 z-10"
++           style={{
++             background: "var(--fc-surface-overlay)",
++             borderBottom: "1px solid var(--fc-border)",
++             
++             
++           }}
++         >
++           <div className="flex items-center gap-3">
++             <button
++               onClick={() => setSidebarOpen(true)}
++               className="flex items-center justify-center p-1 rounded-lg text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] transition-colors cursor-pointer"
++               style={{ background: "transparent", border: "none" }}
++             >
++               <Menu className="w-5 h-5" />
++             </button>
++             <FlowChartLogo size="sm" />
++           </div>
++           <div className="flex items-center gap-2">
++             <AlertBellButton />
++           </div>
++         </header>
++
++         {/* Mobile Bottom Navigation */}
++         <MobileBottomNav
++           onOpenMenu={() => setSidebarOpen(true)}
++           isMenuOpen={sidebarOpen && !isDesktopViewport}
++         />
++
++         {/* Desktop top bar */}
++         <div className="hidden md:flex items-center justify-between px-4 py-2 gap-5" style={{
++           borderBottom: "1px solid var(--fc-border)",
++           background: "var(--fc-surface-overlay)",
++           height: "56px",
++           position: "relative",
++           zIndex: 100,
++         }}>
++
++           {/* ── Hamburger / Sidebar toggle ── */}
++           <button
++             id="sidebar-toggle-btn"
++             onClick={toggleSidebarPin}
++             title={sidebarPinned ? (lang === 'es' ? "Colapsar menú" : "Collapse menu") : (lang === 'es' ? "Abrir menú" : "Open menu")}
++             style={{
++               background: sidebarPinned ? "var(--fc-accent-wash)" : "transparent",
++               border: "1px solid transparent",
++               borderRadius: 8,
++               padding: "6px 8px",
++               cursor: "pointer",
++               display: "flex",
++               alignItems: "center",
++               gap: 6,
++               color: sidebarPinned ? "var(--fc-accent)" : "var(--fc-text-secondary)",
++               transition: "all 0.2s ease",
++               flexShrink: 0,
++             }}
++             onMouseEnter={(e) => {
++               e.currentTarget.style.background = sidebarPinned ? "var(--fc-accent-wash)" : "var(--fc-row-hover)";
++               e.currentTarget.style.borderColor = sidebarPinned ? "var(--fc-border-strong)" : "var(--fc-border)";
++               e.currentTarget.style.color = sidebarPinned ? "var(--fc-accent)" : "var(--fc-text)";
++             }}
++             onMouseLeave={(e) => {
++               e.currentTarget.style.background = sidebarPinned ? "var(--fc-accent-wash)" : "transparent";
++               e.currentTarget.style.borderColor = "transparent";
++               e.currentTarget.style.color = sidebarPinned ? "var(--fc-accent)" : "var(--fc-text-secondary)";
++             }}
++           >
++             <Menu
++               style={{
++                 width: 18,
++                 height: 18,
++                 transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
++                 transform: sidebarPinned ? "rotate(90deg)" : "rotate(0deg)",
++               }}
++             />
++           </button>
++
++           {/* Module Title / Breadcrumbs */}
++           <div className="flex-1 ml-4 hidden md:flex items-center gap-2 overflow-hidden" style={{ fontSize: 13 }}>
++             {breadcrumbs.length > 0 ? (
++               // If there are store override breadcrumbs (e.g. from Inbox)
++               breadcrumbs.map((crumb, idx) => (
++                 <React.Fragment key={idx}>
++                   {idx > 0 && <span style={{ color: "var(--fc-text-muted)", fontSize: 13, margin: "0 2px" }}>/</span>}
++                   <span
++                     onClick={crumb.onClick}
++                     className={crumb.onClick ? "hover:text-[var(--fc-text)] transition-colors" : ""}
++                     style={{
++                       color: crumb.onClick ? 'var(--fc-text-secondary)' : 'var(--fc-text)',
++                       cursor: crumb.onClick ? 'pointer' : 'default',
++                       fontWeight: idx === breadcrumbs.length - 1 ? 600 : 500
++                     }}
++                   >
++                     {crumb.label}
++                   </span>
++                 </React.Fragment>
++               ))
++             ) : (
++               // Dynamically computed breadcrumbs from URL
++               computedBreadcrumbs.map((crumb, idx) => {
++                 const isLast = idx === computedBreadcrumbs.length - 1;
++                 // Use currentModule color if this crumb matches currentModule label/route
++                 const color = (idx === 1 && currentModule) ? currentModule.color : undefined;
++                 
++                 return (
++                   <React.Fragment key={idx}>
++                   {idx > 0 && <span style={{ color: "var(--fc-text-muted)", fontSize: 13, margin: "0 2px" }}>/</span>}
++                     {isLast ? (
++                       <span
++                         style={{
++                           color: color || 'var(--fc-text)',
++                           fontWeight: 600,
++                           whiteSpace: "nowrap"
++                         }}
++                       >
++                         {crumb.label}
++                       </span>
++                     ) : (
++                       <Link
++                         href={crumb.href || "#"}
++                         className="hover:text-[var(--fc-text)] transition-colors"
++                         style={{
++                           color: color || 'var(--fc-text-secondary)',
++                           fontWeight: 500,
++                           whiteSpace: "nowrap",
++                           cursor: "pointer"
++                         }}
++                       >
++                         {crumb.label}
++                       </Link>
++                     )}
++                   </React.Fragment>
++                 );
++               })
++             )}
++           </div>
++
++           {/* Right side quick actions */}
++           <div className="flex items-center gap-5 ml-auto">
++
++
++           <Link href="/dashboard/inbox" className="text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] transition-colors" title="Conversaciones" style={{ display: "flex", alignItems: "center" }}>
++             <MessageSquarePlus className="w-[18px] h-[18px]" />
++           </Link>
++
++           <AlertBellButton />
++
++           <button className="text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] transition-colors" title="Ayuda" style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center" }}>
++             <HelpCircle className="w-[18px] h-[18px]" />
++           </button>
++
++           {/* User Menu Trigger */}
++           <div className="relative" ref={userMenuRef}>
++             <button
++               onClick={() => { setUserMenuOpen(!userMenuOpen); setActivePanel('main'); }}
++               className="flex items-center gap-3 hover:bg-[var(--fc-surface-hover)] px-2 py-1.5 rounded-lg transition-colors cursor-pointer"
++               style={{ background: "transparent", border: "none" }}
++             >
++               <div style={{ position: "relative" }}>
++                 <div className="w-[32px] h-[32px] rounded-full overflow-hidden" style={{ background: "linear-gradient(135deg,var(--fc-accent),var(--fc-accent-deep))" }}>
++                   {session?.user?.image && !avatarError ? (
++                     // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
++                     <img
++                       src={session.user.image}
++                       alt=""
++                       style={{ width: "100%", height: "100%", objectFit: "cover" }}
++                       onError={() => { setAvatarError(true); }}
++                     />
++                   ) : null}
++                   {(!session?.user?.image || avatarError) && (
++                     <div className="w-full h-full flex items-center justify-center text-xs font-bold text-white">
++                       {session?.user?.name?.charAt(0).toUpperCase() || "C"}
++                     </div>
++                   )}
++                 </div>
++                 <div style={{
++                   position: "absolute",
++                   bottom: -1,
++                   right: -1,
++                   width: 10,
++                   height: 10,
++                   borderRadius: "50%",
++                   background: currentStatusCfg.color,
++                   border: "1.5px solid var(--fc-surface)",
++                 }} />
++               </div>
++
++               <div className="flex flex-col items-start text-left min-w-[70px]">
++                 <span style={{ fontSize: "9px", color: "var(--fc-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", lineHeight: 1.1 }}>{t.estado}</span>
++                 <span style={{ fontSize: "11px", color: 'var(--fc-text)', fontWeight: 600, lineHeight: 1.2 }}>
++                   {currentStatusCfg.key === "online_chat" ? t.enLinea : currentStatusCfg.key === "online_no_chat" ? t.enLinea : currentStatusCfg.key === "break" ? t.break : currentStatusCfg.key === "almuerzo" ? t.almuerzo : currentStatusCfg.key === "coach" ? t.coach : t.ocupado}
++                 </span>
++               </div>
++
++               <HoloIcon icon={ChevronDown} variant="cyan" isActive={true} className="w-3.5 h-3.5 opacity-50" />
++             </button>
++
++             {/* Dropdown Panel */}
++             {userMenuOpen && (
++               <div
++                 style={{
++                   position: "absolute",
++                   top: "105%",
++                   right: 0,
++                   width: 280,
++                   background: "var(--fc-surface-overlay)",
++                   
++                   border: "1px solid var(--fc-border)",
++                   borderRadius: 12,
++                   boxShadow: "var(--fc-shadow-overlay)",
++                   padding: "16px 0 8px",
++                   zIndex: 999,
++                   animation: "fadeInScale 0.15s ease-out",
++                   color: "var(--fc-text)",
++                 }}
++               >
++                 {activePanel === 'main' && (
++                   <>
++                     {/* User Header */}
++                     <div className="px-5 pb-4 flex items-center gap-3">
++                       <div className="w-[48px] h-[48px] rounded-full overflow-hidden" style={{ background: "linear-gradient(135deg,var(--fc-accent),var(--fc-accent-deep))", flexShrink: 0 }}>
++                           {session?.user?.image && !avatarError ? (
++                             // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
++                             <img
++                               src={session.user.image}
++                               alt=""
++                               style={{ width: "100%", height: "100%", objectFit: "cover" }}
++                               onError={() => { setAvatarError(true); }}
++                             />
++                           ) : null}
++                           {(!session?.user?.image || avatarError) && (
++                             <div className="w-full h-full flex items-center justify-center text-sm font-bold text-white">
++                               {session?.user?.name?.charAt(0).toUpperCase() || "C"}
++                             </div>
++                           )}
++                       </div>
++                       <div className="flex-1 min-w-0">
++                         <p style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-text)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
++                           {session?.user?.name || "Josseth"}
++                         </p>
++                         <p style={{ fontSize: 10, color: "var(--fc-text-secondary)", margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
++                           {userRole === "OWNER" || userRole === "ADMIN" ? t.superAdmin : t.miembro}
++                         </p>
++                         <p style={{ fontSize: 10, color: "var(--fc-text-muted)", margin: "1px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
++                           {session?.user?.email || ""}
++                         </p>
++                       </div>
++                     </div>
++
++                     <div style={{ height: "1px", background: "var(--fc-border-subtle)", margin: "0 0 12px" }} />
++
++                     {/* Estado Section */}
++                     <div className="px-5">
++                       <p style={{ fontSize: "10px", fontWeight: 700, color: "var(--fc-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 10px" }}>{t.estado}</p>
++                       
++                       {/* Recibe conversaciones */}
++                       <p style={{ fontSize: "10px", color: "var(--fc-text-muted)", margin: "0 0 6px" }}>{t.recibe}</p>
++                       <div className="space-y-1 mb-3">
++                         {STATUS_OPTIONS.filter(o => o.category === "recibe").map(opt => {
++                           const Icon = opt.icon;
++                           const isSelected = subStatus === opt.key;
++                           return (
++                             <button
++                               key={opt.key}
++                               onClick={() => changeStatus(opt.key)}
++                               className="w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-left hover:bg-[var(--fc-surface-hover)] transition-colors"
++                               style={{
++                                 background: isSelected ? ("var(--fc-surface-hover)") : "transparent",
++                                 border: "none",
++                                 cursor: "pointer",
++                               }}
++                             >
++                               <div className="w-[24px] h-[24px] rounded-full flex items-center justify-center" style={{ background: "var(--fc-surface)" }}>
++                                 <Icon className="w-3.5 h-3.5 text-[var(--fc-success)]" />
++                               </div>
++                               <span style={{ fontSize: 12, color: isSelected ? ("var(--fc-text)") : ("var(--fc-text-secondary)"), fontWeight: isSelected ? 600 : 400 }}>
++                                 {opt.key === "online_chat" ? t.enLinea : opt.label}
++                               </span>
++                             </button>
++                           );
++                         })}
++                       </div>
++
++                       {/* No recibe conversaciones */}
++                       <p style={{ fontSize: "10px", color: "var(--fc-text-muted)", margin: "0 0 6px" }}>{t.noRecibe}</p>
++                       <div className="space-y-1 mb-2" style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
++                         {STATUS_OPTIONS.filter(o => o.category === "no_recibe").map(opt => {
++                           const Icon = opt.icon;
++                           const isSelected = subStatus === opt.key;
++                           return (
++                             <button
++                               key={opt.key}
++                               onClick={() => changeStatus(opt.key)}
++                               className="w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-left hover:bg-[var(--fc-surface-hover)] transition-colors"
++                               style={{
++                                 background: isSelected ? ("var(--fc-surface-hover)") : "transparent",
++                                 border: "none",
++                                 cursor: "pointer",
++                               }}
++                             >
++                               <div className="w-[24px] h-[24px] rounded-full flex items-center justify-center" style={{ background: "var(--fc-surface)", flexShrink: 0 }}>
++                                 <Icon className="w-3.5 h-3.5 text-[var(--fc-warning)]" />
++                               </div>
++                               <span style={{ fontSize: 12, color: isSelected ? ("var(--fc-text)") : ("var(--fc-text-secondary)"), fontWeight: isSelected ? 600 : 400 }}>
++                                 {opt.key === "online_no_chat" ? t.enLinea : opt.key === "break" ? t.break : opt.key === "almuerzo" ? t.almuerzo : opt.key === "coach" ? t.coach : t.ocupado}
++                               </span>
++                             </button>
++                           );
++                         })}
++                       </div>
++                     </div>
++
++                     <div style={{ height: "1px", background: "var(--fc-border-subtle)", margin: "8px 0" }} />
++
++                     {/* Actions Section */}
++                     <div className="px-2" style={{ display: "flex", flexDirection: "column" }}>
++                       <button
++                         onClick={() => setActivePanel('lang')}
++                         className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left hover:bg-[var(--fc-surface-hover)] transition-colors"
++                         style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--fc-text-secondary)" }}
++                       >
++                         <HoloIcon icon={Languages} variant="cyan" isActive={true} className="w-4 h-4" />
++                         <span style={{ fontSize: 12 }}>{t.idioma}</span>
++                       </button>
++                       <button
++                         onClick={() => setActivePanel('theme')}
++                         className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left hover:bg-[var(--fc-surface-hover)] transition-colors"
++                         style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--fc-text-secondary)" }}
++                       >
++                         <HoloIcon icon={Palette} variant="gold" isActive={true} className="w-4 h-4" />
++                         <span style={{ fontSize: 12 }}>{t.apariencia}</span>
++                       </button>
++                       <Link
++                         href="/dashboard/settings"
++                         onClick={() => setUserMenuOpen(false)}
++                         className="w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-left hover:bg-[var(--fc-surface-hover)]"
++                         style={{ color: "var(--fc-text-secondary)" }}
++                       >
++                         <HoloIcon icon={Settings} variant="pink" isActive={true} className="w-4 h-4" />
++                         <span style={{ fontSize: 12 }}>{t.config}</span>
++                       </Link>
++                       <button
++                         onClick={() => signOut({ callbackUrl: "/login" })}
++                         className="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-red-500/10 transition-colors text-left"
++                         style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--fc-danger)" }}
++                       >
++                         <LogOut className="w-4 h-4" />
++                         <span style={{ fontSize: 12, fontWeight: 500 }}>{t.logout}</span>
++                       </button>
++                     </div>
++                   </>
++                 )}
++
++                 {activePanel === 'lang' && (
++                   <div className="px-4 py-2">
++                     <button
++                       onClick={() => setActivePanel('main')}
++                       className="flex items-center gap-2 text-xs font-semibold mb-4 hover:opacity-80 transition-opacity"
++                       style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer" }}
++                     >
++                       <ChevronLeft className="w-4 h-4" />
++                       Volver / Back
++                     </button>
++                     <p style={{ fontSize: 12, fontWeight: 700, color: "var(--fc-text)", marginBottom: 12 }}>{t.idiomaTitulo}</p>
++                     <div className="space-y-1">
++                       <button
++                         onClick={() => changeLang('es')}
++                         className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--fc-surface-hover)] text-left text-xs transition-colors"
++                         style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer" }}
++                       >
++                         <span>Español (ES)</span>
++                         {lang === 'es' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
++                       </button>
++                       <button
++                         onClick={() => changeLang('en')}
++                         className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--fc-surface-hover)] text-left text-xs transition-colors"
++                         style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer" }}
++                       >
++                         <span>English (EN)</span>
++                         {lang === 'en' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
++                       </button>
++                     </div>
++                   </div>
++                 )}
++
++                 {activePanel === 'theme' && (
++                   <div className="px-4 py-2">
++                     <button
++                       onClick={() => setActivePanel('main')}
++                       className="flex items-center gap-2 text-xs font-semibold mb-4 hover:opacity-80 transition-opacity"
++                       style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer" }}
++                     >
++                       <HoloIcon icon={ChevronLeft} variant="cyan" isActive={true} className="w-4 h-4" />
++                       Volver / Back
++                     </button>
++                     <p style={{ fontSize: 12, fontWeight: 700, color: "var(--fc-text)", marginBottom: 12 }}>{t.aparienciaTitulo}</p>
++                     <div className="space-y-1">
++                       <button
++                         onClick={() => changeTheme('dark')}
++                         className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--fc-surface-hover)] text-left text-xs transition-colors"
++                         style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer" }}
++                       >
++                         <span>{t.modoOscuro}</span>
++                         {theme === 'dark' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
++                       </button>
++                       <button
++                         onClick={() => changeTheme('light')}
++                         className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--fc-surface-hover)] text-left text-xs transition-colors"
++                         style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer" }}
++                       >
++                         <span>{t.modoClaro}</span>
++                         {theme === 'light' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
++                       </button>
++                       <button
++                         onClick={() => changeTheme('system')}
++                         className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--fc-surface-hover)] text-left text-xs transition-colors"
++                         style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer" }}
++                       >
++                         <span>{t.modoSistema}</span>
++                         {theme === 'system' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
++                       </button>
++                     </div>
++                   </div>
++                 )}
++               </div>
++             )}
++           </div>
++
++           </div>
++         </div>
++
++
++         {/* Page content */}
++         <div className="flex-1 overflow-y-auto pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0" style={{ display: "flex", flexDirection: "column" }}>
++           <div className={`page-content page-enter ${pathname.startsWith('/dashboard/inbox') ? '!p-0' : ''}`} key={pathname} style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
++             {children}
++           </div>
++         </div>
++       </main>
++
++       {/* WhatsApp phone prompt — shows to users who haven't registered their number */}
++       <WhatsAppPhonePrompt />
++     </div>
++   );
++ }
++
+
+ ❯ tests/sidebar-navigation.test.ts:73:21
+     71|     expect(css).toContain(".fc-sidebar.sidebar-responsive .nav-item.ac…
+     72|     expect(css).toContain("display: block; left: 50%;");
+     73|     expect(wrapper).toContain('className="sidebar-group-content"');
+       |                     ^
+     74|     expect(css).toContain(".fc-sidebar.sidebar-responsive .sidebar-gro…
+     75|     expect(css).toContain(".fc-sidebar.sidebar-responsive .flowchart-l…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/16]⎯
+
+ FAIL  tests/sidebar-navigation.test.ts > sidebar navigation contract > keeps the visible shell on canonical FlowChart tokens
+AssertionError: expected '@import "./tokens.css";\r\n@import "t…' to contain '.fc-sidebar.sidebar-responsive {\n   …'
+
+- Expected
++ Received
+
+- .fc-sidebar.sidebar-responsive {
+-     transform: translateX(0);
++ @import "./tokens.css";
+
++ @import "tailwindcss";
+
++ /* ═══════════════════════════════════════════════════════════════════════════
+
++    FLOWCHART INK — DESIGN SYSTEM (negro / azul / blanco)
+
++    Fuente de verdad de tokens. Reglas completas: docs/design-system.md
+
++    Fuentes: next/font en app/layout.tsx (--font-inter, --font-jbmono).
+
++    ═══════════════════════════════════════════════════════════════════════════ */
+
++ 
+
++ @theme {
+
++   /* Compatibility names point to the canonical FlowChart typography tokens. */
+
++   --font-sans: var(--fc-font-sans);
+
++   --font-display: var(--fc-font-sans);
+
++   --font-mono: var(--fc-font-mono);
+
++ 
+
++   /* ── Remap de la paleta Tailwind a la marca (sobria) ──
+
++      Las utilidades text-cyan-400, bg-emerald-500, etc. resuelven a estos valores. */
+
++ 
+
++   /* Azul (marca) */
+
++   --color-cyan-400: var(--fc-accent-hover);
+
++   --color-cyan-500: var(--fc-accent);
+
++   --color-cyan-600: var(--fc-accent-deep);
+
++   --color-sky-400: var(--fc-accent-hover);
+
++   --color-sky-500: var(--fc-accent);
+
++   --color-blue-400: var(--fc-accent-hover);
+
++   --color-blue-500: var(--fc-accent);
+
++   --color-blue-600: var(--fc-accent-deep);
+
++   --color-indigo-400: var(--fc-module-aria);
+
++   --color-indigo-500: var(--fc-module-aria);
+
++ 
+
++   /* Verde (éxito) */
+
++   --color-emerald-400: var(--fc-success);
+
++   --color-emerald-500: var(--fc-success);
+
++   --color-emerald-600: var(--fc-success);
+
++   --color-green-400: var(--fc-success);
+
++   --color-green-500: var(--fc-success);
+
++   --color-teal-400: var(--fc-module-envivo);
+
++   --color-teal-500: var(--fc-module-envivo);
+
++ 
+
++   /* Ámbar (advertencia) */
+
++   --color-amber-400: var(--fc-warning);
+
++   --color-amber-500: var(--fc-warning);
+
++   --color-yellow-400: var(--fc-warning);
+
++   --color-yellow-500: var(--fc-warning);
+
++   --color-orange-400: var(--fc-module-escucha);
+
++   --color-orange-500: var(--fc-module-escucha);
+
++ 
+
++   /* Rojo (peligro) */
+
++   --color-red-400: var(--fc-danger);
+
++   --color-red-500: var(--fc-danger);
+
++   --color-red-600: var(--fc-danger);
+
++   --color-rose-400: var(--fc-danger);
+
++   --color-rose-500: var(--fc-danger);
+
++   --color-pink-400: var(--fc-module-metricas);
+
++   --color-pink-500: var(--fc-module-metricas);
+
++ 
+
++   /* Violeta (info/acento secundario) */
+
++   --color-purple-400: var(--fc-module-aria);
+
++   --color-purple-500: var(--fc-module-aria);
+
++   --color-violet-400: var(--fc-module-aria);
+
++   --color-violet-500: var(--fc-module-aria);
+
++ 
+
++   /* Neutrales (superficies y texto) */
+
++   --color-slate-400: var(--fc-text-tertiary);
+
++   --color-slate-500: var(--fc-text-disabled);
+
++   --color-gray-400: var(--fc-text-tertiary);
+
++   --color-gray-500: var(--fc-text-disabled);
+
++ 
+
++   /* Radios de borde (marca) */
+
++   --radius-sm: var(--fc-radius-sm);
+
++   --radius-md: var(--fc-radius-md);
+
++   --radius-lg: var(--fc-radius-lg);
+
++   --radius-xl: var(--fc-radius-xl);
+
++   --radius-2xl: var(--fc-radius-xl); /* Cap ceiling per tokens */
+
++   --radius-3xl: var(--fc-radius-xl);
+
++ }
+
++ 
+
++ @layer base {
+
++   body {
+
++     background-color: var(--fc-bg);
+
++     color: var(--fc-text);
+
++     font-family: var(--font-sans);
+
++     -webkit-font-smoothing: antialiased;
+
++     transition: background-color 0.3s ease, color 0.3s ease;
+
++   }
+
++ 
+
++   /* Transición global para temas en los elementos principales de layout para evitar layout thrashing */
+
++   .glass-panel, .glass-panel-accent, .sidebar-container, .topbar, button, a {
+
++     transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+
++   }
+
++ }
+
++ 
+
++ /* ═══════════════ TIPOGRAFÍA ═══════════════ */
+
++ .t-display { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.01em; }
+
++ .t-kpi     { font-family: var(--font-display); font-weight: 700; line-height: 1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+
++ .t-label   { font-family: var(--font-display); font-weight: 600; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fc-text-secondary); }
+
++ .t-mono    { font-family: var(--font-mono); font-size: 13px; font-weight: 400; letter-spacing: 0.02em; }
+
++ .t-id      { font-family: var(--font-mono); font-size: 11px; font-weight: 400; letter-spacing: 0.04em; color: var(--fc-text-muted); }
+
++ .t-data    { font-family: var(--font-mono); font-size: 12px; font-weight: 500; letter-spacing: 0.02em; }
+
++ 
+
++ /* Compat: clases auxiliares para fuentes display */
+
++ .font-display    { font-family: var(--font-display) !important; }
+
++ .font-display-sm { font-family: var(--font-display) !important; font-size: 10px !important; letter-spacing: 0.1em !important; text-transform: uppercase !important; }
+
++ 
+
++ /* ═══════════════ FORMULARIOS ═══════════════ */
+
++ .f-label { display: block; font-family: var(--font-display); font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fc-text-muted); margin-bottom: 5px; }
+
++ .f-label[data-error="true"] { color: var(--fc-danger); }
+
++ .f-label .req { color: var(--fc-danger); margin-left: 2px; }
+
++ 
+
++ .f-input, .f-select, .f-textarea {
+
++   width: 100%; padding: 10px 12px; font-family: var(--font-sans); font-size: 13px;
+
++   color: var(--fc-text); background: var(--fc-surface); border: 1px solid var(--fc-border);
+
++   border-radius: 8px; outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+
++ }
+
++ .f-input::placeholder, .f-textarea::placeholder { color: var(--fc-text-muted); }
+
++ .f-input:focus, .f-select:focus, .f-textarea:focus { border-color: var(--fc-accent); box-shadow: 0 0 0 3px var(--fc-accent-dim); }
+
++ .f-input[data-error="true"], .f-select[data-error="true"], .f-textarea[data-error="true"] { border-color: var(--fc-danger); }
+
++ .f-input:read-only, .f-textarea:read-only, .f-input:disabled, .f-select:disabled { color: var(--fc-text-secondary); background: transparent; border-color: var(--fc-border-subtle); cursor: not-allowed; }
+
++ .f-textarea { resize: vertical; min-height: 44px; line-height: 1.5; }
+
++ .f-select { appearance: none; cursor: pointer; padding-right: 28px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; }
+
++ .f-help { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-family: var(--font-sans); font-size: 11px; color: var(--fc-text-muted); }
+
++ .f-help[data-error="true"] { color: var(--fc-danger); }
+
++ .f-help[data-warn="true"]  { color: var(--fc-warning); }
+
++ .f-section { display: flex; align-items: center; gap: 7px; font-family: var(--font-display); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fc-text-secondary); margin: 22px 0 12px; }
+
++ .f-section:first-child { margin-top: 0; }
+
++ .f-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
+
++ .f-row--full { grid-template-columns: 1fr; }
+
++ @media (max-width: 640px) { .f-row { grid-template-columns: 1fr; } }
+
++ 
+
++ /* ═══════════════ LAYOUT ═══════════════ */
+
++ .dashboard-bg {
+
++   position: fixed; inset: 0; z-index: 0; pointer-events: none;
+
++   background:
+
++     radial-gradient(ellipse 700px 480px at 12% 0%, var(--fc-accent-dim) 0%, transparent 70%),
+
++     var(--fc-bg);
+
++ }
+
++ 
+
++ .dashboard-grid {
+
++   display: none;
+
++ }
+
++ 
+
++ /* ── Page padding via CSS vars so children can negate it ── */
+
++ :root {
+
++   --page-px: 18px;
+
++   --page-py: 14px;
+
++ }
+
++ @media (max-width: 768px)  { :root { --page-px: 12px; --page-py: 10px; } }
+
++ @media (min-width: 1440px) { :root { --page-px: 22px; --page-py: 16px; } }
+
++ 
+
++ .page-content {
+
++   padding: var(--page-py) var(--page-px) var(--page-py);
+
++   box-sizing: border-box;
+
++ }
+
++ 
+
++ /* ── Dashboard grid: break out of page padding → full-bleed ── */
+
++ .page-content .dashboard-grid-container {
+
++   /* Negate the horizontal page padding so the grid fills 100% of main content */
+
++   margin-left:  calc(-1 * var(--page-px));
+
++   margin-right: calc(-1 * var(--page-px));
+
++   width: calc(100% + 2 * var(--page-px));
+
++   box-sizing: border-box;
+
++ }
+
++ 
+
++ .page-enter { animation: page-fade-in 0.4s ease-out forwards; }
+
++ @keyframes page-fade-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
++ 
+
++ /* Entrada escalonada de tarjetas */
+
++ .page-enter > * {
+
++   animation: card-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+
++ }
+
++ .page-enter > *:nth-child(1) { animation-delay: 0ms; }
+
++ .page-enter > *:nth-child(2) { animation-delay: 55ms; }
+
++ .page-enter > *:nth-child(3) { animation-delay: 110ms; }
+
++ .page-enter > *:nth-child(4) { animation-delay: 165ms; }
+
++ .page-enter > *:nth-child(5) { animation-delay: 220ms; }
+
++ .page-enter > *:nth-child(6) { animation-delay: 275ms; }
+
++ @keyframes card-rise {
+
++   from { opacity: 0; transform: translateY(14px); }
+
++   to   { opacity: 1; transform: translateY(0); }
+
++ }
+
++ 
+
++ /* ═══════════════ SIDEBAR ═══════════════ */
+
++ .sidebar { background: var(--fc-surface);  border-right: 1px solid var(--fc-glass-border); box-shadow: 4px 0 30px var(--fc-shadow-hard); }
+
++ .sidebar-logo-text { font-family: var(--font-display); font-weight: 700; font-size: 19px; letter-spacing: 0.16em; color: var(--fc-text); }
+
++ .sidebar-logo-icon { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; background: var(--fc-surface-raised); border: 1px solid var(--fc-border-strong); border-radius: 8px; position: relative; }
+
++ 
+
++ /* ═══════════════ NAV ═══════════════ */
+
++ .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 16px; font-family: var(--font-sans); font-size: 13px; font-weight: 600; color: var(--fc-text-secondary); transition: all 0.2s ease; position: relative; border-left: 2px solid transparent; cursor: pointer; border-radius: 0 8px 8px 0; margin-right: 8px; }
+
++ .nav-item:hover { color: var(--fc-text); background: var(--fc-row-hover); border-left-color: var(--fc-border-strong); }
+
++ .nav-item:focus-visible,
+
++ .sidebar-group-header:focus-visible {
+
++   outline: 2px solid var(--fc-accent);
+
++   outline-offset: 2px;
+
++ }
+
++ .nav-item.active { color: var(--fc-text); background: var(--fc-surface-hover); border-left-color: transparent; }
+
++ .nav-item.active::before { content: ""; position: absolute; left: 8px; top: 50%; transform: translateY(-50%); width: 6px; height: 6px; background: var(--nav-color, var(--fc-accent)); border-radius: 50%; }
+
++ 
+
++ .user-chip { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--fc-border); }
+
++ .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, var(--fc-accent), var(--fc-accent-deep)); display: flex; align-items: center; justify-content: center; position: relative; border-radius: 8px; }
+
++ 
+
++ .sidebar-collapse-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 16px; border-top: 1px solid var(--fc-border); color: var(--fc-text-secondary); font-size: 12px; font-weight: 600; background: transparent; cursor: pointer; transition: color 0.2s, background 0.2s; }
+
++ .sidebar-collapse-btn:hover { color: var(--fc-text); background: var(--fc-surface-hover); }
+
++ .sidebar-collapsed .sidebar-collapse-btn { justify-content: center; padding: 10px 8px; }
+
++ 
+
++ /* ═══════════════ TARJETAS Y PANELES ═══════════════ */
+
++ /* Superficies sólidas; el blur se reserva para overlays/modales */
+
++ .glass-panel, .glass-card {
+
++   background: var(--fc-surface);  border: 1px solid var(--fc-glass-border); position: relative; overflow: hidden;
+
++   transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.3s ease; border-radius: 16px;
+
++   box-shadow: var(--fc-shadow-soft);
+
++ }
+
++ .glass-panel::before, .glass-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--fc-border-strong), transparent); pointer-events: none; }
+
++ .glass-panel:hover, .glass-card:hover { border-color: var(--fc-border-strong); box-shadow: var(--fc-shadow-hard); }
+
++ 
+
++ .glass-panel-v2 {
+
++   background: var(--fc-surface);  border: 1px solid var(--fc-glass-border); border-radius: 14px;
+
++   position: relative; overflow: hidden; transition: border-color 0.25s, box-shadow 0.25s, background-color 0.3s ease;
+
++   box-shadow: var(--fc-shadow-soft);
+
++ }
+
++ .glass-panel-v2::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent 0%, var(--fc-border-strong) 50%, transparent 100%); pointer-events: none; }
+
++ .glass-panel-v2:hover { border-color: var(--fc-border-strong); box-shadow: var(--fc-shadow-hard); }
+
++ 
+
++ .kpi-card {
+
++   background: var(--fc-surface);  border: 1px solid var(--fc-glass-border); padding: 20px 24px; position: relative; overflow: hidden;
+
++   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.3s ease; border-radius: 16px;
+
++   box-shadow: var(--fc-shadow-soft);
+
++ }
+
++ .kpi-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+
++ .kpi-card.cyan::before    { background: linear-gradient(90deg, var(--fc-accent), transparent); }
+
++ .kpi-card.red::before     { background: linear-gradient(90deg, var(--fc-danger), transparent); }
+
++ .kpi-card.amber::before   { background: linear-gradient(90deg, var(--fc-warning), transparent); }
+
++ .kpi-card.emerald::before { background: linear-gradient(90deg, var(--fc-success), transparent); }
+
++ .kpi-card.purple::before  { background: linear-gradient(90deg, var(--fc-accent), transparent); }
+
++ .kpi-card:hover { border-color: var(--fc-border-strong); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.28); }
+
++ .kpi-value { font-family: var(--font-display); font-weight: 700; font-size: 28px; line-height: 1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--fc-text); }
+
++ .kpi-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fc-text-secondary); margin-top: 6px; }
+
++ .kpi-delta { font-size: 11px; font-weight: 600; margin-top: 4px; }
+
++ .kpi-delta.positive { color: var(--fc-success); }
+
++ .kpi-delta.negative { color: var(--fc-danger); }
+
++ 
+
++ .metric-card {
+
++   background: var(--fc-surface);  border: 1px solid var(--fc-glass-border); border-radius: 14px; padding: 18px;
+
++   position: relative; overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.3s ease;
+
++   box-shadow: var(--fc-shadow-soft);
+
++ }
+
++ .metric-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28); border-color: var(--fc-border-strong); }
+
++ .metric-card-value { font-family: var(--font-display); font-size: 24px; font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--fc-text); line-height: 1; margin-bottom: 4px; }
+
++ .metric-card-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fc-text-muted); margin-bottom: 8px; }
+
++ 
+
++ .section-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--fc-border); background: var(--fc-row-hover); }
+
++ .section-title { font-family: var(--font-display); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fc-text-secondary); }
+
++ 
+
++ .data-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 20px; border-bottom: 1px solid var(--fc-border-subtle); transition: all 0.2s ease; cursor: pointer; }
+
++ .data-row:hover { background: var(--fc-surface-hover); border-left: 2px solid var(--fc-accent); padding-left: 18px; }
+
++ .data-row:last-child { border-bottom: none; }
+
++ .data-row-label { font-size: 12px; color: var(--fc-text); font-weight: 500; }
+
++ .data-row-value { font-size: 12px; color: var(--fc-text-secondary); }
+
++ 
+
++ .interactive-row {
+
++   display: flex; align-items: center; justify-content: space-between; padding: 12px 16px;
+
++   border-bottom: 1px solid var(--fc-border-subtle); transition: background 0.15s ease; cursor: pointer;
+
++ }
+
++ .interactive-row:hover { background: var(--fc-surface-hover); }
+
++ .interactive-row:last-child { border-bottom: none; }
+
++ 
+
++ /* ═══════════════ CHART PANEL ═══════════════ */
+
++ .chart-panel {
+
++   background: var(--fc-surface); border: 1px solid var(--fc-border); border-radius: 16px; overflow: hidden;
+
++   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25); transition: border-color 0.25s, box-shadow 0.25s; position: relative;
+
++ }
+
++ .chart-panel::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--fc-border-strong), transparent); pointer-events: none; }
+
++ .chart-panel:hover { border-color: var(--fc-border-strong); }
+
++ .chart-panel-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 0; }
+
++ .chart-panel-title { font-family: var(--font-display); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fc-text-secondary); }
+
++ .chart-panel-body { padding: 12px 18px 18px; }
+
++ 
+
++ /* ✦ PROYECTOS ✦ */
+
++ .fc-project-card {
+
++   background: var(--fc-surface); border: 1px solid var(--fc-border); border-radius: 16px; overflow: hidden;
+
++   position: relative; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
++ }
+
++ .fc-project-card:hover { border-color: var(--fc-border-hover); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); transform: translateY(-2px); }
+
++ .fc-project-card__accent { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 16px 0 0 16px; }
+
++ .fc-project-card__body { padding: 16px 18px; }
+
++ .fc-project-card__metrics { display: flex; gap: 0; border-top: 1px solid var(--fc-border-subtle); border-bottom: 1px solid var(--fc-border-subtle); margin: 10px 0; }
+
++ .fc-project-card__metric { flex: 1; padding: 10px 14px; border-right: 1px solid var(--fc-border-subtle); }
+
++ .fc-project-card__metric:last-child { border-right: none; }
+
++ .fc-project-card__metric-value { font-family: var(--fc-font-mono); font-size: 13px; font-weight: 500; color: var(--fc-text); line-height: 1.2; }
+
++ .fc-project-card__metric-label { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fc-text-muted); margin-top: 2px; }
+
++ .fc-project-card__footer { padding: 10px 18px 14px; }
+
++ 
+
++ .chart-wrapper { position: relative; background: var(--fc-row-hover); border-radius: 12px; border: 1px solid var(--fc-border-subtle); padding: 16px; }
+
++ 
+
++ /* Grid y ejes Recharts */
+
++ .recharts-cartesian-grid-horizontal line,
+
++ .recharts-cartesian-grid-vertical line {
+
++   stroke: var(--fc-border-subtle) !important;
+
++ }
+
++ .recharts-xAxis .recharts-cartesian-axis-tick-value,
+
++ .recharts-yAxis .recharts-cartesian-axis-tick-value {
+
++   fill: var(--fc-text-muted) !important;
+
++   font-family: var(--font-mono) !important;
+
++   font-size: 10px !important;
+
++ }
+
++ 
+
++ /* ═══════════════ PROYECTOS ═══════════════ */
+
++ .project-card-metric-label { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fc-text-muted); margin-top: 2px; }
+
++ .project-card-footer { padding: 10px 18px 14px; }
+
++ @media (max-width: 640px) { .project-grid { grid-template-columns: 1fr !important; } }
+
++ 
+
++ /* ═══════════════ BADGES / DOTS / CHIPS ═══════════════ */
+
++ .badge { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 10px; border: 1px solid; border-radius: 20px; }
+
++ .badge-cyan    { color: var(--fc-accent);    border-color: rgba(91, 155, 255, 0.35);  background: var(--fc-accent-dim); }
+
++ .badge-red     { color: var(--fc-danger);     border-color: rgba(229, 72, 77, 0.35);   background: var(--fc-danger-dim); }
+
++ .badge-amber   { color: var(--fc-warning);   border-color: rgba(224, 168, 60, 0.35);  background: var(--fc-warning-dim); }
+
++ .badge-emerald { color: var(--fc-success); border-color: rgba(52, 183, 124, 0.35);  background: var(--fc-success-dim); }
+
++ .badge-purple  { color: var(--fc-accent);  border-color: rgba(139, 141, 242, 0.35); background: var(--fc-accent-wash); }
+
++ .badge-muted   { color: var(--fc-text-secondary); border-color: var(--fc-border-subtle); background: var(--fc-surface-hover); }
+
++ 
+
++ .status-indicator { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
++ .status-indicator.online { background: var(--fc-success); animation: status-pulse 2s infinite; }
+
++ @keyframes status-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
++ 
+
++ .status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+
++ .status-dot-emerald { background: var(--fc-success); }
+
++ .status-dot-amber   { background: var(--fc-warning); }
+
++ .status-dot-cyan    { background: var(--fc-accent); }
+
++ .status-dot-muted   { background: var(--fc-text-muted); }
+
++ 
+
++ .dot-online  { width: 7px; height: 7px; border-radius: 50%; background: var(--fc-success); flex-shrink: 0; }
+
++ .dot-warning { width: 7px; height: 7px; border-radius: 50%; background: var(--fc-warning);   flex-shrink: 0; }
+
++ .dot-offline { width: 7px; height: 7px; border-radius: 50%; background: var(--fc-danger);     flex-shrink: 0; }
+
++ .dot-neutral { width: 7px; height: 7px; border-radius: 50%; background: var(--fc-text-muted); flex-shrink: 0; }
+
++ 
+
++ .stat-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; }
+
++ .stat-chip-up   { background: var(--fc-success-dim); color: var(--fc-success); border: 1px solid rgba(52, 183, 124, 0.25); }
+
++ .stat-chip-down { background: var(--fc-danger-dim);     color: var(--fc-danger);     border: 1px solid rgba(229, 72, 77, 0.25); }
+
++ .stat-chip-flat { background: var(--fc-row-hover);   color: var(--fc-text-secondary); border: 1px solid var(--fc-border-subtle); }
+
++ 
+
++ .metric-pill {
+
++   display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px;
+
++   background: var(--fc-row-hover); border: 1px solid var(--fc-border-subtle); border-radius: 6px;
+
++   font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--fc-text);
+
++ }
+
++ .metric-pill-label { font-family: var(--font-sans); font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fc-text-muted); }
+
++ 
+
++ /* ═══════════════ BOTONES ═══════════════ */
+
++ .btn-primary { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 20px; border: 1px solid var(--fc-border-strong); color: var(--fc-accent); background: var(--fc-accent-dim); transition: all 0.25s ease; cursor: pointer; border-radius: 6px; }
+
++ .btn-primary:hover { background: rgba(59, 130, 246, 0.18); border-color: rgba(59, 130, 246, 0.5); }
+
++ .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
++ 
+
++ .btn-brand {
+
++   display: inline-flex; align-items: center; gap: 8px;
+
++   padding: 10px 22px; border-radius: 8px; border: none;
+
++   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+
++   color: #fff; font-family: var(--font-sans); font-size: 13px; font-weight: 600;
+
++   cursor: pointer; transition: all 0.25s ease;
+
++   box-shadow: 0 2px 10px rgba(37, 99, 235, 0.30);
+
++ }
+
++ .btn-brand:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(37, 99, 235, 0.40); }
+
++ .btn-brand:active { transform: translateY(0); }
+
++ .btn-brand:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
++ 
+
++ .btn-brand-sm {
+
++   display: inline-flex; align-items: center; gap: 6px;
+
++   padding: 7px 16px; border-radius: 6px; border: none;
+
++   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+
++   color: #fff; font-family: var(--font-sans); font-size: 11px; font-weight: 600;
+
++   cursor: pointer; transition: all 0.2s ease;
+
++   box-shadow: 0 1px 6px rgba(37, 99, 235, 0.25);
+
++ }
+
++ .btn-brand-sm:hover { box-shadow: 0 3px 12px rgba(37, 99, 235, 0.35); }
+
++ 
+
++ .btn-ghost {
+
++   display: inline-flex; align-items: center; gap: 6px;
+
++   padding: 7px 16px; border-radius: 8px;
+
++   background: transparent; border: 1px solid var(--fc-border);
+
++   color: var(--fc-text-secondary); font-family: var(--font-sans); font-size: 12px; font-weight: 500;
+
++   cursor: pointer; transition: all 0.2s ease; text-decoration: none;
+
++ }
+
++ .btn-ghost:hover { border-color: var(--fc-border-strong); background: var(--fc-row-hover); color: var(--fc-text); }
+
++ 
+
++ /* ═══════════════ CONTENEDORES DE ICONO ═══════════════ */
+
++ /* Lucide strokeWidth 1.75 — ver docs/design-system.md §Iconos */
+
++ .icon-container      { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--fc-border); flex-shrink: 0; }
+
++ .icon-container-sm   { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px;  border: 1px solid var(--fc-border); flex-shrink: 0; }
+
++ .icon-container-active { background: var(--fc-accent-dim); border-color: rgba(91, 155, 255, 0.25); color: var(--fc-accent); }
+
++ 
+
++ .icon-box-cyan    { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--fc-accent-dim);    border: 1px solid var(--fc-border); border-radius: 10px; color: var(--fc-accent); }
+
++ .icon-box-emerald { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--fc-success-dim); border: 1px solid rgba(52, 183, 124, 0.2);  border-radius: 10px; color: var(--fc-success); }
+
++ .icon-box-amber   { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--fc-warning-dim);   border: 1px solid rgba(224, 168, 60, 0.2);  border-radius: 10px; color: var(--fc-warning); }
+
++ .icon-box-red     { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--fc-danger-dim);     border: 1px solid rgba(229, 72, 77, 0.2);   border-radius: 10px; color: var(--fc-danger); }
+
++ .icon-box-purple  { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--fc-accent-wash);  border: 1px solid rgba(139, 141, 242, 0.2); border-radius: 10px; color: var(--fc-accent); }
+
++ 
+
++ /* ═══════════════ TEXTO / HOVER / DIVISORES ═══════════════ */
+
++ .text-primary   { color: var(--fc-text); }
+
++ .text-secondary { color: var(--fc-text-secondary); }
+
++ .text-muted     { color: var(--fc-text-muted); }
+
++ 
+
++ .hover-surface:hover { background: var(--fc-surface-hover) !important; }
+
++ .hover-panel:hover   { background: var(--fc-row-hover) !important; }
+
++ 
+
++ .brand-divider { height: 1px; background: linear-gradient(90deg, transparent, var(--fc-border-strong), transparent); margin: 24px 0; }
+
++ 
+
++ .section-divider {
+
++   display: flex; align-items: center; gap: 12px; margin: 20px 0;
+
++   font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fc-text-muted);
+
++ }
+
++ .section-divider::before,
+
++ .section-divider::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--fc-border), transparent); }
+
++ 
+
++ /* ═══════════════ PROGRESO ═══════════════ */
+
++ .progress-track { height: 4px; background: var(--fc-row-hover); border-radius: 999px; overflow: hidden; position: relative; }
+
++ .progress-bar { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--fc-accent), #2563eb); transition: width 0.5s ease; position: relative; }
+
++ .progress-bar.over-budget { background: linear-gradient(90deg, var(--fc-warning), var(--fc-danger)); }
+
++ 
+
++ /* ═══════════════ INPUTS GLOBALES ═══════════════ */
+
++ input, select, textarea { background: var(--fc-surface); border: 1px solid var(--fc-border); color: var(--fc-text); border-radius: 4px; transition: border-color 0.2s, box-shadow 0.2s; }
+
++ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--fc-accent) !important; box-shadow: 0 0 0 3px var(--fc-accent-dim); }
+
++ input::placeholder, textarea::placeholder { color: var(--fc-text-muted); }
+
++ select option { background: var(--fc-surface-raised); color: var(--fc-text); }
+
++ select option:disabled { color: var(--fc-text-muted); }
+
++ /* Autofill: evita el fondo blanco/azul de Chrome/Edge */
+
++ input:-webkit-autofill,
+
++ input:-webkit-autofill:hover,
+
++ input:-webkit-autofill:focus,
+
++ input:-webkit-autofill:active {
+
++   -webkit-box-shadow: 0 0 0 1000px var(--fc-surface-raised) inset !important;
+
++   -webkit-text-fill-color: var(--fc-text) !important;
+
++   caret-color: var(--fc-text);
+
++   border-color: var(--fc-border) !important;
+
++   transition: background-color 5000s ease-in-out 0s;
+
++ }
+
++ 
+
++ /* ═══════════════ TABLAS ═══════════════ */
+
++ .table-header-cell { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fc-text-secondary); padding: 10px 16px; border-bottom: 1px solid var(--fc-border); }
+
++ .table-cell       { font-size: 12px; color: var(--fc-text); padding: 12px 16px; }
+
++ .table-cell-muted { font-size: 11px; color: var(--fc-text-muted); padding: 12px 16px; }
+
++ 
+
++ .stat-table { width: 100%; border-collapse: collapse; }
+
++ .stat-table th {
+
++   font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fc-text-muted);
+
++   padding: 8px 12px; border-bottom: 1px solid var(--fc-border-subtle); text-align: left;
+
++ }
+
++ .stat-table td { font-size: 12px; color: var(--fc-text); padding: 10px 12px; border-bottom: 1px solid var(--fc-border-subtle); transition: background 0.15s; }
+
++ .stat-table tr:hover td { background: var(--fc-row-hover); }
+
++ .stat-table tr:last-child td { border-bottom: none; }
+
++ 
+
++ @media (max-width: 768px) {
+
++   .ops-table-row    { grid-template-columns: 1fr !important; gap: 8px !important; }
+
++   .ops-table-header { display: none !important; }
+
++   .ops-cell-label   { display: inline-block !important; }
+
++ }
+
++ 
+
++ /* ═══════════════ TABS ═══════════════ */
+
++ .tab-pill-nav {
+
++   display: flex; gap: 2px; padding: 3px;
+
++   background: var(--fc-row-hover); border-radius: 10px; border: 1px solid var(--fc-border);
+
++   width: max-content; max-width: 100%; overflow-x: auto; scrollbar-width: none;
+
++ }
+
++ .tab-pill-nav::-webkit-scrollbar { display: none; }
+
++ .tab-pill {
+
++   display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 7px;
+
++   font-size: 12px; font-weight: 600; color: var(--fc-text-secondary); cursor: pointer;
+
++   transition: all 0.18s ease; white-space: nowrap; border: none; background: transparent; text-decoration: none;
+
++ }
+
++ .tab-pill:hover { color: var(--fc-text); background: var(--fc-row-hover); }
+
++ .tab-pill.active { background: var(--fc-accent-dim); color: var(--fc-accent); box-shadow: 0 0 0 1px rgba(91, 155, 255, 0.18) inset; }
+
++ .tab-pill .tab-icon { opacity: 0.75; transition: opacity 0.18s; }
+
++ .tab-pill.active .tab-icon { opacity: 1; }
+
++ 
+
++ /* ═══════════════ SKELETON & LOADERS ═══════════════ */
+
++ @keyframes fc-b1 { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(1.72); } }
+
++ @keyframes fc-b2 { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(0.5); } }
+
++ @keyframes fc-b3 { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(0.56); } }
+
++ @keyframes fc-shimmer { 0% { background-position: -140% 0; } 100% { background-position: 240% 0; } }
+
++ @keyframes fc-indet { 0% { left: -34%; } 100% { left: 100%; } }
+
++ @keyframes fc-pulse { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+
++ @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
++ .skeleton { background: rgba(148, 163, 184, 0.08); border-radius: 3px; animation: pulse 1.5s ease-in-out infinite; }
+
++ .skeleton-pulse { animation: pulse 1.5s ease-in-out infinite; }
+
++ 
+
++ /* ═══════════════ MODALES / TOASTS ═══════════════ */
+
++ @keyframes fadeInScale { from { opacity: 0; transform: scale(0.95) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
++ @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
++ 
+
++ .modal-overlay { position: fixed; inset: 0; z-index: 1000; background: var(--fc-overlay-dark);  display: flex; align-items: center; justify-content: center; animation: fadeInScale 0.2s ease-out; }
+
++ .modal-content { background: var(--fc-surface); border: 1px solid var(--fc-border-strong); border-radius: 12px; padding: 24px; max-width: 420px; width: calc(100% - 32px); box-shadow: 0 20px 60px var(--fc-overlay-dark); }
+
++ 
+
++ .toast-container { position: fixed; top: 16px; right: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+
++ .toast { pointer-events: auto; padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--fc-text);  border: 1px solid var(--fc-border-subtle); animation: toast-slide-in 0.3s ease-out; display: flex; align-items: center; gap: 8px; background: var(--fc-surface); }
+
++ .toast-success { border-color: rgba(52, 183, 124, 0.35); }
+
++ .toast-error   { border-color: rgba(229, 72, 77, 0.35); }
+
++ .toast-info    { border-color: rgba(59, 130, 246, 0.35); }
+
++ .toast-warning { border-color: rgba(224, 168, 60, 0.35); }
+
++ @keyframes toast-slide-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
++ 
+
++ /* ═══════════════ MISC ═══════════════ */
+
++ @keyframes float-up { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
++ .float-animation { animation: float-up 3s ease-in-out infinite; }
+
++ 
+
++ svg.lucide { stroke-width: 1.5; transition: transform 0.2s ease, stroke 0.2s ease; }
+
++ svg.lucide:hover { transform: scale(1.05); }
+
++ 
+
++ ::-webkit-scrollbar { width: 6px; height: 6px; }
+
++ ::-webkit-scrollbar-track { background: var(--fc-row-hover); border-radius: 3px; }
+
++ ::-webkit-scrollbar-thumb { background: var(--fc-border-strong); border-radius: 3px; transition: background 0.2s; }
+
++ ::-webkit-scrollbar-thumb:hover { background: var(--fc-text-muted); }
+
++ 
+
++ /* ═══════════════ SIDEBAR RESPONSIVE ═══════════════ */
+
++ .nav-short-name { display: none; }
+
++ .nav-full-name  { flex: 1; }
+
++ 
+
++ @media (min-width: 1024px) and (max-width: 1279px) {
+
++   .sidebar-responsive   { width: 80px !important; }
+
++   .sidebar-hide-compact { display: none !important; }
+
++   .nav-full-name        { display: none; }
+
++   .nav-short-name { display: block; flex: 1; font-family: var(--font-sans); font-size: 10px; font-weight: 700; }
+
++   .nav-item { flex-direction: column; gap: 4px; padding: 10px 8px; text-align: center; justify-content: center; border-left: none; border-bottom: 1px solid transparent; }
+
++   .nav-item:hover  { border-left-color: transparent; border-bottom-color: var(--fc-border-strong); }
+
++   .nav-item.active { border-left-color: transparent; border-bottom-color: var(--fc-accent); }
+
++   .nav-item.active::before { display: none; }
+
++   .user-chip { justify-content: center; padding: 12px 8px; }
+
++ }
+
++ 
+
++ @media (min-width: 1280px) {
+
++   .sidebar-responsive { width: 256px; }
+
++   .nav-short-name     { display: none; }
+
++   .nav-full-name      { display: block; }
+
++ }
+
++ 
+
++ @media (min-width: 768px) {
+
++   .sidebar-collapsed.sidebar-responsive { width: 80px !important; }
+
++   .sidebar-collapsed .sidebar-hide-compact { display: none !important; }
+
++   .sidebar-collapsed .nav-full-name { display: none; }
+
++   .sidebar-collapsed .nav-short-name { display: block; flex: 1; font-family: var(--font-sans); font-size: 10px; font-weight: 700; }
+
++   .sidebar-collapsed .nav-item { flex-direction: column; gap: 4px; padding: 10px 8px; text-align: center; justify-content: center; border-left: none; border-bottom: 1px solid transparent; }
+
++   .sidebar-collapsed .nav-item:hover  { border-left-color: transparent; border-bottom-color: var(--fc-border-strong); }
+
++   .sidebar-collapsed .nav-item.active { border-left-color: transparent; border-bottom-color: var(--fc-accent); }
+
++   .sidebar-collapsed .nav-item.active::before { display: none; }
+
++   .sidebar-collapsed .user-chip { justify-content: center; padding: 12px 8px; }
+
++   .sidebar-collapsed .sidebar-logo-row { justify-content: center; padding-left: 0; padding-right: 0; }
+
++ }
+
++ 
+
++ @media (max-width: 768px) {
+
++   .settings-nav { width: 100% !important; position: static !important; flex-direction: row !important; overflow-x: auto !important; gap: 4px !important; padding: 0 0 12px !important; border-bottom: 1px solid var(--fc-border); margin-bottom: 8px; -webkit-overflow-scrolling: touch; }
+
++   .settings-nav > div { display: flex; flex-direction: row; gap: 4px; flex-shrink: 0; }
+
++   .settings-nav > div > div:first-child { display: none; }
+
++   .settings-nav > div > div:last-child { display: flex; flex-direction: row; gap: 4px; }
+
++   .settings-nav button { white-space: nowrap; min-width: auto !important; }
+
++ }
+
++ 
+
++ @media (prefers-reduced-motion: reduce) {
+
++   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+
++ }
+
++ 
+
++ /* Oculta la scrollbar nativa en rieles horizontales (HScroller y chips).
+
++    La affordance de scroll la dan las flechas + el degradado de borde.
+
++    `scrollbar-hide` es alias legacy (AreasManager la usaba sin definición). */
+
++ .hide-scrollbar, .scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
+
++ .hide-scrollbar::-webkit-scrollbar, .scrollbar-hide::-webkit-scrollbar { display: none; }
+
++ 
+
++ /* ═══════════════════════════════════════════════════════════════════════════
+
++    DASHBOARD GRID — Drag & Drop + Resizable Widget System
+
++    ═══════════════════════════════════════════════════════════════════════════ */
+
++ 
+
++ .dashboard-grid-container {
+
++   position: relative;
+
++   width: 100%;
+
++   padding-bottom: 200px; /* Buffer space to prevent jitter when resizing items at the bottom */
+
++ }
+
++ 
+
++ .dashboard-grid-toolbar {
+
++   display: flex;
+
++   justify-content: flex-end;
+
++   margin-bottom: 8px;
+
++ }
+
++ 
+
++ .dashboard-grid-reset-btn {
+
++   display: flex;
+
++   align-items: center;
+
++   gap: 5px;
+
++   padding: 4px 12px;
+
++   font-size: 10px;
+
++   font-weight: 600;
+
++   color: var(--fc-text-muted);
+
++   background: var(--fc-surface-hover);
+
++   border: 1px solid var(--fc-border);
+
++   border-radius: 6px;
+
++   cursor: pointer;
+
++   transition: all 0.15s;
+
++   letter-spacing: 0.04em;
+
++ }
+
++ .dashboard-grid-reset-btn:hover {
+
++   color: var(--fc-accent);
+
++   border-color: rgba(59, 130, 246, 0.3);
+
++   background: rgba(59, 130, 246, 0.06);
+
++ }
+
++ 
+
++ .dashboard-grid {
+
++   display: grid;
+
++   gap: 12px;
+
++   width: 100%;
+
++ }
+
++ 
+
++ /* ── Grid Item Wrapper ── */
+
++ .dashboard-grid-item {
+
++   /* Fill the react-grid-item's inline height set by RGL */
+
++   width: 100%;
+
++   height: 100%;
+
++ }
+
++ 
+
++ /* ── Widget ── */
+
++ .dashboard-widget {
+
++   position: relative;
+
++   display: flex;
+
++   flex-direction: column;
+
++   height: 100%; /* fill the grid item that RGL sizes */
+
++   background: var(--fc-surface);
+
++   border: 1px solid var(--fc-border);
+
++   border-radius: 12px;
+
++   overflow: hidden; /* clip to border-radius; RGL controls outer height */
+
++   transition: box-shadow 0.2s, border-color 0.2s, opacity 0.15s;
+
++ }
+
++ .dashboard-widget:hover {
+
++   border-color: var(--fc-border-strong);
+
++ }
+
++ .dashboard-widget--dragging {
+
++   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(59, 130, 246, 0.3);
+
++   border-color: rgba(59, 130, 246, 0.4) !important;
+
++ }
+
++ .dashboard-widget--overlay {
+
++   background: var(--fc-surface);
+
++   border: 2px solid rgba(59, 130, 246, 0.5);
+
++   border-radius: 12px;
+
++   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 24px rgba(59, 130, 246, 0.15);
+
++   opacity: 0.9;
+
++ }
+
++ .dashboard-widget--collapsed {
+
++   border-color: var(--fc-border-subtle);
+
++ }
+
++ .dashboard-widget--resizing {
+
++   border-color: rgba(59, 130, 246, 0.4);
+
++   box-shadow: 0 0 16px rgba(59, 130, 246, 0.1);
+
++ }
+
++ 
+
++ /* ── Widget Header ── */
+
++ .dashboard-widget__header {
+
++   display: flex;
+
++   align-items: center;
+
++   gap: 6px;
+
++   padding: 8px 12px;
+
++   border-bottom: 1px solid var(--fc-border-subtle);
+
++   background: rgba(255, 255, 255, 0.015);
+
++   user-select: none;
+
++   min-height: 36px;
+
++ }
+
++ .dashboard-widget--collapsed .dashboard-widget__header {
+
++   border-bottom: none;
+
++ }
+
++ 
+
++ .dashboard-widget__drag-handle {
+
++   display: flex;
+
++   align-items: center;
+
++   justify-content: center;
+
++   color: var(--fc-text-muted);
+
++   cursor: grab;
+
++   padding: 2px;
+
++   border-radius: 4px;
+
++   transition: color 0.15s, background 0.15s;
+
++   flex-shrink: 0;
+
++   touch-action: none;
+
++ }
+
++ .dashboard-widget__drag-handle:hover {
+
++   color: var(--fc-accent);
+
++   background: rgba(59, 130, 246, 0.08);
+
++ }
+
++ .dashboard-widget__drag-handle:active {
+
++   cursor: grabbing;
+
++ }
+
++ 
+
++ .dashboard-widget__title {
+
++   display: flex;
+
++   align-items: center;
+
++   gap: 6px;
+
++   flex: 1;
+
++   min-width: 0;
+
++   font-size: 11px;
+
++   font-weight: 700;
+
++   color: var(--fc-text);
+
++   letter-spacing: 0.03em;
+
++   white-space: nowrap;
+
++   overflow: hidden;
+
++   text-overflow: ellipsis;
+
++ }
+
++ 
+
++ .dashboard-widget__icon {
+
++   display: flex;
+
++   align-items: center;
+
++   color: var(--fc-accent);
+
++   flex-shrink: 0;
+
++ }
+
++ 
+
++ .dashboard-widget__actions {
+
++   display: flex;
+
++   align-items: center;
+
++   gap: 2px;
+
++   flex-shrink: 0;
+
++   opacity: 0;
+
++   transition: opacity 0.15s;
+
++ }
+
++ .dashboard-widget:hover .dashboard-widget__actions {
+
++   opacity: 1;
+
++ }
+
++ 
+
++ .dashboard-widget__action-btn {
+
++   display: flex;
+
++   align-items: center;
+
++   justify-content: center;
+
++   width: 24px;
+
++   height: 24px;
+
++   border: none;
+
++   border-radius: 4px;
+
++   background: transparent;
+
++   color: var(--fc-text-muted);
+
++   cursor: pointer;
+
++   transition: all 0.15s;
+
++ }
+
++ .dashboard-widget__action-btn:hover {
+
++   background: rgba(59, 130, 246, 0.1);
+
++   color: var(--fc-accent);
+
++ }
+
++ 
+
++ /* ── Widget Content ── */
+
++ .dashboard-widget__content {
+
++   padding: 20px;
+
++   flex: 1;
+
++   min-height: 0;
+
++   overflow: hidden;
+
++ }
+
++ 
+
++ /* The compact rail is only 80px wide; workspace details need a real panel
+
++    instead of being squeezed into the rail. */
+
++ @media (min-width: 1024px) and (max-width: 1279px) {
+
++   .fc-sidebar.sidebar-responsive .workspace-switcher-dropdown {
+
++     left: 72px;
+
++     right: auto;
+
++     width: 248px;
+
++   }
+
++ }
+
++ 
+
++ /* ── Resize Handle ── */
+
++ .dashboard-widget__resize-handle {
+
++   position: absolute;
+
++   bottom: 2px;
+
++   right: 2px;
+
++   width: 16px;
+
++   height: 16px;
+
++   display: flex;
+
++   align-items: center;
+
++   justify-content: center;
+
++   color: var(--fc-border-subtle);
+
++   cursor: se-resize;
+
++   opacity: 0;
+
++   transition: opacity 0.15s, color 0.15s;
+
++   z-index: 10;
+
++   touch-action: none;
+
++ }
+
++ .dashboard-widget:hover .dashboard-widget__resize-handle {
+
++   opacity: 1;
+
++ }
+
++ .dashboard-widget__resize-handle:hover {
+
++   color: var(--fc-accent);
+
++ }
+
++ 
+
++ /* ── Responsive: stack on mobile ── */
+
++ @media (max-width: 768px) {
+
++   .dashboard-grid {
+
++     grid-template-columns: 1fr !important;
+
++   }
+
++   .dashboard-widget {
+
++     grid-column: span 1 !important;
+
++   }
+
++   .dashboard-widget__resize-handle {
+
++     display: none;
+
++   }
+
++   .dashboard-widget__actions {
+
++     opacity: 1;
+
++   }
+
++ }
+
++ @media (min-width: 769px) and (max-width: 1024px) {
+
++   .dashboard-grid {
+
++     grid-template-columns: repeat(2, 1fr) !important;
+
++   }
+
++   .dashboard-widget {
+
++     grid-column: span min(var(--col-span, 1), 2) !important;
+
++   }
+
++ }
+
++ /* FlowChart Primitives */
+
++ .fc-btn {
+
++   display: inline-flex;
+
++   align-items: center;
+
++   justify-content: center;
+
++   gap: var(--fc-space-2);
+
++   font: 600 14px/1 var(--fc-font-sans);
+
++   padding: 0 var(--fc-space-4);
+
++   height: 40px;
+
++   border-radius: var(--fc-radius-md);
+
++   transition: background var(--fc-dur-fast) var(--fc-ease),
+
++               color var(--fc-dur-fast) var(--fc-ease),
+
++               border-color var(--fc-dur-fast) var(--fc-ease),
+
++               opacity var(--fc-dur-fast) var(--fc-ease);
+
++   cursor: pointer;
+
++   border: none;
+
++ }
+
++ .fc-btn:disabled {
+
++   cursor: not-allowed;
+
++ }
+
++ 
+
++ .fc-btn--primary {
+
++   background: var(--fc-accent);
+
++   color: var(--fc-on-accent);
+
++ }
+
++ .fc-btn--primary:hover:not(:disabled) {
+
++   background: var(--fc-accent-hover);
+
++ }
+
++ 
+
++ .fc-btn--secondary {
+
++   background: var(--fc-surface-raised);
+
++   color: var(--fc-text);
+
++   border: 1px solid var(--fc-border-strong);
+
++ }
+
++ .fc-btn--secondary:hover:not(:disabled) {
+
++   background: var(--fc-surface-overlay);
+
++ }
+
++ 
+
++ .fc-btn--ghost {
+
++   background: transparent;
+
++   color: var(--fc-text-secondary);
+
++ }
+
++ .fc-btn--ghost:hover:not(:disabled) {
+
++   background: var(--fc-surface-raised);
+
++   color: var(--fc-text);
+
++ }
+
++ 
+
++ .fc-btn--danger {
+
++   background: var(--fc-danger-wash);
+
++   color: var(--fc-danger);
+
++ }
+
++ .fc-btn--danger:hover:not(:disabled) {
+
++   background: var(--fc-danger);
+
++   color: var(--fc-bg);
+
++ }
+
++ 
+
++ .fc-btn:focus-visible {
+
++   outline: 2px solid var(--fc-accent);
+
++   outline-offset: 2px;
+
++ }
+
++ 
+
++ .fc-btn--blocked {
+
++   opacity: 0.45;
+
++ }
+
++ 
+
++ .fc-skeleton-rect {
+
++   background: var(--fc-border-subtle);
+
++   animation: pulse-skeleton 1.5s infinite;
+
++ }
+
++ 
+
++ @keyframes pulse-skeleton {
+
++   0% { opacity: 1; }
+
++   50% { opacity: 0.5; }
+
++   100% { opacity: 1; }
+
++ }
+
++ 
+
++ /* fc-input */
+
++ .fc-input {
+
++   display: block;
+
++   width: 100%;
+
++   font: 400 14px/1.5 var(--fc-font-sans);
+
++   padding: 0 var(--fc-space-3);
+
++   height: 40px;
+
++   background: var(--fc-surface-raised);
+
++   color: var(--fc-text);
+
++   border: 1px solid var(--fc-border-strong);
+
++   border-radius: var(--fc-radius-md);
+
++   transition: border-color var(--fc-dur-fast) var(--fc-ease),
+
++               box-shadow var(--fc-dur-fast) var(--fc-ease),
+
++               opacity var(--fc-dur-fast) var(--fc-ease);
+
++ }
+
++ .fc-input::placeholder {
+
++   color: var(--fc-text-disabled);
+
++ }
+
++ .fc-input:hover:not(:disabled) {
+
++   border-color: var(--fc-border-strong);
+
++ }
+
++ .fc-input:focus-visible {
+
++   outline: none;
+
++   border-color: var(--fc-accent);
+
++   box-shadow: 0 0 0 1px var(--fc-accent);
+
++ }
+
++ .fc-input--error {
+
++   border-color: var(--fc-danger);
+
++ }
+
++ .fc-input--error:focus-visible {
+
++   box-shadow: 0 0 0 1px var(--fc-danger);
+
++ }
+
++ .fc-input--blocked {
+
++   opacity: 0.45;
+
++   cursor: not-allowed;
+
++ }
+
++ .fc-input--loading {
+
++   display: flex;
+
++   align-items: center;
+
++   border-color: transparent;
+
++ }
+
++ 
+
++ /* fc-toggle */
+
++ .fc-toggle-wrapper {
+
++   display: inline-flex;
+
++   position: relative;
+
++   cursor: pointer;
+
++   vertical-align: middle;
+
++ }
+
++ .fc-toggle-input {
+
++   position: absolute;
+
++   opacity: 0;
+
++   width: 0;
+
++   height: 0;
+
++ }
+
++ .fc-toggle {
+
++   width: 36px;
+
++   height: 20px;
+
++   background: var(--fc-border-strong);
+
++   border-radius: 10px;
+
++   transition: background var(--fc-dur-fast) var(--fc-ease);
+
++   position: relative;
+
++ }
+
++ .fc-toggle-thumb {
+
++   position: absolute;
+
++   top: 2px;
+
++   left: 2px;
+
++   width: 16px;
+
++   height: 16px;
+
++   background: var(--fc-text);
+
++   border-radius: 50%;
+
++   transition: transform var(--fc-dur-fast) var(--fc-ease);
+
++ }
+
++ .fc-toggle-input:checked + .fc-toggle {
+
++   background: var(--fc-accent);
+
++ }
+
++ .fc-toggle-input:checked + .fc-toggle .fc-toggle-thumb {
+
++   transform: translateX(16px);
+
++   background: var(--fc-on-accent);
+
++ }
+
++ .fc-toggle-input:focus-visible + .fc-toggle {
+
++   outline: 2px solid var(--fc-accent);
+
++   outline-offset: 2px;
+
++ }
+
++ .fc-toggle--error {
+
++   outline: 2px solid var(--fc-danger);
+
++ }
+
++ .fc-toggle--blocked {
+
++   opacity: 0.45;
+
++   cursor: not-allowed;
+
++ }
+
++ 
+
++ /* fc-tag */
+
++ .fc-tag {
+
++   display: inline-flex;
+
++   align-items: center;
+
++   gap: var(--fc-space-1);
+
++   font: 500 12px/1 var(--fc-font-sans);
+
++   padding: var(--fc-space-1) var(--fc-space-2);
+
++   border-radius: var(--fc-radius-sm);
+
++   background: var(--fc-surface-raised);
+
++   color: var(--fc-text-secondary);
+
++   border: 1px solid var(--fc-border-strong);
+
++ }
+
++ .fc-tag--success {
+
++   background: var(--fc-success-wash);
+
++   color: var(--fc-success);
+
++   border-color: transparent;
+
++ }
+
++ .fc-tag--warning {
+
++   background: var(--fc-warning-wash);
+
++   color: var(--fc-warning);
+
++   border-color: transparent;
+
++ }
+
++ .fc-tag--danger {
+
++   background: var(--fc-danger-wash);
+
++   color: var(--fc-danger);
+
++   border-color: transparent;
+
++ }
+
++ .fc-tag--accent {
+
++   background: var(--fc-accent-wash);
+
++   color: var(--fc-accent);
+
++   border-color: transparent;
+
++ }
+
++ .fc-tag--error {
+
++   border-color: var(--fc-danger);
+
++ }
+
++ .fc-tag--blocked {
+
++   opacity: 0.45;
+
++ }
+
++ 
+
++ /* fc-tooltip */
+
++ .fc-tooltip-wrapper {
+
++   position: relative;
+
++   display: inline-block;
+
++ }
+
++ .fc-tooltip {
+
++   position: absolute;
+
++   z-index: 50;
+
++   background: var(--fc-surface-overlay);
+
++   color: var(--fc-text);
+
++   font: 400 12px/1.5 var(--fc-font-sans);
+
++   padding: var(--fc-space-2) var(--fc-space-3);
+
++   border-radius: var(--fc-radius-sm);
+
++   box-shadow: var(--fc-shadow-overlay);
+
++   white-space: nowrap;
+
++   pointer-events: none;
+
++   animation: tooltip-fade-in var(--fc-dur-fast) var(--fc-ease);
+
++ }
+
++ .fc-tooltip--top {
+
++   bottom: 100%;
+
++   left: 50%;
+
++   transform: translateX(-50%) translateY(-8px);
+
++ }
+
++ .fc-tooltip--bottom {
+
++   top: 100%;
+
++   left: 50%;
+
++   transform: translateX(-50%) translateY(8px);
+
++ }
+
++ .fc-tooltip--left {
+
++   top: 50%;
+
++   right: 100%;
+
++   transform: translateY(-50%) translateX(-8px);
+
++ }
+
++ .fc-tooltip--right {
+
++   top: 50%;
+
++   left: 100%;
+
++   transform: translateY(-50%) translateX(8px);
+
++ }
+
++ @keyframes tooltip-fade-in {
+
++   from { opacity: 0; }
+
++   to { opacity: 1; }
+
++ }
+
++ 
+
++ /* fc-menu */
+
++ .fc-menu-wrapper {
+
++   position: relative;
+
++   display: inline-block;
+
++ }
+
++ .fc-menu {
+
++   position: absolute;
+
++   top: calc(100% + var(--fc-space-2));
+
++   z-index: 40;
+
++   background: var(--fc-surface-overlay);
+
++   min-width: 160px;
+
++   border-radius: var(--fc-radius-md);
+
++   box-shadow: var(--fc-shadow-overlay);
+
++   padding: var(--fc-space-2) 0;
+
++   border: 1px solid var(--fc-border-strong);
+
++   animation: menu-fade-in var(--fc-dur-fast) var(--fc-ease);
+
++ }
+
++ .fc-menu--left {
+
++   left: 0;
+
++ }
+
++ .fc-menu--right {
+
++   right: 0;
+
++ }
+
++ .fc-menu-item {
+
++   display: flex;
+
++   align-items: center;
+
++   width: 100%;
+
++   padding: var(--fc-space-2) var(--fc-space-4);
+
++   background: transparent;
+
++   border: none;
+
++   color: var(--fc-text);
+
++   font: 400 14px/1.5 var(--fc-font-sans);
+
++   text-align: left;
+
++   cursor: pointer;
+
++   transition: background var(--fc-dur-fast) var(--fc-ease);
+
++ }
+
++ .fc-menu-item:hover {
+
++   background: var(--fc-surface-raised);
+
++ }
+
++ @keyframes menu-fade-in {
+
++   from { opacity: 0; transform: translateY(-4px); }
+
++   to { opacity: 1; transform: translateY(0); }
+
++ }
+
++ 
+
++ /* fc-dialog */
+
++ .fc-dialog-overlay {
+
++   position: fixed;
+
++   inset: 0;
+
++   z-index: 400;
+
++   background: rgba(11, 18, 20, 0.7);
+
++   display: flex;
+
++   align-items: center;
+
++   justify-content: center;
+
++   backdrop-filter: blur(4px);
+
++   animation: dialog-overlay-in var(--fc-dur-fast) var(--fc-ease);
+
++ }
+
++ @media (min-width: 768px) {
+
++   .fc-dialog-overlay.md\:hidden { display: none; }
+
++ }
+
++ .fc-dialog {
+
++   background: var(--fc-surface-overlay);
+
++   border-radius: var(--fc-radius-md);
+
++   box-shadow: var(--fc-shadow-overlay);
+
++   border: 1px solid var(--fc-border-strong);
+
++   width: 100%;
+
++   max-width: 480px;
+
++   max-height: 90vh;
+
++   display: flex;
+
++   flex-direction: column;
+
++   animation: dialog-in var(--fc-dur-fast) var(--fc-ease);
+
++   color: var(--fc-text);
+
++   overflow: hidden;
+
++ }
+
++ .fc-dialog-header {
+
++   padding: var(--fc-space-5);
+
++   border-bottom: 1px solid var(--fc-border-subtle);
+
++ }
+
++ .fc-dialog-title {
+
++   margin: 0;
+
++   font: 700 18px/1.3 var(--fc-font-sans);
+
++   letter-spacing: -0.01em;
+
++ }
+
++ .fc-dialog-description {
+
++   margin: var(--fc-space-2) 0 0;
+
++   color: var(--fc-text-secondary);
+
++   font: 400 14px/1.5 var(--fc-font-sans);
+
++ }
+
++ .fc-dialog-content {
+
++   padding: var(--fc-space-5);
+
++   overflow-y: auto;
+
++ }
+
++ @keyframes dialog-overlay-in {
+
++   from { opacity: 0; }
+
++   to { opacity: 1; }
+
++ }
+
++ @keyframes dialog-in {
+
++   from { opacity: 0; transform: scale(0.95) translateY(10px); }
+
++   to { opacity: 1; transform: scale(1) translateY(0); }
+
++ }
+
++ 
+
++ /* fc-sheet */
+
++ .fc-sheet {
+
++   position: absolute;
+
++   background: var(--fc-surface-overlay);
+
++   box-shadow: var(--fc-shadow-overlay);
+
++   border: 1px solid var(--fc-border-strong);
+
++   display: flex;
+
++   flex-direction: column;
+
++   color: var(--fc-text);
+
++   overflow: hidden;
+
++ }
+
++ .fc-sheet--right {
+
++   top: 0;
+
++   right: 0;
+
++   bottom: 0;
+
++   width: 100%;
+
++   max-width: 400px;
+
++   border-right: none;
+
++   border-top: none;
+
++   border-bottom: none;
+
++   animation: sheet-in-right var(--fc-dur-fast) var(--fc-ease);
+
++ }
+
++ .fc-sheet--left {
+
++   top: 0;
+
++   left: 0;
+
++   bottom: 0;
+
++   width: 100%;
+
++   max-width: 400px;
+
++   border-left: none;
+
++   border-top: none;
+
++   border-bottom: none;
+
++   animation: sheet-in-left var(--fc-dur-fast) var(--fc-ease);
+
++ }
+
++ .fc-sheet--bottom {
+
++   bottom: 0;
+
++   left: 0;
+
++   right: 0;
+
++   width: 100%;
+
++   max-height: 90vh;
+
++   border-left: none;
+
++   border-right: none;
+
++   border-bottom: none;
+
++   border-top-left-radius: var(--fc-radius-md);
+
++   border-top-right-radius: var(--fc-radius-md);
+
++   animation: sheet-in-bottom var(--fc-dur-fast) var(--fc-ease);
+
++ }
+
++ 
+
++ @keyframes sheet-in-right {
+
++   from { transform: translateX(100%); }
+
++   to { transform: translateX(0); }
+
++ }
+
++ @keyframes sheet-in-left {
+
++   from { transform: translateX(-100%); }
+
++   to { transform: translateX(0); }
+
++ }
+
++ @keyframes sheet-in-bottom {
+
++   from { transform: translateY(100%); }
+
++   to { transform: translateY(0); }
+
++ }
+
++ 
+
++ /* fc-metric */
+
++ .fc-metric {
+
++   border-radius: var(--fc-radius-md);
+
++   background: var(--fc-bg);
+
++   padding: 22px;
+
++   min-height: 148px;
+
++   display: flex;
+
++   flex-direction: column;
+
++   gap: 10px;
+
++ }
+
++ .fc-metric--blocked {
+
++   opacity: 0.45;
+
++ }
+
++ .fc-metric-title {
+
++   font: 400 9px/1 var(--fc-font-mono);
+
++   letter-spacing: 0.12em;
+
++   text-transform: uppercase;
+
++   color: var(--fc-text-disabled);
+
++ }
+
++ .fc-metric-value {
+
++   font: 400 26px/1 var(--fc-font-mono);
+
++   color: var(--fc-text);
+
++ }
+
++ .fc-metric-value--empty {
+
++   color: var(--fc-text-disabled);
+
++ }
+
++ .fc-metric-value--blocked {
+
++   color: var(--fc-text-tertiary);
+
++ }
+
++ .fc-metric-empty-text {
+
++   font: 400 11px/1.5 var(--fc-font-sans);
+
++   color: var(--fc-text-tertiary);
+
++   margin-top: auto;
+
++ }
+
++ .fc-metric-blocked-text {
+
++   font: 400 11px/1.5 var(--fc-font-sans);
+
++   color: var(--fc-text-disabled);
+
++   margin-top: auto;
+
++ }
+
++ .fc-metric-error {
+
++   display: flex;
+
++   align-items: flex-start;
+
++   gap: 7px;
+
++   margin-top: auto;
+
++   font: 400 11px/1.5 var(--fc-font-sans);
+
++   color: var(--fc-danger);
+
++ }
+
++ .fc-metric-error-icon {
+
++   flex: none;
+
++   margin-top: 1px;
+
++ }
+
++ .fc-metric-delta {
+
++   display: flex;
+
++   align-items: center;
+
++   gap: 5px;
+
++   font: 400 11px/1 var(--fc-font-mono);
+
++   margin-top: auto;
+
++ }
+
++ .fc-metric-delta--up {
+
++   color: var(--fc-success);
+
++ }
+
++ .fc-metric-delta--down {
+
++   color: var(--fc-danger);
+
++ }
+
++ .fc-metric-delta--neutral {
+
++   color: var(--fc-text-secondary);
+
++ }
+
++ 
+
++ /* fc-channel-badge */
+
++ .fc-channel-badge {
+
++   display: flex;
+
++   align-items: center;
+
++   gap: 14px;
+
++   padding: 14px 0;
+
++   border-bottom: 1px solid var(--fc-border-subtle);
+
++ }
+
++ .fc-channel-badge:last-child {
+
++   border-bottom: none;
+
++ }
+
++ .fc-channel-dot {
+
++   width: 6px;
+
++   height: 6px;
+
++   border-radius: 50%;
+
++   flex: none;
+
++ }
+
++ .fc-channel-name {
+
++   flex: 1;
+
++   font: 600 14px/1 var(--fc-font-sans);
+
++   color: var(--fc-text);
+
++ }
+
++ .fc-channel-amount {
+
++   font: 400 13px/1 var(--fc-font-mono);
+
++   color: var(--fc-text-secondary);
+
++ }
+
++ /* Compact density support */
+
++ [data-density="compact"] .fc-channel-badge {
+
++   gap: 12px;
+
++   padding: 7px 0;
+
++ }
+
++ [data-density="compact"] .fc-channel-dot {
+
++   width: 5px;
+
++   height: 5px;
+
++ }
+
++ [data-density="compact"] .fc-channel-name {
+
++   font-size: 13px;
+
++ }
+
++ [data-density="compact"] .fc-channel-amount {
+
++   font-size: 12px;
+
++ }
+
++ 
+
++ /* fc-datatable */
+
++ .fc-datatable-wrapper {
+
++   width: 100%;
+
++   overflow-x: auto;
+
++   border-radius: var(--fc-radius-md);
+
++   background: var(--fc-bg);
+
++ }
+
++ .fc-datatable {
+
++   width: 100%;
+
++   border-collapse: collapse;
+
++   text-align: left;
+
++ }
+
++ .fc-datatable-th {
+
++   font: 400 11px/1 var(--fc-font-mono);
+
++   text-transform: uppercase;
+
++   letter-spacing: 0.05em;
+
++   color: var(--fc-text-disabled);
+
++   padding: var(--fc-space-3) var(--fc-space-4);
+
++   border-bottom: 1px solid var(--fc-border-subtle);
+
++   white-space: nowrap;
+
++ }
+
++ .fc-datatable-td {
+
++   font: 400 14px/1.5 var(--fc-font-sans);
+
++   color: var(--fc-text);
+
++   padding: var(--fc-space-3) var(--fc-space-4);
+
++   border-bottom: 1px solid var(--fc-border-subtle);
+
++   height: 44px; /* comfortable density */
+
++ }
+
++ .fc-datatable-td--first {
+
++   white-space: nowrap;
+
++   overflow: hidden;
+
++   text-overflow: ellipsis;
+
++   max-width: 250px;
+
++ }
+
++ .fc-datatable-th--left, .fc-datatable-td--left { text-align: left; }
+
++ .fc-datatable-th--right, .fc-datatable-td--right { text-align: right; }
+
++ .fc-datatable-th--center, .fc-datatable-td--center { text-align: center; }
+
++ 
+
++ /* Sticky first column on small screens */
+
++ @media (max-width: 900px) {
+
++   .fc-datatable-th--sticky, .fc-datatable-td--sticky {
+
++     position: sticky;
+
++     left: 0;
+
++     background: var(--fc-bg);
+
++     z-index: 10;
+
++   }
+
++ }
+
++ 
+
++ /* Compact density */
+
++ .fc-datatable-wrapper[data-density="compact"] .fc-datatable-td {
+
++   height: 30px;
+
++   padding: var(--fc-space-1) var(--fc-space-3);
+
++   font-size: 13px;
+
++ }
+
++ 
+
++ /* fc-daterange */
+
++ .fc-daterange {
+
++   display: inline-flex;
+
++   align-items: center;
+
++   gap: var(--fc-space-2);
+
++   padding: var(--fc-space-2) var(--fc-space-3);
+
++   background: var(--fc-surface-raised);
+
++   border: 1px solid var(--fc-border-strong);
+
++   border-radius: var(--fc-radius-md);
+
++   color: var(--fc-text);
+
++   font: 500 13px/1 var(--fc-font-sans);
+
++   cursor: pointer;
+
++   transition: background var(--fc-dur-fast) var(--fc-ease);
+
++ }
+
++ .fc-daterange:hover {
+
++   background: var(--fc-surface-overlay);
+
++ }
+
++ .fc-daterange-icon {
+
++   color: var(--fc-text-secondary);
+
++ }
+
++ .fc-daterange-compare {
+
++   color: var(--fc-text-tertiary);
+
++   margin-left: var(--fc-space-1);
+
++ }
+
++ 
+
++ /* fc-empty-state */
+
++ .fc-empty-state {
+
++   display: flex;
+
++   flex-direction: column;
+
++   align-items: center;
+
++   justify-content: center;
+
++   padding: 48px 24px;
+
++   text-align: center;
+
++   background: var(--fc-surface);
+
++   border: 1px dashed var(--fc-border);
+
++   border-radius: var(--fc-radius-lg);
+
++ }
+
++ .fc-empty-state-icon {
+
++   color: var(--fc-text-tertiary);
+
++   margin-bottom: var(--fc-space-3);
+
++   opacity: 0.5;
+
++ }
+
++ .fc-empty-state-reason {
+
++   font: 400 14px/1.5 var(--fc-font-sans);
+
++   color: var(--fc-text-secondary);
+
++   max-width: 320px;
+
++ }
+
++ .fc-empty-state-action {
+
++   margin-top: var(--fc-space-4);
+
++ }
+
++ 
+
++ /* fc-sync-status */
+
++ .fc-sync-status {
+
++   display: inline-flex;
+
++   align-items: center;
+
++   gap: var(--fc-space-1);
+
++   font: 400 12px/1 var(--fc-font-sans);
+
++ }
+
++ .fc-sync-status--syncing {
+
++   color: var(--fc-text-secondary);
+
++ }
+
++ .fc-sync-status--success {
+
++   color: var(--fc-success);
+
++ }
+
++ .fc-sync-status--error, .fc-sync-status--offline {
+
++   color: var(--fc-danger);
+
++ }
+
++ .fc-sync-icon-spin {
+
++   animation: fc-spin 2s linear infinite;
+
++ }
+
++ @keyframes fc-spin {
+
++   from { transform: rotate(0deg); }
+
++   to { transform: rotate(360deg); }
+
++ }
+
++ 
+
++ /* fc-command-menu */
+
++ .fc-command-menu {
+
++   width: 100%;
+
++   max-width: 500px;
+
++   background: var(--fc-surface-overlay);
+
++   border-radius: var(--fc-radius-md);
+
++   box-shadow: var(--fc-shadow-overlay);
+
++   border: 1px solid var(--fc-border-strong);
+
++   overflow: hidden;
+
++   animation: dialog-in var(--fc-dur-fast) var(--fc-ease);
+
++ }
+
++ .fc-cmd-root {
+
++   display: flex;
+
++   flex-direction: column;
+
++   width: 100%;
+
++ }
+
++ .fc-cmd-input-wrapper {
+
++   display: flex;
+
++   align-items: center;
+
++   padding: 0 var(--fc-space-4);
+
++   border-bottom: 1px solid var(--fc-border-subtle);
+
++ }
+
++ .fc-cmd-search-icon {
+
++   color: var(--fc-text-secondary);
+
++   margin-right: var(--fc-space-2);
+
++ }
+
++ .fc-cmd-input {
+
++   flex: 1;
+
++   background: transparent;
+
++   border: none;
+
++   outline: none;
+
++   color: var(--fc-text);
+
++   font: 400 16px/1 var(--fc-font-sans);
+
++   padding: 16px 0;
+
++ }
+
++ .fc-cmd-input::placeholder {
+
++   color: var(--fc-text-tertiary);
+
++ }
+
++ .fc-cmd-list {
+
++   max-height: 300px;
+
++   overflow-y: auto;
+
++   padding: var(--fc-space-2) 0;
+
++ }
+
++ .fc-cmd-empty {
+
++   padding: var(--fc-space-6);
+
++   text-align: center;
+
++   color: var(--fc-text-secondary);
+
++   font: 400 14px/1.5 var(--fc-font-sans);
+
++ }
+
++ .fc-cmd-group [cmdk-group-heading] {
+
++   padding: var(--fc-space-2) var(--fc-space-4);
+
++   font: 400 11px/1 var(--fc-font-mono);
+
++   color: var(--fc-text-tertiary);
+
++   text-transform: uppercase;
+
++ }
+
++ .fc-cmd-item {
+
++   display: flex;
+
++   align-items: center;
+
++   gap: var(--fc-space-3);
+
++   padding: 12px var(--fc-space-4);
+
++   color: var(--fc-text);
+
++   font: 400 14px/1 var(--fc-font-sans);
+
++   cursor: pointer;
+
++   border-bottom: 1px solid var(--fc-border-subtle);
+
++ }
+
++ .fc-cmd-item:last-child {
+
++   border-bottom: none;
+
++ }
+
++ .fc-cmd-item[data-selected="true"] {
+
++   background: var(--fc-surface-raised);
+
++ }
+
++ 
+
++ /* fc-login */
+
++ .fc-login-root {
+
++   position: relative;
+
++   min-height: 100vh;
+
++   display: flex;
+
++   align-items: center;
+
++   justify-content: center;
+
++   background-color: #0B1214;
+
++   padding: 24px;
+
++ }
+
++ .fc-login-lang-toggle {
+
++   position: absolute;
+
++   top: 16px;
+
++   right: 16px;
+
++   z-index: 30;
+
++   display: flex;
+
++   gap: 2px;
+
++   padding: 3px;
+
++   background: var(--fc-surface);
+
++   border: 1px solid var(--fc-border);
+
++   border-radius: 100px;
+
++ }
+
++ .fc-login-lang-btn {
+
++   padding: 5px 12px;
+
++   border: none;
+
++   border-radius: 100px;
+
++   cursor: pointer;
+
++   font: 700 9px/1 var(--fc-font-mono);
+
++   letter-spacing: 0.1em;
+
++   background: transparent;
+
++   color: var(--fc-text-muted);
+
++ }
+
++ .fc-login-lang-btn--active {
+
++   background: var(--fc-accent-wash);
+
++   color: var(--fc-accent);
+
++ }
+
++ .fc-login-card {
+
++   position: relative;
+
++   z-index: 10;
+
++   width: 100%;
+
++   max-width: 400px;
+
++   background: var(--fc-surface-overlay);
+
++   border: 1px solid var(--fc-border-strong);
+
++   border-radius: var(--fc-radius-lg);
+
++   box-shadow: var(--fc-shadow-overlay);
+
++   padding: 40px 36px 36px;
+
++ }
+
++ .fc-login-system-label {
+
++   font: 700 9px/1 var(--fc-font-mono);
+
++   letter-spacing: 0.25em;
+
++   text-transform: uppercase;
+
++   color: var(--fc-text-disabled);
+
++   text-align: center;
+
++   margin-bottom: 20px;
+
++ }
+
++ .fc-login-logo {
+
++   text-align: center;
+
++   margin-bottom: 28px;
+
++ }
+
++ .fc-login-header {
+
++   margin-bottom: 24px;
+
++ }
+
++ .fc-login-title {
+
++   margin: 0 0 4px;
+
++   font: 700 17px/1.2 var(--fc-font-sans);
+
++   letter-spacing: -0.01em;
+
++   color: var(--fc-text);
+
++ }
+
++ .fc-login-subtitle {
+
++   margin: 0;
+
++   font: 400 12px/1.5 var(--fc-font-sans);
+
++   color: var(--fc-text-secondary);
+
++ }
+
++ .fc-login-oauth {
+
++   display: flex;
+
++   gap: 10px;
+
++   margin-bottom: 20px;
+
++ }
+
++ .fc-login-divider {
+
++   display: flex;
+
++   align-items: center;
+
++   gap: 12px;
+
++   margin: 20px 0;
+
++ }
+
++ .fc-login-divider-line {
+
++   flex: 1;
+
++   height: 1px;
+
++   background: var(--fc-border-subtle);
+
++ }
+
++ .fc-login-divider-text {
+
++   font: 400 11px/1 var(--fc-font-sans);
+
++   color: var(--fc-text-tertiary);
+
++   letter-spacing: 0.05em;
+
++ }
+
++ .fc-login-tabs {
+
++   display: flex;
+
++   gap: 4px;
+
++   margin-bottom: 20px;
+
++   padding: 3px;
+
++   background: var(--fc-surface);
+
++   border: 1px solid var(--fc-border-strong);
+
++   border-radius: var(--fc-radius-md);
+
++ }
+
++ .fc-login-tab {
+
++   flex: 1;
+
++   padding: 8px 10px;
+
++   font: 700 9px/1 var(--fc-font-mono);
+
++   letter-spacing: 0.15em;
+
++   text-transform: uppercase;
+
++   border: none;
+
++   border-radius: var(--fc-radius-sm);
+
++   cursor: pointer;
+
++   background: transparent;
+
++   color: var(--fc-text-muted);
+
++ }
+
++ .fc-login-tab--active {
+
++   background: var(--fc-surface-raised);
+
++   color: var(--fc-text);
+
++   border: 1px solid var(--fc-border-strong);
+
++ }
+
++ .fc-login-error {
+
++   display: flex;
+
++   align-items: center;
+
++   gap: 8px;
+
++   padding: 9px 12px;
+
++   border-radius: var(--fc-radius-sm);
+
++   background: var(--fc-danger-wash);
+
++   color: var(--fc-danger);
+
++   font: 400 12px/1.4 var(--fc-font-sans);
+
++   margin-bottom: 12px;
+
++ }
+
++ .fc-login-forgot {
+
++   display: block;
+
++   text-align: right;
+
++   margin: 4px 0 18px;
+
++   font: 400 11px/1 var(--fc-font-sans);
+
++   color: var(--fc-text-secondary);
+
++   text-decoration: none;
+
++ }
+
++ .fc-login-forgot:hover {
+
++   color: var(--fc-text);
+
++ }
+
++ .fc-login-secure {
+
++   display: flex;
+
++   align-items: center;
+
++   justify-content: center;
+
++   gap: 5px;
+
++   margin-top: 18px;
+
++   font: 400 10px/1 var(--fc-font-sans);
+
++   color: var(--fc-text-tertiary);
+
++ }
+
++ .fc-login-success {
+
++   text-align: center;
+
++   padding: 8px 0 16px;
+
++ }
+
++ .fc-login-success-icon {
+
++   width: 60px;
+
++   height: 60px;
+
++   margin: 0 auto 20px;
+
++   background: var(--fc-success-wash);
+
++   color: var(--fc-success);
+
++   border-radius: 50%;
+
++   display: flex;
+
++   align-items: center;
+
++   justify-content: center;
+
++ }
+
++ .fc-login-success-title {
+
++   font: 700 16px/1.2 var(--fc-font-sans);
+
++   color: var(--fc-text);
+
++ }
+
++ .fc-login-success-sub {
+
++   margin-top: 6px;
+
++   font: 400 12px/1.5 var(--fc-font-sans);
+
++   color: var(--fc-text-secondary);
+
++ }
+
++ .fc-login-returning {
+
++   text-align: center;
+
++   margin-bottom: 24px;
+
++ }
+
++ .fc-login-avatar {
+
++   width: 52px;
+
++   height: 52px;
+
++   margin: 0 auto 14px;
+
++   background: var(--fc-surface-raised);
+
++   border: 1px solid var(--fc-border-strong);
+
++   border-radius: 50%;
+
++   display: flex;
+
++   align-items: center;
+
++   justify-content: center;
+
++   font: 700 18px/1 var(--fc-font-mono);
+
++   color: var(--fc-text);
+
++ }
+
++ .fc-login-returning-hi {
+
++   font: 700 15px/1.2 var(--fc-font-sans);
+
++   color: var(--fc-text);
+
++ }
+
++ .fc-login-returning-email {
+
++   margin-top: 4px;
+
++   font: 400 12px/1.5 var(--fc-font-sans);
+
++   color: var(--fc-text-muted);
+
++ }
+
++ .fc-login-other-btn {
+
++   display: block;
+
++   width: 100%;
+
++   text-align: center;
+
++   margin-top: 18px;
+
++   font: 400 11px/1 var(--fc-font-sans);
+
++   color: var(--fc-text-muted);
+
++   background: transparent;
+
++   border: none;
+
++   cursor: pointer;
+
++ }
+
++ .fc-login-other-btn:hover {
+
++   color: var(--fc-text-secondary);
+
++ }
+
++ 
+
++ /* fc-onboarding */
+
++ .fc-onboarding-root {
+
++   min-height: 100vh;
+
++   background: #0B1214;
+
++   display: flex;
+
++   align-items: center;
+
++   justify-content: center;
+
++   padding: 20px;
+
++ }
+
++ .fc-onboarding-loading {
+
++   min-height: 100vh;
+
++   background: #0B1214;
+
++   display: flex;
+
++   flex-direction: column;
+
++   align-items: center;
+
++   justify-content: center;
+
++   gap: 24px;
+
++   color: var(--fc-accent);
+
++ }
+
++ .fc-onboarding-loading-text {
+
++   font: 700 14px/1 var(--fc-font-mono);
+
++   letter-spacing: 0.1em;
+
++ }
+
++ .fc-onboarding-card {
+
++   width: 100%;
+
++   max-width: 480px;
+
++   background: var(--fc-surface-overlay);
+
++   border: 1px solid var(--fc-border-strong);
+
++   border-radius: var(--fc-radius-lg);
+
++   box-shadow: var(--fc-shadow-overlay);
+
++   padding: 40px;
+
++   position: relative;
+
++ }
+
++ .fc-onboarding-progress {
+
++   display: flex;
+
++   gap: 8px;
+
++   margin-bottom: 32px;
+
++ }
+
++ .fc-onboarding-step {
+
++   flex: 1;
+
++   height: 4px;
+
++   border-radius: 2px;
+
++   background: var(--fc-surface-raised);
+
++   transition: background 0.3s;
+
++ }
+
++ .fc-onboarding-step.is-active {
+
++   background: var(--fc-accent);
+
++ }
+
++ .fc-onboarding-step.is-completed {
+
++   background: var(--fc-accent-wash);
+
++ }
+
++ .fc-onboarding-logo {
+
++   margin-bottom: 32px;
+
++ }
+
++ .fc-onboarding-content {
+
++   animation: fc-fade-in 0.3s ease-out;
+
++ }
+
++ @keyframes fc-fade-in {
+
++   from { opacity: 0; transform: translateY(10px); }
+
++   to { opacity: 1; transform: translateY(0); }
+
++ }
+
++ .fc-onboarding-title {
+
++   font: 700 16px/1 var(--fc-font-mono);
+
++   color: var(--fc-accent);
+
++   letter-spacing: 0.15em;
+
++   text-transform: uppercase;
+
++   margin: 0 0 8px;
+
++ }
+
++ .fc-onboarding-subtitle {
+
++   font: 400 13px/1.5 var(--fc-font-sans);
+
++   color: var(--fc-text-secondary);
+
++   margin: 0 0 32px;
+
++ }
+
++ .fc-onboarding-label {
+
++   display: block;
+
++   font: 600 11px/1 var(--fc-font-mono);
+
++   color: var(--fc-text-muted);
+
++   letter-spacing: 0.1em;
+
++   text-transform: uppercase;
+
++   margin-bottom: 8px;
+
++ }
+
++ .fc-onboarding-error {
+
++   font: 400 12px/1.4 var(--fc-font-sans);
+
++   color: var(--fc-danger);
+
++   margin: 8px 0 0;
+
++ }
+
++ .fc-onboarding-options {
+
++   display: flex;
+
++   flex-direction: column;
+
++   gap: 12px;
+
++   margin-bottom: 32px;
+
++ }
+
++ .fc-onboarding-option {
+
++   display: flex;
+
++   align-items: center;
+
++   gap: 16px;
+
++   padding: 16px;
+
++   background: var(--fc-surface);
+
++   border: 1px solid var(--fc-border);
+
++   border-radius: var(--fc-radius-md);
+
++   cursor: pointer;
+
++   transition: all 0.2s;
+
++ }
+
++ .fc-onboarding-option.is-selected {
+
++   background: var(--fc-accent-wash);
+
++   border-color: var(--fc-accent);
+
++ }
+
++ .fc-onboarding-option-icon {
+
++   color: var(--fc-text-muted);
+
++ }
+
++ .fc-onboarding-option.is-selected .fc-onboarding-option-icon {
+
++   color: var(--fc-accent);
+
++ }
+
++ .fc-onboarding-option-title {
+
++   margin: 0 0 4px;
+
++   font: 600 14px/1 var(--fc-font-sans);
+
++   color: var(--fc-text);
+
++ }
+
++ .fc-onboarding-option.is-selected .fc-onboarding-option-title {
+
++   color: #fff;
+
++ }
+
++ .fc-onboarding-option-desc {
+
++   margin: 0;
+
++   font: 400 12px/1.4 var(--fc-font-sans);
+
++   color: var(--fc-text-muted);
+
++ }
+
++ .fc-onboarding-invites {
+
++   display: flex;
+
++   flex-direction: column;
+
++   gap: 12px;
+
++   margin-bottom: 24px;
+
++ }
+
++ .fc-onboarding-invite-row {
+
++   display: flex;
+
++   align-items: center;
+
++   gap: 10px;
+
++ }
+
++ .fc-onboarding-remove-btn {
+
++   background: none;
+
++   border: none;
+
++   color: var(--fc-text-muted);
+
++   cursor: pointer;
+
++   padding: 8px;
+
++   display: flex;
+
++   align-items: center;
+
++   gap: 4px;
+
++   font: 700 12px/1 var(--fc-font-mono);
+
++ }
+
++ .fc-onboarding-add-btn {
+
++   display: flex;
+
++   align-items: center;
+
++   gap: 6px;
+
++   background: none;
+
++   border: none;
+
++   color: var(--fc-accent);
+
++   font: 600 13px/1 var(--fc-font-sans);
+
++   cursor: pointer;
+
++   margin-bottom: 32px;
+
++ }
+
++ .fc-onboarding-skip-btn {
+
++   display: block;
+
++   width: 100%;
+
++   margin-top: 12px;
+
++   background: none;
+
++   border: none;
+
++   color: var(--fc-text-muted);
+
++   font: 400 13px/1 var(--fc-font-sans);
+
++   cursor: pointer;
+
++   text-decoration: underline;
+
++ }
+
++ 
+
++ /* fc-sidebar */
+
++ .fc-sidebar {
+
++   position: fixed;
+
++   top: 12px;
+
++   left: 12px;
+
++   bottom: 12px;
+
++   width: 256px;
+
++   z-index: 200;
+
++   flex-direction: column;
+
++   border-radius: var(--fc-radius-xl);
+
++   background: var(--fc-surface);
+
++   border: 1px solid var(--fc-border);
+
++   box-shadow: var(--fc-shadow-overlay);
+
++   transform: translateX(calc(-100% - 24px));
+
++   opacity: 0;
+
++   transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+
++   pointer-events: none;
+
++   overflow: visible;
+
++ }
+
++ .fc-sidebar--open {
+
++   transform: translateX(0);
+
++   opacity: 1;
+
++   pointer-events: auto;
+
++ }
+
++ 
+
++ /* Touch tablets do not have a hover trigger. Keep the desktop shell reachable
+
++    when the pointer is coarse instead of rendering an inaccessible hidden rail. */
+
++ @media (min-width: 768px) and (pointer: coarse) {
+
++   .fc-sidebar.sidebar-responsive {
+
++     transform: translateX(0);
+
++     opacity: 1;
+
++     pointer-events: auto;
+
++   }
+
++ }
+
++ 
+
++ @media (min-width: 1024px) and (max-width: 1279px) {
+
++   .fc-sidebar.sidebar-responsive { width: 80px; }
+
++   .fc-sidebar.sidebar-responsive .sidebar-hide-compact,
+
++   .fc-sidebar.sidebar-responsive .nav-full-name,
+
++   .fc-sidebar.sidebar-responsive .sidebar-group-header { display: none; }
+
++   /* Group labels are hidden in compact mode, so every module must remain
+
++      reachable without depending on the collapsed-group state. */
+
++   .fc-sidebar.sidebar-responsive .sidebar-group-content { grid-template-rows: 1fr !important; }
+
++   .fc-sidebar.sidebar-responsive .flowchart-logo-text { display: none; }
+
++   .fc-sidebar.sidebar-responsive .sidebar-logo-row { padding-left: 8px; padding-right: 8px; gap: 4px; }
+
++   .fc-sidebar.sidebar-responsive .flowchart-logo-mark { width: 28px !important; height: 28px !important; }
+
++   .fc-sidebar.sidebar-responsive .nav-short-name {
+
++     display: block; flex: 1; font-family: var(--fc-font-sans); font-size: 10px; font-weight: 700;
+
++   }
+
++   .fc-sidebar.sidebar-responsive .nav-item {
+
++     flex-direction: column; gap: 4px; padding: 10px 8px; text-align: center;
+
++     justify-content: center; border-left: none; border-bottom: 1px solid transparent;
+
++     margin-right: 0; border-radius: 8px;
+
++   }
+
++   .fc-sidebar.sidebar-responsive .nav-item.active { border-bottom-color: transparent; }
+
++   .fc-sidebar.sidebar-responsive .nav-item.active::before {
+
++     display: block; left: 50%; top: auto; bottom: 3px; transform: translateX(-50%);
+
++   }
+
++ }
+
++ @keyframes fcIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+
++ @keyframes fcOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-10px) scale(.985)}}
+
++ @keyframes fcRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
++ @keyframes fcBar{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+
++ @keyframes fcSpin{to{transform:rotate(360deg)}}
+
++ @keyframes fcB1{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.72)}}
+
++ @keyframes fcB2{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.5)}}
+
++ @keyframes fcB3{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.56)}}
+
++ @keyframes fcPop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+
++ @keyframes fcDraw{from{stroke-dashoffset:34}to{stroke-dashoffset:0}}
+
++ 
+
++ /* ── Brand Icons: colores con data-theme (next-themes usa attribute="data-theme") ── */
+
++ 
+
++ /* Facebook: azul en light, blanco en dark */
+
++ .fc-brand-facebook path { fill: #0866FF; }
+
++ [data-theme="dark"] .fc-brand-facebook path { fill: #FFFFFF; }
+
++ 
+
++ /* Google: colores en light, blanco en dark */
+
++ [data-theme="dark"] .fc-brand-google .fc-g-blue,
+
++ [data-theme="dark"] .fc-brand-google .fc-g-green,
+
++ [data-theme="dark"] .fc-brand-google .fc-g-yellow,
+
++ [data-theme="dark"] .fc-brand-google .fc-g-red { fill: #FFFFFF; }
+
++ 
+
++
+
+ ❯ tests/sidebar-navigation.test.ts:115:17
+    113|     expect(css).toContain("width: 248px;");
+    114|     expect(css).toContain("@media (min-width: 768px) and (pointer: coa…
+    115|     expect(css).toContain(".fc-sidebar.sidebar-responsive {\n    trans…
+       |                 ^
+    116|   });
+    117| });
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/16]⎯
+
+ FAIL  tests/ai/orchestration.test.ts > AI Orchestration Pipeline > should process a context and output safe ProposedActions without executing them
+Error: Failed to generate optimization plan
+ ❯ Module.orchestrateOptimization lib/optimization/ai/orchestrator.ts:37:11
+     35|   } catch (error) {
+     36|     logger.error("[Orchestrator] AI Planner failed", { workspaceId, er…
+     37|     throw new Error("Failed to generate optimization plan");
+       |           ^
+     38|   }
+     39| 
+ ❯ tests/ai/orchestration.test.ts:111:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/16]⎯
+
+
+[2m Test Files [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m46 passed[39m[22m[90m (49)[39m
+[2m      Tests [22m [1m[31m16 failed[39m[22m[2m | [22m[1m[32m345 passed[39m[22m[90m (361)[39m
+[2m   Start at [22m 10:22:17
+[2m   Duration [22m 5.92s[2m (transform 6.96s, setup 0ms, collect 14.64s, tests 7.52s, environment 15ms, prepare 10.24s)[22m
+

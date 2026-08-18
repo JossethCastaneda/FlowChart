@@ -1,0 +1,5 @@
+{
+  "status": 0,
+  "stdout": "Datasource \"db\": PostgreSQL database \"codex_migration_disposable_1786990467888_5d7bc6\", schema \"public\" at \"ep-green-sky-apxqm87s-pooler.c-7.us-east-1.aws.neon.tech\"\n\n1 migration found in prisma/migrations\n\nDatabase schema is up to date!",
+  "stderr": "Loaded Prisma config from prisma.config.ts.\n\nPrisma schema loaded from prisma\\schema.prisma."
+}

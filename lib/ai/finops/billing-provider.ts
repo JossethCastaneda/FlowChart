@@ -90,7 +90,7 @@ export class MockBillingProvider implements BillingProvider {
 
   async createCheckout(workspaceId: string, plan: string): Promise<string> {
     console.log(`[MockBilling] Created checkout session for workspace ${workspaceId}, plan ${plan}`);
-    return `https://mock-checkout.zefirus.dev/${workspaceId}/${plan}`;
+    return `https://mock-checkout.flowChart.dev/${workspaceId}/${plan}`;
   }
 
   async changeSubscription(workspaceId: string, newPlan: string): Promise<void> {

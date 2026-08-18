@@ -36,7 +36,7 @@ export interface CatalogProvider {
   envVar: string;
 }
 
-export const DEFAULT_MODEL = "gemini-1.5-flash"; // Realigned to real models
+export const DEFAULT_MODEL = "claude-opus-5"; // Realigned to real 2026 models
 
 export const AI_CATALOG: CatalogProvider[] = [
   {
@@ -51,13 +51,22 @@ export const AI_CATALOG: CatalogProvider[] = [
       "Multimodal (texto e imágenes: analiza brandbooks en GridIA)",
     ],
     accent: "from-blue-500 to-cyan-400",
-    recommendedModel: "gemini-1.5-flash",
+    recommendedModel: "gemini-3.7-flash",
     models: [
+      {
+        id: "gemini-3.7-flash",
+        providerModelId: "gemini-3.7-flash",
+        label: "Gemini 3.7 Flash",
+        note: "Velocidad y razonamiento cuántico (recomendado)",
+        power: 4,
+        performance: "Respuestas casi instantáneas de altísimo nivel en toda la plataforma.",
+        capabilities: ["text", "structured_output", "vision", "tool_calling", "long_context", "streaming"],
+      },
       {
         id: "gemini-1.5-flash",
         providerModelId: "gemini-1.5-flash-latest",
         label: "Gemini 1.5 Flash",
-        note: "Rápido y económico (recomendado)",
+        note: "Rápido y económico",
         power: 3,
         performance: "Respuestas casi instantáneas en toda la plataforma; ideal para la operación diaria.",
         capabilities: ["text", "structured_output", "vision", "tool_calling", "long_context", "streaming"],
@@ -86,13 +95,22 @@ export const AI_CATALOG: CatalogProvider[] = [
       "Buen balance calidad / velocidad",
     ],
     accent: "from-emerald-500 to-teal-400",
-    recommendedModel: "gpt-4o",
+    recommendedModel: "gpt-5.6-luna",
     models: [
+      {
+        id: "gpt-5.6-luna",
+        providerModelId: "gpt-5.6-luna",
+        label: "GPT-5.6 Luna",
+        note: "Razonamiento cognitivo avanzado (recomendado)",
+        power: 5,
+        performance: "La última generación de IA hiper-cognitiva.",
+        capabilities: ["text", "structured_output", "vision", "tool_calling", "streaming"],
+      },
       {
         id: "gpt-4o",
         providerModelId: "gpt-4o",
         label: "GPT-4o",
-        note: "Equilibrado (recomendado)",
+        note: "Equilibrado",
         power: 4,
         performance: "Equilibrio sólido entre razonamiento y velocidad.",
         capabilities: ["text", "structured_output", "vision", "tool_calling", "streaming"],
@@ -130,15 +148,24 @@ export const AI_CATALOG: CatalogProvider[] = [
       "Fuerte en tareas agénticas y contexto largo",
     ],
     accent: "from-orange-500 to-amber-400",
-    recommendedModel: "claude-3-5-sonnet",
+    recommendedModel: "claude-opus-5",
     models: [
+      {
+        id: "claude-opus-5",
+        providerModelId: "claude-opus-5",
+        label: "Claude Opus 5",
+        note: "Análisis profundo superior (recomendado)",
+        power: 5,
+        performance: "Máxima capacidad analítica; redacción insuperable.",
+        capabilities: ["text", "vision", "tool_calling", "long_context", "streaming"],
+      },
       {
         id: "claude-3-opus",
         providerModelId: "claude-3-opus-20240229",
         label: "Claude 3 Opus",
-        note: "Máxima capacidad",
+        note: "Máxima capacidad anterior",
         power: 5,
-        performance: "La máxima capacidad del catálogo; profundidad y criterio superiores.",
+        performance: "La máxima capacidad del catálogo antiguo; profundidad y criterio superiores.",
         capabilities: ["text", "vision", "tool_calling", "long_context", "streaming"],
       },
       {
