@@ -3,7 +3,7 @@
  * =====================================================================
  * Cliente HTTP único para el dashboard.
  *
- * Las rutas de Sodare responden en dos formatos:
+ * Las rutas de FlowChart responden en dos formatos:
  *   1. Sobre estándar  → { success: true, data: T }         (lib/api-response)
  *   2. Cuerpo plano    → T                                   (rutas legacy)
  *

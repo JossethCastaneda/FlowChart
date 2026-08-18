@@ -167,7 +167,7 @@ export function BrandingManager() {
   return (
     <SettingsCard
       title="Marca (white label)"
-      description="Sustituye el logo y el color de Sodare por los de tu marca."
+      description="Sustituye el logo y el color de FlowChart por los de tu marca."
       icon={<Palette className="w-5 h-5 text-[var(--fc-accent)]" />}
       aside={
         workspace && (
@@ -368,7 +368,7 @@ export function BrandingManager() {
               description={
                 applyInApp
                   ? "Tu equipo ve el panel con tu color. Al cambiar de workspace, la interfaz se retiñe con la marca de ese workspace."
-                  : "Sólo los portales y correos que ve el cliente usan tu marca. El panel interno mantiene el azul de Sodare."
+                  : "Sólo los portales y correos que ve el cliente usan tu marca. El panel interno mantiene el azul de FlowChart."
               }
               last
             >
