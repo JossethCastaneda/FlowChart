@@ -33,11 +33,16 @@ branch Neon dedicado desde producción y exponerlo únicamente como
 
 ## 3. Validar y aprobar el baseline canónico
 
-**Prioridad:** MEDIA (depende de decisión #2)
+**Estado: COMPLETADO (2026-08-17).** El baseline se probó desde vacío y sobre
+un clon de producción; el humano autorizó explícitamente el registro
+metadata-only y `prisma migrate resolve --applied` se ejecutó una única vez.
+Verificación read-only posterior confirmó cero mutaciones de esquema/datos.
+Detalle en [[audits/2026-08-17-production-baseline-metadata-cutover|el cierre
+del cutover]].
 
-El baseline debe probarse primero desde vacío y sobre el clone de producción.
-Solo después se revisará la mutación de metadata necesaria en producción. No hay
-autorización actual para deploy, resolve, push o ejecución SQL productiva.
+Sigue sin haber autorización para `migrate deploy`, `db push` o ejecución SQL
+productiva: cada migración forward futura requiere su propio artefacto, prueba
+aislada y gate humano independiente.
 
 ---
 

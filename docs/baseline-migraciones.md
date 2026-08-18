@@ -4,9 +4,9 @@ tags: [base-de-datos, migraciones, prisma, seguridad]
 
 # Baseline de migraciones Prisma → Neon
 
-## Estado final del repositorio — 2026-08-17
+## Estado final del repositorio — 2026-08-17 (histórico, ver actualización abajo)
 
-- Producción tiene esquema y datos, pero no tiene `_prisma_migrations`.
+- Producción tenía esquema y datos, pero no tenía `_prisma_migrations`.
 - La cadena activa contiene solo `20260817000000_canonical_baseline`.
 - Las seis migraciones anteriores se conservan byte-for-byte en
   [[migrations/legacy/README|un archivo forense no ejecutable]].
@@ -79,6 +79,21 @@ Falta auditoría humana y autorización separada para registrar metadata en
 producción. Ver [[audits/2026-08-17-codex-isolated-baseline-proof-final|la
 primera prueba]] y el informe final de layout activo.
 
+## Actualización — cutover completado (2026-08-17)
+
+La autorización humana llegó y el registro metadata-only se ejecutó una única
+vez: `prisma migrate resolve --applied 20260817000000_canonical_baseline`.
+Producción ahora tiene `_prisma_migrations` con exactamente una fila
+(`applied_steps_count = 0`, sin DDL ejecutado). Verificación read-only
+posterior confirmó cero mutaciones de esquema o datos de aplicación. Detalle
+completo, comando exacto y todos los gates de cierre en
+[[audits/2026-08-17-production-baseline-metadata-cutover|el registro de
+cierre]].
+
+`PRODUCTION_MIGRATION_READY` sigue en `NO`: cada migración forward futura
+requiere su propio artefacto, prueba aislada y gate humano independiente.
+
 Relacionado: [[architecture/database-migration-policy|Política de migraciones]] ·
 [[incidents/2026-08-aiusage-data-loss|Incidente AiUsage]] ·
-[[migrations/README|Arquitectura activa]]
+[[migrations/README|Arquitectura activa]] ·
+[[audits/2026-08-17-production-baseline-metadata-cutover|Cierre del cutover]]

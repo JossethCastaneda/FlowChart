@@ -85,8 +85,8 @@ registrados: `LEGACY_HASH_MATCH_ROW_1 = PASS` y
 | `20260529201310_init` | `5cc43bc581d59bd3f18c2c9bd3797697743708f508029f3a483b333e751be2e2` |
 | `20260529203800_add_workspace_owner_slug` | `5fd1d25bd1ffa3a4d593243ca407f4c57d8deab5ac28f2e94d80dad4b790faec` |
 | `20260529204200_workspace_plan_and_roles` | `008d1c77d3729dec7291cd6751f6f85b9f45928a47960d91a0f9636fca290c27` |
-| `20260608000000_add_workspace_settings` | `231ad8bee14b8dca079ab161f73d5de5c82586cc30435f23271e96a532fd193a` |
-| `20260608010000_add_task_request_fields` | `9eb9ff28622cca5513c661847359e5d1e06d41fd9ac4f6309e7db61c8cc1fd67` |
+| `20260608000000_add_workspace_settings` | `e4859e3ecb0be9c03e76db875da2b4566de9f6f0bc8203617dbd6c1219d8d8bf` |
+| `20260608010000_add_task_request_fields` | `447aa748d09a3e0b9264766e44a41aee1d1c4d0389f72190ff2b5fa2a7ebc64b` |
 | `20260812143323_finops_commercial_baseline` | `3db7ccf16bf5e29f96149e7505ad40c8ed7ee11d64d9c9b2e4b9ba5873b5c3f6` |
 
 FinOps baseline: `DANGEROUS_TO_REPLAY` contra producción y obsoleto respecto al

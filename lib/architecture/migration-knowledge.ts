@@ -54,6 +54,7 @@ export interface MigrationPolicyKnowledgeNode {
   legacyArchive: LegacyMigrationArchiveKnowledgeNode;
   schema: PrismaSchemaKnowledgeNode;
   productionCutover: ProductionCutoverHumanGateNode;
+  registeredBaseline: RegisteredProductionBaselineNode;
 }
 
 export interface ModelDecisionPersistenceGapNode { readonly kind: "model-decision-persistence-gap" }
@@ -65,6 +66,8 @@ export interface HumanDecisionRequiredNode { readonly kind: "human-decision-requ
 export interface IncidentRecoveryKnowledgeNode { readonly kind: "incident-recovery" }
 export interface IsolatedBaselineProofKnowledgeNode { readonly kind: "isolated-baseline-proof" }
 export interface ProductionCutoverHumanGateNode { readonly kind: "production-cutover-human-gate" }
+export interface RegisteredProductionBaselineNode { readonly kind: "registered-production-baseline-20260817" }
+export interface ForwardMigrationHumanGateNode { readonly kind: "forward-migration-human-gate" }
 export interface CanonicalBaselineKnowledgeNode { readonly kind: "canonical-baseline-20260817" }
 export interface LegacyMigrationArchiveKnowledgeNode { readonly kind: "legacy-migrations-forensic-only" }
 export interface PrismaSchemaKnowledgeNode { readonly kind: "prisma-canonical-schema" }
@@ -89,6 +92,8 @@ function migrationPolicyEntity(): void {}
 function incidentRecoveryEntity(): void {}
 function isolatedBaselineProofEntity(): void {}
 function productionCutoverHumanGateEntity(): void {}
+function registeredProductionBaselineEntity(): void {}
+function forwardMigrationHumanGateEntity(): void {}
 function canonicalBaselineEntity(): void {}
 function legacyMigrationArchiveEntity(): void {}
 function prismaSchemaEntity(): void {}
@@ -197,6 +202,26 @@ export function isolatedBaselineProofRequiresProductionHumanGate(
   void _gate;
   isolatedBaselineProofEntity();
   productionCutoverHumanGateEntity();
+}
+
+export function productionHumanGateRegistersBaselineMetadata(
+  _gate: ProductionCutoverHumanGateNode,
+  _registered: RegisteredProductionBaselineNode,
+): void {
+  void _gate;
+  void _registered;
+  productionCutoverHumanGateEntity();
+  registeredProductionBaselineEntity();
+}
+
+export function registeredBaselineRequiresForwardMigrationHumanGate(
+  _registered: RegisteredProductionBaselineNode,
+  _forwardGate: ForwardMigrationHumanGateNode,
+): void {
+  void _registered;
+  void _forwardGate;
+  registeredProductionBaselineEntity();
+  forwardMigrationHumanGateEntity();
 }
 
 export function canonicalBaselineReplacesLegacyReplayChain(
