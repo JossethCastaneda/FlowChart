@@ -1,0 +1,2 @@
+# Laboratory copy; generated migrations target PostgreSQL.
+provider = "postgresql"

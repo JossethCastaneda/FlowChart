@@ -110,6 +110,7 @@ const envSchema = z.object({
   PUBLISH_WORKER_SECRET: z.string().optional(),
 
   // AI Providers
+  AI_GATEWAY_API_KEY: z.string().min(1).optional(),
   OPENAI_API_KEY: z.string().min(1).optional(),
   GEMINI_API_KEY: z.string().min(1).optional(),
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
