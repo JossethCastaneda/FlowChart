@@ -109,6 +109,11 @@ const envSchema = z.object({
   CRON_SECRET: z.string().optional(),
   PUBLISH_WORKER_SECRET: z.string().optional(),
 
+  // AI Providers
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  GEMINI_API_KEY: z.string().min(1).optional(),
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+
 
   // Vercel Blob
   BLOB_READ_WRITE_TOKEN: z.string().min(1).optional(),

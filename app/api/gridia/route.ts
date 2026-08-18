@@ -5,6 +5,7 @@ import { rateLimit, getClientIP } from "@/lib/ratelimit";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
 import { getWorkspaceAiProvider, hasAnyProvider, normalizeUpstreamError } from "@/lib/ai";
+import { checkAiLimit, recordAiUsage } from "@/lib/ai/metering";
 
 /**
  * POST /api/gridia
@@ -140,8 +141,16 @@ const GridResultZod = z
   .passthrough();
 
 const BrandFileSchema = z.object({
-  mimeType: z.string(),
-  data: z.string(),
+  mimeType: z.enum([
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // docx
+  ]),
+  data: z.string().refine(
+    (s) => Buffer.from(s, "base64").length <= 4 * 1024 * 1024,
+    "El archivo excede el límite de 4MB",
+  ),
 });
 
 const BodySchema = z.object({
@@ -237,6 +246,12 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     return apiError("IA no configurada en el servidor", "SERVER_CONFIG", 500);
   }
 
+
+  const limit = await checkAiLimit(ctx.workspaceId);
+  if (!limit.allowed) {
+    return apiError(limit.message, "QUOTA_EXCEEDED", 403);
+  }
+
   // La IA contratada en el catálogo del workspace genera la parrilla; los
   // brandbooks van como adjuntos multimodales (Gemini/GPT/Claude los soportan).
   try {
@@ -256,6 +271,18 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       model: result.model,
       posts: result.data.posts.length,
     });
+    
+    if (result.usage) {
+      await recordAiUsage(
+        ctx.workspaceId,
+        "/api/gridia",
+        result.model,
+        result.usage.promptTokens,
+        result.usage.completionTokens,
+        { provider: result.provider, feature: "gridia" }
+      );
+    }
+    
     return NextResponse.json(result.data);
   } catch (err) {
     if (err instanceof z.ZodError) {

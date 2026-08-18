@@ -375,7 +375,7 @@ export default function ResumenPage() {
         <KpiCard icon={FolderKanban} label="Proyectos" value={d.projects.total}
           sub={`${d.projects.active} activos`} color="var(--fc-success)" href="/dashboard/proyectos" />
         <KpiCard icon={Users} label="Equipo" value={d.members.total}
-          sub="miembros" color="var(--purple)" href="/dashboard/settings" />
+          sub="miembros" color="var(--fc-module-aria)" href="/dashboard/settings" />
         <KpiCard icon={Zap} label="Tasks" value={d.tasks.total}
           sub={`${d.tasks.wip} en progreso`} color="var(--fc-accent)" href="/dashboard/ops" />
         <KpiCard icon={Target} label="Briefs" value={d.briefs.total}
@@ -449,7 +449,7 @@ export default function ResumenPage() {
 
         {/* Quick Actions */}
         <div style={{ background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 16, padding: 22, position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, var(--purple), transparent)" }} />
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, var(--fc-module-aria), transparent)" }} />
 
           <div style={{ marginBottom: 18 }}>
             <span style={{ fontFamily: "var(--font-display)", fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--fc-text-secondary)" }}>
@@ -462,7 +462,7 @@ export default function ResumenPage() {
               { label: "Nuevo Proyecto", href: "/dashboard/proyectos", icon: FolderKanban, color: "var(--fc-success)" },
               { label: "Crear Task", href: "/dashboard/ops", icon: Zap, color: "var(--fc-accent)" },
               { label: "Nuevo Brief IA", href: "/dashboard/briefing", icon: Target, color: "var(--fc-warning)" },
-              { label: "Invitar Miembro", href: "/dashboard/settings", icon: Users, color: "var(--purple)" },
+              { label: "Invitar Miembro", href: "/dashboard/settings", icon: Users, color: "var(--fc-module-aria)" },
             ].map((action) => (
               <Link key={action.label} href={action.href} style={{ textDecoration: "none" }}>
                 <div style={{

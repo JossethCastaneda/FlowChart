@@ -117,7 +117,7 @@ export function KpiCard({
       </div>
 
       {/* Value + Label */}
-      <p className="kpi-value" style={{ fontSize: "24px", color: "var(--foreground)", marginBottom: 4 }}>
+      <p className="kpi-value" style={{ fontSize: "24px", color: "var(--fc-text)", marginBottom: 4 }}>
         {value}
       </p>
       <p className="kpi-label">{label}</p>
@@ -144,10 +144,10 @@ export function KpiCard({
                     : "rgba(148,163,184,0.10)",
                 color:
                   trend === "up"
-                    ? "var(--emerald)"
+                    ? "var(--fc-success)"
                     : trend === "down"
-                    ? "var(--red)"
-                    : "var(--text-secondary)",
+                    ? "var(--fc-danger)"
+                    : "var(--fc-text-secondary)",
               }}
             >
               {trend === "up" ? (
@@ -161,7 +161,7 @@ export function KpiCard({
             </div>
           )}
           {context && (
-            <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>{context}</span>
+            <span style={{ fontSize: "10px", color: "var(--fc-text-muted)" }}>{context}</span>
           )}
         </div>
       )}

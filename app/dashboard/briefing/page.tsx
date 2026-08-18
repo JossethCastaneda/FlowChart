@@ -217,8 +217,8 @@ export default function BriefingPage() {
         {gridData && !isLoading && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid var(--fc-border-subtle)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 12px", background: "var(--fc-surface)", border: "1px solid rgba(139,141,242,0.2)", borderRadius: 6 }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--purple)", display: "inline-block", animation: "pulse 2s ease-in-out infinite" }} />
-              <span style={{ fontSize: 9, fontWeight: 700, color: "var(--purple)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Brief generado</span>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--fc-module-aria)", display: "inline-block", animation: "pulse 2s ease-in-out infinite" }} />
+              <span style={{ fontSize: 9, fontWeight: 700, color: "var(--fc-module-aria)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Brief generado</span>
             </div>
           </div>
         )}
@@ -235,8 +235,8 @@ export default function BriefingPage() {
               <Skeleton key={i} style={{ height: "44px", width: "100%", borderRadius: "8px" }} />
             ))}
             <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginTop: 8 }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--purple)", display: "inline-block", animation: "pulse 1.5s ease-in-out infinite" }} />
-              <span style={{ fontSize: 10, color: "var(--purple)", textTransform: "uppercase", letterSpacing: "0.15em", fontWeight: 600 }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--fc-module-aria)", display: "inline-block", animation: "pulse 1.5s ease-in-out infinite" }} />
+              <span style={{ fontSize: 10, color: "var(--fc-module-aria)", textTransform: "uppercase", letterSpacing: "0.15em", fontWeight: 600 }}>
                 Procesando con Gemini AI...
               </span>
             </div>
@@ -245,7 +245,7 @@ export default function BriefingPage() {
 
         {/* ── Error ── */}
         {error && (
-          <div style={{ marginTop: 8, padding: "10px 14px", background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.25)", borderRadius: 8, color: "var(--fc-danger)", fontSize: 12 }}>
+          <div style={{ marginTop: 8, padding: "10px 14px", background: "var(--fc-danger-wash)", border: "1px solid rgba(229,72,77,0.25)", borderRadius: 8, color: "var(--fc-danger)", fontSize: 12 }}>
             <strong>Error:</strong> {error}
           </div>
         )}
@@ -257,7 +257,7 @@ export default function BriefingPage() {
         {!gridData && !isLoading && !error && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", gap: 14, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 12 }}>
             <div style={{ width: 52, height: 52, borderRadius: 14, background: "var(--fc-surface)", border: "1px solid rgba(139,141,242,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <BrainCircuit style={{ width: 24, height: 24, color: "var(--purple)" }} />
+              <BrainCircuit style={{ width: 24, height: 24, color: "var(--fc-module-aria)" }} />
             </div>
             <div style={{ textAlign: "center" }}>
               <p style={{ fontSize: 13, fontWeight: 600, color: "var(--fc-text)", margin: "0 0 6px" }}>Sin brief activo</p>
@@ -318,7 +318,7 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
           <span style={{ fontSize: 10, fontWeight: 700, color: "var(--fc-text)", textTransform: "uppercase", letterSpacing: "0.1em", fontFamily: "var(--font-display)" }}>Parrilla</span>
           <span className="badge badge-muted">{gridData.posts.length} posts</span>
           {gridData.creditos?.summary && (
-            <span style={{ fontSize: 9, color: "var(--purple)", fontStyle: "italic" }}>{gridData.creditos.summary}</span>
+            <span style={{ fontSize: 9, color: "var(--fc-module-aria)", fontStyle: "italic" }}>{gridData.creditos.summary}</span>
           )}
         </div>
         <button
@@ -378,7 +378,7 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
                     <span style={{
                       fontSize: 7, fontWeight: 700, padding: "2px 5px", borderRadius: 3,
                       background: post.formatoArte === "Video" ? "rgba(139,141,242,0.1)" : "var(--fc-surface-hover)",
-                      color: post.formatoArte === "Video" ? "var(--purple)" : "var(--fc-text-muted)",
+                      color: post.formatoArte === "Video" ? "var(--fc-module-aria)" : "var(--fc-text-muted)",
                       border: `1px solid ${post.formatoArte === "Video" ? "rgba(139,141,242,0.25)" : "var(--fc-border-subtle)"}`,
                     }}>{post.formatoArte}</span>
                   </td>
@@ -402,7 +402,7 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
                           <div>
                             <strong style={{ color: "var(--fc-text)" }}>Prompts Video:</strong>
                             <ul style={{ paddingLeft: 12, margin: "2px 0 0" }}>
-                              {post.videoDetails.promptsVideoAI.map((p, idx) => <li key={idx}><code style={{ color: "var(--purple)", fontSize: 8 }}>{p}</code></li>)}
+                              {post.videoDetails.promptsVideoAI.map((p, idx) => <li key={idx}><code style={{ color: "var(--fc-module-aria)", fontSize: 8 }}>{p}</code></li>)}
                             </ul>
                           </div>
                         )}

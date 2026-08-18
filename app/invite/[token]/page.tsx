@@ -171,12 +171,12 @@ export default function InvitePage() {
 
   // ── Estilos ──
   const page: React.CSSProperties = {
-    minHeight: "100vh", background: "var(--background)",
+    minHeight: "100vh", background: "var(--fc-bg)",
     display: "flex", alignItems: "center", justifyContent: "center",
   };
   const card: React.CSSProperties = {
     width: "100%", maxWidth: "420px", margin: "0 16px", padding: "40px",
-    background: "var(--surface)",
+    background: "var(--fc-surface)",
     border: "1px solid rgba(59,130,246,0.15)",
     
   };
@@ -185,9 +185,9 @@ export default function InvitePage() {
   };
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "10px 14px",
-    background: "var(--cyan-dim)",
+    background: "var(--fc-accent-wash)",
     border: "1px solid rgba(59,130,246,0.15)",
-    color: "var(--foreground)", fontSize: "13px", outline: "none",
+    color: "var(--fc-text)", fontSize: "13px", outline: "none",
     boxSizing: "border-box" as const,
   };
 
@@ -196,7 +196,7 @@ export default function InvitePage() {
     return (
       <div style={{ ...page, flexDirection: "column", gap: "24px" }}>
         <Loader size={24} />
-        <p style={{ color: "var(--cyan)", fontFamily: "var(--font-display)", letterSpacing: "0.1em", fontSize: "14px" }}>CARGANDO INVITACIÓN...</p>
+        <p style={{ color: "var(--fc-accent)", fontFamily: "var(--font-display)", letterSpacing: "0.1em", fontSize: "14px" }}>CARGANDO INVITACIÓN...</p>
       </div>
     );
   }
@@ -207,11 +207,11 @@ export default function InvitePage() {
       <div style={page}>
         <div style={card}>
           <Logo />
-          <p style={{ ...fontDisplay, fontSize: "11px", color: "var(--red)",
+          <p style={{ ...fontDisplay, fontSize: "11px", color: "var(--fc-danger)",
             letterSpacing: "0.15em", marginBottom: "8px" }}>
             INVITACIÓN INVÁLIDA
           </p>
-          <p style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
+          <p style={{ fontSize: "13px", color: "var(--fc-text-secondary)" }}>
             {error}
           </p>
         </div>
@@ -225,13 +225,13 @@ export default function InvitePage() {
       <div style={page}>
         <div style={{ ...card, textAlign: "center" as const }}>
           <CheckCircle style={{ width: 48, height: 48,
-            color: "var(--emerald)", margin: "0 auto 16px" }} />
+            color: "var(--fc-success)", margin: "0 auto 16px" }} />
           <p style={{ ...fontDisplay, fontSize: "12px",
-            color: "var(--emerald)", letterSpacing: "0.15em" }}>
+            color: "var(--fc-success)", letterSpacing: "0.15em" }}>
             ¡BIENVENIDO AL EQUIPO!
           </p>
           <p style={{ fontSize: "12px",
-            color: "var(--text-secondary)", marginTop: "8px" }}>
+            color: "var(--fc-text-secondary)", marginTop: "8px" }}>
             Redirigiendo al Command Center...
           </p>
         </div>
@@ -246,7 +246,7 @@ export default function InvitePage() {
         <div style={{ ...card, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px", textAlign: "center" as const }}>
           <Loader size={24} />
           <p style={{ ...fontDisplay, fontSize: "11px",
-            color: "var(--cyan)", letterSpacing: "0.15em" }}>
+            color: "var(--fc-accent)", letterSpacing: "0.15em" }}>
             PROCESANDO INVITACIÓN...
           </p>
         </div>
@@ -263,36 +263,36 @@ export default function InvitePage() {
         {/* Info del workspace */}
         <div style={{ display: "flex", alignItems: "center",
           gap: "10px", marginBottom: "20px", padding: "14px",
-          background: "var(--cyan-dim)",
+          background: "var(--fc-accent-wash)",
           border: "1px solid rgba(59,130,246,0.1)" }}>
           <Users style={{ width: 20, height: 20,
-            color: "var(--cyan)", flexShrink: 0 }} />
+            color: "var(--fc-accent)", flexShrink: 0 }} />
           <div>
             <p style={{ ...fontDisplay, fontSize: "11px",
-              color: "var(--cyan)", letterSpacing: "0.1em" }}>
+              color: "var(--fc-accent)", letterSpacing: "0.1em" }}>
               {invite?.workspace?.name}
             </p>
             <p style={{ fontSize: "11px",
-              color: "var(--text-secondary)", marginTop: "2px" }}>
+              color: "var(--fc-text-secondary)", marginTop: "2px" }}>
               Rol asignado: {invite?.role}
             </p>
           </div>
         </div>
 
         <p style={{ fontSize: "13px",
-          color: "var(--text-secondary)", marginBottom: "6px" }}>
+          color: "var(--fc-text-secondary)", marginBottom: "6px" }}>
           Fuiste invitado a unirte a este workspace.
         </p>
         <p style={{ fontSize: "12px",
-          color: "var(--text-secondary)", marginBottom: "24px" }}>
+          color: "var(--fc-text-secondary)", marginBottom: "24px" }}>
           Enviado a: {invite?.email}
         </p>
 
         {/* Error recuperable */}
         {error && (
-          <p style={{ fontSize: "12px", color: "var(--red)",
+          <p style={{ fontSize: "12px", color: "var(--fc-danger)",
             marginBottom: "16px", padding: "8px 12px",
-            background: "var(--red-dim)",
+            background: "var(--fc-danger-wash)",
             border: "1px solid rgba(229,72,77,0.15)" }}>
             {error}
           </p>
@@ -306,9 +306,9 @@ export default function InvitePage() {
               onClick={() => signIn("google",
                 { callbackUrl: `/invite/${token}` })}
               style={{ width: "100%", padding: "13px",
-                background: "var(--cyan-dim)",
+                background: "var(--fc-accent-wash)",
                 border: "1px solid rgba(59,130,246,0.3)",
-                color: "var(--foreground)", cursor: "pointer",
+                color: "var(--fc-text)", cursor: "pointer",
                 ...fontDisplay, fontSize: "11px",
                 letterSpacing: "0.15em" }}>
               CONTINUAR CON GOOGLE
@@ -319,7 +319,7 @@ export default function InvitePage() {
               style={{ width: "100%", padding: "11px",
                 background: "transparent",
                 border: "1px solid rgba(59,130,246,0.1)",
-                color: "var(--text-secondary)",
+                color: "var(--fc-text-secondary)",
                 cursor: "pointer", fontSize: "13px" }}>
               Continuar con Facebook
             </button>
@@ -328,12 +328,12 @@ export default function InvitePage() {
             <div style={{ display: "flex", alignItems: "center",
               gap: "8px", margin: "4px 0" }}>
               <span style={{ flex: 1, height: "1px",
-                background: "var(--cyan-dim)" }} />
+                background: "var(--fc-accent-wash)" }} />
               <span style={{ fontSize: "10px",
-                color: "var(--text-secondary)",
+                color: "var(--fc-text-secondary)",
                 ...fontDisplay, letterSpacing: "0.1em" }}>O</span>
               <span style={{ flex: 1, height: "1px",
-                background: "var(--cyan-dim)" }} />
+                background: "var(--fc-accent-wash)" }} />
             </div>
 
             {!showRegister ? (
@@ -342,7 +342,7 @@ export default function InvitePage() {
                 style={{ width: "100%", padding: "12px",
                   background: "transparent",
                   border: "1px solid rgba(59,130,246,0.1)",
-                  color: "var(--text-secondary)",
+                  color: "var(--fc-text-secondary)",
                   cursor: "pointer", fontSize: "13px" }}>
                 Crear cuenta con email
               </button>
@@ -356,7 +356,7 @@ export default function InvitePage() {
                 <input type="email" value={invite?.email || ""}
                   disabled
                   style={{ ...inputStyle,
-                    color: "var(--text-secondary)",
+                    color: "var(--fc-text-secondary)",
                     borderColor: "rgba(59,130,246,0.1)" }} />
                 <input type="password"
                   placeholder="Contraseña (mín. 8 caracteres)"
@@ -372,7 +372,7 @@ export default function InvitePage() {
                   style={inputStyle} />
                 {regError && (
                   <p style={{ fontSize: "11px",
-                    color: "var(--red)", margin: 0 }}>
+                    color: "var(--fc-danger)", margin: 0 }}>
                     {regError}
                   </p>
                 )}
@@ -380,7 +380,7 @@ export default function InvitePage() {
                   onClick={handleRegisterAndAccept}
                   disabled={regLoading}
                   style={{ width: "100%", padding: "12px",
-                    background: "var(--cyan-dim)",
+                    background: "var(--fc-accent-wash)",
                     border: "1px solid rgba(59,130,246,0.3)",
                     color: regLoading
                       ? "rgba(148,163,184,0.7)" : "white",
@@ -401,7 +401,7 @@ export default function InvitePage() {
             onClick={handleAccept}
             disabled={accepting}
             style={{ width: "100%", padding: "13px",
-              background: "var(--cyan-dim)",
+              background: "var(--fc-accent-wash)",
               border: "1px solid rgba(59,130,246,0.3)",
               color: accepting
                 ? "rgba(148,163,184,0.7)" : "white",
@@ -424,13 +424,13 @@ function Logo() {
       gap: "12px", marginBottom: "32px" }}>
       <div style={{ width: 38, height: 38,
         display: "flex", alignItems: "center",
-        justifyContent: "center", background: "var(--background)",
+        justifyContent: "center", background: "var(--fc-bg)",
         border: "1px solid rgba(59,130,246,0.4)",
         boxShadow: "0 0 12px rgba(59,130,246,0.2)" }}>
-        <Zap style={{ width: 20, height: 20, color: "var(--cyan)" }} />
+        <Zap style={{ width: 20, height: 20, color: "var(--fc-accent)" }} />
       </div>
       <span style={{ fontFamily: "var(--font-display)",
-        fontSize: "18px", fontWeight: 700, color: "var(--foreground)",
+        fontSize: "18px", fontWeight: 700, color: "var(--fc-text)",
         letterSpacing: "0.2em" }}>
         FLOWCHART
       </span>

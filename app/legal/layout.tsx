@@ -13,14 +13,14 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
       minHeight: "100vh",
       display: "flex",
       flexDirection: "column",
-      background: "var(--background)",
-      color: "var(--foreground)",
+      background: "var(--fc-bg)",
+      color: "var(--fc-text)",
       fontFamily: "var(--font-sans)",
     }}>
       {/* Top nav */}
       <header style={{
         borderBottom: "1px solid rgba(59,130,246,0.12)",
-        background: "var(--surface)",
+        background: "var(--fc-surface)",
         
         position: "sticky",
         top: 0,
@@ -39,10 +39,10 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
             <FlowChartLogo />
           </Link>
           <nav style={{ display: "flex", gap: 24, alignItems: "center" }}>
-            <Link href="/legal/terms" style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none" }}>
+            <Link href="/legal/terms" style={{ fontSize: 13, color: "var(--fc-text-muted)", textDecoration: "none" }}>
               Términos
             </Link>
-            <Link href="/legal/privacy" style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none" }}>
+            <Link href="/legal/privacy" style={{ fontSize: 13, color: "var(--fc-text-muted)", textDecoration: "none" }}>
               Privacidad
             </Link>
             <Link
@@ -73,17 +73,17 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
         textAlign: "center",
         marginTop: 80,
       }}>
-        <p style={{ fontSize: 12, color: "var(--text-muted)" }}>
+        <p style={{ fontSize: 12, color: "var(--fc-text-muted)" }}>
            {new Date().getFullYear()} FlowChart. Todos los derechos reservados.
         </p>
         <div style={{ display: "flex", gap: 20, justifyContent: "center", marginTop: 12 }}>
-          <Link href="/legal/terms" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none" }}>
+          <Link href="/legal/terms" style={{ fontSize: 12, color: "var(--fc-text-muted)", textDecoration: "none" }}>
             Términos de Servicio
           </Link>
-          <Link href="/legal/privacy" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none" }}>
+          <Link href="/legal/privacy" style={{ fontSize: 12, color: "var(--fc-text-muted)", textDecoration: "none" }}>
             Política de Privacidad
           </Link>
-          <Link href="/login" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none" }}>
+          <Link href="/login" style={{ fontSize: 12, color: "var(--fc-text-muted)", textDecoration: "none" }}>
             Iniciar Sesión
           </Link>
         </div>

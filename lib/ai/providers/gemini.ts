@@ -12,6 +12,7 @@ import type {
 } from "../types";
 import { LLMProviderError } from "../types";
 import { toGeminiSchema } from "../schema";
+import { env } from "@/lib/env";
 
 interface GeminiResponse {
   candidates?: { content?: { parts?: { text?: string }[] }; finishReason?: string }[];
@@ -81,11 +82,11 @@ export const geminiProvider: LLMProvider = {
   defaultModel: "gemini-2.5-flash",
 
   isConfigured() {
-    return !!process.env.GEMINI_API_KEY;
+    return !!env.GEMINI_API_KEY;
   },
 
   async complete(opts: CompleteOptions): Promise<CompleteResult> {
-    const key = process.env.GEMINI_API_KEY;
+    const key = env.GEMINI_API_KEY;
     if (!key) throw new LLMProviderError("gemini", 500, "GEMINI_API_KEY no configurada");
     const model = opts.model ?? this.defaultModel;
     const payload = buildPayload(opts);
@@ -102,7 +103,7 @@ export const geminiProvider: LLMProvider = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-      signal: opts.signal,
+      signal: opts.signal ?? AbortSignal.timeout(60_000),
     });
     if (!res.ok) {
       const e = (await res.json().catch(() => ({}))) as GeminiResponse;
@@ -122,7 +123,7 @@ export const geminiProvider: LLMProvider = {
   async completeStructured<T>(
     opts: CompleteStructuredOptions<T>,
   ): Promise<CompleteStructuredResult<T>> {
-    const key = process.env.GEMINI_API_KEY;
+    const key = env.GEMINI_API_KEY;
     if (!key) throw new LLMProviderError("gemini", 500, "GEMINI_API_KEY no configurada");
     const model = opts.model ?? this.defaultModel;
     const payload = buildPayload(opts);
@@ -141,7 +142,7 @@ export const geminiProvider: LLMProvider = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-      signal: opts.signal,
+      signal: opts.signal ?? AbortSignal.timeout(60_000),
     });
     if (!res.ok) {
       const e = (await res.json().catch(() => ({}))) as GeminiResponse;

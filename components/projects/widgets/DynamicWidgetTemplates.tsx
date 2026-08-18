@@ -40,7 +40,7 @@ interface DynamicChartProps {
 function NoData({ msg = "Sin datos disponibles" }: { msg?: string }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%", minHeight: 120, gap: 12, padding: 20 }}>
-      <p style={{ fontSize: 11, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "center" }}>{msg}</p>
+      <p style={{ fontSize: 11, color: "var(--fc-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "center" }}>{msg}</p>
     </div>
   );
 }
@@ -70,7 +70,7 @@ export function DynamicComposedChartWidget({ config, timeSeriesData, fmtMXN }: D
         {series.map((s, idx) => (
           <div key={idx} style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: s.color, display: "inline-block" }} />
-            <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{s.label}</span>
+            <span style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>{s.label}</span>
           </div>
         ))}
       </div>
@@ -79,12 +79,12 @@ export function DynamicComposedChartWidget({ config, timeSeriesData, fmtMXN }: D
           <ResponsiveContainer>
             <ComposedChart data={timeSeriesData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="0" stroke="rgba(255,255,255,0.04)" vertical={false} />
-              <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" tick={{ fontFamily: "var(--font-mono)" }} />
+              <XAxis dataKey="date" stroke="var(--fc-text-muted)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" tick={{ fontFamily: "var(--font-mono)" }} />
               
               {hasLeft && (
                 <YAxis 
                   yAxisId="left" 
-                  stroke="var(--text-muted)" 
+                  stroke="var(--fc-text-muted)" 
                   fontSize={9} 
                   tickLine={false} 
                   axisLine={false} 
@@ -100,7 +100,7 @@ export function DynamicComposedChartWidget({ config, timeSeriesData, fmtMXN }: D
                 <YAxis 
                   yAxisId="right" 
                   orientation="right" 
-                  stroke="var(--text-muted)" 
+                  stroke="var(--fc-text-muted)" 
                   fontSize={9} 
                   tickLine={false} 
                   axisLine={false} 
@@ -128,7 +128,7 @@ export function DynamicComposedChartWidget({ config, timeSeriesData, fmtMXN }: D
                   return <Bar key={idx} yAxisId={s.yAxisId} dataKey={s.dataKey} name={s.label} fill={s.color} radius={[4, 4, 0, 0]} barSize={7} />;
                 }
                 if (s.type === "line") {
-                  return <Line key={idx} yAxisId={s.yAxisId} type="monotone" dataKey={s.dataKey} name={s.label} stroke={s.color} strokeWidth={2} dot={{ r: 3, fill: "var(--surface)", stroke: s.color, strokeWidth: 2 }} activeDot={{ r: 5, fill: s.color }} />;
+                  return <Line key={idx} yAxisId={s.yAxisId} type="monotone" dataKey={s.dataKey} name={s.label} stroke={s.color} strokeWidth={2} dot={{ r: 3, fill: "var(--fc-surface)", stroke: s.color, strokeWidth: 2 }} activeDot={{ r: 5, fill: s.color }} />;
                 }
                 return null;
               })}
@@ -173,10 +173,10 @@ export function DynamicKpiCardWidget({ config, totalData, fmtMXN }: DynamicKpiPr
 
   return (
     <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-      <div style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 500, marginBottom: 4 }}>
+      <div style={{ fontSize: 13, color: "var(--fc-text-muted)", fontWeight: 500, marginBottom: 4 }}>
         {title}
       </div>
-      <div style={{ fontSize: 24, fontWeight: 700, color: "var(--foreground)", letterSpacing: "-0.03em" }}>
+      <div style={{ fontSize: 24, fontWeight: 700, color: "var(--fc-text)", letterSpacing: "-0.03em" }}>
         {displayValue}
       </div>
     </div>

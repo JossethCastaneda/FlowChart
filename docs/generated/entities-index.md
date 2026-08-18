@@ -8,7 +8,7 @@ tags: [generado, entidades, prisma, dominio]
 > No lo edites manualmente — se sobreescribe en cada generación.
 > Fuente: `scripts/docs-graph.mjs`
 
-Total: **76 modelos** en el schema de Prisma.
+Total: **115 modelos** en el schema de Prisma.
 
 ## Core (Identidad y tenant)
 
@@ -56,7 +56,8 @@ Total: **76 modelos** en el schema de Prisma.
 | **GoogleSource** | `externalId`, `kind`, `projectId`, `project` |
 | **Capturista** | `userId`, `user` |
 | **Channel** | `projectId`, `name`, `type`, `config`, `project` |
-| **MediaAsset** | `workspaceId`, `userId`, `url`, `fileName`, `mimeType` |
+| **MediaAsset** | `workspaceId`, `userId`, `projectId`, `url`, `fileName` |
+| **AssetGroup** | `workspaceId`, `name`, `description`, `color`, `type` |
 | **DraftPost** | `workspaceId`, `projectId`, `authorId`, `baseContent`, `baseMediaUrls` |
 | **Transmission** | `draftId`, `workspaceId`, `channel`, `accountId`, `accountName` |
 | **PublishJob** | `transmissionId`, `step`, `status`, `attempts`, `maxAttempts` |
@@ -103,8 +104,46 @@ Total: **76 modelos** en el schema de Prisma.
 | **AriaPrediction** | `modelId`, `recordId`, `score`, `probability`, `priority` |
 | **CenturionModel** | `workspaceId`, `clientName`, `verticalName`, `engine`, `config` |
 | **MmmWeeklySpend** | `workspaceId`, `clientName`, `week`, `channel`, `spend` |
-| **AiUsage** | `workspaceId`, `route`, `model`, `provider`, `tokensIn` |
+| **OptimizationClient** | `workspaceId`, `key`, `displayName`, `status`, `environment` |
+| **OptimizationClientProject** | `workspaceId`, `clientId`, `projectId`, `client`, `project` |
+| **OptimizationAdAccount** | `workspaceId`, `clientId`, `provider`, `externalAccountId`, `displayName` |
+| **OptimizationObjective** | `workspaceId`, `clientId`, `version`, `status`, `primaryKpi` |
+| **OptimizationSnapshot** | `workspaceId`, `clientId`, `schemaVersion`, `contentHash`, `periodStart` |
+| **OptimizationAnalysisResult** | `workspaceId`, `clientId`, `snapshotId`, `analysisType`, `observations` |
+| **OptimizationProposedAction** | `workspaceId`, `clientId`, `snapshotId`, `provider`, `accountId` |
+| **OptimizationActionApproval** | `workspaceId`, `clientId`, `actionId`, `approverId`, `approverRole` |
+| **OptimizationActionExecution** | `workspaceId`, `clientId`, `actionId`, `operation`, `status` |
+| **OptimizationEvaluation** | `workspaceId`, `clientId`, `sourceSnapshotId`, `outcomeSnapshotId`, `analysisResultId` |
+| **OptimizationAuditEvent** | `workspaceId`, `clientId`, `snapshotId`, `actionId`, `actorId` |
+| **AiRequest** | `workspaceId`, `idempotencyKey`, `feature`, `status`, `completedAt` |
+| **AiRun** | `requestId`, `workspaceId`, `provider`, `model`, `actualProviderModelId` |
+| **ModelDecision** | `workspaceId`, `aiRunId`, `reason`, `candidates`, `selectedMode` |
+| **AiUsage** | `workspaceId`, `requestId`, `idempotencyKey`, `route`, `model` |
+| **AiModelPricing** | `provider`, `providerModelId`, `inputPrice`, `outputPrice`, `cachedInputPrice` |
+| **FeaturePricing** | `feature`, `pricingMode`, `fixedCost`, `creditsCost`, `currency` |
+| **WorkspaceEntitlement** | `workspaceId`, `saasPlan`, `allowedFeatures`, `monthlyAiBudget`, `autopilotEnabled` |
 | **RateLimit** | `key`, `count`, `resetAt` |
+| **BillingCustomer** | `workspaceId`, `stripeCustomerId`, `workspace` |
+| **Subscription** | `workspaceId`, `stripeSubscriptionId`, `status`, `plan`, `currentPeriodStart` |
+| **BillingEvent** | `stripeEventId`, `eventType`, `livemode`, `processingStatus`, `error` |
+| **BillingUsageEvent** | `workspaceId`, `aiUsageId`, `stripeMeterEventIdentifier`, `meterName`, `quantity` |
+| **Invoice** | `workspaceId`, `stripeInvoiceId`, `status`, `currency`, `amountDue` |
+| **WorkspaceAiBudgetBalance** | `workspaceId`, `periodStart`, `periodEnd`, `customerAiAllowance`, `customerBilledUsd` |
+| **AiReservationLedger** | `workspaceId`, `idempotencyKey`, `feature`, `reservedCostUsd`, `status` |
+| **ExternalCostRate** | `provider`, `component`, `unit`, `amount`, `currency` |
+| **Plan** | `key`, `name`, `description`, `versions` |
+| **PlanVersion** | `planId`, `version`, `status`, `effectiveFrom`, `effectiveTo` |
+| **PlanPrice** | `planVersionId`, `stripePriceId`, `billingPeriod`, `planVersion` |
+| **Module** | `key`, `name`, `description`, `category`, `status` |
+| **PlanModule** | `planVersionId`, `moduleId`, `inclusion`, `usageLimit`, `planVersion` |
+| **AiPackage** | `key`, `name`, `versions` |
+| **AiPackageVersion** | `packageId`, `status`, `feeMode`, `baseFeeUsd`, `includedUnits` |
+| **BillingLedgerEntry** | `workspaceId`, `type`, `source`, `sourceId`, `quantity` |
+| **BillingProfile** | `workspaceId`, `legalName`, `entityType`, `billingEmail`, `country` |
+| **BillingRecoveryPolicy** | `version`, `gracePeriodDays`, `notificationSchedule`, `aiRestrictionPointDays`, `serviceRestrictionDays` |
+| **FiscalDocument** | `workspaceId`, `invoiceId`, `status`, `uuid`, `xmlUrl` |
+| **BillingNotification** | `workspaceId`, `invoiceId`, `type`, `recipient`, `channel` |
+| **BillingRecoveryCase** | `workspaceId`, `invoiceId`, `status`, `gracePeriodEnd`, `restrictedAt` |
 
 ## Relacionado
 

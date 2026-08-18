@@ -3,7 +3,7 @@
 import React from "react";
 import { DollarSign, Activity, Target, TrendingDown } from "lucide-react";
 
-const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 5 };
+const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: "var(--fc-text-muted)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 5 };
 
 /* ═══ ALERTAS DE GASTO ═══ */
 interface AlertasGastoProps {
@@ -36,7 +36,7 @@ export function AlertasGastoWidget({
   if (cprTarget > 0 && cpr > cprTarget * 1.5 && totalResults > 0) alerts.push({ type: "danger", msg: `CPR elevado: ${fmtMXN(cpr)} vs meta de ${fmtMXN(cprTarget)} (+${pct(((cpr / cprTarget) - 1) * 100)})` });
   if (effectiveBudget > 0 && totalSpend < idealSpendToday * 0.5 && daysElapsed > 5) alerts.push({ type: "info", msg: `Sub-gasto: solo ${pct((totalSpend / idealSpendToday) * 100)} del ideal acumulado. La campana esta activa?` });
   if (alerts.length === 0) return null;
-  const colorMap = { danger: { bg: "rgba(226,68,92,0.08)", border: "rgba(226,68,92,0.3)", text: "var(--red)" }, warning: { bg: "rgba(251,191,36,0.08)", border: "rgba(251,191,36,0.3)", text: "var(--amber)" }, info: { bg: "rgba(59,130,246,0.08)", border: "rgba(59,130,246,0.3)", text: "var(--cyan)" } };
+  const colorMap = { danger: { bg: "rgba(226,68,92,0.08)", border: "rgba(226,68,92,0.3)", text: "var(--fc-danger)" }, warning: { bg: "rgba(251,191,36,0.08)", border: "rgba(251,191,36,0.3)", text: "var(--fc-warning)" }, info: { bg: "rgba(59,130,246,0.08)", border: "rgba(59,130,246,0.3)", text: "var(--fc-accent)" } };
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       {alerts.map((a, i) => {
@@ -84,58 +84,58 @@ export function BudgetCardsWidget({
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       {/* Presupuesto del periodo */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', height: '100%', borderTop: "2px solid rgba(251,191,36,0.5)" }}>
+      <div style={{ background: 'var(--fc-surface)', border: '1px solid var(--fc-border)', borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', height: '100%', borderTop: "2px solid rgba(251,191,36,0.5)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-          <div style={{ width: 24, height: 24, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <DollarSign style={{ width: 12, height: 12, color: "var(--amber)" }} />
+          <div style={{ width: 24, height: 24, borderRadius: 6, background: "var(--fc-surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <DollarSign style={{ width: 12, height: 12, color: "var(--fc-warning)" }} />
           </div>
           <p style={labelStyle}>Presupuesto del Periodo</p>
         </div>
-        <p style={{ fontSize: 22, fontWeight: 700, color: "var(--amber)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(effectiveBudget)}</p>
-        <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>Diario: {fmtMXN(bk.daily)}</p>
+        <p style={{ fontSize: 22, fontWeight: 700, color: "var(--fc-warning)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(effectiveBudget)}</p>
+        <p style={{ fontSize: 9, color: "var(--fc-text-muted)", marginTop: 4 }}>Diario: {fmtMXN(bk.daily)}</p>
       </div>
       {/* Gastado acumulado */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', height: '100%', borderTop: `2px solid ${isOverBudget ? "rgba(226,68,92,0.5)" : "rgba(59,130,246,0.5)"}` }}>
+      <div style={{ background: 'var(--fc-surface)', border: '1px solid var(--fc-border)', borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', height: '100%', borderTop: `2px solid ${isOverBudget ? "rgba(226,68,92,0.5)" : "rgba(59,130,246,0.5)"}` }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
           <div style={{ width: 24, height: 24, borderRadius: 6, background: isOverBudget ? "rgba(226,68,92,0.1)" : "rgba(59,130,246,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Activity style={{ width: 12, height: 12, color: isOverBudget ? "var(--red)" : "var(--cyan)" }} />
+            <Activity style={{ width: 12, height: 12, color: isOverBudget ? "var(--fc-danger)" : "var(--fc-accent)" }} />
           </div>
           <p style={labelStyle}>Gastado Acumulado</p>
         </div>
-        <p style={{ fontSize: 22, fontWeight: 700, color: isOverBudget ? "var(--red)" : "var(--cyan)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(totalSpend)}</p>
-        <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>de {fmtMXN0(effectiveBudget)} ({pct(pctUsed)})</p>
+        <p style={{ fontSize: 22, fontWeight: 700, color: isOverBudget ? "var(--fc-danger)" : "var(--fc-accent)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(totalSpend)}</p>
+        <p style={{ fontSize: 9, color: "var(--fc-text-muted)", marginTop: 4 }}>de {fmtMXN0(effectiveBudget)} ({pct(pctUsed)})</p>
         {effectiveBudget > 0 && (
           <div style={{ marginTop: 8, height: 3, background: "var(--surface-hover)", borderRadius: 2, overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${Math.min(pctUsed, 100)}%`, background: isOverBudget ? "var(--red)" : "var(--cyan)", borderRadius: 2 }} />
+            <div style={{ height: "100%", width: `${Math.min(pctUsed, 100)}%`, background: isOverBudget ? "var(--fc-danger)" : "var(--fc-accent)", borderRadius: 2 }} />
           </div>
         )}
       </div>
       {/* Gastado hoy */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', height: '100%', borderTop: `2px solid ${todayOverBudget ? "rgba(226,68,92,0.5)" : "rgba(0,200,117,0.5)"}` }}>
+      <div style={{ background: 'var(--fc-surface)', border: '1px solid var(--fc-border)', borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', height: '100%', borderTop: `2px solid ${todayOverBudget ? "rgba(226,68,92,0.5)" : "rgba(0,200,117,0.5)"}` }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
           <div style={{ width: 24, height: 24, borderRadius: 6, background: todayOverBudget ? "rgba(226,68,92,0.1)" : "rgba(0,200,117,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Target style={{ width: 12, height: 12, color: todayOverBudget ? "var(--red)" : "var(--emerald)" }} />
+            <Target style={{ width: 12, height: 12, color: todayOverBudget ? "var(--fc-danger)" : "var(--fc-success)" }} />
           </div>
           <p style={labelStyle}>Gastado Hoy</p>
         </div>
-        <p style={{ fontSize: 22, fontWeight: 700, color: todayOverBudget ? "var(--red)" : "var(--emerald)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(todaySpend)}</p>
-        <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>de {fmtMXN(bk.daily)} diario ideal{todayResults > 0 ? ` · ${todayResults} resultado${todayResults > 1 ? "s" : ""}` : ""}</p>
+        <p style={{ fontSize: 22, fontWeight: 700, color: todayOverBudget ? "var(--fc-danger)" : "var(--fc-success)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(todaySpend)}</p>
+        <p style={{ fontSize: 9, color: "var(--fc-text-muted)", marginTop: 4 }}>de {fmtMXN(bk.daily)} diario ideal{todayResults > 0 ? ` · ${todayResults} resultado${todayResults > 1 ? "s" : ""}` : ""}</p>
         {bk.daily > 0 && (
           <div style={{ marginTop: 8, height: 3, background: "var(--surface-hover)", borderRadius: 2, overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${Math.min(todayPct, 100)}%`, background: todayOverBudget ? "var(--red)" : "var(--emerald)", borderRadius: 2 }} />
+            <div style={{ height: "100%", width: `${Math.min(todayPct, 100)}%`, background: todayOverBudget ? "var(--fc-danger)" : "var(--fc-success)", borderRadius: 2 }} />
           </div>
         )}
       </div>
       {/* Restante */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', height: '100%', borderTop: "2px solid rgba(139,141,242,0.5)" }}>
+      <div style={{ background: 'var(--fc-surface)', border: '1px solid var(--fc-border)', borderRadius: 12, padding: 18, display: 'flex', flexDirection: 'column', height: '100%', borderTop: "2px solid rgba(139,141,242,0.5)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-          <div style={{ width: 24, height: 24, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <TrendingDown style={{ width: 12, height: 12, color: "var(--purple)" }} />
+          <div style={{ width: 24, height: 24, borderRadius: 6, background: "var(--fc-surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <TrendingDown style={{ width: 12, height: 12, color: "var(--fc-module-aria)" }} />
           </div>
           <p style={labelStyle}>Restante</p>
         </div>
-        <p style={{ fontSize: 22, fontWeight: 700, color: "var(--foreground)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(Math.max(effectiveBudget - totalSpend, 0))}</p>
-        <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>{effectiveBudget > 0 ? `${pct(Math.min((totalSpend / effectiveBudget) * 100, 100))} utilizado · ${daysRemaining} días restantes` : "Sin presupuesto configurado"}</p>
+        <p style={{ fontSize: 22, fontWeight: 700, color: "var(--fc-text)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(Math.max(effectiveBudget - totalSpend, 0))}</p>
+        <p style={{ fontSize: 9, color: "var(--fc-text-muted)", marginTop: 4 }}>{effectiveBudget > 0 ? `${pct(Math.min((totalSpend / effectiveBudget) * 100, 100))} utilizado · ${daysRemaining} días restantes` : "Sin presupuesto configurado"}</p>
       </div>
     </div>
   );

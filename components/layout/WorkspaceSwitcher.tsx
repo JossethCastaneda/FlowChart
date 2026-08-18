@@ -76,7 +76,6 @@ export function WorkspaceSwitcher() {
   return (
     <div ref={dropdownRef} className="workspace-switcher" style={{
       padding: "12px",
-      borderBottom: "1px solid var(--fc-border-subtle)",
       position: "relative",
     }}>
       <button
@@ -88,10 +87,11 @@ export function WorkspaceSwitcher() {
           width: "100%",
           display: "flex",
           alignItems: "center",
-          gap: "8px",
-          padding: "8px 10px",
-          background: "var(--fc-accent-wash)",
-          border: "1px solid var(--fc-border)",
+          gap: "10px",
+          padding: "8px 12px",
+          background: "color-mix(in srgb, #0E7A80 12%, transparent)",
+          borderRadius: "8px",
+          border: "none",
           cursor: switching ? "wait" : "pointer",
           color: "var(--fc-text)",
           opacity: switching ? 0.6 : 1,
@@ -99,20 +99,21 @@ export function WorkspaceSwitcher() {
         }}
       >
         <div style={{
-          width: 28, height: 28,
-          background: "var(--fc-accent)",
+          width: 32, height: 32,
+          borderRadius: "6px",
+          background: "#0E7A80",
           display: "flex", alignItems: "center",
           justifyContent: "center", flexShrink: 0,
           fontFamily: "var(--fc-font-sans)",
-          fontSize: "10px", fontWeight: 700, color: "var(--fc-text)",
+          fontSize: "11px", fontWeight: 600, color: "#FFFFFF",
         }}>
           {active.name.substring(0, 2).toUpperCase()}
         </div>
-        <div className="sidebar-hide-compact" style={{ flex: 1, textAlign: "left", minWidth: 0 }}>
+        <div className="sidebar-hide-compact" style={{ flex: 1, textAlign: "left", minWidth: 0, display: "flex", flexDirection: "column", gap: "2px" }}>
           <p style={{
             fontFamily: "var(--fc-font-sans)",
-            fontSize: "10px", fontWeight: 600,
-            color: "var(--fc-text)", letterSpacing: "0.1em",
+            fontSize: "13px", fontWeight: 500,
+            color: "var(--fc-text)",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -120,17 +121,17 @@ export function WorkspaceSwitcher() {
             {active.name}
           </p>
           <p style={{
-            fontSize: "9px",
+            fontFamily: "var(--fc-font-sans)",
+            fontSize: "11px",
             color: "var(--fc-text-muted)",
-            marginTop: "1px",
           }}>
-            {active.role} · {active.memberCount} miembro
-            {active.memberCount !== 1 ? "s" : ""}
+            {active.role.toUpperCase()} · {active.memberCount} miembro{active.memberCount !== 1 ? "s" : ""}
           </p>
         </div>
-        <HoloIcon icon={ChevronDown} variant="cyan" isActive={open} className="sidebar-hide-compact" style={{
-          width: 14, height: 14,
+        <HoloIcon icon={ChevronDown} variant="cyan" isActive={false} className="sidebar-hide-compact" style={{
+          width: 16, height: 16,
           flexShrink: 0,
+          color: "var(--fc-text-muted)",
           transform: open ? "rotate(180deg)" : "none",
           transition: "transform 0.2s",
         }} />
@@ -145,11 +146,11 @@ export function WorkspaceSwitcher() {
           zIndex: 200,
           background: "var(--fc-surface-overlay)",
           border: "1px solid var(--fc-border-strong)",
-          
+          borderRadius: "8px",
           marginTop: "4px",
           maxHeight: "300px",
           overflowY: "auto",
-          boxShadow: "var(--fc-shadow-overlay)",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
         }}>
           {workspaces.map((ws) => (
             <button
@@ -179,21 +180,24 @@ export function WorkspaceSwitcher() {
                     ? "var(--fc-surface-hover)" : "transparent")}
             >
               <div style={{
-                width: 24, height: 24,
+                width: 32, height: 32,
                 background: ws.id === active.id
-                  ? "var(--fc-accent)"
+                  ? "#0E7A80"
                   : "var(--fc-accent-wash)",
                 display: "flex", alignItems: "center",
                 justifyContent: "center",
-                fontSize: "10px", fontWeight: 700,
+                fontSize: "11px", fontWeight: 600, color: ws.id === active.id ? "#FFFFFF" : "var(--fc-text)",
                 fontFamily: "var(--fc-font-sans)",
                 flexShrink: 0,
+                borderRadius: "6px",
               }}>
                 {ws.name.substring(0, 2).toUpperCase()}
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "2px" }}>
                 <p style={{
-                  fontSize: "12px", color: "var(--fc-text)",
+                  fontFamily: "var(--fc-font-sans)",
+                  fontSize: "13px", fontWeight: 500,
+                  color: "var(--fc-text)",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
@@ -201,15 +205,16 @@ export function WorkspaceSwitcher() {
                   {ws.name}
                 </p>
                 <p style={{
-                  fontSize: "10px",
+                  fontFamily: "var(--fc-font-sans)",
+                  fontSize: "11px",
                   color: "var(--fc-text-muted)",
                 }}>
-                  {ws.role}
+                  {ws.role.toUpperCase()}
                 </p>
               </div>
               {ws.id === active.id && (
-                <HoloIcon icon={Check} variant="cyan" isActive={true} style={{
-                  width: 12, height: 12, flexShrink: 0,
+                <HoloIcon icon={Check} variant="cyan" isActive={false} style={{
+                  width: 16, height: 16, flexShrink: 0, color: "#0E7A80"
                 }} />
               )}
             </button>
@@ -241,18 +246,19 @@ export function WorkspaceSwitcher() {
               (e.currentTarget.style.background = "transparent")}
           >
             <div style={{
-              width: 24, height: 24,
-              background: "var(--fc-accent-wash)",
-              border: "1px dashed var(--fc-border-strong)",
+              width: 32, height: 32,
+              background: "color-mix(in srgb, #0E7A80 8%, transparent)",
+              border: "1px dashed #A6C8C9",
               display: "flex", alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
+              borderRadius: "6px",
             }}>
-              <HoloIcon icon={Plus} variant="cyan" isActive={true} style={{
-                width: 12, height: 12, opacity: 0.5
+              <HoloIcon icon={Plus} variant="cyan" isActive={false} style={{
+                width: 16, height: 16, color: "#0E7A80"
               }} />
             </div>
-            <span style={{ fontSize: "12px" }}>
+            <span style={{ fontFamily: "var(--fc-font-sans)", fontSize: "13px", color: "var(--fc-text-secondary)" }}>
               Crear nuevo workspace
             </span>
           </button>

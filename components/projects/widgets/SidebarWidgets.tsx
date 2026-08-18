@@ -3,9 +3,9 @@
 import React from "react";
 import { Link, DollarSign, TrendingUp } from "lucide-react";
 
-const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 5 };
-const headingStyle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.03em", marginBottom: 4 };
-const subStyle: React.CSSProperties = { fontSize: 11, color: "var(--text-secondary)", marginBottom: 12, lineHeight: 1.5 };
+const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: "var(--fc-text-muted)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 5 };
+const headingStyle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "var(--fc-text)", letterSpacing: "0.03em", marginBottom: 4 };
+const subStyle: React.CSSProperties = { fontSize: 11, color: "var(--fc-text-secondary)", marginBottom: 12, lineHeight: 1.5 };
 
 interface CuentasWidgetProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
@@ -18,7 +18,7 @@ export function CuentasWidget({ ch, accountNames }: CuentasWidgetProps) {
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
         <div className="icon-container icon-container-sm icon-container-active">
-          <Link style={{ width: 14, height: 14, color: "var(--cyan)" }} />
+          <Link style={{ width: 14, height: 14, color: "var(--fc-accent)" }} />
         </div>
         <div>
           <h3 style={headingStyle}>Cuentas Vinculadas</h3>
@@ -29,23 +29,23 @@ export function CuentasWidget({ ch, accountNames }: CuentasWidgetProps) {
         <div key={acc} style={{
           display: "flex", alignItems: "center", gap: 10,
           padding: "10px 12px", marginBottom: 6, borderRadius: 10,
-          background: "var(--surface-hover)", border: "1px solid var(--border)",
+          background: "var(--surface-hover)", border: "1px solid var(--fc-border)",
           transition: "background 0.15s", cursor: "default",
         }}
         onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
         onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.025)")}
         >
           <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg, #1877F2, #0A4FBD)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <span style={{ fontSize: 12, fontWeight: 900, color: "var(--foreground)", fontFamily: "serif" }}>f</span>
+            <span style={{ fontSize: 12, fontWeight: 900, color: "var(--fc-text)", fontFamily: "serif" }}>f</span>
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: 12, color: "var(--foreground)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{accountNames[acc] || "Ad Account"}</p>
-            <p style={{ fontSize: 9, color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>{acc}</p>
+            <p style={{ fontSize: 12, color: "var(--fc-text)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{accountNames[acc] || "Ad Account"}</p>
+            <p style={{ fontSize: 9, color: "var(--fc-text-muted)", fontFamily: "var(--font-mono)" }}>{acc}</p>
           </div>
-          <div style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 6px rgba(0,200,117,0.6)", flexShrink: 0 }} />
+          <div style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--fc-success)", boxShadow: "0 0 6px rgba(0,200,117,0.6)", flexShrink: 0 }} />
         </div>
       )) : (
-        <div style={{ padding: "16px", textAlign: "center", color: "var(--text-muted)", fontSize: 12 }}>
+        <div style={{ padding: "16px", textAlign: "center", color: "var(--fc-text-muted)", fontSize: 12 }}>
           <p style={{ marginBottom: 4 }}>Sin cuentas vinculadas</p>
           <p style={{ fontSize: 10 }}>Ve a Configuración para conectar</p>
         </div>
@@ -69,8 +69,8 @@ export function PresupuestoWidget({ bk, budgetNum, spendPace, idealSpendToday, t
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-        <div className="icon-container icon-container-sm" style={{ background: "var(--surface)", borderColor: "rgba(224,168,60,0.2)", color: "var(--amber)" }}>
-          <DollarSign style={{ width: 14, height: 14, color: "var(--amber)" }} />
+        <div className="icon-container icon-container-sm" style={{ background: "var(--fc-surface)", borderColor: "rgba(224,168,60,0.2)", color: "var(--fc-warning)" }}>
+          <DollarSign style={{ width: 14, height: 14, color: "var(--fc-warning)" }} />
         </div>
         <div>
           <h3 style={headingStyle}>Presupuesto</h3>
@@ -78,13 +78,13 @@ export function PresupuestoWidget({ bk, budgetNum, spendPace, idealSpendToday, t
         </div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
-        <div style={{ padding: "10px 12px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.12)", borderRadius: 10 }}>
+        <div style={{ padding: "10px 12px", background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.12)", borderRadius: 10 }}>
           <p style={{ ...labelStyle, marginBottom: 4 }}>Diario ideal</p>
-          <p style={{ fontSize: 16, fontWeight: 700, color: "var(--cyan)", fontFamily: "var(--font-display)" }}>{fmtMXN(bk.daily)}</p>
+          <p style={{ fontSize: 16, fontWeight: 700, color: "var(--fc-accent)", fontFamily: "var(--font-display)" }}>{fmtMXN(bk.daily)}</p>
         </div>
-        <div style={{ padding: "10px 12px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10 }}>
+        <div style={{ padding: "10px 12px", background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 10 }}>
           <p style={{ ...labelStyle, marginBottom: 4 }}>Semanal ideal</p>
-          <p style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)", fontFamily: "var(--font-display)" }}>{fmtMXN(bk.weekly)}</p>
+          <p style={{ fontSize: 16, fontWeight: 600, color: "var(--fc-text)", fontFamily: "var(--font-display)" }}>{fmtMXN(bk.weekly)}</p>
         </div>
       </div>
       {/* Ritmo de gasto */}
@@ -94,14 +94,14 @@ export function PresupuestoWidget({ bk, budgetNum, spendPace, idealSpendToday, t
         border: `1px solid ${spendPace > 10 ? "rgba(226,68,92,0.2)" : spendPace < -10 ? "rgba(253,171,61,0.2)" : "rgba(0,200,117,0.2)"}`,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-          <TrendingUp style={{ width: 12, height: 12, color: spendPace > 10 ? "var(--red)" : spendPace < -10 ? "var(--amber)" : "var(--emerald)" }} />
-          <p style={{ fontSize: 9, color: "var(--text-secondary)", fontWeight: 700, letterSpacing: "0.1em" }}>RITMO DE GASTO</p>
+          <TrendingUp style={{ width: 12, height: 12, color: spendPace > 10 ? "var(--fc-danger)" : spendPace < -10 ? "var(--fc-warning)" : "var(--fc-success)" }} />
+          <p style={{ fontSize: 9, color: "var(--fc-text-secondary)", fontWeight: 700, letterSpacing: "0.1em" }}>RITMO DE GASTO</p>
         </div>
-        <p style={{ fontSize: 14, fontWeight: 700, color: spendPace > 10 ? "var(--red)" : spendPace < -10 ? "var(--amber)" : "var(--emerald)" }}>
+        <p style={{ fontSize: 14, fontWeight: 700, color: spendPace > 10 ? "var(--fc-danger)" : spendPace < -10 ? "var(--fc-warning)" : "var(--fc-success)" }}>
           {spendPace > 10 ? `Adelantado +${pct(spendPace)}` : spendPace < -10 ? `Atrasado ${pct(spendPace)}` : "Al ritmo"}
         </p>
-        <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>
-          Ideal hoy: <strong style={{ color: "var(--text-secondary)" }}>{fmtMXN(idealSpendToday)}</strong> · Real: <strong style={{ color: "var(--text-secondary)" }}>{fmtMXN(totalSpend)}</strong>
+        <p style={{ fontSize: 10, color: "var(--fc-text-muted)", marginTop: 4 }}>
+          Ideal hoy: <strong style={{ color: "var(--fc-text-secondary)" }}>{fmtMXN(idealSpendToday)}</strong> · Real: <strong style={{ color: "var(--fc-text-secondary)" }}>{fmtMXN(totalSpend)}</strong>
         </p>
       </div>
     </div>

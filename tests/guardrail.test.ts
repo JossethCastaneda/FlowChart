@@ -168,9 +168,9 @@ describe("guardrail — command tools (regression)", () => {
     expect(result.decision).toBe("deny");
   });
 
-  it("blocks npm run build", () => {
+  it("allows npm run build because build is schema-read-only", () => {
     const result = runGuardrail(commandCall("npm run build"));
-    expect(result.decision).toBe("deny");
+    expect(result.decision).toBe("allow");
   });
 
   it("allows SKIP_DB_SYNC=1 npx next build", () => {
@@ -178,8 +178,8 @@ describe("guardrail — command tools (regression)", () => {
     expect(result.decision).toBe("allow");
   });
 
-  it("blocks npx next build without SKIP_DB_SYNC", () => {
+  it("allows npx next build without legacy environment workarounds", () => {
     const result = runGuardrail(commandCall("npx next build"));
-    expect(result.decision).toBe("deny");
+    expect(result.decision).toBe("allow");
   });
 });

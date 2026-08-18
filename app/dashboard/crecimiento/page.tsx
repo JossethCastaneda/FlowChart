@@ -13,7 +13,7 @@ function KpiRow({ label, value, icon, context }: { label: string; value: string;
       <div style={{ position: "absolute", top: 0, right: 0, width: 60, height: 60, borderRadius: "0 12px 0 60px", background: "var(--purple-dim)", opacity: 0.8 }} />
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <span style={{ fontSize: 10, fontWeight: 700, color: "var(--fc-text-muted)", textTransform: "uppercase", letterSpacing: "0.1em" }}>{label}</span>
-        <div style={{ width: 28, height: 28, borderRadius: 8, background: "var(--purple-dim)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--purple)" }}>
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: "var(--purple-dim)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fc-module-aria)" }}>
           {icon}
         </div>
       </div>
@@ -73,7 +73,7 @@ export default function CrecimientoInsights() {
         /* Empty State */
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "52px 24px", gap: 16, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 16, textAlign: "center" }}>
           <div style={{ width: 56, height: 56, borderRadius: 16, background: "var(--purple-dim)", border: "1px solid rgba(139,141,242,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <BrainCircuit style={{ width: 26, height: 26, color: "var(--purple)" }} />
+            <BrainCircuit style={{ width: 26, height: 26, color: "var(--fc-module-aria)" }} />
           </div>
           <div>
             <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--fc-text)", margin: "0 0 8px" }}>Bienvenido a Aria Predictive IA</h3>
@@ -86,8 +86,8 @@ export default function CrecimientoInsights() {
         /* Active State */
         <div style={{ background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 16, padding: 24 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--purple)", animation: "pulse 2s ease-in-out infinite" }} />
-            <Target style={{ width: 18, height: 18, color: "var(--purple)" }} />
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--fc-module-aria)", animation: "pulse 2s ease-in-out infinite" }} />
+            <Target style={{ width: 18, height: 18, color: "var(--fc-module-aria)" }} />
             <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--fc-text)", margin: 0 }}>¡Aria está optimizando tu embudo!</h3>
           </div>
           <p style={{ fontSize: 13, color: "var(--fc-text-muted)", margin: "0 0 20px", lineHeight: 1.6 }}>
@@ -96,7 +96,7 @@ export default function CrecimientoInsights() {
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
             <Link href="/dashboard/crecimiento/scores" style={{
               padding: "9px 20px", background: "var(--purple-dim)", border: "1px solid rgba(139,141,242,0.3)",
-              color: "var(--purple)", borderRadius: 10, fontWeight: 700, fontSize: 12,
+              color: "var(--fc-module-aria)", borderRadius: 10, fontWeight: 700, fontSize: 12,
               letterSpacing: "0.06em", textTransform: "uppercase", textDecoration: "none",
             }}>
               Ver Leads Priorizados
@@ -113,7 +113,7 @@ export default function CrecimientoInsights() {
           {/* Loading insights */}
           {loadingInsights && (
             <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--fc-border-subtle)", display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--purple)", display: "inline-block", animation: "pulse 1.5s ease-in-out infinite" }} />
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--fc-module-aria)", display: "inline-block", animation: "pulse 1.5s ease-in-out infinite" }} />
               <p style={{ fontSize: 12, color: "var(--fc-text-muted)", margin: 0 }}>Generando insights accionables con Aria IA...</p>
             </div>
           )}
@@ -122,7 +122,7 @@ export default function CrecimientoInsights() {
           {insights && !loadingInsights && (
             <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--fc-border-subtle)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-                <Sparkles style={{ width: 15, height: 15, color: "var(--purple)" }} />
+                <Sparkles style={{ width: 15, height: 15, color: "var(--fc-module-aria)" }} />
                 <h4 style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-text)", margin: 0 }}>Recomendaciones de Aria Copilot</h4>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -136,7 +136,7 @@ export default function CrecimientoInsights() {
                 </div>
               </div>
               {insights.anomalies && insights.anomalies.length > 0 && (
-                <div style={{ marginTop: 12, background: "var(--amber-dim)", padding: 14, borderRadius: 10, border: "1px solid rgba(224,168,60,0.25)" }}>
+                <div style={{ marginTop: 12, background: "var(--fc-warning-wash)", padding: 14, borderRadius: 10, border: "1px solid rgba(224,168,60,0.25)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
                     <AlertTriangle style={{ width: 13, height: 13, color: "var(--fc-warning)" }} />
                     <h5 style={{ fontWeight: 700, fontSize: 11, color: "var(--fc-warning)", textTransform: "uppercase", letterSpacing: "0.1em", margin: 0 }}>Anomalías Detectadas</h5>

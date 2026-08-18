@@ -268,7 +268,7 @@ export default function TagManagerPage() {
             <div style={{
               display: "flex", alignItems: "center", gap: 10,
               padding: "12px 16px", borderRadius: 10,
-              background: "var(--red-dim)", border: "1px solid var(--fc-danger)",
+              background: "var(--fc-danger-wash)", border: "1px solid var(--fc-danger)",
               color: "var(--fc-danger)", fontSize: 12, marginBottom: 20,
             }}>
               <AlertCircle size={14} />
@@ -385,7 +385,7 @@ export default function TagManagerPage() {
                       <div style={{
                         width: 20, height: 20, borderRadius: 4, border: `1px solid ${isSelected ? "var(--fc-success)" : "var(--fc-border-hover)"}`,
                         background: isSelected ? "var(--fc-success)" : "transparent",
-                        display: "flex", alignItems: "center", justifyContent: "center", color: "var(--background)",
+                        display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fc-bg)",
                         transition: "all 0.2s"
                       }}>
                         {isSelected && <CheckCircle2 size={14} />}
@@ -402,7 +402,7 @@ export default function TagManagerPage() {
                     disabled={saving}
                     style={{
                       padding: "10px 20px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: saving ? "wait" : "pointer",
-                      background: "var(--fc-accent)", color: "var(--background)", border: "none",
+                      background: "var(--fc-accent)", color: "var(--fc-bg)", border: "none",
                       display: "flex", alignItems: "center", gap: 8
                     }}
                   >

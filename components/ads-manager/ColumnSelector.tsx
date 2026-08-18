@@ -74,15 +74,15 @@ export function ColumnSelector({ columns, selectedKeys, onChange }: ColumnSelect
         onClick={() => setIsOpen(!isOpen)}
         style={{
           display: "flex", alignItems: "center", gap: "6px", padding: "6px 12px",
-          background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "6px",
-          color: "var(--text-secondary)", fontSize: "11px", fontWeight: 600, cursor: "pointer", transition: "all 0.2s",
+          background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: "6px",
+          color: "var(--fc-text-secondary)", fontSize: "11px", fontWeight: 600, cursor: "pointer", transition: "all 0.2s",
         }}
         onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; e.currentTarget.style.color = "white"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--fc-border)"; e.currentTarget.style.color = "var(--fc-text-secondary)"; }}
       >
         <Columns className="w-3.5 h-3.5" />
         <span>Columnas</span>
-        <span style={{ fontSize: "9px", fontWeight: 700, padding: "1px 5px", borderRadius: "6px", background: "var(--cyan-dim)", color: "var(--cyan)" }}>
+        <span style={{ fontSize: "9px", fontWeight: 700, padding: "1px 5px", borderRadius: "6px", background: "var(--fc-accent-wash)", color: "var(--fc-accent)" }}>
           {selectedKeys.length}
         </span>
         <ChevronDown className="w-3 h-3" />
@@ -93,24 +93,24 @@ export function ColumnSelector({ columns, selectedKeys, onChange }: ColumnSelect
           <div onClick={() => setIsOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
           <div style={{
             position: "absolute", top: "100%", right: 0, marginTop: "4px",
-            background: "var(--surface)", 
+            background: "var(--fc-surface)", 
             border: "1px solid var(--border-strong)", borderRadius: "8px",
             boxShadow: "0 10px 30px rgba(0,0,0,0.5)", zIndex: 50,
             width: "260px",
           }}>
             {/* Header tabs */}
-            <div style={{ display: "flex", borderBottom: "1px solid var(--border)", padding: "6px" }}>
+            <div style={{ display: "flex", borderBottom: "1px solid var(--fc-border)", padding: "6px" }}>
               <button onClick={() => setShowOrder(false)} style={{
                 flex: 1, padding: "4px", fontSize: "10px", fontWeight: 600, borderRadius: "4px", cursor: "pointer",
                 background: !showOrder ? "rgba(59,130,246,0.08)" : "transparent",
-                border: "none", color: !showOrder ? "var(--cyan)" : "var(--text-muted)",
+                border: "none", color: !showOrder ? "var(--fc-accent)" : "var(--fc-text-muted)",
               }}>
                 Seleccionar
               </button>
               <button onClick={() => setShowOrder(true)} style={{
                 flex: 1, padding: "4px", fontSize: "10px", fontWeight: 600, borderRadius: "4px", cursor: "pointer",
                 background: showOrder ? "rgba(59,130,246,0.08)" : "transparent",
-                border: "none", color: showOrder ? "var(--cyan)" : "var(--text-muted)",
+                border: "none", color: showOrder ? "var(--fc-accent)" : "var(--fc-text-muted)",
               }}>
                 Ordenar
               </button>
@@ -121,10 +121,10 @@ export function ColumnSelector({ columns, selectedKeys, onChange }: ColumnSelect
               <div style={{ maxHeight: "320px", overflowY: "auto", padding: "4px 0" }} className="custom-scrollbar">
                 {/* Quick actions */}
                 <div style={{ display: "flex", gap: "4px", padding: "4px 8px 8px" }}>
-                  <button onClick={selectAll} style={{ flex: 1, padding: "3px", fontSize: "9px", fontWeight: 600, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.1)", borderRadius: "3px", color: "var(--cyan)", cursor: "pointer" }}>
+                  <button onClick={selectAll} style={{ flex: 1, padding: "3px", fontSize: "9px", fontWeight: 600, background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.1)", borderRadius: "3px", color: "var(--fc-accent)", cursor: "pointer" }}>
                     Todas
                   </button>
-                  <button onClick={selectNone} style={{ flex: 1, padding: "3px", fontSize: "9px", fontWeight: 600, background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: "3px", color: "var(--text-muted)", cursor: "pointer" }}>
+                  <button onClick={selectNone} style={{ flex: 1, padding: "3px", fontSize: "9px", fontWeight: 600, background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: "3px", color: "var(--fc-text-muted)", cursor: "pointer" }}>
                     Solo nombre
                   </button>
                 </div>
@@ -136,13 +136,13 @@ export function ColumnSelector({ columns, selectedKeys, onChange }: ColumnSelect
                       onClick={() => toggleCategory(cat)}
                       style={{
                         display: "flex", alignItems: "center", gap: "4px", width: "100%",
-                        padding: "5px 10px", fontSize: "9px", fontWeight: 700, color: "var(--text-secondary)",
+                        padding: "5px 10px", fontSize: "9px", fontWeight: 700, color: "var(--fc-text-secondary)",
                         background: "none", border: "none", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.06em",
                       }}
                     >
                       <ChevronRight className="w-3 h-3" style={{ transition: "transform 0.2s", transform: expandedCats.has(cat) ? "rotate(90deg)" : "rotate(0)" }} />
                       {cat}
-                      <span style={{ fontSize: "8px", color: "var(--text-muted)", marginLeft: "auto" }}>
+                      <span style={{ fontSize: "8px", color: "var(--fc-text-muted)", marginLeft: "auto" }}>
                         {keys.filter((k) => selectedKeys.includes(k)).length}/{keys.length}
                       </span>
                     </button>
@@ -154,12 +154,12 @@ export function ColumnSelector({ columns, selectedKeys, onChange }: ColumnSelect
                         <label key={key} style={{
                           display: "flex", alignItems: "center", gap: "6px",
                           padding: "4px 10px 4px 24px", cursor: "pointer",
-                          fontSize: "11px", color: isChecked ? "white" : "var(--text-muted)",
+                          fontSize: "11px", color: isChecked ? "white" : "var(--fc-text-muted)",
                         }}
                           onMouseEnter={(e) => (e.currentTarget.style.background = "var(--row-hover)")}
                           onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                         >
-                          <input type="checkbox" checked={isChecked} onChange={() => toggleColumn(key)} style={{ accentColor: "var(--cyan)", cursor: "pointer", width: "11px", height: "11px" }} />
+                          <input type="checkbox" checked={isChecked} onChange={() => toggleColumn(key)} style={{ accentColor: "var(--fc-accent)", cursor: "pointer", width: "11px", height: "11px" }} />
                           <span>{col.label}</span>
                         </label>
                       );
@@ -170,7 +170,7 @@ export function ColumnSelector({ columns, selectedKeys, onChange }: ColumnSelect
                 {/* Uncategorized */}
                 {uncategorized.length > 0 && (
                   <div>
-                    <div style={{ padding: "5px 10px", fontSize: "9px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                    <div style={{ padding: "5px 10px", fontSize: "9px", fontWeight: 700, color: "var(--fc-text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
                       Otros
                     </div>
                     {uncategorized.map((col) => {
@@ -179,9 +179,9 @@ export function ColumnSelector({ columns, selectedKeys, onChange }: ColumnSelect
                         <label key={col.key} style={{
                           display: "flex", alignItems: "center", gap: "6px",
                           padding: "4px 10px 4px 24px", cursor: "pointer",
-                          fontSize: "11px", color: isChecked ? "white" : "var(--text-muted)",
+                          fontSize: "11px", color: isChecked ? "white" : "var(--fc-text-muted)",
                         }}>
-                          <input type="checkbox" checked={isChecked} onChange={() => toggleColumn(col.key)} style={{ accentColor: "var(--cyan)", cursor: "pointer", width: "11px", height: "11px" }} />
+                          <input type="checkbox" checked={isChecked} onChange={() => toggleColumn(col.key)} style={{ accentColor: "var(--fc-accent)", cursor: "pointer", width: "11px", height: "11px" }} />
                           <span>{col.label}</span>
                         </label>
                       );
@@ -192,7 +192,7 @@ export function ColumnSelector({ columns, selectedKeys, onChange }: ColumnSelect
             ) : (
               /* -- ORDER TAB (drag & drop) -- */
               <div style={{ maxHeight: "320px", overflowY: "auto", padding: "4px 0" }} className="custom-scrollbar">
-                <div style={{ padding: "4px 10px 8px", fontSize: "9px", color: "var(--text-muted)" }}>
+                <div style={{ padding: "4px 10px 8px", fontSize: "9px", color: "var(--fc-text-muted)" }}>
                   Arrastra para reordenar las columnas visibles
                 </div>
                 {selectedKeys.map((key, idx) => (
@@ -205,18 +205,18 @@ export function ColumnSelector({ columns, selectedKeys, onChange }: ColumnSelect
                     onDragEnd={() => { setDragIdx(null); setDragOverIdx(null); }}
                     style={{
                       display: "flex", alignItems: "center", gap: "6px", padding: "5px 10px",
-                      cursor: "grab", fontSize: "11px", color: "var(--foreground)",
+                      cursor: "grab", fontSize: "11px", color: "var(--fc-text)",
                       background: dragOverIdx === idx ? "rgba(59,130,246,0.06)" : "transparent",
-                      borderTop: dragOverIdx === idx ? "2px solid var(--cyan)" : "2px solid transparent",
+                      borderTop: dragOverIdx === idx ? "2px solid var(--fc-accent)" : "2px solid transparent",
                       opacity: dragIdx === idx ? 0.4 : 1,
                     }}
                   >
-                    <GripVertical className="w-3 h-3" style={{ color: "var(--text-muted)", flexShrink: 0 }} />
-                    <span style={{ fontSize: "9px", color: "var(--text-muted)", fontWeight: 700, width: "16px" }}>{idx + 1}</span>
+                    <GripVertical className="w-3 h-3" style={{ color: "var(--fc-text-muted)", flexShrink: 0 }} />
+                    <span style={{ fontSize: "9px", color: "var(--fc-text-muted)", fontWeight: 700, width: "16px" }}>{idx + 1}</span>
                     <span style={{ flex: 1 }}>{getLabel(key)}</span>
                     <button
                       onClick={() => toggleColumn(key)}
-                      style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: "2px" }}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "var(--fc-text-muted)", padding: "2px" }}
                     >
                       <EyeOff className="w-3 h-3" />
                     </button>

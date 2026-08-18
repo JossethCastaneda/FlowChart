@@ -122,6 +122,21 @@ model Workspace {
   optimizationApprovals   OptimizationActionApproval[]
   optimizationExecutions  OptimizationActionExecution[]
   optimizationAuditEvents OptimizationAuditEvent[]
+  aiRequests              AiRequest[]
+  aiRuns                  AiRun[]
+  entitlement             WorkspaceEntitlement?
+  billingCustomer         BillingCustomer?
+  subscription            Subscription?
+  invoices                Invoice[]
+  aiReservationLedgers    AiReservationLedger[]
+  aiBudgetBalances        WorkspaceAiBudgetBalance[]
+  billingLedgerEntries    BillingLedgerEntry[]
+  billingProfile          BillingProfile?
+  fiscalDocuments         FiscalDocument[]
+  billingNotifications    BillingNotification[]
+  billingRecoveryCases    BillingRecoveryCase[]
+  assetGroups             AssetGroup[]
+  modelDecisions          ModelDecision[]
 }
 
 // ------------------------------------------------------
@@ -218,6 +233,7 @@ model Project {
   metaSources             MetaSource[]
   waPhoneSources          WaPhoneSource[]
   drafts                  DraftPost[]
+  mediaAssets             MediaAsset[]
   alertsEnabled           Boolean                     @default(true)
   alertEmails             String[]
   crmIntegrationId        String? // Legacy: single analytics integration (kept for back-compat)
@@ -385,12 +401,32 @@ model Task {
   requesterId  String? // userId who raised the request
   workspaceId  String
   keyResultId  String?
+  briefId      String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   closedAt     DateTime? // stamped when status → Done (for auto-SLA)
 
+  // ── Aprobación por líder ────────────────────────────────────────────────
+  /// null = sin revisión pendiente | "pending" | "approved" | "rejected"
+  approvalState String?
+  submittedAt   DateTime? // cuando el ejecutor marcó la tarea como terminada
+  submittedById String? // quién la mandó a revisión
+  reviewedAt    DateTime?
+  reviewedById  String? // líder que aprobó/rechazó
+  rejectionNote String?   @db.Text
+  reworkCount   Int       @default(0) // cuántas veces fue devuelta
+
+  // ── Estancamiento (quién la tiene detenida) ─────────────────────────────
+  /// Último avance real (cambio de estado o de responsable). Base para medir
+  /// cuánto lleva detenida y en manos de quién.
+  lastProgressAt DateTime @default(now())
+  /// Usuario que la tiene detenida en el momento del último avance: el
+  /// responsable si está en curso, o el líder si espera aprobación.
+  holderId       String?
+
   workspace  Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   keyResult  KeyResult?     @relation(fields: [keyResultId], references: [id], onDelete: SetNull)
+  brief      Brief?         @relation(fields: [briefId], references: [id], onDelete: SetNull)
   parent     Task?          @relation("SubTasks", fields: [parentId], references: [id], onDelete: Cascade)
   children   Task[]         @relation("SubTasks")
   blockedBy  Task[]         @relation("TaskDependencies")
@@ -401,6 +437,11 @@ model Task {
   @@index([workspaceId])
   @@index([workspaceId, status])
   @@index([parentId])
+  @@index([briefId])
+  // Bandeja del líder: tareas esperando aprobación en el workspace.
+  @@index([workspaceId, approvalState])
+  // Reporte de estancamiento: qué lleva detenido y desde cuándo.
+  @@index([workspaceId, lastProgressAt])
 }
 
 model TaskComment {
@@ -447,6 +488,7 @@ model Brief {
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   project   Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  tasks     Task[]
 
   @@index([workspaceId])
   @@index([workspaceId, status])
@@ -460,18 +502,40 @@ model MediaAsset {
   id          String   @id @default(cuid())
   workspaceId String
   userId      String?
+  projectId   String?
   url         String
   fileName    String
   mimeType    String
   size        Int
   width       Int?
   height      Int?
+  tags        String[] @default([])
   status      String   @default("ready") // uploading, ready, processing_failed
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  project   Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([workspaceId, projectId])
+}
+
+// Publisher asset collections already present in production and consumed by
+// the publisher UI. The API implementation remains a separate runtime gap.
+model AssetGroup {
+  id          String   @id
+  workspaceId String
+  name        String
+  description String?
+  color       String?  @default("#35D3D9")
+  type        String   @default("publish")
+  assets      Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@index([workspaceId])
 }
@@ -612,6 +676,7 @@ model ScheduledPost {
   reviewNote        String?   @db.Text // comentario del revisor (p. ej. motivo de rechazo)
   error             String?   @db.Text // error message if publish failed
   externalIds       Json? // { facebook: "post_id", instagram: "media_id" }
+  targets           Json? // Per-destination publishing configuration
   qStashMessageId   String? // ID del mensaje programado en QStash
   pageName          String? // Facebook page name used
   pageId            String? // Facebook page ID used
@@ -1708,7 +1773,7 @@ model OptimizationClient {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  workspace   Workspace                    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace   Workspace                     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   projects    OptimizationClientProject[]
   adAccounts  OptimizationAdAccount[]
   objectives  OptimizationObjective[]
@@ -1892,9 +1957,9 @@ model OptimizationProposedAction {
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 
-  workspace   Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  client      OptimizationClient       @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
-  snapshot    OptimizationSnapshot     @relation(fields: [workspaceId, clientId, snapshotId], references: [workspaceId, clientId, id], onDelete: Cascade)
+  workspace   Workspace                     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client      OptimizationClient            @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
+  snapshot    OptimizationSnapshot          @relation(fields: [workspaceId, clientId, snapshotId], references: [workspaceId, clientId, id], onDelete: Cascade)
   evaluations OptimizationEvaluation[]
   approvals   OptimizationActionApproval[]
   executions  OptimizationActionExecution[]
@@ -1919,9 +1984,9 @@ model OptimizationActionApproval {
   actionFingerprint String
   createdAt         DateTime @default(now())
 
-  workspace Workspace                   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  client    OptimizationClient          @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
-  action    OptimizationProposedAction  @relation(fields: [workspaceId, clientId, actionId], references: [workspaceId, clientId, id], onDelete: Restrict)
+  workspace Workspace                  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client    OptimizationClient         @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
+  action    OptimizationProposedAction @relation(fields: [workspaceId, clientId, actionId], references: [workspaceId, clientId, id], onDelete: Restrict)
 
   @@index([workspaceId, clientId, actionId, createdAt])
   @@index([actionId, approverId, createdAt])
@@ -1950,9 +2015,9 @@ model OptimizationActionExecution {
   createdAt                 DateTime  @default(now())
   completedAt               DateTime?
 
-  workspace Workspace                   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  client    OptimizationClient          @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
-  action    OptimizationProposedAction  @relation(fields: [workspaceId, clientId, actionId], references: [workspaceId, clientId, id], onDelete: Restrict)
+  workspace Workspace                  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client    OptimizationClient         @relation(fields: [workspaceId, clientId], references: [workspaceId, id], onDelete: Cascade)
+  action    OptimizationProposedAction @relation(fields: [workspaceId, clientId, actionId], references: [workspaceId, clientId, id], onDelete: Restrict)
 
   @@index([workspaceId, createdAt])
   @@index([workspaceId, clientId, actionId, createdAt])
@@ -2062,24 +2127,143 @@ model Report {
 }
 
 // ------------------------------------------------------
-// AI METERING
+// AI METERING & FINOPS (Phase P1.5)
 // ------------------------------------------------------
-model AiUsage {
-  id               String   @id @default(cuid())
-  workspaceId      String
-  route            String // e.g. "/api/agents/orchestrate", "GridIA"
-  model            String // e.g. "gemini-2.5-flash"
-  provider         String? // e.g. "gemini", "anthropic", "openai"
-  tokensIn         Int      @default(0)
-  tokensOut        Int      @default(0)
-  estimatedCostUsd Float? // estimated cost in USD for billing dashboards
-  feature          String? // high-level feature area: "copilot", "crecimiento", "agents"
-  createdAt        DateTime @default(now())
 
+model AiRequest {
+  id             String    @id @default(cuid())
+  workspaceId    String
+  idempotencyKey String    @unique // To prevent concurrent duplicated requests
+  feature        String // e.g. "optimization_planner", "agent_reporting"
+  status         String    @default("CREATED") // CREATED, RUNNING, SUCCEEDED, FAILED
+  createdAt      DateTime  @default(now())
+  completedAt    DateTime?
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  runs      AiRun[]
+  usages    AiUsage[]
+
+  @@index([workspaceId])
+  @@index([status])
+}
+
+model AiRun {
+  id          String @id @default(cuid())
+  requestId   String
+  workspaceId String
+
+  provider              String // e.g. "gemini", "anthropic"
+  model                 String // Requested model
+  actualProviderModelId String // Actual model executed (e.g. "gemini-1.5-pro-latest")
+
+  promptVersion   String?
+  workflowVersion String?
+
+  status String @default("RUNNING") // RUNNING, SUCCEEDED, FAILED, TIMEOUT
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  latencyMs   Int?
+
+  inputTokens  Int @default(0)
+  outputTokens Int @default(0)
+  cachedTokens Int @default(0)
+
+  providerCost Decimal? @db.Decimal(19, 4) // Null if unknown, real provider cost in USD
+  currency     String   @default("USD")
+
+  fallbackFromRunId String? // If this run was a fallback, point to failed run
+  errorCode         String?
+
+  request   AiRequest      @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  workspace Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  decision  ModelDecision?
+
+  @@index([requestId])
+  @@index([workspaceId])
+}
+
+// Preserved production routing-audit entity. Runtime persistence is not yet
+// wired, so its presence does not imply that routing decisions are recorded.
+model ModelDecision {
+  id           String   @id
+  workspaceId  String
+  aiRunId      String   @unique
+  reason       String
+  candidates   String[]
+  selectedMode String
+  powerTier    String
+  createdAt    DateTime @default(now())
+
+  aiRun     AiRun     @relation(fields: [aiRunId], references: [id], onDelete: Cascade)
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@index([workspaceId])
+}
+
+model AiUsage {
+  id                String   @id @default(cuid())
+  workspaceId       String
+  requestId         String?
+  idempotencyKey    String   @unique // To prevent duplicate settlement records
+  route             String
+  model             String
+  provider          String?
+  tokensIn          Int      @default(0)
+  tokensOut         Int      @default(0)
+  providerCostUsd   Decimal? @db.Decimal(19, 4) // Exact cost from the provider
+  customerChargeUsd Decimal? @db.Decimal(19, 4) // Price billed to the customer (ledger value)
+  feature           String?
+  createdAt         DateTime @default(now())
+
+  workspace Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  request   AiRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
   @@index([createdAt])
+  @@index([requestId])
+}
+
+model AiModelPricing {
+  id               String    @id @default(cuid())
+  provider         String
+  providerModelId  String
+  inputPrice       Decimal   @db.Decimal(19, 6) // Cost per 1 token (or 1M, handled by calc logic)
+  outputPrice      Decimal   @db.Decimal(19, 6)
+  cachedInputPrice Decimal?  @db.Decimal(19, 6)
+  currency         String    @default("USD")
+  effectiveFrom    DateTime  @default(now())
+  effectiveTo      DateTime?
+  sourceMetadata   String? // URL or reference
+
+  @@unique([provider, providerModelId, effectiveFrom])
+}
+
+model FeaturePricing {
+  id          String   @id @default(cuid())
+  feature     String   @unique // e.g. "optimization_planner"
+  pricingMode String // INCLUDED, CREDITS, USAGE_BASED, FIXED, OVERAGE
+  fixedCost   Decimal? @db.Decimal(19, 4) // If FIXED
+  creditsCost Int? // If CREDITS
+  currency    String   @default("USD")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model WorkspaceEntitlement {
+  id                     String   @id @default(cuid())
+  workspaceId            String   @unique
+  saasPlan               String   @default("FREE") // SaaS product plan
+  allowedFeatures        String[] // ["AI_GENERATION", "AUTOPILOT"]
+  monthlyAiBudget        Decimal? @db.Decimal(19, 4) // Financial limit in USD
+  autopilotEnabled       Boolean  @default(false)
+  dailyAutopilotAiBudget Decimal? @db.Decimal(19, 4)
+  maxAiCostPerRun        Decimal? @db.Decimal(19, 4)
+  availableCredits       Int      @default(0)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
 // ------------------------------------------------------
@@ -2089,4 +2273,324 @@ model RateLimit {
   key     String   @id
   count   Int
   resetAt DateTime
+}
+
+// ------------------------------------------------------
+// STRIPE BILLING
+// ------------------------------------------------------
+model BillingCustomer {
+  id               String    @id @default(cuid())
+  workspaceId      String    @unique
+  stripeCustomerId String    @unique
+  workspace        Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id                   String    @id @default(cuid())
+  workspaceId          String    @unique
+  stripeSubscriptionId String    @unique
+  status               String
+  plan                 String
+  currentPeriodStart   DateTime  @default(now())
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean   @default(false)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  workspace            Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model BillingEvent {
+  id               String    @id @default(cuid())
+  stripeEventId    String    @unique
+  eventType        String
+  livemode         Boolean
+  processingStatus String    @default("pending") // pending, processed, failed
+  error            String?   @db.Text
+  receivedAt       DateTime  @default(now())
+  processedAt      DateTime?
+}
+
+model BillingUsageEvent {
+  id                         String    @id @default(cuid())
+  workspaceId                String
+  aiUsageId                  String    @unique
+  stripeMeterEventIdentifier String    @unique
+  meterName                  String
+  quantity                   Int
+  status                     String    @default("PENDING") // PENDING, PROCESSING, SENT, FAILED
+  attempts                   Int       @default(0)
+  lastError                  String?   @db.Text
+  sentAt                     DateTime?
+  reportedAt                 DateTime  @default(now())
+  lastAttemptAt              DateTime?
+  nextAttemptAt              DateTime?
+}
+
+model Invoice {
+  id               String    @id @default(cuid())
+  workspaceId      String
+  stripeInvoiceId  String    @unique
+  status           String
+  currency         String
+  amountDue        Int
+  amountPaid       Int
+  hostedInvoiceUrl String?   @db.Text
+  billingPeriod    String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  workspace        Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+// -----------------------------------------------------------------------------
+// COMMERCIAL & FINANCIAL OS (CF-0 to CF-11)
+// -----------------------------------------------------------------------------
+
+model WorkspaceAiBudgetBalance {
+  id          String @id @default(cuid())
+  workspaceId String
+
+  // Exact commercial billing period boundaries (removes YYYY-MM ambiguity)
+  periodStart DateTime
+  periodEnd   DateTime
+
+  // Customer Included AI Allowance: The maximum monetary value (USD) included in the subscription plan
+  customerAiAllowance Decimal @default(0.00) @db.Decimal(19, 4)
+
+  // Customer Billable AI Usage: The actual amount (USD) billed to the customer during this period
+  customerBilledUsd Decimal @default(0.00) @db.Decimal(19, 4)
+
+  // Amount currently locked for in-flight requests to prevent double-spending
+  customerReservedUsd Decimal @default(0.00) @db.Decimal(19, 4)
+
+  // Internal Provider Spend Limit: The hard limit on our raw API costs, ensuring we don't bleed margin
+  internalProviderSpendLimit Decimal @default(0.00) @db.Decimal(19, 4)
+
+  // Actual API cost incurred with providers (OpenAI, Anthropic, etc.)
+  internalProviderCostUsd Decimal @default(0.00) @db.Decimal(19, 4)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, periodStart, periodEnd])
+  @@index([workspaceId, periodStart, periodEnd])
+}
+
+model AiReservationLedger {
+  id              String    @id @default(cuid())
+  workspaceId     String
+  idempotencyKey  String    @unique
+  feature         String
+  reservedCostUsd Decimal   @db.Decimal(19, 4)
+  status          String    @default("RESERVED") // RESERVED, SETTLED, RELEASED
+  createdAt       DateTime  @default(now())
+  settledAt       DateTime?
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, status])
+}
+
+model ExternalCostRate {
+  id            String    @id @default(cuid())
+  provider      String // Vercel, Neon, Stripe, OpenAI, Anthropic, Google
+  component     String // e.g., platform_fee, compute, storage, gpt-4o-input
+  unit          String // e.g., month, 1M_tokens, GB, charge
+  amount        Decimal   @db.Decimal(19, 6)
+  currency      String    @default("USD")
+  effectiveFrom DateTime  @default(now())
+  effectiveTo   DateTime?
+  sourceUrl     String?   @db.Text
+  notes         String?   @db.Text
+  createdAt     DateTime  @default(now())
+}
+
+model Plan {
+  id          String        @id @default(cuid())
+  key         String        @unique // STARTER, PRO, AGENCY, ENTERPRISE
+  name        String
+  description String?
+  versions    PlanVersion[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model PlanVersion {
+  id             String    @id @default(cuid())
+  planId         String
+  version        Int
+  status         String    @default("DRAFT") // DRAFT, SCHEDULED, ACTIVE, RETIRED
+  effectiveFrom  DateTime  @default(now())
+  effectiveTo    DateTime?
+  basePriceUsd   Decimal   @db.Decimal(19, 4)
+  annualPriceUsd Decimal   @db.Decimal(19, 4)
+  includedSeats  Int       @default(1)
+  includedWs     Int       @default(1) // Workspaces/Projects
+
+  plan      Plan         @relation(fields: [planId], references: [id], onDelete: Cascade)
+  modules   PlanModule[]
+  prices    PlanPrice[]
+  createdAt DateTime     @default(now())
+}
+
+model PlanPrice {
+  id            String      @id @default(cuid())
+  planVersionId String
+  stripePriceId String
+  billingPeriod String // MONTHLY, ANNUALLY
+  planVersion   PlanVersion @relation(fields: [planVersionId], references: [id], onDelete: Cascade)
+}
+
+model Module {
+  id                 String       @id @default(cuid())
+  key                String       @unique
+  name               String
+  description        String?      @db.Text
+  category           String
+  status             String       @default("ACTIVE")
+  implementationType String // FULL_STACK, BACKEND, FRONTEND, INFRASTRUCTURE
+  isPurchasable      Boolean      @default(false)
+  isAddon            Boolean      @default(false)
+  frontendRoute      String?
+  planModules        PlanModule[]
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+}
+
+model PlanModule {
+  id            String @id @default(cuid())
+  planVersionId String
+  moduleId      String
+  inclusion     String // INCLUDED, OPTIONAL, NOT_AVAILABLE
+  usageLimit    Int?
+
+  planVersion PlanVersion @relation(fields: [planVersionId], references: [id], onDelete: Cascade)
+  module      Module      @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([planVersionId, moduleId])
+}
+
+model AiPackage {
+  id        String             @id @default(cuid())
+  key       String             @unique // GEMINI, GPT, CLAUDE, SMART
+  name      String
+  versions  AiPackageVersion[]
+  createdAt DateTime           @default(now())
+}
+
+model AiPackageVersion {
+  id                String  @id @default(cuid())
+  packageId         String
+  status            String  @default("ACTIVE")
+  feeMode           String  @default("INCLUDED_IN_PLAN") // INCLUDED_IN_PLAN, SEPARATE, WAIVED, CUSTOM
+  baseFeeUsd        Decimal @db.Decimal(19, 4)
+  includedUnits     Int     @default(0)
+  variableUnitPrice Decimal @db.Decimal(19, 6) // price per unit
+
+  package   AiPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+}
+
+model BillingLedgerEntry {
+  id          String    @id @default(cuid())
+  workspaceId String
+  type        String // SUBSCRIPTION, MODULE, AI_BASE, AI_USAGE, CREDIT, TAX
+  source      String // Stripe Invoice ID, etc
+  sourceId    String?
+  quantity    Int       @default(1)
+  unit        String // month, ai_billable_unit
+  unitAmount  Decimal   @db.Decimal(19, 4)
+  subtotal    Decimal   @db.Decimal(19, 4)
+  currency    String    @default("USD")
+  periodStart DateTime?
+  periodEnd   DateTime?
+  createdAt   DateTime  @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model BillingProfile {
+  id             String  @id @default(cuid())
+  workspaceId    String  @unique
+  legalName      String?
+  entityType     String? // BUSINESS, INDIVIDUAL
+  billingEmail   String?
+  country        String?
+  address        String? @db.Text
+  taxIdType      String?
+  taxId          String?
+  fiscalMetadata Json?
+
+  notifyOwner           Boolean @default(true)
+  paymentFailedEmail    Boolean @default(true)
+  invoiceAvailableEmail Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model BillingRecoveryPolicy {
+  id                     String   @id @default(cuid())
+  version                Int      @default(1)
+  gracePeriodDays        Int      @default(3)
+  notificationSchedule   Json     @default("[]") // [1, 2, 3] days
+  aiRestrictionPointDays Int      @default(3)
+  serviceRestrictionDays Int      @default(7)
+  unpaidBehavior         String   @default("suspend") // suspend | cancel
+  cancellationBehavior   String   @default("revoke_access")
+  hardLimitUsd           Decimal  @default(0.00) @db.Decimal(19, 4)
+  graceBudgetPercent     Float    @default(50.0)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model FiscalDocument {
+  id           String    @id @default(cuid())
+  workspaceId  String
+  invoiceId    String?
+  status       String // ISSUED, CANCELED
+  uuid         String?   @unique // CFDI UUID
+  xmlUrl       String?
+  pdfUrl       String?
+  issuedAt     DateTime?
+  canceledAt   DateTime?
+  jurisdiction String    @default("MX")
+  metadata     Json?
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+}
+
+model BillingNotification {
+  id             String    @id @default(cuid())
+  workspaceId    String
+  invoiceId      String?
+  type           String // INVOICE_AVAILABLE, PAYMENT_FAILED, PAST_DUE, etc.
+  recipient      String
+  channel        String // EMAIL, WHATSAPP, IN_APP
+  status         String    @default("PENDING") // PENDING, SENT, FAILED
+  idempotencyKey String    @unique
+  attempts       Int       @default(0)
+  providerMsgId  String?
+  lastError      String?
+  sentAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model BillingRecoveryCase {
+  id             String    @id @default(cuid())
+  workspaceId    String
+  invoiceId      String
+  status         String    @default("ACTIVE") // ACTIVE, RESOLVED, CANCELED
+  gracePeriodEnd DateTime?
+  restrictedAt   DateTime?
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }

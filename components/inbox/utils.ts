@@ -41,7 +41,7 @@ export function getPlatformConfig(platform: Platform) {
       return { label: "WhatsApp", color: "#25D366", icon: MessageCircle, bgAlpha: "rgba(37,211,102,0.12)" };
     default:
       // Safe fallback for any future platform additions
-      return { label: "Mensaje", color: "var(--text-muted)", icon: MessageSquare, bgAlpha: "rgba(128,128,128,0.12)" };
+      return { label: "Mensaje", color: "var(--fc-text-muted)", icon: MessageSquare, bgAlpha: "rgba(128,128,128,0.12)" };
     }
 }
 

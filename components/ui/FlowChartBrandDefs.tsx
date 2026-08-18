@@ -24,29 +24,29 @@ export function FlowChartBrandDefs() {
         <defs>
           {/* ─── Azul (marca) ─── */}
           <linearGradient id="flowchart-holo-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="var(--cyan)" />
+            <stop offset="0%" stopColor="var(--fc-accent)" />
             <stop offset="50%" stopColor="#2563eb" />
-            <stop offset="100%" stopColor="var(--cyan)" />
+            <stop offset="100%" stopColor="var(--fc-accent)" />
           </linearGradient>
 
           {/* ─── Verde (éxito/crecimiento) ─── */}
           <linearGradient id="flowchart-holo-emerald" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="var(--emerald)" />
+            <stop offset="0%" stopColor="var(--fc-success)" />
             <stop offset="50%" stopColor="#2b9a67" />
-            <stop offset="100%" stopColor="var(--emerald)" />
+            <stop offset="100%" stopColor="var(--fc-success)" />
           </linearGradient>
 
           {/* ─── Magenta atenuado (métricas) ─── */}
           <linearGradient id="flowchart-holo-pink" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#bc5fb2" />
-            <stop offset="50%" stopColor="var(--purple)" />
+            <stop offset="50%" stopColor="var(--fc-module-aria)" />
             <stop offset="100%" stopColor="#bc5fb2" />
           </linearGradient>
 
           {/* ─── Naranja atenuado (escucha/planner) ─── */}
           <linearGradient id="flowchart-holo-gold" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#d98843" />
-            <stop offset="50%" stopColor="var(--amber)" />
+            <stop offset="50%" stopColor="var(--fc-warning)" />
             <stop offset="100%" stopColor="#d98843" />
           </linearGradient>
         </defs>

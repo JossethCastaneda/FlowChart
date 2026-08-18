@@ -64,7 +64,7 @@ En `lib/integrations/google/registry.ts`:
 
 | Item | Razón |
 |---|---|
-| Migración AiUsage sin aplicar | El esquema tiene 74 modelos con 5 migraciones y `db push` como método. Aplicar sin verificar el host correcto es peligroso. Ver `docs/baseline-migraciones.md`. |
+| Migración AiUsage sin aplicar | Hallazgo histórico supersedido: la sincronización directa está bloqueada y el baseline requiere clone aislado. Ver `docs/baseline-migraciones.md`. |
 | Instrumentación de IA parcial | `metering.ts` ya instrumenta los puntos principales. Los que no pueden sin cambiar firma están anotados en el FIXME del archivo. |
 | Meta versions en `tests/` | Los tests usan versiones en URLs de mock — esto es correcto y esperado. |
 | `auth.config.ts` y `publish-to-meta.ts` usan fallback `|| "v25.0"` | Son fallbacks al mismo default que `lib/env.ts`. No son versiones de API cableadas — son defaults de última instancia. |

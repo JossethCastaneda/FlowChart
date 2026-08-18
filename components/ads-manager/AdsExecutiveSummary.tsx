@@ -118,10 +118,10 @@ export function AdsExecutiveSummary({
   const pausedCount = campaigns.filter((item) => getStatus(item) === "PAUSED").length;
 
   const cards = [
-    { label: "Gasto", value: formatMoney(spend), icon: DollarSign, color: "var(--emerald)" },
-    { label: "ROAS promedio", value: avgRoas ? `${avgRoas.toFixed(2)}x` : "Sin datos", icon: TrendingUp, color: "var(--cyan)" },
-    { label: "Clics", value: formatCompact(clicks), icon: MousePointerClick, color: "var(--amber)" },
-    { label: "Impresiones", value: formatCompact(impressions), icon: RefreshCw, color: "var(--purple)" },
+    { label: "Gasto", value: formatMoney(spend), icon: DollarSign, color: "var(--fc-success)" },
+    { label: "ROAS promedio", value: avgRoas ? `${avgRoas.toFixed(2)}x` : "Sin datos", icon: TrendingUp, color: "var(--fc-accent)" },
+    { label: "Clics", value: formatCompact(clicks), icon: MousePointerClick, color: "var(--fc-warning)" },
+    { label: "Impresiones", value: formatCompact(impressions), icon: RefreshCw, color: "var(--fc-module-aria)" },
   ];
 
   return (
@@ -138,13 +138,13 @@ export function AdsExecutiveSummary({
         }}
       >
         <div>
-          <h2 style={{ margin: 0, color: "var(--foreground)", fontSize: 18, fontWeight: 700 }}>
+          <h2 style={{ margin: 0, color: "var(--fc-text)", fontSize: 18, fontWeight: 700 }}>
             Salud de Ads
           </h2>
-          <p style={{ margin: "4px 0 0", color: "var(--text-secondary)", fontSize: 12 }}>
+          <p style={{ margin: "4px 0 0", color: "var(--fc-text-secondary)", fontSize: 12 }}>
             Vista ejecutiva para decidir si conviene optimizar, pausar, revisar o abrir la tabla experta.
           </p>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, color: "var(--text-muted)", fontSize: 11 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, color: "var(--fc-text-muted)", fontSize: 11 }}>
             <Clock3 style={{ width: 12, height: 12 }} />
             {lastSynced ? `Ultima sync: ${lastSynced.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}` : "Aun sin sync"}
           </div>
@@ -164,7 +164,7 @@ export function AdsExecutiveSummary({
               borderRadius: 6,
               border: "1px solid var(--hairline)",
               background: "var(--surface-hover)",
-              color: "var(--foreground)",
+              color: "var(--fc-text)",
               fontSize: 12,
               fontWeight: 700,
               cursor: "pointer",
@@ -177,7 +177,7 @@ export function AdsExecutiveSummary({
       </div>
 
       {error && (
-        <div style={{ display: "flex", gap: 10, padding: 12, borderRadius: 8, border: "1px solid rgba(229,72,77,0.25)", background: "var(--red-dim)", color: "var(--red)", fontSize: 12 }}>
+        <div style={{ display: "flex", gap: 10, padding: 12, borderRadius: 8, border: "1px solid rgba(229,72,77,0.25)", background: "var(--fc-danger-wash)", color: "var(--fc-danger)", fontSize: 12 }}>
           <ShieldAlert style={{ width: 16, height: 16, flexShrink: 0 }} />
           <span>{error}</span>
         </div>
@@ -190,8 +190,8 @@ export function AdsExecutiveSummary({
             <div key={card.label} className="kpi-card" style={{ padding: 18 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
                 <div>
-                  <div style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 600 }}>{card.label}</div>
-                  <div style={{ marginTop: 8, fontSize: 24, color: "var(--foreground)", fontWeight: 800 }}>{card.value}</div>
+                  <div style={{ fontSize: 12, color: "var(--fc-text-secondary)", fontWeight: 600 }}>{card.label}</div>
+                  <div style={{ marginTop: 8, fontSize: 24, color: "var(--fc-text)", fontWeight: 800 }}>{card.value}</div>
                 </div>
                 <Icon style={{ width: 22, height: 22, color: card.color }} />
               </div>
@@ -202,29 +202,29 @@ export function AdsExecutiveSummary({
 
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.1fr) minmax(0, 0.9fr)", gap: 12 }}>
         <div className="glass-panel" style={{ padding: 18 }}>
-          <h3 style={{ margin: 0, color: "var(--foreground)", fontSize: 14, fontWeight: 700 }}>
+          <h3 style={{ margin: 0, color: "var(--fc-text)", fontSize: 14, fontWeight: 700 }}>
             Riesgos detectados
           </h3>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
             {warnings.length === 0 ? (
-              <div style={{ display: "flex", gap: 9, color: "var(--emerald)", fontSize: 12, alignItems: "center" }}>
+              <div style={{ display: "flex", gap: 9, color: "var(--fc-success)", fontSize: 12, alignItems: "center" }}>
                 <CheckCircle2 style={{ width: 15, height: 15 }} />
                 No hay alertas obvias en los datos cargados.
               </div>
             ) : (
               warnings.map((warning) => (
-                <div key={warning.title} style={{ display: "flex", gap: 10, padding: 10, borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--border)" }}>
+                <div key={warning.title} style={{ display: "flex", gap: 10, padding: 10, borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--fc-border)" }}>
                   <AlertTriangle
                     style={{
                       width: 16,
                       height: 16,
                       flexShrink: 0,
-                      color: warning.level === "high" ? "var(--red)" : warning.level === "medium" ? "var(--amber)" : "var(--cyan)",
+                      color: warning.level === "high" ? "var(--fc-danger)" : warning.level === "medium" ? "var(--fc-warning)" : "var(--fc-accent)",
                     }}
                   />
                   <div>
-                    <div style={{ fontSize: 12, color: "var(--foreground)", fontWeight: 700 }}>{warning.title}</div>
-                    <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 2 }}>{warning.description}</div>
+                    <div style={{ fontSize: 12, color: "var(--fc-text)", fontWeight: 700 }}>{warning.title}</div>
+                    <div style={{ fontSize: 11, color: "var(--fc-text-secondary)", marginTop: 2 }}>{warning.description}</div>
                   </div>
                 </div>
               ))
@@ -233,7 +233,7 @@ export function AdsExecutiveSummary({
         </div>
 
         <div className="glass-panel" style={{ padding: 18 }}>
-          <h3 style={{ margin: 0, color: "var(--foreground)", fontSize: 14, fontWeight: 700 }}>
+          <h3 style={{ margin: 0, color: "var(--fc-text)", fontSize: 14, fontWeight: 700 }}>
             Estado operativo
           </h3>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
@@ -245,9 +245,9 @@ export function AdsExecutiveSummary({
               ["Anuncios", ads.length],
               ["Alertas", warnings.length],
             ].map(([label, value]) => (
-              <div key={label} style={{ padding: 10, borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--border)" }}>
-                <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</div>
-                <div style={{ marginTop: 5, fontSize: 20, color: "var(--foreground)", fontWeight: 800 }}>{value}</div>
+              <div key={label} style={{ padding: 10, borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--fc-border)" }}>
+                <div style={{ fontSize: 10, color: "var(--fc-text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</div>
+                <div style={{ marginTop: 5, fontSize: 20, color: "var(--fc-text)", fontWeight: 800 }}>{value}</div>
               </div>
             ))}
           </div>

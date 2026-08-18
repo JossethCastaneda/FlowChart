@@ -194,7 +194,7 @@ export default function GoogleAnalyticsPage() {
             style={{
               display: "flex", alignItems: "center", gap: 7,
               padding: "8px 16px", borderRadius: 8,
-              background: "var(--amber-dim)",
+              background: "var(--fc-warning-wash)",
               border: "1px solid rgba(251,191,36,0.3)",
               color: "var(--fc-warning)", fontSize: 12, fontWeight: 600,
               cursor: reconnecting ? "wait" : "pointer",
@@ -223,7 +223,7 @@ export default function GoogleAnalyticsPage() {
             <div style={{
               display: "flex", alignItems: "center", gap: 10,
               padding: "12px 16px", borderRadius: 10,
-              background: "var(--red-dim)", border: "1px solid var(--fc-danger)",
+              background: "var(--fc-danger-wash)", border: "1px solid var(--fc-danger)",
               color: "var(--fc-danger)", fontSize: 12, marginBottom: 20,
             }}>
               <AlertCircle size={14} />
@@ -287,7 +287,7 @@ export default function GoogleAnalyticsPage() {
                   <div style={{
                     width: 20, height: 20, borderRadius: 4, border: `1px solid ${selectedIds.includes(property.id) ? "var(--fc-warning)" : "var(--fc-border-hover)"}`,
                     background: selectedIds.includes(property.id) ? "var(--fc-warning)" : "transparent",
-                    display: "flex", alignItems: "center", justifyContent: "center", color: "var(--background)",
+                    display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fc-bg)",
                     transition: "all 0.2s"
                   }}>
                     {selectedIds.includes(property.id) && <CheckCircle2 size={14} />}
@@ -302,7 +302,7 @@ export default function GoogleAnalyticsPage() {
                     disabled={saving}
                     style={{
                       padding: "10px 20px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: saving ? "wait" : "pointer",
-                      background: "var(--fc-warning)", color: "var(--background)", border: "none",
+                      background: "var(--fc-warning)", color: "var(--fc-bg)", border: "none",
                       display: "flex", alignItems: "center", gap: 8
                     }}
                   >

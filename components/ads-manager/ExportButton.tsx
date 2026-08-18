@@ -178,10 +178,10 @@ export function ExportButton({ data, level, visibleColumns }: ExportButtonProps)
           display: "flex", alignItems: "center", gap: "5px",
           padding: "6px 10px", fontSize: "11px", fontWeight: 600,
           background: "var(--row-hover)", border: "1px solid var(--hairline)",
-          borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer",
+          borderRadius: "6px", color: "var(--fc-text-secondary)", cursor: "pointer",
           transition: "all 0.15s",
         }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--cyan)"; e.currentTarget.style.color = "white"; }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--fc-accent)"; e.currentTarget.style.color = "white"; }}
         onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "rgba(148,163,184,0.7)"; }}
       >
         <Download className="w-3.5 h-3.5" /> Exportar <ChevronDown className="w-3 h-3" />
@@ -190,7 +190,7 @@ export function ExportButton({ data, level, visibleColumns }: ExportButtonProps)
       {showMenu && (
         <div style={{
           position: "absolute", top: "100%", right: 0, marginTop: "6px",
-          background: "var(--surface)", 
+          background: "var(--fc-surface)", 
           border: "1px solid rgba(59,130,246,0.15)", borderRadius: "8px",
           padding: "4px", zIndex: 100, minWidth: "160px",
           boxShadow: "0 12px 40px -8px rgba(0,0,0,0.7)",
@@ -199,37 +199,37 @@ export function ExportButton({ data, level, visibleColumns }: ExportButtonProps)
             onClick={exportXLSX}
             style={{
               width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: "6px",
-              padding: "8px 10px", fontSize: "11px", color: "var(--foreground)",
+              padding: "8px 10px", fontSize: "11px", color: "var(--fc-text)",
               background: "transparent", border: "none", cursor: "pointer", borderRadius: "5px",
             }}
             onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,129,251,0.15)")}
             onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
           >
-            <Sheet className="w-3.5 h-3.5" style={{ color: "var(--emerald)" }} /> Exportar Excel
+            <Sheet className="w-3.5 h-3.5" style={{ color: "var(--fc-success)" }} /> Exportar Excel
           </button>
           <button
             onClick={exportCSV}
             style={{
               width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: "6px",
-              padding: "8px 10px", fontSize: "11px", color: "var(--foreground)",
+              padding: "8px 10px", fontSize: "11px", color: "var(--fc-text)",
               background: "transparent", border: "none", cursor: "pointer", borderRadius: "5px",
             }}
             onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,129,251,0.15)")}
             onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
           >
-            <Table2 className="w-3.5 h-3.5" style={{ color: "var(--emerald)" }} /> Exportar CSV
+            <Table2 className="w-3.5 h-3.5" style={{ color: "var(--fc-success)" }} /> Exportar CSV
           </button>
           <button
             onClick={() => { window.print(); setShowMenu(false); }}
             style={{
               width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: "6px",
-              padding: "8px 10px", fontSize: "11px", color: "var(--foreground)",
+              padding: "8px 10px", fontSize: "11px", color: "var(--fc-text)",
               background: "transparent", border: "none", cursor: "pointer", borderRadius: "5px",
             }}
             onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,129,251,0.15)")}
             onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
           >
-            <FileText className="w-3.5 h-3.5" style={{ color: "var(--purple)" }} /> Imprimir / PDF
+            <FileText className="w-3.5 h-3.5" style={{ color: "var(--fc-module-aria)" }} /> Imprimir / PDF
           </button>
         </div>
       )}

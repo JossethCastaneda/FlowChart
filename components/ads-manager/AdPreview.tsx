@@ -66,8 +66,8 @@ function FallbackImage({ url, alt, style }: { url?: string; alt: string; style?:
           gap: 8,
         }}
       >
-        <Monitor style={{ width: 32, height: 32, color: "var(--text-muted)" }} />
-        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Vista previa no disponible</span>
+        <Monitor style={{ width: 32, height: 32, color: "var(--fc-text-muted)" }} />
+        <span style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>Vista previa no disponible</span>
       </div>
     );
   }
@@ -80,7 +80,7 @@ function FacebookFeedPreview({ creative }: { creative: AdCreativeData }) {
   return (
     <div
       style={{
-        background: "var(--surface)",
+        background: "var(--fc-surface)",
         borderRadius: 8,
         boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
         overflow: "hidden",
@@ -102,18 +102,18 @@ function FacebookFeedPreview({ creative }: { creative: AdCreativeData }) {
           {creative.pageAvatar
             // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
             ? <img src={creative.pageAvatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            : <FacebookIcon style={{ width: 20, height: 20, color: "var(--foreground)" }} />
+            : <FacebookIcon style={{ width: 20, height: 20, color: "var(--fc-text)" }} />
           }
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "#1c1e21", lineHeight: 1.3 }}>
             {creative.pageName || "Tu Página"}
           </div>
-          <div style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4 }}>
+          <div style={{ fontSize: 12, color: "var(--fc-text-muted)", display: "flex", alignItems: "center", gap: 4 }}>
             Patrocinado · <FacebookIcon style={{ width: 10, height: 10 }} />
           </div>
         </div>
-        <div style={{ color: "var(--text-muted)", fontSize: 22, lineHeight: 1, cursor: "pointer" }}>···</div>
+        <div style={{ color: "var(--fc-text-muted)", fontSize: 22, lineHeight: 1, cursor: "pointer" }}>···</div>
       </div>
 
       {/* Body text */}
@@ -133,7 +133,7 @@ function FacebookFeedPreview({ creative }: { creative: AdCreativeData }) {
       {/* Card footer */}
       <div
         style={{
-          background: "var(--surface)",
+          background: "var(--fc-surface)",
           borderTop: "1px solid #ddd",
           padding: "10px 16px",
           display: "flex",
@@ -144,7 +144,7 @@ function FacebookFeedPreview({ creative }: { creative: AdCreativeData }) {
       >
         <div style={{ flex: 1, minWidth: 0 }}>
           {creative.displayUrl && (
-            <div style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 2 }}>
+            <div style={{ fontSize: 11, color: "var(--fc-text-muted)", textTransform: "uppercase", marginBottom: 2 }}>
               {creative.displayUrl}
             </div>
           )}
@@ -154,7 +154,7 @@ function FacebookFeedPreview({ creative }: { creative: AdCreativeData }) {
             </div>
           )}
           {creative.description && (
-            <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.3, marginTop: 2 }}>
+            <div style={{ fontSize: 13, color: "var(--fc-text-muted)", lineHeight: 1.3, marginTop: 2 }}>
               {creative.description}
             </div>
           )}
@@ -162,7 +162,7 @@ function FacebookFeedPreview({ creative }: { creative: AdCreativeData }) {
         <button
           style={{
             padding: "8px 16px",
-            background: "var(--surface)",
+            background: "var(--fc-surface)",
             border: "none",
             borderRadius: 6,
             fontSize: 14,
@@ -184,7 +184,7 @@ function FacebookFeedPreview({ creative }: { creative: AdCreativeData }) {
             key={action}
             style={{
               flex: 1, background: "none", border: "none", padding: "8px 4px",
-              fontSize: 13, fontWeight: 600, color: "var(--text-muted)", cursor: "pointer",
+              fontSize: 13, fontWeight: 600, color: "var(--fc-text-muted)", cursor: "pointer",
               borderRadius: 6,
             }}
           >
@@ -201,7 +201,7 @@ function InstagramFeedPreview({ creative }: { creative: AdCreativeData }) {
   return (
     <div
       style={{
-        background: "var(--surface)",
+        background: "var(--fc-surface)",
         maxWidth: 400,
         margin: "0 auto",
         fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
@@ -219,7 +219,7 @@ function InstagramFeedPreview({ creative }: { creative: AdCreativeData }) {
             padding: 2, flexShrink: 0, overflow: "hidden",
           }}
         >
-          <div style={{ width: "100%", height: "100%", borderRadius: "50%", overflow: "hidden", background: "var(--surface)" }}>
+          <div style={{ width: "100%", height: "100%", borderRadius: "50%", overflow: "hidden", background: "var(--fc-surface)" }}>
             {creative.pageAvatar
               // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
               ? <img src={creative.pageAvatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -231,7 +231,7 @@ function InstagramFeedPreview({ creative }: { creative: AdCreativeData }) {
           <div style={{ fontSize: 13, fontWeight: 600, color: "#262626" }}>
             {creative.pageName || "tupagina"}
           </div>
-          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Publicidad</div>
+          <div style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>Publicidad</div>
         </div>
         <div style={{ color: "#262626", fontSize: 22, lineHeight: 1 }}>···</div>
       </div>
@@ -266,7 +266,7 @@ function InstagramFeedPreview({ creative }: { creative: AdCreativeData }) {
             borderRadius: 6,
             fontSize: 13,
             fontWeight: 600,
-            color: "var(--foreground)",
+            color: "var(--fc-text)",
             cursor: "pointer",
           }}
         >
@@ -302,7 +302,7 @@ function StoryPreview({ creative, platform }: { creative: AdCreativeData; platfo
   return (
     <div
       style={{
-        background: "var(--background)",
+        background: "var(--fc-bg)",
         borderRadius: 16,
         overflow: "hidden",
         maxWidth: 280,
@@ -343,8 +343,8 @@ function StoryPreview({ creative, platform }: { creative: AdCreativeData; platfo
       {/* Top bar */}
       <div style={{ position: "relative", zIndex: 2, padding: "14px 12px 0" }}>
         {/* Progress bar */}
-        <div style={{ height: 2, background: "var(--surface)", borderRadius: 2, marginBottom: 10 }}>
-          <div style={{ width: "40%", height: "100%", background: "var(--surface)", borderRadius: 2 }} />
+        <div style={{ height: 2, background: "var(--fc-surface)", borderRadius: 2, marginBottom: 10 }}>
+          <div style={{ width: "40%", height: "100%", background: "var(--fc-surface)", borderRadius: 2 }} />
         </div>
         {/* Profile */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -356,7 +356,7 @@ function StoryPreview({ creative, platform }: { creative: AdCreativeData; platfo
               flexShrink: 0, overflow: "hidden",
             }}
           >
-            <div style={{ width: "100%", height: "100%", borderRadius: "50%", overflow: "hidden", background: "var(--surface)" }}>
+            <div style={{ width: "100%", height: "100%", borderRadius: "50%", overflow: "hidden", background: "var(--fc-surface)" }}>
               {creative.pageAvatar
                 // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
                 ? <img src={creative.pageAvatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -365,10 +365,10 @@ function StoryPreview({ creative, platform }: { creative: AdCreativeData; platfo
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)" }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--fc-text)" }}>
               {creative.pageName || "Tu Página"}
             </div>
-            <div style={{ fontSize: 10, color: "var(--text-secondary)" }}>Publicidad</div>
+            <div style={{ fontSize: 10, color: "var(--fc-text-secondary)" }}>Publicidad</div>
           </div>
         </div>
       </div>
@@ -376,12 +376,12 @@ function StoryPreview({ creative, platform }: { creative: AdCreativeData; platfo
       {/* Bottom content */}
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 2, padding: "16px 14px 20px" }}>
         {creative.headline && (
-          <div style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", marginBottom: 4, textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "var(--fc-text)", marginBottom: 4, textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
             {creative.headline}
           </div>
         )}
         {creative.message && (
-          <div style={{ fontSize: 12, color: "var(--foreground)", marginBottom: 12, lineHeight: 1.4, textShadow: "0 1px 3px rgba(0,0,0,0.7)" }}>
+          <div style={{ fontSize: 12, color: "var(--fc-text)", marginBottom: 12, lineHeight: 1.4, textShadow: "0 1px 3px rgba(0,0,0,0.7)" }}>
             {creative.message.length > 80 ? creative.message.substring(0, 80) + "..." : creative.message}
           </div>
         )}
@@ -389,9 +389,9 @@ function StoryPreview({ creative, platform }: { creative: AdCreativeData; platfo
           style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
             width: "100%", padding: "10px 16px",
-            background: "var(--surface)", 
+            background: "var(--fc-surface)", 
             border: "none", borderRadius: 24,
-            fontSize: 13, fontWeight: 700, color: "var(--background)",
+            fontSize: 13, fontWeight: 700, color: "var(--fc-bg)",
             cursor: "pointer",
           }}
         >
@@ -428,9 +428,9 @@ export function AdPreview({ creative }: AdPreviewProps) {
               display: "flex", alignItems: "center", gap: 5,
               padding: "5px 10px",
               background: format === f.key ? "rgba(0,129,251,0.15)" : "rgba(255,255,255,0.09)",
-              border: `1px solid ${format === f.key ? "var(--cyan)" : "var(--border)"}`,
+              border: `1px solid ${format === f.key ? "var(--fc-accent)" : "var(--fc-border)"}`,
               borderRadius: 6,
-              color: format === f.key ? "var(--cyan)" : "rgba(148,163,184,0.7)",
+              color: format === f.key ? "var(--fc-accent)" : "rgba(148,163,184,0.7)",
               fontSize: 11,
               fontWeight: 600,
               cursor: "pointer",
@@ -448,7 +448,7 @@ export function AdPreview({ creative }: AdPreviewProps) {
         style={{
           background: "var(--surface-hover)",
           borderRadius: 10,
-          border: "1px solid var(--border)",
+          border: "1px solid var(--fc-border)",
           padding: 16,
           maxHeight: 520,
           overflowY: "auto",

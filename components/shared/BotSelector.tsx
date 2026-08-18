@@ -56,10 +56,10 @@ export function BotSelector({ selectedBotId, onSelectBot, platformFilter }: BotS
           gap: "8px",
           width: "100%",
           padding: "8px 12px",
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
+          background: "var(--fc-surface)",
+          border: "1px solid var(--fc-border)",
           borderRadius: "6px",
-          color: "var(--foreground)",
+          color: "var(--fc-text)",
           fontSize: "13px",
           fontWeight: 600,
           textAlign: "left",
@@ -67,14 +67,14 @@ export function BotSelector({ selectedBotId, onSelectBot, platformFilter }: BotS
           transition: "all 0.2s",
         }}
         onMouseEnter={(e) => {
-          if (!loading) e.currentTarget.style.borderColor = "var(--cyan-dim)";
+          if (!loading) e.currentTarget.style.borderColor = "var(--fc-accent-wash)";
         }}
         onMouseLeave={(e) => {
-          if (!loading) e.currentTarget.style.borderColor = "var(--border)";
+          if (!loading) e.currentTarget.style.borderColor = "var(--fc-border)";
         }}
       >
         <div style={{ background: "var(--surface-hover)", padding: "2px", borderRadius: "4px" }}>
-          <Bot className="w-3.5 h-3.5 text-[var(--foreground)]" />
+          <Bot className="w-3.5 h-3.5 text-[var(--fc-text)]" />
         </div>
         <span style={{ flex: 1, textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
           {loading
@@ -83,7 +83,7 @@ export function BotSelector({ selectedBotId, onSelectBot, platformFilter }: BotS
             ? selectedBot.name
             : "Bot (id)..."}
         </span>
-        <ChevronDown className="w-4 h-4 text-[var(--text-secondary)]" />
+        <ChevronDown className="w-4 h-4 text-[var(--fc-text-secondary)]" />
       </button>
 
       {isOpen && (
@@ -98,7 +98,7 @@ export function BotSelector({ selectedBotId, onSelectBot, platformFilter }: BotS
               top: "100%",
               left: 0,
               marginTop: "4px",
-              background: "var(--surface)",
+              background: "var(--fc-surface)",
               
               border: "1px solid var(--border-strong)",
               borderRadius: "8px",
@@ -107,7 +107,7 @@ export function BotSelector({ selectedBotId, onSelectBot, platformFilter }: BotS
               width: "300px",
               display: "flex",
               flexDirection: "column",
-              color: "var(--foreground)",
+              color: "var(--fc-text)",
               overflow: "hidden",
             }}
           >
@@ -118,12 +118,12 @@ export function BotSelector({ selectedBotId, onSelectBot, platformFilter }: BotS
                   alignItems: "center",
                   gap: "8px",
                   padding: "8px 12px",
-                  border: "1px solid var(--border)",
+                  border: "1px solid var(--fc-border)",
                   borderRadius: "4px",
                   background: "var(--surface-hover)",
                 }}
               >
-                <Search className="w-4 h-4 text-[var(--text-muted)]" />
+                <Search className="w-4 h-4 text-[var(--fc-text-muted)]" />
                 <input
                   type="text"
                   placeholder="Buscar bot por nombre o id..."
@@ -132,7 +132,7 @@ export function BotSelector({ selectedBotId, onSelectBot, platformFilter }: BotS
                   style={{
                     background: "none",
                     border: "none",
-                    color: "var(--foreground)",
+                    color: "var(--fc-text)",
                     fontSize: "13px",
                     outline: "none",
                     width: "100%",
@@ -143,7 +143,7 @@ export function BotSelector({ selectedBotId, onSelectBot, platformFilter }: BotS
 
             <div style={{ overflowY: "auto", maxHeight: "250px", padding: "8px" }} className="custom-scrollbar">
               {displayedBots.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "16px", color: "var(--text-secondary)", fontSize: "12px" }}>
+                <div style={{ textAlign: "center", padding: "16px", color: "var(--fc-text-secondary)", fontSize: "12px" }}>
                   No se encontraron bots.
                 </div>
               ) : (
@@ -164,7 +164,7 @@ export function BotSelector({ selectedBotId, onSelectBot, platformFilter }: BotS
                         padding: "10px 12px",
                         borderRadius: "8px",
                         background: isSelected ? "rgba(0,129,251,0.15)" : "transparent",
-                        color: "var(--foreground)",
+                        color: "var(--fc-text)",
                         border: "none",
                         cursor: "pointer",
                         textAlign: "left",
@@ -189,13 +189,13 @@ export function BotSelector({ selectedBotId, onSelectBot, platformFilter }: BotS
                           flexShrink: 0,
                         }}
                       >
-                        <Bot className="w-4 h-4 text-[var(--text-secondary)]" />
+                        <Bot className="w-4 h-4 text-[var(--fc-text-secondary)]" />
                       </div>
                       <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
                         <div style={{ fontWeight: 600, fontSize: "13px", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
                           {bot.name}
                         </div>
-                        <div style={{ fontSize: "11px", color: "var(--text-secondary)" }}>ID: {bot.externalId}</div>
+                        <div style={{ fontSize: "11px", color: "var(--fc-text-secondary)" }}>ID: {bot.externalId}</div>
                       </div>
                     </button>
                   );

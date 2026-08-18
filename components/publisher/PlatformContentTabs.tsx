@@ -60,7 +60,7 @@ export function PlatformContentTabs({
             border: !enabled
               ? "1px solid var(--hairline)"
               : "1px solid rgba(255,255,255,0.06)",
-            color: !enabled ? "var(--foreground)" : "var(--text-muted)",
+            color: !enabled ? "var(--fc-text)" : "var(--fc-text-muted)",
             fontSize: 12,
             fontWeight: 500,
             cursor: "pointer",
@@ -82,7 +82,7 @@ export function PlatformContentTabs({
             border: enabled
               ? "1px solid rgba(59,130,246,0.3)"
               : "1px solid rgba(255,255,255,0.06)",
-            color: enabled ? "var(--cyan)" : "var(--text-muted)",
+            color: enabled ? "var(--fc-accent)" : "var(--fc-text-muted)",
             fontSize: 12,
             fontWeight: 500,
             cursor: "pointer",
@@ -119,7 +119,7 @@ export function PlatformContentTabs({
                   activePlatform === "facebook"
                     ? "2px solid #1877f2"
                     : "2px solid transparent",
-                color: activePlatform === "facebook" ? "var(--cyan)" : "var(--text-muted)",
+                color: activePlatform === "facebook" ? "var(--fc-accent)" : "var(--fc-text-muted)",
                 fontSize: 12,
                 fontWeight: activePlatform === "facebook" ? 600 : 500,
                 cursor: "pointer",
@@ -143,7 +143,7 @@ export function PlatformContentTabs({
                   activePlatform === "instagram"
                     ? "2px solid #E1306C"
                     : "2px solid transparent",
-                color: activePlatform === "instagram" ? "#bc5fb2" : "var(--text-muted)",
+                color: activePlatform === "instagram" ? "#bc5fb2" : "var(--fc-text-muted)",
                 fontSize: 12,
                 fontWeight: activePlatform === "instagram" ? 600 : 500,
                 cursor: "pointer",
@@ -174,7 +174,7 @@ export function PlatformContentTabs({
                 outline: "none",
                 resize: "none",
                 padding: "14px 0",
-                color: "var(--foreground)",
+                color: "var(--fc-text)",
                 fontSize: 14,
                 lineHeight: 1.6,
                 fontFamily: "var(--font-sans)",
@@ -197,10 +197,10 @@ export function PlatformContentTabs({
                 fontSize: 11,
                 fontWeight: 500,
                 color: isOverLimit
-                  ? "var(--red)"
+                  ? "var(--fc-danger)"
                   : isNearLimit
-                  ? "var(--amber)"
-                  : "var(--text-muted)",
+                  ? "var(--fc-warning)"
+                  : "var(--fc-text-muted)",
               }}
             >
               {charCount.toLocaleString()} / {charLimit.toLocaleString()}
@@ -220,10 +220,10 @@ export function PlatformContentTabs({
                   height: "100%",
                   borderRadius: 2,
                   background: isOverLimit
-                    ? "var(--red)"
+                    ? "var(--fc-danger)"
                     : isNearLimit
-                    ? "var(--amber)"
-                    : "var(--cyan)",
+                    ? "var(--fc-warning)"
+                    : "var(--fc-accent)",
                   transition: "all 0.3s",
                 }}
               />

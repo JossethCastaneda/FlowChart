@@ -2,39 +2,24 @@
  * Catálogo de IAs de FlowChart — NODO PRINCIPAL de la capa de inteligencia.
  *
  * Metadatos ESTÁTICOS (sin secretos): etiqueta, fabricante, puntos fuertes, modelos
- * con COSTOS por millón de tokens y su RENDIMIENTO en la plataforma. El endpoint
- * `/api/crecimiento/providers` lo combina con `isConfigured()` (server-side)
- * para marcar cuáles tienen API key.
- *
- * Al contratar/seleccionar un modelo (PUT /api/workspace/ai-model →
- * extConfig.ariaGenerativeModel), `getWorkspaceAiProvider` lo aplica a TODO el
- * sistema: Aria Copilot (chat), Aria Insights, GridIA (parrillas multimodales) y
- * cualquier módulo nuevo que use la capa `lib/ai`.
- *
- * cualquier módulo nuevo que use la capa `lib/ai`.
- *
- * Precios: USD por 1M de tokens (Costo referencial basado en tarifas públicas del 
- * proveedor, actualizadas a Jun 2026).
+ * con COSTOS por millón de tokens y su RENDIMIENTO en la plataforma.
  */
 
 import type { ProviderId } from "./types";
+import type { ModelCapability } from "./capabilities";
 
 export interface CatalogModel {
+  /** Identificador interno en la BD/UI de FlowChart */
   id: string;
+  /** Identificador REAL para el API del proveedor (ej. gemini-1.5-pro-latest) */
+  providerModelId: string;
   label: string;
   note: string;
-  /** USD por 1 millón de tokens de entrada. */
-  inputPerM: number;
-  /** USD por 1 millón de tokens de salida. */
-  outputPerM: number;
   /** Potencia relativa 1–5 (capacidad de razonamiento/calidad de salida). */
   power: 1 | 2 | 3 | 4 | 5;
-  /**
-   * Rendimiento en la plataforma (texto ejecutivo). La IA contratada potencia
-   * TODOS los módulos por igual; este texto describe el perfil del modelo
-   * (velocidad, profundidad, costo), no módulos específicos.
-   */
   performance: string;
+  /** Capacidades soportadas por este modelo */
+  capabilities: ModelCapability[];
 }
 
 export interface CatalogProvider {
@@ -51,7 +36,7 @@ export interface CatalogProvider {
   envVar: string;
 }
 
-export const DEFAULT_MODEL = "gemini-2.5-flash";
+export const DEFAULT_MODEL = "gemini-1.5-flash"; // Realigned to real models
 
 export const AI_CATALOG: CatalogProvider[] = [
   {
@@ -66,37 +51,25 @@ export const AI_CATALOG: CatalogProvider[] = [
       "Multimodal (texto e imágenes: analiza brandbooks en GridIA)",
     ],
     accent: "from-blue-500 to-cyan-400",
-    recommendedModel: "gemini-2.5-flash",
+    recommendedModel: "gemini-1.5-flash",
     models: [
       {
-        id: "gemini-2.5-flash",
-        label: "Gemini 2.5 Flash",
+        id: "gemini-1.5-flash",
+        providerModelId: "gemini-1.5-flash-latest",
+        label: "Gemini 1.5 Flash",
         note: "Rápido y económico (recomendado)",
-        inputPerM: 0.3,
-        outputPerM: 2.5,
         power: 3,
-        performance:
-          "Respuestas casi instantáneas en toda la plataforma; ideal para la operación diaria de alto volumen a costo muy bajo.",
+        performance: "Respuestas casi instantáneas en toda la plataforma; ideal para la operación diaria.",
+        capabilities: ["text", "structured_output", "vision", "tool_calling", "long_context", "streaming"],
       },
       {
-        id: "gemini-2.5-pro",
-        label: "Gemini 2.5 Pro",
+        id: "gemini-1.5-pro",
+        providerModelId: "gemini-1.5-pro-latest",
+        label: "Gemini 1.5 Pro",
         note: "Más capacidad, algo más lento",
-        inputPerM: 1.25,
-        outputPerM: 10,
         power: 4,
-        performance:
-          "Mayor profundidad de análisis en tareas complejas, manteniendo fluidez en toda la plataforma.",
-      },
-      {
-        id: "gemini-2.5-flash-lite",
-        label: "Gemini 2.5 Flash-Lite",
-        note: "El más barato para alto volumen",
-        inputPerM: 0.1,
-        outputPerM: 0.4,
-        power: 2,
-        performance:
-          "El costo más bajo del catálogo; rendimiento ágil para flujos masivos y repetitivos en toda la plataforma.",
+        performance: "Mayor profundidad de análisis en tareas complejas.",
+        capabilities: ["text", "structured_output", "vision", "tool_calling", "long_context", "reasoning", "streaming"],
       },
     ],
     envVar: "GEMINI_API_KEY",
@@ -113,67 +86,34 @@ export const AI_CATALOG: CatalogProvider[] = [
       "Buen balance calidad / velocidad",
     ],
     accent: "from-emerald-500 to-teal-400",
-    recommendedModel: "gpt-4.1",
+    recommendedModel: "gpt-4o",
     models: [
       {
-        id: "gpt-4.1",
-        label: "GPT-4.1",
-        note: "Equilibrado (recomendado)",
-        inputPerM: 2,
-        outputPerM: 8,
-        power: 4,
-        performance:
-          "Equilibrio sólido entre razonamiento y velocidad; rendimiento consistente en todos los flujos de la plataforma.",
-      },
-      {
-        id: "gpt-4.1-mini",
-        label: "GPT-4.1 mini",
-        note: "Calidad alta a bajo costo",
-        inputPerM: 0.4,
-        outputPerM: 1.6,
-        power: 3,
-        performance:
-          "Alta calidad a una fracción del costo; fluido en el uso intensivo diario de toda la plataforma.",
-      },
-      {
-        id: "gpt-4.1-nano",
-        label: "GPT-4.1 nano",
-        note: "El más rápido y barato de OpenAI",
-        inputPerM: 0.1,
-        outputPerM: 0.4,
-        power: 2,
-        performance:
-          "El más veloz de OpenAI; óptimo para tareas cortas y clasificación a gran escala en la plataforma.",
-      },
-      {
         id: "gpt-4o",
+        providerModelId: "gpt-4o",
         label: "GPT-4o",
-        note: "Multimodal y rápido",
-        inputPerM: 2.5,
-        outputPerM: 10,
+        note: "Equilibrado (recomendado)",
         power: 4,
-        performance:
-          "Multimodal y rápido; sobresale analizando imágenes y documentos en cualquier flujo de la plataforma.",
+        performance: "Equilibrio sólido entre razonamiento y velocidad.",
+        capabilities: ["text", "structured_output", "vision", "tool_calling", "streaming"],
       },
       {
         id: "gpt-4o-mini",
+        providerModelId: "gpt-4o-mini",
         label: "GPT-4o mini",
         note: "Multimodal económico",
-        inputPerM: 0.15,
-        outputPerM: 0.6,
-        power: 2,
-        performance:
-          "Multimodal económico; desempeño general sólido con costos contenidos en toda la plataforma.",
+        power: 3,
+        performance: "Alta calidad a una fracción del costo.",
+        capabilities: ["text", "structured_output", "vision", "tool_calling", "streaming"],
       },
       {
-        id: "o4-mini",
-        label: "o4-mini",
-        note: "Razonamiento, económico",
-        inputPerM: 1.1,
-        outputPerM: 4.4,
-        power: 3,
-        performance:
-          "Razonamiento estructurado a bajo costo; destaca en análisis y toma de decisiones en la plataforma.",
+        id: "o1-mini",
+        providerModelId: "o1-mini",
+        label: "o1-mini",
+        note: "Razonamiento estructurado",
+        power: 5,
+        performance: "Razonamiento profundo para resolución de problemas complejos.",
+        capabilities: ["text", "reasoning", "streaming"], // usually no tool_calling/structured_output for o1-mini in some APIs, mapping conservatively
       },
     ],
     envVar: "OPENAI_API_KEY",
@@ -190,37 +130,34 @@ export const AI_CATALOG: CatalogProvider[] = [
       "Fuerte en tareas agénticas y contexto largo",
     ],
     accent: "from-orange-500 to-amber-400",
-    recommendedModel: "claude-sonnet-4-6",
+    recommendedModel: "claude-3-5-sonnet",
     models: [
       {
-        id: "claude-opus-4-8",
-        label: "Claude Opus 4.8",
+        id: "claude-3-opus",
+        providerModelId: "claude-3-opus-20240229",
+        label: "Claude 3 Opus",
         note: "Máxima capacidad",
-        inputPerM: 5,
-        outputPerM: 25,
         power: 5,
-        performance:
-          "La máxima capacidad del catálogo; profundidad y criterio superiores en cada rincón de la plataforma.",
+        performance: "La máxima capacidad del catálogo; profundidad y criterio superiores.",
+        capabilities: ["text", "vision", "tool_calling", "long_context", "streaming"],
       },
       {
-        id: "claude-sonnet-4-6",
-        label: "Claude Sonnet 4.6",
+        id: "claude-3-5-sonnet",
+        providerModelId: "claude-3-5-sonnet-20240620",
+        label: "Claude 3.5 Sonnet",
         note: "Balance costo/calidad (recomendado)",
-        inputPerM: 3,
-        outputPerM: 15,
         power: 4,
-        performance:
-          "Análisis matizado y redacción impecable; rendimiento premium constante en toda la plataforma.",
+        performance: "Análisis matizado y velocidad superior.",
+        capabilities: ["text", "vision", "tool_calling", "long_context", "structured_output", "streaming"],
       },
       {
-        id: "claude-haiku-4-5",
-        label: "Claude Haiku 4.5",
+        id: "claude-3-haiku",
+        providerModelId: "claude-3-haiku-20240307",
+        label: "Claude 3 Haiku",
         note: "Rápido y económico",
-        inputPerM: 1,
-        outputPerM: 5,
         power: 3,
-        performance:
-          "Rápido y confiable; excelente relación velocidad-calidad para la operación completa de la plataforma.",
+        performance: "Rápido y confiable; excelente relación velocidad-calidad.",
+        capabilities: ["text", "vision", "tool_calling", "streaming"],
       },
     ],
     envVar: "ANTHROPIC_API_KEY",

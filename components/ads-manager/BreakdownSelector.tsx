@@ -44,10 +44,10 @@ export function BreakdownSelector({ selectedBreakdown, onChange }: BreakdownSele
           alignItems: "center",
           gap: "6px",
           padding: "6px 12px",
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
+          background: "var(--fc-surface)",
+          border: "1px solid var(--fc-border)",
           borderRadius: "6px",
-          color: "var(--text-secondary)",
+          color: "var(--fc-text-secondary)",
           fontSize: "11px",
           fontWeight: 600,
           cursor: "pointer",
@@ -58,8 +58,8 @@ export function BreakdownSelector({ selectedBreakdown, onChange }: BreakdownSele
           e.currentTarget.style.color = "white";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = "var(--border)";
-          e.currentTarget.style.color = "var(--text-secondary)";
+          e.currentTarget.style.borderColor = "var(--fc-border)";
+          e.currentTarget.style.color = "var(--fc-text-secondary)";
         }}
       >
         <BarChart3 className="w-3.5 h-3.5" />
@@ -79,7 +79,7 @@ export function BreakdownSelector({ selectedBreakdown, onChange }: BreakdownSele
               top: "100%",
               right: 0,
               marginTop: "4px",
-              background: "var(--surface)",
+              background: "var(--fc-surface)",
               
               border: "1px solid var(--border-strong)",
               borderRadius: "8px",
@@ -105,7 +105,7 @@ export function BreakdownSelector({ selectedBreakdown, onChange }: BreakdownSele
                     borderRadius: "4px",
                     background: isSelected ? "rgba(0,129,251,0.15)" : "transparent",
                     border: "none",
-                    color: isSelected ? "var(--cyan)" : "var(--text-secondary)",
+                    color: isSelected ? "var(--fc-accent)" : "var(--fc-text-secondary)",
                     fontSize: "11px",
                     fontWeight: isSelected ? 600 : 500,
                     textAlign: "left",

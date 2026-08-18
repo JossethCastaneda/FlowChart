@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
 
   const containerStyle: React.CSSProperties = {
     minHeight: "100vh",
-    background: "var(--background)",
+    background: "var(--fc-bg)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -55,7 +55,7 @@ export default function ForgotPasswordPage() {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: "var(--surface)", 
+    background: "var(--fc-surface)", 
     border: "1px solid rgba(91,155,255, 0.1)",
     borderRadius: "16px",
     padding: "40px",
@@ -66,10 +66,10 @@ export default function ForgotPasswordPage() {
   const inputStyle: React.CSSProperties = {
     width: "100%",
     padding: "12px 16px",
-    background: "var(--surface)", 
+    background: "var(--fc-surface)", 
     border: "1px solid var(--border-strong)",
     borderRadius: "8px",
-    color: "var(--foreground)",
+    color: "var(--fc-text)",
     fontSize: "14px",
     outline: "none",
     marginBottom: "16px",
@@ -101,19 +101,19 @@ export default function ForgotPasswordPage() {
           {devResetUrl ? (
             // ── Modo desarrollo: mostrar el enlace directamente ──────────────
             <div>
-              <p style={{ color: "var(--text-secondary)", textAlign: "center", fontSize: "14px", lineHeight: "1.6", marginBottom: "20px" }}>
+              <p style={{ color: "var(--fc-text-secondary)", textAlign: "center", fontSize: "14px", lineHeight: "1.6", marginBottom: "20px" }}>
                 El servicio de email no está configurado en este entorno.
                 Usa el siguiente enlace para restablecer la contraseña:
               </p>
               <div style={{
-                background: "var(--surface)",
+                background: "var(--fc-surface)",
                 border: "1px solid rgba(91,155,255, 0.2)",
                 borderRadius: "8px",
                 padding: "16px",
                 marginBottom: "16px",
                 wordBreak: "break-all",
               }}>
-                <p style={{ color: "var(--text-muted)", fontSize: "10px", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                <p style={{ color: "var(--fc-text-muted)", fontSize: "10px", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                   Enlace de reset (expira en 1 hora)
                 </p>
                 <a
@@ -149,13 +149,13 @@ export default function ForgotPasswordPage() {
             </div>
           ) : (
             // ── Modo producción: instrucciones de email ──────────────────────
-            <p style={{ color: "var(--text-secondary)", textAlign: "center", fontSize: "14px", lineHeight: "1.6" }}>
-              Si <strong style={{ color: "var(--foreground)" }}>{email}</strong> está registrado,
+            <p style={{ color: "var(--fc-text-secondary)", textAlign: "center", fontSize: "14px", lineHeight: "1.6" }}>
+              Si <strong style={{ color: "var(--fc-text)" }}>{email}</strong> está registrado,
               recibirás un enlace para restablecer tu contraseña.
             </p>
           )}
 
-          <p style={{ color: "var(--text-muted)", textAlign: "center", fontSize: "12px", marginTop: "16px" }}>
+          <p style={{ color: "var(--fc-text-muted)", textAlign: "center", fontSize: "12px", marginTop: "16px" }}>
             El enlace expira en 1 hora.
           </p>
           <div style={{ textAlign: "center", marginTop: "24px" }}>
@@ -182,7 +182,7 @@ export default function ForgotPasswordPage() {
           <FlowChartLogo size="lg" />
         </div>
         <p style={{
-          color: "var(--text-secondary)",
+          color: "var(--fc-text-secondary)",
           fontSize: "14px",
           textAlign: "center",
           marginBottom: "32px",
@@ -201,7 +201,7 @@ export default function ForgotPasswordPage() {
           />
 
           {error && (
-            <p style={{ color: "var(--red)", fontSize: "12px", margin: "-8px 0 12px" }}>
+            <p style={{ color: "var(--fc-danger)", fontSize: "12px", margin: "-8px 0 12px" }}>
               {error}
             </p>
           )}

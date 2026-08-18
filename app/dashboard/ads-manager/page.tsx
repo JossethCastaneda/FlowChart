@@ -1207,8 +1207,8 @@ function AdsManagerContent() {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            background: "linear-gradient(180deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%)",
-            border: "1px solid rgba(255, 255, 255, 0.05)",
+            background: "var(--fc-surface-raised)",
+            border: "1px solid var(--fc-border)",
             borderRadius: "16px",
             boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
             position: "relative",
@@ -1409,7 +1409,7 @@ function AdsManagerContent() {
           <button
             onClick={() => setShowCreateAdSet(true)}
             title="Crear un conjunto de anuncios (se crea en pausa)"
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "var(--fc-surface)", border: "1px solid rgba(139,141,242,0.35)", color: "var(--purple)", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "var(--fc-surface)", border: "1px solid rgba(139,141,242,0.35)", color: "var(--fc-module-aria)", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
           >
             <Plus style={{ width: 14, height: 14 }} /> Crear conjunto
           </button>
@@ -1549,7 +1549,7 @@ function AdsManagerContent() {
         level={activeLevel}
       />
       {error && (
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 10px", background: "var(--red-dim)", border: "1px solid var(--red-dim)", borderRadius: "4px", color: "var(--fc-danger)", fontSize: "10px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 10px", background: "var(--fc-danger-wash)", border: "1px solid var(--fc-danger-wash)", borderRadius: "4px", color: "var(--fc-danger)", fontSize: "10px" }}>
           <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
           <span>{error}</span>
         </div>

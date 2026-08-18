@@ -82,7 +82,7 @@ export function MyTasksView({ tasks, members, lang, onTaskClick, currentUser }: 
                 padding: "12px 16px", borderRadius: 8, background: "var(--fc-surface)", border: "1px solid var(--fc-border)",
                 cursor: "pointer", transition: "all 0.2s ease"
               }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = "var(--fc-border-hover)"}
+              onMouseEnter={e => e.currentTarget.style.borderColor = "var(--border-strong)"}
               onMouseLeave={e => e.currentTarget.style.borderColor = "var(--fc-border)"}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>

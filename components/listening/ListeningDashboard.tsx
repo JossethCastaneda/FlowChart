@@ -124,7 +124,7 @@ function MetricCard({
   return (
     <div style={{
       background: "var(--surface-1)",
-      border: "1px solid var(--border)",
+      border: "1px solid var(--fc-border)",
       borderRadius: 12,
       padding: "20px 24px",
       display: "flex",
@@ -135,10 +135,10 @@ function MetricCard({
         <div style={{ background: `${color}18`, borderRadius: 8, padding: 6 }}>
           <Icon size={16} color={color} />
         </div>
-        <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{label}</span>
+        <span style={{ fontSize: 13, color: "var(--fc-text-secondary)" }}>{label}</span>
       </div>
       <span style={{ fontSize: 28, fontWeight: 700, color: "var(--text-primary)" }}>{value}</span>
-      {sub && <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{sub}</span>}
+      {sub && <span style={{ fontSize: 12, color: "var(--fc-text-secondary)" }}>{sub}</span>}
     </div>
   );
 }
@@ -184,7 +184,7 @@ function TopicBubble({ topic }: { topic: SearchResult["topics"][0] }) {
         flexShrink: 0,
         fontSize: Math.max(10, Math.min(18, baseSize / 6)),
         fontWeight: 700,
-        color: "var(--foreground)",
+        color: "var(--fc-text)",
         textAlign: "center",
         padding: "0 6px",
         wordBreak: "break-word",
@@ -217,7 +217,7 @@ function ActivityHeatmap({
             <div key={d} style={{
               height: 28,
               fontSize: 12,
-              color: "var(--text-secondary)",
+              color: "var(--fc-text-secondary)",
               display: "flex",
               alignItems: "center",
               paddingRight: 8,
@@ -233,7 +233,7 @@ function ActivityHeatmap({
             {hours.map(h => (
               <div key={h} style={{
                 width: 28, fontSize: 10,
-                color: "var(--text-secondary)",
+                color: "var(--fc-text-secondary)",
                 textAlign: "center",
               }}>{h}h</div>
             ))}
@@ -255,12 +255,12 @@ function ActivityHeatmap({
                       height: 28,
                       borderRadius: 4,
                       background: val === 0
-                        ? "var(--border)"
+                        ? "var(--fc-border)"
                         : `rgba(139, 92, 246, ${0.2 + intensity * 0.8})`,
                       cursor: "default",
                       transition: "transform 0.15s",
                       fontSize: val > 0 ? 9 : undefined,
-                      color: "var(--foreground)",
+                      color: "var(--fc-text)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -346,12 +346,12 @@ export function ListeningDashboard() {
     return (
       <div style={{
         background: "var(--surface-2)",
-        border: "1px solid var(--border)",
+        border: "1px solid var(--fc-border)",
         borderRadius: 8,
         padding: "8px 12px",
         fontSize: 12,
       }}>
-        <p style={{ color: "var(--text-secondary)", marginBottom: 4 }}>{label}</p>
+        <p style={{ color: "var(--fc-text-secondary)", marginBottom: 4 }}>{label}</p>
                 {payload.map((p: any) => (
           <p key={p.dataKey} style={{ color: p.color, margin: "2px 0" }}>
             {p.name}: <strong>{p.value}</strong>
@@ -374,14 +374,14 @@ export function ListeningDashboard() {
       {/* ── Search bar ─────────────────────────────────────── */}
       <div style={{
         background: "var(--surface-1)",
-        border: "1px solid var(--border)",
+        border: "1px solid var(--fc-border)",
         borderRadius: 16,
         padding: "24px 28px",
       }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6, color: "var(--text-primary)" }}>
           {lang === "es" ? "Búsqueda de Keywords" : "Keyword Search"}
         </h2>
-        <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 20 }}>
+        <p style={{ fontSize: 14, color: "var(--fc-text-secondary)", marginBottom: 20 }}>
           {lang === "es"
             ? "Analiza el impacto de una palabra clave en tu ecosistema de redes sociales con inteligencia artificial."
             : "Analyze a keyword's impact in your social media ecosystem with AI intelligence."}
@@ -402,7 +402,7 @@ export function ListeningDashboard() {
                   border: "none",
                   cursor: "pointer",
                   background: period === p ? "var(--accent)" : "transparent",
-                  color: period === p ? "#fff" : "var(--text-secondary)",
+                  color: period === p ? "#fff" : "var(--fc-text-secondary)",
                   transition: "all 0.2s",
                 }}
               >{p.toUpperCase()}</button>
@@ -413,7 +413,7 @@ export function ListeningDashboard() {
           <div style={{ flex: 1, minWidth: 260, position: "relative" }}>
             <Search size={16} style={{
               position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)",
-              color: "var(--text-secondary)",
+              color: "var(--fc-text-secondary)",
             }} />
             <input
               ref={inputRef}
@@ -425,7 +425,7 @@ export function ListeningDashboard() {
                 width: "100%",
                 padding: "10px 14px 10px 38px",
                 borderRadius: 8,
-                border: "1px solid var(--border)",
+                border: "1px solid var(--fc-border)",
                 background: "var(--surface-2)",
                 color: "var(--text-primary)",
                 fontSize: 14,
@@ -443,7 +443,7 @@ export function ListeningDashboard() {
               padding: "10px 24px",
               borderRadius: 8,
               background: "linear-gradient(135deg, #7c6bd6, #9b7be8)",
-              color: "var(--foreground)",
+              color: "var(--fc-text)",
               fontWeight: 600,
               fontSize: 14,
               border: "none",
@@ -465,7 +465,7 @@ export function ListeningDashboard() {
         {/* Suggestions */}
         {!result && !loading && (
           <div style={{ marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{lang === "es" ? "Prueba con:" : "Try:"}</span>
+            <span style={{ fontSize: 12, color: "var(--fc-text-secondary)" }}>{lang === "es" ? "Prueba con:" : "Try:"}</span>
             {["tu marca", "producto", "#hashtag", "@competidor"].map(s => (
               <button
                 key={s}
@@ -474,9 +474,9 @@ export function ListeningDashboard() {
                   fontSize: 12,
                   padding: "4px 10px",
                   borderRadius: 99,
-                  border: "1px solid var(--border)",
+                  border: "1px solid var(--fc-border)",
                   background: "transparent",
-                  color: "var(--text-secondary)",
+                  color: "var(--fc-text-secondary)",
                   cursor: "pointer",
                 }}
               >{s}</button>
@@ -505,7 +505,7 @@ export function ListeningDashboard() {
           {[1, 2, 3].map(i => (
             <div key={i} style={{
               background: "var(--surface-1)",
-              border: "1px solid var(--border)",
+              border: "1px solid var(--fc-border)",
               borderRadius: 12,
               height: 120,
               animation: "pulse 1.5s ease-in-out infinite",
@@ -523,21 +523,21 @@ export function ListeningDashboard() {
             width: 200,
             flexShrink: 0,
             background: "var(--surface-1)",
-            border: "1px solid var(--border)",
+            border: "1px solid var(--fc-border)",
             borderRadius: 12,
             padding: "12px 8px",
             height: "fit-content",
             position: "sticky",
             top: 80,
           }}>
-            <div style={{ padding: "4px 8px 12px", borderBottom: "1px solid var(--border)", marginBottom: 8 }}>
-              <p style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 600 }}>
+            <div style={{ padding: "4px 8px 12px", borderBottom: "1px solid var(--fc-border)", marginBottom: 8 }}>
+              <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", fontWeight: 600 }}>
                 {lang === "es" ? "BUSCANDO" : "SEARCHING"}
               </p>
               <p style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginTop: 2 }}>
                 {result.keyword}
               </p>
-              <p style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>
+              <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", marginTop: 2 }}>
                 {result.metrics.mentions} {lang === "es" ? "menciones" : "mentions"}
               </p>
             </div>
@@ -556,7 +556,7 @@ export function ListeningDashboard() {
                   border: "none",
                   cursor: "pointer",
                   background: activeSection === s.id ? "var(--accent)18" : "transparent",
-                  color: activeSection === s.id ? "var(--accent)" : "var(--text-secondary)",
+                  color: activeSection === s.id ? "var(--accent)" : "var(--fc-text-secondary)",
                   fontWeight: activeSection === s.id ? 600 : 400,
                   fontSize: 13,
                   textAlign: "left",
@@ -569,8 +569,8 @@ export function ListeningDashboard() {
               </button>
             ))}
 
-            <div style={{ borderTop: "1px solid var(--border)", marginTop: 8, paddingTop: 8, padding: "8px 12px 4px" }}>
-              <p style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+            <div style={{ borderTop: "1px solid var(--fc-border)", marginTop: 8, paddingTop: 8, padding: "8px 12px 4px" }}>
+              <p style={{ fontSize: 11, color: "var(--fc-text-secondary)" }}>
                 {result.sources.facebook} Facebook<br />
                 {result.sources.instagram} Instagram
               </p>
@@ -618,7 +618,7 @@ export function ListeningDashboard() {
                 {/* Volume over time */}
                 <div style={{
                   background: "var(--surface-1)",
-                  border: "1px solid var(--border)",
+                  border: "1px solid var(--fc-border)",
                   borderRadius: 12,
                   padding: 24,
                 }}>
@@ -628,9 +628,9 @@ export function ListeningDashboard() {
                   {result.timeseries.some(t => t.count > 0) ? (
                     <ResponsiveContainer width="100%" height={220}>
                       <LineChart data={result.timeseries.map(t => ({ ...t, fecha: formatDate(t.date) }))}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                        <XAxis dataKey="fecha" tick={{ fontSize: 11, fill: "var(--text-secondary)" }} />
-                        <YAxis tick={{ fontSize: 11, fill: "var(--text-secondary)" }} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--fc-border)" />
+                        <XAxis dataKey="fecha" tick={{ fontSize: 11, fill: "var(--fc-text-secondary)" }} />
+                        <YAxis tick={{ fontSize: 11, fill: "var(--fc-text-secondary)" }} />
                                                 <Tooltip content={<CustomTooltip />} />
                         <Line
                           type="monotone"
@@ -662,7 +662,7 @@ export function ListeningDashboard() {
                   {/* Themes */}
                   <div style={{
                     background: "var(--surface-1)",
-                    border: "1px solid var(--border)",
+                    border: "1px solid var(--fc-border)",
                     borderRadius: 12,
                     padding: 24,
                   }}>
@@ -684,7 +684,7 @@ export function ListeningDashboard() {
 
                   <div style={{
                     background: "var(--surface-1)",
-                    border: "1px solid var(--border)",
+                    border: "1px solid var(--fc-border)",
                     borderRadius: 12,
                     padding: 24,
                   }}>
@@ -710,7 +710,7 @@ export function ListeningDashboard() {
                   {/* Donut */}
                   <div style={{
                     background: "var(--surface-1)",
-                    border: "1px solid var(--border)",
+                    border: "1px solid var(--fc-border)",
                     borderRadius: 12,
                     padding: 24,
                   }}>
@@ -737,7 +737,7 @@ export function ListeningDashboard() {
                       {pieData.map(p => (
                         <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <div style={{ width: 10, height: 10, borderRadius: 2, background: p.color, flexShrink: 0 }} />
-                          <span style={{ fontSize: 13, color: "var(--text-secondary)", flex: 1 }}>{p.name}</span>
+                          <span style={{ fontSize: 13, color: "var(--fc-text-secondary)", flex: 1 }}>{p.name}</span>
                           <span style={{ fontSize: 13, fontWeight: 700, color: p.color }}>{p.value}%</span>
                         </div>
                       ))}
@@ -747,7 +747,7 @@ export function ListeningDashboard() {
                   {/* Sentiment over time */}
                   <div style={{
                     background: "var(--surface-1)",
-                    border: "1px solid var(--border)",
+                    border: "1px solid var(--fc-border)",
                     borderRadius: 12,
                     padding: 24,
                   }}>
@@ -756,9 +756,9 @@ export function ListeningDashboard() {
                     </h3>
                     <ResponsiveContainer width="100%" height={200}>
                       <LineChart data={result.timeseries.map(t => ({ ...t, fecha: formatDate(t.date) }))}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                        <XAxis dataKey="fecha" tick={{ fontSize: 10, fill: "var(--text-secondary)" }} />
-                        <YAxis tick={{ fontSize: 10, fill: "var(--text-secondary)" }} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--fc-border)" />
+                        <XAxis dataKey="fecha" tick={{ fontSize: 10, fill: "var(--fc-text-secondary)" }} />
+                        <YAxis tick={{ fontSize: 10, fill: "var(--fc-text-secondary)" }} />
                                                 <Tooltip content={<CustomTooltip />} />
                         <Line type="monotone" dataKey="positive" name="Positivo" stroke="#34b77c" strokeWidth={2} dot={false} />
                         <Line type="monotone" dataKey="neutral" name="Neutral" stroke="#e0a83c" strokeWidth={2} dot={false} />
@@ -775,14 +775,14 @@ export function ListeningDashboard() {
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                 <div style={{
                   background: "var(--surface-1)",
-                  border: "1px solid var(--border)",
+                  border: "1px solid var(--fc-border)",
                   borderRadius: 12,
                   padding: 24,
                 }}>
                   <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 6, color: "var(--text-primary)" }}>
                     {lang === "es" ? "Mapa de Temas" : "Topic Map"}
                   </h3>
-                  <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 20 }}>
+                  <p style={{ fontSize: 13, color: "var(--fc-text-secondary)", marginBottom: 20 }}>
                     {lang === "es"
                       ? "Términos relacionados con tu keyword. El tamaño indica frecuencia; el color indica sentimiento."
                       : "Terms related to your keyword. Size = frequency, color = sentiment."}
@@ -817,13 +817,13 @@ export function ListeningDashboard() {
                   gap: 20,
                   padding: "12px 20px",
                   background: "var(--surface-1)",
-                  border: "1px solid var(--border)",
+                  border: "1px solid var(--fc-border)",
                   borderRadius: 10,
                 }}>
                   {Object.entries(SENTIMENT_COLORS).map(([k, v]) => (
                     <div key={k} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <div style={{ width: 12, height: 12, borderRadius: "50%", background: v }} />
-                      <span style={{ fontSize: 13, color: "var(--text-secondary)", textTransform: "capitalize" }}>
+                      <span style={{ fontSize: 13, color: "var(--fc-text-secondary)", textTransform: "capitalize" }}>
                         {k === "positive" ? "Positivo" : k === "negative" ? "Negativo" : "Neutral"}
                       </span>
                     </div>
@@ -838,18 +838,18 @@ export function ListeningDashboard() {
                 {/* Sort bar */}
                 <div style={{
                   background: "var(--surface-1)",
-                  border: "1px solid var(--border)",
+                  border: "1px solid var(--fc-border)",
                   borderRadius: 10,
                   padding: "12px 16px",
                   display: "flex",
                   alignItems: "center",
                   gap: 16,
                 }}>
-                  <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                  <span style={{ fontSize: 13, color: "var(--fc-text-secondary)" }}>
                     {result.posts.length} {lang === "es" ? "resultados" : "results"}
                   </span>
                   <div style={{ flex: 1 }} />
-                  <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                  <span style={{ fontSize: 13, color: "var(--fc-text-secondary)" }}>
                     {lang === "es" ? "Ordenar:" : "Sort:"}
                   </span>
                   {(["date", "engagement", "sentiment"] as const).map(s => (
@@ -860,7 +860,7 @@ export function ListeningDashboard() {
                         fontSize: 12, padding: "5px 12px", borderRadius: 6, border: "none",
                         cursor: "pointer",
                         background: postSort === s ? "var(--accent)" : "var(--surface-2)",
-                        color: postSort === s ? "#fff" : "var(--text-secondary)",
+                        color: postSort === s ? "#fff" : "var(--fc-text-secondary)",
                         fontWeight: postSort === s ? 600 : 400,
                       }}
                     >
@@ -890,14 +890,14 @@ export function ListeningDashboard() {
             {activeSection === "heatmap" && (
               <div style={{
                 background: "var(--surface-1)",
-                border: "1px solid var(--border)",
+                border: "1px solid var(--fc-border)",
                 borderRadius: 12,
                 padding: 24,
               }}>
                 <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 6, color: "var(--text-primary)" }}>
                   {lang === "es" ? "Pico de Actividad" : "Activity Peak"}
                 </h3>
-                <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 24 }}>
+                <p style={{ fontSize: 13, color: "var(--fc-text-secondary)", marginBottom: 24 }}>
                   {lang === "es"
                     ? "Distribución de menciones por día de la semana y hora del día."
                     : "Distribution of mentions by day of week and hour of day."}
@@ -919,7 +919,7 @@ export function ListeningDashboard() {
             {activeSection === "influencers" && (
               <div style={{
                 background: "var(--surface-1)",
-                border: "1px solid var(--border)",
+                border: "1px solid var(--fc-border)",
                 borderRadius: 12,
                 padding: 24,
               }}>
@@ -930,7 +930,7 @@ export function ListeningDashboard() {
                   </h3>
                   <span style={{
                     marginLeft: "auto",
-                    fontSize: 12, color: "var(--text-secondary)",
+                    fontSize: 12, color: "var(--fc-text-secondary)",
                     background: "var(--surface-2)",
                     padding: "3px 10px",
                     borderRadius: 99,
@@ -954,10 +954,10 @@ export function ListeningDashboard() {
                       gridTemplateColumns: "1fr 80px 100px 1fr 80px",
                       gap: 12,
                       padding: "8px 12px",
-                      borderBottom: "1px solid var(--border)",
+                      borderBottom: "1px solid var(--fc-border)",
                       fontSize: 11,
                       fontWeight: 700,
-                      color: "var(--text-secondary)",
+                      color: "var(--fc-text-secondary)",
                       textTransform: "uppercase",
                       letterSpacing: "0.05em",
                     }}>
@@ -976,7 +976,7 @@ export function ListeningDashboard() {
                           gridTemplateColumns: "1fr 80px 100px 1fr 80px",
                           gap: 12,
                           padding: "14px 12px",
-                          borderBottom: "1px solid var(--border)",
+                          borderBottom: "1px solid var(--fc-border)",
                           alignItems: "center",
                         }}
                       >
@@ -1028,7 +1028,7 @@ export function ListeningDashboard() {
                         </div>
 
                         {/* Interactions */}
-                        <span style={{ fontSize: 13, color: "var(--text-secondary)", textAlign: "center" }}>
+                        <span style={{ fontSize: 13, color: "var(--fc-text-secondary)", textAlign: "center" }}>
                           {formatNum(author.interactions)}
                         </span>
                       </div>
@@ -1045,7 +1045,7 @@ export function ListeningDashboard() {
       {!result && !loading && !error && (
         <div style={{
           background: "var(--surface-1)",
-          border: "1px solid var(--border)",
+          border: "1px solid var(--fc-border)",
           borderRadius: 16,
           padding: "60px 24px",
           textAlign: "center",
@@ -1054,7 +1054,7 @@ export function ListeningDashboard() {
           <h3 style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8 }}>
             {lang === "es" ? "Busca tu primera keyword" : "Search your first keyword"}
           </h3>
-          <p style={{ fontSize: 14, color: "var(--text-secondary)", maxWidth: 440, margin: "0 auto" }}>
+          <p style={{ fontSize: 14, color: "var(--fc-text-secondary)", maxWidth: 440, margin: "0 auto" }}>
             {lang === "es"
               ? "Escribe una palabra clave, #hashtag o @cuenta y obtén análisis de sentimiento, volumen de menciones y temas principales generados con IA."
               : "Type a keyword, #hashtag or @account and get AI-powered sentiment analysis, mention volume, and main topics."}
@@ -1069,7 +1069,7 @@ export function ListeningDashboard() {
             ].map(f => (
               <div key={f.icon} style={{ textAlign: "center", maxWidth: 120 }}>
                 <div style={{ fontSize: 28, marginBottom: 6 }}>{f.icon}</div>
-                <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{f.label}</div>
+                <div style={{ fontSize: 12, color: "var(--fc-text-secondary)" }}>{f.label}</div>
               </div>
             ))}
           </div>
@@ -1097,7 +1097,7 @@ function PostCard({ post }: { post: SearchResult["posts"][0] }) {
   return (
     <div style={{
       background: "var(--surface-1)",
-      border: "1px solid var(--border)",
+      border: "1px solid var(--fc-border)",
       borderRadius: 12,
       padding: 20,
       transition: "border-color 0.2s",
@@ -1123,10 +1123,10 @@ function PostCard({ post }: { post: SearchResult["posts"][0] }) {
               }}>
                 {post.platform}
               </span>
-              <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>·</span>
-              <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>{relativeTime(post.publishedAt)}</span>
-              <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>·</span>
-              <span style={{ fontSize: 11, color: "var(--text-secondary)", textTransform: "capitalize" }}>
+              <span style={{ fontSize: 11, color: "var(--fc-text-secondary)" }}>·</span>
+              <span style={{ fontSize: 11, color: "var(--fc-text-secondary)" }}>{relativeTime(post.publishedAt)}</span>
+              <span style={{ fontSize: 11, color: "var(--fc-text-secondary)" }}>·</span>
+              <span style={{ fontSize: 11, color: "var(--fc-text-secondary)", textTransform: "capitalize" }}>
                 {post.type}
               </span>
             </div>
@@ -1136,7 +1136,7 @@ function PostCard({ post }: { post: SearchResult["posts"][0] }) {
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <SentimentBadge sentiment={post.sentiment} />
           {post.url && (
-            <a href={post.url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }}>
+            <a href={post.url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--fc-text-secondary)" }}>
               <ExternalLink size={14} />
             </a>
           )}
@@ -1168,17 +1168,17 @@ function PostCard({ post }: { post: SearchResult["posts"][0] }) {
       {(post.likes > 0 || post.comments > 0 || post.shares > 0) && (
         <div style={{ display: "flex", gap: 16 }}>
           {post.likes > 0 && (
-            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "var(--text-secondary)" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "var(--fc-text-secondary)" }}>
               <Heart size={13} /> {formatNum(post.likes)}
             </span>
           )}
           {post.comments > 0 && (
-            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "var(--text-secondary)" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "var(--fc-text-secondary)" }}>
               <MessageCircle size={13} /> {formatNum(post.comments)}
             </span>
           )}
           {post.shares > 0 && (
-            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "var(--text-secondary)" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "var(--fc-text-secondary)" }}>
               <Share2 size={13} /> {formatNum(post.shares)}
             </span>
           )}
@@ -1200,7 +1200,7 @@ function EmptyState({ icon, message }: { icon: string; message: string }) {
       justifyContent: "center",
       padding: "40px 24px",
       textAlign: "center",
-      color: "var(--text-secondary)",
+      color: "var(--fc-text-secondary)",
       gap: 12,
     }}>
       <span style={{ fontSize: 36 }}>{icon}</span>

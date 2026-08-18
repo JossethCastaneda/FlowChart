@@ -1,17 +1,16 @@
 # Regla: Build seguro
 
-## Comando de build permitido
+## Build sin mutación de esquema
 
 El **único** comando de build aceptado es:
 
 ```bash
-SKIP_DB_SYNC=1 npx next build
+npm run build
 ```
 
-## Comandos de build bloqueados
-
-- `npm run build` — invoca `db-sync.mjs` que muta esquema remoto
-- `npx next build` (sin `SKIP_DB_SYNC=1`) — mismo problema
+Los scripts `build` y `release` solo generan el cliente y compilan. No deben
+invocar sincronización, deploy o push de esquema. `scripts/db-sync.mjs` falla
+cerrado y no abre conexiones.
 
 ## Verificación pre-build
 

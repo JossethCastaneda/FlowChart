@@ -77,25 +77,25 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
         onClick={e => e.stopPropagation()}
         style={{
           width: "100%", maxWidth: 500, padding: 24, borderRadius: 12,
-          background: "var(--foreground)", border: "1px solid var(--hairline)",
+          background: "var(--fc-text)", border: "1px solid var(--hairline)",
           display: "flex", flexDirection: "column", gap: 16,
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <Database size={18} style={{ color: "var(--emerald)" }} />
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>
+          <Database size={18} style={{ color: "var(--fc-success)" }} />
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--fc-text)", margin: 0 }}>
             Conectar CRM vía API
           </h3>
         </div>
         
-        <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", margin: 0, lineHeight: 1.5 }}>
           Configura un endpoint personalizado para importar resultados, sesiones e intenciones de tu bot o CRM.
           Tus credenciales se cifrarán de manera segura con AES-256.
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
           <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--fc-text-secondary)", marginBottom: 6 }}>
               <LinkIcon size={10} style={{ display: "inline", marginRight: 4 }} /> URL del API
             </label>
             <input
@@ -106,13 +106,13 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
               style={{
                 width: "100%", padding: "10px 12px", borderRadius: 8, fontSize: 13,
                 background: "var(--surface-hover)", border: "1px solid var(--hairline)",
-                color: "var(--foreground)", outline: "none"
+                color: "var(--fc-text)", outline: "none"
               }}
             />
           </div>
 
           <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--fc-text-secondary)", marginBottom: 6 }}>
               <Key size={10} style={{ display: "inline", marginRight: 4 }} /> Access Token (Bearer)
             </label>
             <input
@@ -123,13 +123,13 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
               style={{
                 width: "100%", padding: "10px 12px", borderRadius: 8, fontSize: 13,
                 background: "var(--surface-hover)", border: "1px solid var(--hairline)",
-                color: "var(--foreground)", outline: "none", fontFamily: "var(--font-mono)"
+                color: "var(--fc-text)", outline: "none", fontFamily: "var(--font-mono)"
               }}
             />
           </div>
 
           <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--fc-text-secondary)", marginBottom: 6 }}>
               <RefreshCw size={10} style={{ display: "inline", marginRight: 4 }} /> Refresh Token (Opcional)
             </label>
             <input
@@ -140,7 +140,7 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
               style={{
                 width: "100%", padding: "10px 12px", borderRadius: 8, fontSize: 13,
                 background: "var(--surface-hover)", border: "1px solid var(--hairline)",
-                color: "var(--foreground)", outline: "none", fontFamily: "var(--font-mono)"
+                color: "var(--fc-text)", outline: "none", fontFamily: "var(--font-mono)"
               }}
             />
           </div>
@@ -151,7 +151,7 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
             padding: "10px 14px", borderRadius: 6, fontSize: 12,
             background: testResult.success ? "rgba(16,185,129,0.1)" : "rgba(229,72,77,0.1)",
             border: `1px solid ${testResult.success ? "rgba(16,185,129,0.3)" : "rgba(229,72,77,0.3)"}`,
-            color: testResult.success ? "var(--emerald)" : "var(--red)"
+            color: testResult.success ? "var(--fc-success)" : "var(--fc-danger)"
           }}>
             {testResult.msg}
           </div>
@@ -164,7 +164,7 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
             style={{
               padding: "10px 16px", borderRadius: 6, fontSize: 12, fontWeight: 600,
               background: "var(--surface-hover)", border: "1px solid var(--hairline)",
-              color: "var(--foreground)", cursor: testing || !form.apiUrl || !form.token ? "not-allowed" : "pointer",
+              color: "var(--fc-text)", cursor: testing || !form.apiUrl || !form.token ? "not-allowed" : "pointer",
               display: "flex", alignItems: "center", gap: 6,
             }}
           >
@@ -178,7 +178,7 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
               style={{
                 padding: "10px 16px", borderRadius: 6, fontSize: 12,
                 background: "transparent", border: "1px solid var(--hairline)",
-                color: "var(--text-secondary)", cursor: "pointer",
+                color: "var(--fc-text-secondary)", cursor: "pointer",
               }}
             >
               Cancelar
@@ -190,7 +190,7 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
                 padding: "10px 20px", borderRadius: 6, fontSize: 12, fontWeight: 600,
                 background: form.apiUrl && form.token ? "rgba(16,185,129,0.15)" : "var(--row-hover)",
                 border: `1px solid ${form.apiUrl && form.token ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.06)"}`,
-                color: form.apiUrl && form.token ? "var(--emerald)" : "var(--text-secondary)",
+                color: form.apiUrl && form.token ? "var(--fc-success)" : "var(--fc-text-secondary)",
                 cursor: form.apiUrl && form.token && !saving ? "pointer" : "not-allowed",
                 display: "flex", alignItems: "center", gap: 6,
               }}

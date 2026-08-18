@@ -108,22 +108,22 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
   }
 
   const statusConfig = {
-    "on-track": { color: "var(--emerald)", bg: "rgba(52,211,153,0.06)", label: "On Track", icon: <Minus className="w-3.5 h-3.5" /> },
-    "underspending": { color: "var(--amber)", bg: "rgba(251,191,36,0.06)", label: "Sub-paceando", icon: <TrendingDown className="w-3.5 h-3.5" /> },
-    "overspending": { color: "var(--red)", bg: "rgba(229,72,77,0.06)", label: "Sobre-paceando", icon: <TrendingUp className="w-3.5 h-3.5" /> },
+    "on-track": { color: "var(--fc-success)", bg: "rgba(52,211,153,0.06)", label: "On Track", icon: <Minus className="w-3.5 h-3.5" /> },
+    "underspending": { color: "var(--fc-warning)", bg: "rgba(251,191,36,0.06)", label: "Sub-paceando", icon: <TrendingDown className="w-3.5 h-3.5" /> },
+    "overspending": { color: "var(--fc-danger)", bg: "rgba(229,72,77,0.06)", label: "Sobre-paceando", icon: <TrendingUp className="w-3.5 h-3.5" /> },
   };
   const status = statusConfig[chartData.paceStatus];
 
   return (
     <div style={{
       background: "var(--surface-hover)",
-      border: "1px solid var(--border)",
+      border: "1px solid var(--fc-border)",
       borderRadius: "8px",
       padding: "16px 20px",
     }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-        <span style={{ fontFamily: "var(--font-display)", fontSize: "10px", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--text-muted)" }}>
+        <span style={{ fontFamily: "var(--font-display)", fontSize: "10px", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--fc-text-muted)" }}>
           Budget Pacing
         </span>
         <div style={{
@@ -149,7 +149,7 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
         <PacingKPI
           label="Proyección"
           value={fmt$(chartData.projectedTotal)}
-          color={chartData.projectedOverUnder > 10 ? "var(--red)" : chartData.projectedOverUnder < -10 ? "var(--amber)" : "var(--emerald)"}
+          color={chartData.projectedOverUnder > 10 ? "var(--fc-danger)" : chartData.projectedOverUnder < -10 ? "var(--fc-warning)" : "var(--fc-success)"}
           subtext={`${chartData.projectedOverUnder > 0 ? "+" : ""}${chartData.projectedOverUnder.toFixed(0)}% vs budget`}
         />
       </div>
@@ -161,7 +161,7 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
             <ChartTheme />
             <XAxis
               dataKey="label"
-              tick={{ fontSize: 9, fill: "var(--text-muted)" }}
+              tick={{ fontSize: 9, fill: "var(--fc-text-muted)" }}
               axisLine={{ stroke: "rgba(255,255,255,0.09)" }}
               tickLine={false}
               interval="preserveStartEnd"
@@ -197,7 +197,7 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
             <Area
               type="monotone"
               dataKey="real"
-              stroke="var(--purple)"
+              stroke="var(--fc-module-aria)"
               fill="url(#colorPurpleArea)"
               strokeWidth={2.5}
               connectNulls={false}
@@ -206,7 +206,7 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
             <Area
               type="monotone"
               dataKey="projected"
-              stroke="var(--purple)"
+              stroke="var(--fc-module-aria)"
               strokeDasharray="6 3"
               fill="none"
               strokeWidth={1.5}
@@ -220,16 +220,16 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
       {/* Legend */}
       <div style={{ display: "flex", gap: "16px", marginTop: "8px", justifyContent: "center" }}>
         {[
-          { label: "Ritmo ideal", color: "var(--text-muted)", dashed: true },
-          { label: "Gasto real", color: "var(--purple)", dashed: false },
-          { label: "Proyección", color: "var(--purple)", dashed: true },
+          { label: "Ritmo ideal", color: "var(--fc-text-muted)", dashed: true },
+          { label: "Gasto real", color: "var(--fc-module-aria)", dashed: false },
+          { label: "Proyección", color: "var(--fc-module-aria)", dashed: true },
         ].map(item => (
           <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <div style={{
               width: 20, height: 2, background: item.color,
               borderTop: item.dashed ? `2px dashed ${item.color}` : "none",
             }} />
-            <span style={{ fontSize: "9px", color: "var(--text-muted)" }}>{item.label}</span>
+            <span style={{ fontSize: "9px", color: "var(--fc-text-muted)" }}>{item.label}</span>
           </div>
         ))}
       </div>
@@ -262,14 +262,14 @@ function PacingKPI({ label, value, subtext, color }: { label: string; value: str
       background: "var(--surface-hover)", border: "1px solid var(--hairline)",
       flex: "1 1 120px", minWidth: "120px",
     }}>
-      <div style={{ fontSize: "9px", color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+      <div style={{ fontSize: "9px", color: "var(--fc-text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>
         {label}
       </div>
-      <div style={{ fontSize: "18px", fontWeight: 700, color: color || "var(--foreground)", fontFamily: "var(--font-display)", marginTop: "2px" }}>
+      <div style={{ fontSize: "18px", fontWeight: 700, color: color || "var(--fc-text)", fontFamily: "var(--font-display)", marginTop: "2px" }}>
         {value}
       </div>
       {subtext && (
-        <div style={{ fontSize: "9px", color: "var(--text-muted)", marginTop: "2px" }}>
+        <div style={{ fontSize: "9px", color: "var(--fc-text-muted)", marginTop: "2px" }}>
           {subtext}
         </div>
       )}

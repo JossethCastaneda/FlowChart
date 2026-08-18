@@ -41,6 +41,7 @@ function OnboardingContent() {
 
   useEffect(() => {
     if (isNewWorkspace) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setChecking(false);
       return;
     }

@@ -166,8 +166,8 @@ function Dropdown({ trigger, children }: { trigger: React.ReactNode; children: (
       {open && (
         <div style={{
           position: "absolute", top: "100%", right: 0,
-          marginTop: 6, zIndex: 150, background: "var(--surface)",
-          border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden",
+          marginTop: 6, zIndex: 150, background: "var(--fc-surface)",
+          border: "1px solid var(--fc-border)", borderRadius: 8, overflow: "hidden",
           boxShadow: "0 10px 40px rgba(0,0,0,0.35)", minWidth: 180, padding: 6
         }}>
           {children(() => setOpen(false))}
@@ -350,15 +350,15 @@ export function StreamsDashboard() {
   if (loadingBoards) {
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 20px", gap: 12 }}>
-        <Loader2 style={{ width: 24, height: 24, color: "var(--cyan)", animation: "spin 1s linear infinite" }} />
-        <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>{t.loadingBoards}</p>
+        <Loader2 style={{ width: 24, height: 24, color: "var(--fc-accent)", animation: "spin 1s linear infinite" }} />
+        <p style={{ fontSize: 13, color: "var(--fc-text-secondary)" }}>{t.loadingBoards}</p>
       </div>
     );
   }
 
   const selectStyles: React.CSSProperties = {
     padding: "8px 12px", borderRadius: 8, background: "var(--surface-hover)",
-    border: "1px solid var(--border)", color: "var(--foreground)", fontSize: 13, outline: "none", cursor: "pointer",
+    border: "1px solid var(--fc-border)", color: "var(--fc-text)", fontSize: 13, outline: "none", cursor: "pointer",
     minWidth: 150
   };
 
@@ -367,14 +367,14 @@ export function StreamsDashboard() {
 
       {/* Board tabs */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        <div style={{ display: "flex", background: "var(--surface)", border: "1px solid var(--border)", padding: 4, borderRadius: 12 }}>
+        <div style={{ display: "flex", background: "var(--fc-surface)", border: "1px solid var(--fc-border)", padding: 4, borderRadius: 12 }}>
           {boards.map((board) => (
             <div key={board.id} style={{ display: "flex", alignItems: "center", position: "relative" }}>
               <button
                 onClick={() => setActiveBoardId(board.id)}
                 style={{
                   background: activeBoardId === board.id ? "var(--surface-hover)" : "transparent",
-                  color: activeBoardId === board.id ? "var(--cyan)" : "var(--text-secondary)",
+                  color: activeBoardId === board.id ? "var(--fc-accent)" : "var(--fc-text-secondary)",
                   border: "none", borderRadius: 8, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontWeight: 600
                 }}
               >
@@ -385,8 +385,8 @@ export function StreamsDashboard() {
                   onClick={(e) => { e.stopPropagation(); deleteBoard(board.id); }}
                   style={{
                     position: "absolute", top: -4, right: -4, width: 16, height: 16,
-                    borderRadius: "50%", background: "var(--surface)", border: "1px solid rgba(226,68,92,0.25)",
-                    color: "var(--red)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                    borderRadius: "50%", background: "var(--fc-surface)", border: "1px solid rgba(226,68,92,0.25)",
+                    color: "var(--fc-danger)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 10,
                   }}
                   title="Eliminar board"
@@ -399,7 +399,7 @@ export function StreamsDashboard() {
           <button
             onClick={createBoard}
             style={{
-              background: "transparent", border: "none", color: "var(--text-secondary)",
+              background: "transparent", border: "none", color: "var(--fc-text-secondary)",
               padding: "8px 12px", borderRadius: 8, cursor: "pointer"
             }}
             title="Nuevo board"
@@ -411,8 +411,8 @@ export function StreamsDashboard() {
         <button
           onClick={() => setAddingColumn(true)}
           style={{
-            padding: "8px 16px", borderRadius: 10, background: "var(--cyan-dim)",
-            border: "1px solid var(--border-strong)", color: "var(--cyan)", fontSize: 12, fontWeight: 700,
+            padding: "8px 16px", borderRadius: 10, background: "var(--fc-accent-wash)",
+            border: "1px solid var(--border-strong)", color: "var(--fc-accent)", fontSize: 12, fontWeight: 700,
             cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontFamily: "inherit"
           }}
         >
@@ -422,9 +422,9 @@ export function StreamsDashboard() {
 
       {/* Add column modal */}
       {addingColumn && (
-        <div className="glass-panel" style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap", padding: 16, border: "1px solid var(--border)", background: "var(--surface)", borderRadius: 12 }}>
+        <div className="glass-panel" style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap", padding: 16, border: "1px solid var(--fc-border)", background: "var(--fc-surface)", borderRadius: 12 }}>
           <div>
-            <label style={{ fontSize: 11, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>{t.type}</label>
+            <label style={{ fontSize: 11, color: "var(--fc-text-secondary)", display: "block", marginBottom: 4 }}>{t.type}</label>
             <select
               value={newColType}
               onChange={(e) => {
@@ -434,12 +434,12 @@ export function StreamsDashboard() {
               style={selectStyles}
             >
               {STREAM_TYPES.map((t) => (
-                <option key={t.type} value={t.type} style={{ background: "var(--surface)" }}>{t.label}</option>
+                <option key={t.type} value={t.type} style={{ background: "var(--fc-surface)" }}>{t.label}</option>
               ))}
             </select>
           </div>
           <div>
-            <label style={{ fontSize: 11, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>{t.platform}</label>
+            <label style={{ fontSize: 11, color: "var(--fc-text-secondary)", display: "block", marginBottom: 4 }}>{t.platform}</label>
             <select
               value={newColPlatform}
               onChange={(e) => {
@@ -449,14 +449,14 @@ export function StreamsDashboard() {
               style={selectStyles}
             >
               {Object.keys(platformColors).map((p) => (
-                <option key={p} value={p} style={{ background: "var(--surface)" }}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+                <option key={p} value={p} style={{ background: "var(--fc-surface)" }}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
               ))}
             </select>
           </div>
           
           {["home_feed", "mentions", "published"].includes(newColType) && ["facebook", "instagram"].includes(newColPlatform) && (
             <div>
-              <label style={{ fontSize: 11, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>{t.activeAsset}</label>
+              <label style={{ fontSize: 11, color: "var(--fc-text-secondary)", display: "block", marginBottom: 4 }}>{t.activeAsset}</label>
               <select
                 value={newColQuery}
                 onChange={(e) => setNewColQuery(e.target.value)}
@@ -464,7 +464,7 @@ export function StreamsDashboard() {
               >
                 <option value="">{t.selectAsset}</option>
                 {filteredAssets.map(asset => (
-                  <option key={asset.id} value={asset.id} style={{ background: "var(--surface)" }}>{asset.name}</option>
+                  <option key={asset.id} value={asset.id} style={{ background: "var(--fc-surface)" }}>{asset.name}</option>
                 ))}
               </select>
             </div>
@@ -472,28 +472,28 @@ export function StreamsDashboard() {
 
           {(newColType === "keyword" || newColType === "hashtag") && (
             <div>
-              <label style={{ fontSize: 11, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>{t.keyword}</label>
+              <label style={{ fontSize: 11, color: "var(--fc-text-secondary)", display: "block", marginBottom: 4 }}>{t.keyword}</label>
               <input
                 value={newColQuery}
                 onChange={(e) => setNewColQuery(e.target.value)}
                 placeholder="#hashtag o keyword"
                 style={{
                   padding: "8px 12px", borderRadius: 8, background: "var(--surface-hover)",
-                  border: "1px solid var(--border)", color: "var(--foreground)", fontSize: 13, outline: "none",
+                  border: "1px solid var(--fc-border)", color: "var(--fc-text)", fontSize: 13, outline: "none",
                 }}
               />
             </div>
           )}
           
           <button onClick={addColumn} style={{
-            padding: "8px 20px", borderRadius: 8, background: "var(--cyan-dim)", color: "var(--cyan)",
+            padding: "8px 20px", borderRadius: 8, background: "var(--fc-accent-wash)", color: "var(--fc-accent)",
             border: "1px solid var(--border-strong)", fontWeight: 700, fontSize: 13, cursor: "pointer",
           }}>
             {t.addBtn}
           </button>
           <button onClick={() => setAddingColumn(false)} style={{
-            padding: "8px 16px", borderRadius: 8, background: "transparent", color: "var(--text-secondary)",
-            fontSize: 13, border: "1px solid var(--border)", cursor: "pointer",
+            padding: "8px 16px", borderRadius: 8, background: "transparent", color: "var(--fc-text-secondary)",
+            fontSize: 13, border: "1px solid var(--fc-border)", cursor: "pointer",
           }}>
             {t.cancelBtn}
           </button>
@@ -502,10 +502,10 @@ export function StreamsDashboard() {
 
       {/* Empty state for no columns */}
       {activeBoard && activeBoard.columns.length === 0 && (
-        <div className="glass-panel" style={{ padding: "48px 20px", textAlign: "center", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12 }}>
-          <Settings style={{ width: 32, height: 32, color: "var(--text-muted)", margin: "0 auto 12px" }} />
-          <p style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>{t.emptyBoard}</p>
-          <p style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 6 }}>
+        <div className="glass-panel" style={{ padding: "48px 20px", textAlign: "center", background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 12 }}>
+          <Settings style={{ width: 32, height: 32, color: "var(--fc-text-muted)", margin: "0 auto 12px" }} />
+          <p style={{ fontSize: 14, fontWeight: 600, color: "var(--fc-text)", margin: 0 }}>{t.emptyBoard}</p>
+          <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", marginTop: 6 }}>
             {t.emptySub}
           </p>
         </div>
@@ -563,7 +563,7 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
 
   const streamType = STREAM_TYPES.find((t) => t.type === col.type);
   const Icon = streamType?.icon || Home;
-  const platColor = platformColors[col.platform] || "var(--text-muted)";
+  const platColor = platformColors[col.platform] || "var(--fc-text-muted)";
   const [posts, setPosts] = useState<StreamPost[]>([]);
   const [isReal, setIsReal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -663,24 +663,24 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
       style={{
         width: 340,
         display: "flex", flexDirection: "column",
-        borderRadius: 12, background: "var(--surface)",
-        border: "1px solid var(--border)", overflow: "hidden",
+        borderRadius: 12, background: "var(--fc-surface)",
+        border: "1px solid var(--fc-border)", overflow: "hidden",
       }}
     >
       {/* Column header */}
       <div
         style={{
           display: "flex", alignItems: "center", gap: 8, padding: "12px 14px",
-          borderBottom: collapsed ? "none" : "1px solid var(--border)",
+          borderBottom: collapsed ? "none" : "1px solid var(--fc-border)",
           background: "var(--surface-hover)",
           userSelect: "none",
         }}
       >
         <div onClick={() => setCollapsed((c) => !c)} style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0, cursor: "pointer" }}>
           <Icon style={{ width: 16, height: 16, color: platColor }} />
-          <span style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {headerLabel}
-            {pageLabel && <span style={{ fontWeight: 400, color: "var(--text-secondary)", fontSize: 11 }}> · {pageLabel}</span>}
+            {pageLabel && <span style={{ fontWeight: 400, color: "var(--fc-text-secondary)", fontSize: 11 }}> · {pageLabel}</span>}
           </span>
         </div>
 
@@ -688,7 +688,7 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <button
             onClick={() => setShowSearch(!showSearch)}
-            style={{ background: "none", border: "none", color: showSearch ? "var(--cyan)" : "var(--text-secondary)", cursor: "pointer", padding: 2 }}
+            style={{ background: "none", border: "none", color: showSearch ? "var(--fc-accent)" : "var(--fc-text-secondary)", cursor: "pointer", padding: 2 }}
             title="Buscar en columna"
           >
             <Search style={{ width: 13, height: 13 }} />
@@ -696,7 +696,7 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
 
           {/* Column Settings dropdown */}
           <Dropdown trigger={
-            <button style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", padding: 2 }} title="Configuración de columna">
+            <button style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer", padding: 2 }} title="Configuración de columna">
               <Settings style={{ width: 13, height: 13 }} />
             </button>
           }>
@@ -709,12 +709,12 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
                     placeholder={t.nicknamePlaceholder}
                     style={{
                       width: "100%", padding: "6px 8px", fontSize: 11, background: "var(--surface-hover)",
-                      border: "1px solid var(--border)", color: "var(--foreground)", borderRadius: 4, outline: "none"
+                      border: "1px solid var(--fc-border)", color: "var(--fc-text)", borderRadius: 4, outline: "none"
                     }}
                   />
                 </div>
-                <div style={{ borderTop: "1px solid var(--border)", paddingTop: 6 }}>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.05em", textTransform: "uppercase", display: "block", marginBottom: 4 }}>
+                <div style={{ borderTop: "1px solid var(--fc-border)", paddingTop: 6 }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: "var(--fc-text-muted)", letterSpacing: "0.05em", textTransform: "uppercase", display: "block", marginBottom: 4 }}>
                     {t.refreshInterval}
                   </span>
                   {[
@@ -731,7 +731,7 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
                       }}
                       style={{
                         display: "flex", width: "100%", padding: "5px 8px", border: "none", background: "transparent",
-                        fontSize: 11, color: interval === opt.val ? "var(--cyan)" : "var(--foreground)", cursor: "pointer",
+                        fontSize: 11, color: interval === opt.val ? "var(--fc-accent)" : "var(--fc-text)", cursor: "pointer",
                         textAlign: "left", borderRadius: 4, alignItems: "center", justifyContent: "space-between"
                       }}
                       onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
@@ -746,11 +746,11 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
             )}
           </Dropdown>
 
-          <CollapseIcon onClick={() => setCollapsed((c) => !c)} style={{ width: 14, height: 14, color: "var(--text-muted)", cursor: "pointer" }} />
+          <CollapseIcon onClick={() => setCollapsed((c) => !c)} style={{ width: 14, height: 14, color: "var(--fc-text-muted)", cursor: "pointer" }} />
 
           <button
             onClick={() => onRemove(col.id)}
-            style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", padding: 2 }}
+            style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer", padding: 2 }}
           >
             <X style={{ width: 12, height: 12 }} />
           </button>
@@ -759,16 +759,16 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
 
       {/* Inner Column Search Bar */}
       {!collapsed && showSearch && (
-        <div style={{ padding: "6px 10px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 6, background: "var(--surface-hover)" }}>
-          <Search style={{ width: 12, height: 12, color: "var(--text-muted)" }} />
+        <div style={{ padding: "6px 10px", borderBottom: "1px solid var(--fc-border)", display: "flex", alignItems: "center", gap: 6, background: "var(--surface-hover)" }}>
+          <Search style={{ width: 12, height: 12, color: "var(--fc-text-muted)" }} />
           <input
             value={colSearch}
             onChange={(e) => setColSearch(e.target.value)}
             placeholder="Filtrar..."
-            style={{ flex: 1, background: "transparent", border: "none", outline: "none", fontSize: 11, color: "var(--foreground)" }}
+            style={{ flex: 1, background: "transparent", border: "none", outline: "none", fontSize: 11, color: "var(--fc-text)" }}
           />
           {colSearch && (
-            <X style={{ width: 12, height: 12, color: "var(--text-muted)", cursor: "pointer" }} onClick={() => setColSearch("")} />
+            <X style={{ width: 12, height: 12, color: "var(--fc-text-muted)", cursor: "pointer" }} onClick={() => setColSearch("")} />
           )}
         </div>
       )}
@@ -786,7 +786,7 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
             {!loading && filteredPosts.length === 0 && (
               <div style={{ padding: "32px 16px", textAlign: "center" }}>
                 <Icon style={{ width: 24, height: 24, color: platColor, opacity: 0.3, margin: "0 auto 8px" }} />
-                <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+                <p style={{ fontSize: 11, color: "var(--fc-text-secondary)", lineHeight: 1.5 }}>
                   {t.noDataMeta}
                 </p>
               </div>
@@ -798,7 +798,7 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
                 onClick={() => onPostClick(post)}
                 style={{
                   display: "flex", flexDirection: "column", gap: 6,
-                  padding: "10px 14px", borderBottom: "1px solid var(--border-neutral)",
+                  padding: "10px 14px", borderBottom: "1px solid var(--fc-border-subtle)",
                   transition: "background 0.15s", cursor: "pointer",
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
@@ -806,28 +806,28 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <div style={{
-                    width: 24, height: 24, borderRadius: "50%", background: "var(--cyan-dim)",
+                    width: 24, height: 24, borderRadius: "50%", background: "var(--fc-accent-wash)",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 10, fontWeight: 600, color: "var(--cyan)", flexShrink: 0,
+                    fontSize: 10, fontWeight: 600, color: "var(--fc-accent)", flexShrink: 0,
                   }}>
                     {post.author.charAt(0)}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
-                      fontSize: 12, fontWeight: 600, color: "var(--foreground)",
+                      fontSize: 12, fontWeight: 600, color: "var(--fc-text)",
                       whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                     }}>
                       {post.author}
                       {post.handle && (
-                        <span style={{ fontWeight: 400, color: "var(--text-secondary)", marginLeft: 4, fontSize: 10 }}>{post.handle}</span>
+                        <span style={{ fontWeight: 400, color: "var(--fc-text-secondary)", marginLeft: 4, fontSize: 10 }}>{post.handle}</span>
                       )}
                     </div>
                   </div>
-                  <span style={{ fontSize: 10, color: "var(--text-muted)", flexShrink: 0 }}>{post.time}</span>
+                  <span style={{ fontSize: 10, color: "var(--fc-text-muted)", flexShrink: 0 }}>{post.time}</span>
                 </div>
 
                 {post.content && (
-                  <p style={{ fontSize: 11.5, color: "var(--text-secondary)", lineHeight: 1.4, margin: 0, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                  <p style={{ fontSize: 11.5, color: "var(--fc-text-secondary)", lineHeight: 1.4, margin: 0, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                     {post.content}
                   </p>
                 )}
@@ -839,14 +839,14 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
                 )}
 
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: 3, color: "var(--text-secondary)", fontSize: 10 }}>
-                    <Heart style={{ width: 11, height: 11, color: "var(--text-muted)" }} /> {post.likes}
+                  <span style={{ display: "flex", alignItems: "center", gap: 3, color: "var(--fc-text-secondary)", fontSize: 10 }}>
+                    <Heart style={{ width: 11, height: 11, color: "var(--fc-text-muted)" }} /> {post.likes}
                   </span>
-                  <span style={{ display: "flex", alignItems: "center", gap: 3, color: "var(--text-secondary)", fontSize: 10 }}>
-                    <MessageCircle style={{ width: 11, height: 11, color: "var(--text-muted)" }} /> {post.comments}
+                  <span style={{ display: "flex", alignItems: "center", gap: 3, color: "var(--fc-text-secondary)", fontSize: 10 }}>
+                    <MessageCircle style={{ width: 11, height: 11, color: "var(--fc-text-muted)" }} /> {post.comments}
                   </span>
-                  <span style={{ display: "flex", alignItems: "center", gap: 3, color: "var(--text-secondary)", fontSize: 10 }}>
-                    <Share2 style={{ width: 11, height: 11, color: "var(--text-muted)" }} /> {post.shares}
+                  <span style={{ display: "flex", alignItems: "center", gap: 3, color: "var(--fc-text-secondary)", fontSize: 10 }}>
+                    <Share2 style={{ width: 11, height: 11, color: "var(--fc-text-muted)" }} /> {post.shares}
                   </span>
                 </div>
               </div>
@@ -858,8 +858,8 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
               onClick={() => setShowAll((s) => !s)}
               style={{
                 width: "100%", padding: "8px 0", background: "none", border: "none",
-                borderTop: "1px solid var(--border)",
-                color: "var(--cyan)", fontSize: 11, cursor: "pointer", fontWeight: 700, fontFamily: "inherit"
+                borderTop: "1px solid var(--fc-border)",
+                color: "var(--fc-accent)", fontSize: 11, cursor: "pointer", fontWeight: 700, fontFamily: "inherit"
               }}
             >
               {showAll ? "Ver menos" : `Ver más (${filteredPosts.length - INITIAL_VISIBLE})`}
@@ -868,12 +868,12 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
 
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-            padding: 8, borderTop: "1px solid var(--border)",
-            fontSize: 10, color: "var(--text-muted)",
+            padding: 8, borderTop: "1px solid var(--fc-border)",
+            fontSize: 10, color: "var(--fc-text-muted)",
           }}>
             <button
               onClick={(e) => { e.stopPropagation(); fetchData(); }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 0, display: "flex" }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--fc-text-muted)", padding: 0, display: "flex" }}
               title="Refrescar ahora"
             >
               <RefreshCw style={{ width: 10, height: 10 }} />
@@ -927,18 +927,18 @@ function PostDetailModal({ post, onClose }: { post: StreamPost; onClose: () => v
 
   return createPortal(
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "var(--panel-bg)",  }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 500, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 500, background: "var(--fc-surface)", border: "1px solid var(--fc-border)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "1px solid var(--border)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "1px solid var(--fc-border)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--foreground)", fontFamily: "var(--font-display)" }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--fc-text)", fontFamily: "var(--font-display)" }}>
               {t.postDetail}
             </span>
-            <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: "var(--cyan-dim)", color: "var(--cyan)", fontWeight: 700, textTransform: "capitalize" }}>
+            <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: "var(--fc-accent-wash)", color: "var(--fc-accent)", fontWeight: 700, textTransform: "capitalize" }}>
               {post.platform}
             </span>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", padding: 4 }}>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer", padding: 4 }}>
             <X style={{ width: 16, height: 16 }} />
           </button>
         </div>
@@ -947,49 +947,49 @@ function PostDetailModal({ post, onClose }: { post: StreamPost; onClose: () => v
         <div style={{ padding: 20, maxHeight: "60vh", overflowY: "auto", display: "flex", flexDirection: "column", gap: 14 }}>
           {/* Author info */}
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--cyan-dim)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "var(--cyan)" }}>
+            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--fc-accent-wash)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "var(--fc-accent)" }}>
               {post.author.charAt(0)}
             </div>
             <div>
-              <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>{post.author}</p>
-              {post.handle && <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: 0 }}>{post.handle}</p>}
+              <p style={{ fontSize: 13, fontWeight: 600, color: "var(--fc-text)", margin: 0 }}>{post.author}</p>
+              {post.handle && <p style={{ fontSize: 10, color: "var(--fc-text-secondary)", margin: 0 }}>{post.handle}</p>}
             </div>
-            <span style={{ fontSize: 10, color: "var(--text-muted)", marginLeft: "auto" }}>{post.time}</span>
+            <span style={{ fontSize: 10, color: "var(--fc-text-muted)", marginLeft: "auto" }}>{post.time}</span>
           </div>
 
           {/* Body content */}
           {post.content && (
-            <p style={{ fontSize: 13, color: "var(--foreground)", lineHeight: 1.6, margin: 0, whiteSpace: "pre-wrap" }}>
+            <p style={{ fontSize: 13, color: "var(--fc-text)", lineHeight: 1.6, margin: 0, whiteSpace: "pre-wrap" }}>
               {post.content}
             </p>
           )}
 
           {/* Full Media Image */}
           {post.image && (
-            <div style={{ width: "100%", borderRadius: 8, overflow: "hidden", background: "var(--surface-hover)", border: "1px solid var(--border)" }}>
+            <div style={{ width: "100%", borderRadius: 8, overflow: "hidden", background: "var(--surface-hover)", border: "1px solid var(--fc-border)" }}>
               <img src={post.image} alt="Full Post Media" style={{ width: "100%", height: "auto", maxHeight: 260, objectFit: "contain" }} />
             </div>
           )}
 
           {/* Stats Summary */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, padding: "10px 12px", background: "var(--surface-hover)", border: "1px solid var(--border)", borderRadius: 8, textAlign: "center" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, padding: "10px 12px", background: "var(--surface-hover)", border: "1px solid var(--fc-border)", borderRadius: 8, textAlign: "center" }}>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>{post.likes}</p>
-              <p style={{ fontSize: 9, color: "var(--text-secondary)", margin: 2 }}>Likes</p>
+              <p style={{ fontSize: 14, fontWeight: 700, color: "var(--fc-text)", margin: 0 }}>{post.likes}</p>
+              <p style={{ fontSize: 9, color: "var(--fc-text-secondary)", margin: 2 }}>Likes</p>
             </div>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>{post.comments}</p>
-              <p style={{ fontSize: 9, color: "var(--text-secondary)", margin: 2 }}>Comments</p>
+              <p style={{ fontSize: 14, fontWeight: 700, color: "var(--fc-text)", margin: 0 }}>{post.comments}</p>
+              <p style={{ fontSize: 9, color: "var(--fc-text-secondary)", margin: 2 }}>Comments</p>
             </div>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>{post.shares}</p>
-              <p style={{ fontSize: 9, color: "var(--text-secondary)", margin: 2 }}>Shares</p>
+              <p style={{ fontSize: 14, fontWeight: 700, color: "var(--fc-text)", margin: 0 }}>{post.shares}</p>
+              <p style={{ fontSize: 9, color: "var(--fc-text-secondary)", margin: 2 }}>Shares</p>
             </div>
           </div>
         </div>
 
         {/* Quick Comment Input */}
-        <div style={{ padding: "12px 18px", borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 8, background: "var(--surface-hover)" }}>
+        <div style={{ padding: "12px 18px", borderTop: "1px solid var(--fc-border)", display: "flex", flexDirection: "column", gap: 8, background: "var(--surface-hover)" }}>
           <div style={{ display: "flex", gap: 8 }}>
             <input
               value={replyText}
@@ -998,16 +998,16 @@ function PostDetailModal({ post, onClose }: { post: StreamPost; onClose: () => v
               disabled={sending}
               onKeyDown={e => { if (e.key === "Enter" && replyText.trim()) sendReply(); }}
               style={{
-                flex: 1, padding: "8px 12px", fontSize: 12, background: "var(--surface)",
-                border: "1px solid var(--border)", color: "var(--foreground)", outline: "none", borderRadius: 6
+                flex: 1, padding: "8px 12px", fontSize: 12, background: "var(--fc-surface)",
+                border: "1px solid var(--fc-border)", color: "var(--fc-text)", outline: "none", borderRadius: 6
               }}
             />
             <button
               onClick={sendReply}
               disabled={sending || !replyText.trim()}
               style={{
-                padding: "8px 16px", background: "var(--cyan-dim)", border: "1px solid var(--border-strong)",
-                color: "var(--cyan)", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer",
+                padding: "8px 16px", background: "var(--fc-accent-wash)", border: "1px solid var(--border-strong)",
+                color: "var(--fc-accent)", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer",
                 opacity: replyText.trim() ? 1 : 0.4
               }}
             >
@@ -1017,7 +1017,7 @@ function PostDetailModal({ post, onClose }: { post: StreamPost; onClose: () => v
           {statusMsg.text && (
             <p style={{
               fontSize: 10, margin: 0, fontWeight: 600,
-              color: statusMsg.type === "success" ? "var(--emerald)" : statusMsg.type === "error" ? "var(--red)" : "var(--cyan)"
+              color: statusMsg.type === "success" ? "var(--fc-success)" : statusMsg.type === "error" ? "var(--fc-danger)" : "var(--fc-accent)"
             }}>
               {statusMsg.text}
             </p>
@@ -1025,12 +1025,12 @@ function PostDetailModal({ post, onClose }: { post: StreamPost; onClose: () => v
         </div>
 
         {/* Footer */}
-        <div style={{ display: "flex", justifyContent: "flex-end", padding: "12px 18px", borderTop: "1px solid var(--border)" }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", padding: "12px 18px", borderTop: "1px solid var(--fc-border)" }}>
           <a
             href={post.platform === "facebook" ? `https://facebook.com/${post.id}` : `https://instagram.com/p/${post.id}`}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 8, background: "transparent", border: "1px solid var(--border)", color: "var(--text-secondary)", fontSize: 12, fontWeight: 700, textDecoration: "none" }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 8, background: "transparent", border: "1px solid var(--fc-border)", color: "var(--fc-text-secondary)", fontSize: 12, fontWeight: 700, textDecoration: "none" }}
           >
             <ExternalLink style={{ width: 13, height: 13 }} />
             {t.viewOnPlatform}

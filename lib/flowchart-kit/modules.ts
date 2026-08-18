@@ -32,6 +32,8 @@ export interface ModuleDef {
   group: GroupKey;
   /** Submódulos = pestañas internas, NO entradas del sidebar. */
   tabs?: SubModule[];
+  /** Conceptual AI Tier for this module (E1 = Base, E2 = Advanced, E3 = Enterprise) */
+  aiTier?: "E1" | "E2" | "E3";
 }
 
 export const MODULES: ModuleDef[] = [
@@ -46,7 +48,7 @@ export const MODULES: ModuleDef[] = [
   { key: "tareas",      label: "Tareas",   code: "Misiones", route: "/dashboard/ops",      color: "var(--fc-module-tareas)",   icon: "target",          tagline: "Cada tarea, una misión",      group: "operacion" },
 
   // ── CONTENIDO — idear, pedir arte, programar (en ese orden de flujo) ──
-  { key: "briefs",      label: "Briefs IA",   code: "Nova",      route: "/dashboard/briefing",  color: "var(--fc-module-briefs)",   icon: "sparkles", tagline: "La parrilla nace aquí", group: "contenido" },
+  { key: "briefs",      label: "Briefs IA",   code: "Nova",      route: "/dashboard/briefing",  color: "var(--fc-module-briefs)",   icon: "sparkles", tagline: "La parrilla nace aquí", group: "contenido", aiTier: "E2" },
   { key: "publicacion", label: "Publicación", code: "Lanzadera", route: "/dashboard/publisher", color: "var(--fc-module-publicar)", icon: "rocket", tagline: "Programa y despega", group: "contenido",
     tabs: [
       { label: "Calendario", route: "" },
@@ -55,7 +57,7 @@ export const MODULES: ModuleDef[] = [
 
   // ── CRECIMIENTO — pauta y monitoreo ──
   { key: "anuncios",    label: "Anuncios",     code: "Impulso",    route: "/dashboard/ads-manager",  color: "var(--fc-module-anuncios)", icon: "megaphone",   tagline: "Empuje para tus campañas",       group: "crecimiento" },
-  { key: "mmm",         label: "Centurion MMM",    code: "Convergencia", route: "/dashboard/centurion",   color: "var(--fc-module-mmm)",      icon: "pie-chart",   tagline: "Marketing Mix Modeling SaaS",      group: "crecimiento",
+  { key: "mmm",         label: "Centurion MMM",    code: "Convergencia", route: "/dashboard/centurion",   color: "var(--fc-module-mmm)",      icon: "pie-chart",   tagline: "Marketing Mix Modeling SaaS",      group: "crecimiento", aiTier: "E3",
     tabs: [
       { label: "Resumen",     route: "" },
       { label: "Datos",       route: "/datos" },
@@ -65,14 +67,14 @@ export const MODULES: ModuleDef[] = [
     ] },
   { key: "escucha",     label: "Escucha",      code: "Radar",     route: "/dashboard/listening",    color: "var(--fc-module-escucha)",  icon: "radar",       tagline: "Escucha todo el espectro",       group: "crecimiento" },
   { key: "envivo",      label: "En vivo",      code: "Órbita",    route: "/dashboard/streams",     color: "var(--fc-module-envivo)",   icon: "columns-3",  tagline: "Tu feed, en tiempo real",        group: "crecimiento" },
-  { key: "aria",        label: "Aria IA",      code: "Oráculo",   route: "/dashboard/crecimiento", color: "var(--fc-module-aria)",     icon: "brain-circuit", tagline: "Predice tu siguiente venta",    group: "crecimiento",
+  { key: "aria",        label: "Aria IA",      code: "Oráculo",   route: "/dashboard/crecimiento", color: "var(--fc-module-aria)",     icon: "brain-circuit", tagline: "Predice tu siguiente venta",    group: "crecimiento", aiTier: "E3",
     tabs: [
       { label: "Insights",         route: "" },
       { label: "Data Hub",         route: "/data-hub" },
       { label: "Predictive Studio", route: "/studio" },
       { label: "Scores",           route: "/scores" },
     ] },
-  { key: "optimization", label: "Optimización", code: "Control", route: "/dashboard/optimization", color: "var(--fc-purple-500)", icon: "gauge", tagline: "Decisiones de inversión gobernadas", group: "crecimiento" },
+  { key: "optimization", label: "Optimización", code: "Control", route: "/dashboard/optimization", color: "var(--fc-purple-500)", icon: "gauge", tagline: "Decisiones de inversión gobernadas", group: "crecimiento", aiTier: "E3" },
   { key: "reportes",    label: "Reportes",     code: "Bitácora",  route: "/dashboard/reportes",    color: "var(--fc-module-reportes)", icon: "file-text",   tagline: "Informes white-label para el cliente", group: "crecimiento" },
 
 

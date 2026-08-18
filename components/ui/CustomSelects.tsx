@@ -55,15 +55,15 @@ export function CustomMultiSelectPictures({ values, options, onChange, placehold
       </div>
       
       {open && !ro && !disabled && (
-        <div className="absolute top-full left-0 w-full mt-1 z-50 bg-[#0a0f1e] border border-blue-500/20 max-h-[200px] overflow-y-auto shadow-2xl rounded-lg">
-          <div className="p-2 sticky top-0 bg-[#0a0f1e] z-10 border-b border-white/5">
+        <div className="absolute top-full left-0 w-full mt-1 z-50 bg-[var(--fc-surface)] border border-blue-500/20 max-h-[200px] overflow-y-auto shadow-2xl rounded-lg">
+          <div className="p-2 sticky top-0 bg-[var(--fc-surface)] z-10 border-b border-[var(--fc-border-subtle)]">
             <input
               type="text"
               placeholder="Buscar..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               onClick={e => e.stopPropagation()}
-              className="f-input px-2 py-1.5 text-[11px] bg-white/5 border-none outline-none w-full text-white"
+              className="f-input px-2 py-1.5 text-[11px] bg-white/5 border-none outline-none w-full text-[var(--fc-text)]"
             />
           </div>
           {Object.entries(grouped).map(([portfolio, items]) => (
@@ -133,7 +133,7 @@ export function TagsInput({ values, onChange, placeholder, ro }: { values: strin
             setInput("");
           }}
           placeholder={values.length === 0 ? placeholder : "Agregar..."}
-          className="flex-1 min-w-[80px] bg-transparent border-none outline-none text-[13px] text-white p-0 placeholder:text-gray-500/50"
+          className="flex-1 min-w-[80px] bg-transparent border-none outline-none text-[13px] text-[var(--fc-text)] p-0 placeholder:text-gray-500/50"
         />
       )}
     </div>
@@ -185,15 +185,15 @@ export function CustomMultiSelect({ values, options, onChange, placeholder, disa
       </div>
       
       {open && !ro && !disabled && (
-        <div className="absolute top-full left-0 right-0 z-50 bg-[#0a0f1e] border border-blue-500/20 max-h-[200px] overflow-y-auto mt-1 rounded-lg shadow-2xl">
-          <div className="p-2 sticky top-0 bg-[#0a0f1e] z-10 border-b border-white/5">
+        <div className="absolute top-full left-0 right-0 z-50 bg-[var(--fc-surface)] border border-blue-500/20 max-h-[200px] overflow-y-auto mt-1 rounded-lg shadow-2xl">
+          <div className="p-2 sticky top-0 bg-[var(--fc-surface)] z-10 border-b border-[var(--fc-border-subtle)]">
             <input 
               type="text" 
               placeholder="Buscar..." 
               value={search} 
               onChange={e => setSearch(e.target.value)}
               onClick={e => e.stopPropagation()}
-              className="f-input px-2 py-1.5 text-[11px] bg-white/5 border-none outline-none w-full text-white" 
+              className="f-input px-2 py-1.5 text-[11px] bg-white/5 border-none outline-none w-full text-[var(--fc-text)]" 
             />
           </div>
           {Object.entries(grouped).map(([portfolio, items]) => (
@@ -253,13 +253,13 @@ export function CustomCreatableSelect({ value, options, onChange, placeholder, d
           onChange={e => { setSearch(e.target.value); setOpen(true); onChange(e.target.value); }}
           onFocus={() => { setOpen(true); setSearch(value); }}
           readOnly={ro || disabled}
-          className="w-full h-full bg-transparent border-none outline-none text-[13px] text-white px-3 py-2.5 placeholder:text-gray-500/50"
+          className="w-full h-full bg-transparent border-none outline-none text-[13px] text-[var(--fc-text)] px-3 py-2.5 placeholder:text-gray-500/50"
         />
         {!ro && <ChevronDown className="w-3 h-3 opacity-50 mr-2.5 cursor-pointer shrink-0" onClick={(e) => { e.stopPropagation(); setOpen(!open); }} />}
       </div>
       
       {open && !ro && !disabled && (
-        <div className="absolute top-full left-0 right-0 z-50 bg-[#0a0f1e] border border-blue-500/20 max-h-[200px] overflow-y-auto mt-1 rounded-lg shadow-2xl">
+        <div className="absolute top-full left-0 right-0 z-50 bg-[var(--fc-surface)] border border-blue-500/20 max-h-[200px] overflow-y-auto mt-1 rounded-lg shadow-2xl">
           {filtered.map((o: any) => (
             <div key={o.value} onClick={() => { onChange(o.value); setSearch(o.value); setOpen(false); }} 
                  className="px-2.5 py-2 flex items-center gap-2 cursor-pointer text-[11px] text-gray-300 hover:bg-blue-500/10 transition-colors">
@@ -273,6 +273,69 @@ export function CustomCreatableSelect({ value, options, onChange, placeholder, d
             </div>
           )}
           {filtered.length === 0 && !search && <div className="p-2.5 text-[11px] text-gray-500 text-center">Empieza a escribir...</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+export function CustomSelect({ value, options, onChange, placeholder, disabled, ro, colorValue }: any) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedOpt = options.find((o: any) => o.value === value || o.id === value);
+  const displayLabel = selectedOpt ? (selectedOpt.label || selectedOpt.name) : placeholder;
+  const displayColor = selectedOpt ? (selectedOpt.color || (colorValue ? colorValue(selectedOpt) : null)) : null;
+
+  return (
+    <div ref={ref} className="relative w-full text-left">
+      <div 
+        onClick={() => !ro && !disabled && setOpen(!open)}
+        className={`flex items-center justify-between w-full bg-[var(--fc-surface)] border border-[var(--fc-border)] text-[var(--fc-text)] text-[13px] rounded-lg px-3 py-2.5 transition-all ${ro || disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-[var(--fc-border-hover)]'}`}
+      >
+        <div className="truncate flex-1">
+          {selectedOpt ? (
+             <div className="flex items-center gap-2.5">
+                {displayColor && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: displayColor }}></div>}
+                <span>{displayLabel}</span>
+             </div>
+          ) : (
+             <span className="opacity-50">{placeholder}</span>
+          )}
+        </div>
+        {!ro && <ChevronDown className="w-3.5 h-3.5 opacity-50 ml-2 shrink-0" />}
+      </div>
+      
+      {open && !ro && !disabled && (
+        <div className="absolute top-full left-0 right-0 z-50 mt-1.5 bg-[var(--fc-surface-raised)] border border-[var(--fc-border-strong)] rounded-xl shadow-[var(--fc-shadow-overlay)] max-h-[260px] overflow-y-auto flex flex-col gap-1 p-2">
+          {options.map((o: any) => {
+            const val = o.value || o.id;
+            const lbl = o.label || o.name;
+            const col = o.color || (colorValue ? colorValue(o) : null);
+            const isSelected = value === val;
+            return (
+              <div 
+                key={val} 
+                onClick={() => { onChange(val); setOpen(false); }} 
+                className={`px-3 py-2 flex items-center gap-2.5 cursor-pointer text-[13px] rounded-lg transition-colors ${isSelected ? 'bg-[var(--fc-surface-hover)] font-semibold text-[var(--fc-text)]' : 'text-[var(--fc-text-secondary)] hover:bg-[var(--fc-surface-hover)] hover:text-[var(--fc-text)]'}`}
+              >
+                {col && <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: col }}></div>}
+                <span className="flex-1 truncate">{lbl}</span>
+                {isSelected && <Check className="w-3.5 h-3.5 shrink-0 text-[var(--fc-text)]" />}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

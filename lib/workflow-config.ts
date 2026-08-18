@@ -173,6 +173,7 @@ export const BrandingSchema = z.object({
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/, "Color en formato #RRGGBB")
     .optional(),
+  applyInApp: z.boolean().optional(),
 });
 
 export type WorkspaceBranding = z.infer<typeof BrandingSchema>;

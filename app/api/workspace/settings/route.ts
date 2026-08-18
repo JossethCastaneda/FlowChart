@@ -55,17 +55,26 @@ export const PUT = withWorkspace(async (req, ctx) => {
     );
   }
 
-  // Validación estricta en escritura: payloads malformados se rechazan con 422
-  // en lugar de coercionarse en silencio hacia áreas vacías.
+  // Validación parcial en escritura: permitimos que vengan sólo las claves que cambiaron (ej. branding)
   const result = await validateBody(
     req,
-    WorkflowConfigSchema.extend({ branding: BrandingSchema.optional() })
+    WorkflowConfigSchema.partial().extend({ branding: BrandingSchema.optional() })
   );
   if (!result.ok) return result.response;
-  const cfg = parseWorkflow(result.data);
-  const branding = result.data.branding;
 
   try {
+    const existing = await prisma.workspaceSettings.findUnique({
+      where: { workspaceId: ctx.workspaceId }
+    });
+
+    // Mezclamos con lo existente (o defaults si no hay nada)
+    const rawAreas = result.data.areas !== undefined ? result.data.areas : (existing?.areas || []);
+    const rawRequireLeadReview = result.data.requireLeadReview !== undefined ? result.data.requireLeadReview : (existing?.requireLeadReview ?? true);
+    const existingBranding = existing?.branding ? existing.branding as object : {};
+    
+    const cfg = parseWorkflow({ areas: rawAreas, requireLeadReview: rawRequireLeadReview });
+    const branding = result.data.branding !== undefined ? { ...existingBranding, ...result.data.branding } : undefined;
+
     await prisma.workspaceSettings.upsert({
       where: { workspaceId: ctx.workspaceId },
       update: {

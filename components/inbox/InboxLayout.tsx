@@ -8,7 +8,7 @@ import { openConnectPopup } from "@/lib/connect-popup";
 import {
   Search, X, ChevronDown, ChevronUp,
   CheckCircle2, AlertCircle, Filter, Wifi,
-  RefreshCw, Plus,
+  RefreshCw, Plus, Inbox
 } from "lucide-react";
 import {
   Conversation,
@@ -43,13 +43,13 @@ function ConversationSkeleton() {
   return (
     <div aria-busy="true" aria-label="Cargando conversaciones">
       {[...Array(9)].map((_, i) => (
-        <div key={i} style={{ display: "flex", gap: 10, padding: "12px 14px", borderBottom: "1px solid var(--hairline)", opacity: 1 - i * 0.09 }}>
-          <div style={{ width: 42, height: 42, borderRadius: "50%", flexShrink: 0, background: "var(--surface-hover)", animation: `shimmer 1.6s ease-in-out ${i * 0.06}s infinite` }} />
+        <div key={i} style={{ display: "flex", gap: 10, padding: "12px 14px", borderBottom: "1px solid var(--fc-border)", opacity: 1 - i * 0.09 }}>
+          <div style={{ width: 42, height: 42, borderRadius: "50%", flexShrink: 0, background: "var(--fc-surface-hover)", animation: `shimmer 1.6s ease-in-out ${i * 0.06}s infinite` }} />
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 7, justifyContent: "center" }}>
-            <div style={{ height: 11, width: `${48 + (i % 4) * 13}%`, borderRadius: 4, background: "var(--surface-hover)", animation: `shimmer 1.6s ease-in-out ${i * 0.06 + 0.1}s infinite` }} />
-            <div style={{ height: 9,  width: `${34 + (i % 5) * 11}%`, borderRadius: 4, background: "var(--row-hover)",    animation: `shimmer 1.6s ease-in-out ${i * 0.06 + 0.2}s infinite` }} />
+            <div style={{ height: 11, width: `${48 + (i % 4) * 13}%`, borderRadius: 4, background: "var(--fc-surface-hover)", animation: `shimmer 1.6s ease-in-out ${i * 0.06 + 0.1}s infinite` }} />
+            <div style={{ height: 9,  width: `${34 + (i % 5) * 11}%`, borderRadius: 4, background: "var(--fc-row-hover)",    animation: `shimmer 1.6s ease-in-out ${i * 0.06 + 0.2}s infinite` }} />
           </div>
-          <div style={{ height: 9, width: 24, borderRadius: 4, alignSelf: "flex-start", marginTop: 4, background: "var(--row-hover)", animation: `shimmer 1.6s ease-in-out ${i * 0.06 + 0.15}s infinite` }} />
+          <div style={{ height: 9, width: 24, borderRadius: 4, alignSelf: "flex-start", marginTop: 4, background: "var(--fc-row-hover)", animation: `shimmer 1.6s ease-in-out ${i * 0.06 + 0.15}s infinite` }} />
         </div>
       ))}
       <style>{`@keyframes shimmer{0%,100%{opacity:.4}50%{opacity:.85}}`}</style>
@@ -73,16 +73,16 @@ function ConversationRow({ conv, isActive, onClick }: { conv: Conversation; isAc
       style={{
         padding: "12px 16px",
         cursor: "pointer",
-        background: isActive ? "var(--cyan-dim, rgba(0,212,255,0.08))" : "transparent",
-        borderLeft: isActive ? "3px solid var(--cyan)" : "3px solid transparent",
-        borderBottom: "1px solid var(--glass-border)",
+        background: isActive ? "var(--fc-surface-hover)" : "transparent",
+        borderLeft: isActive ? "3px solid var(--fc-accent)" : "3px solid transparent",
+        borderBottom: "1px solid var(--fc-glass-border)",
         display: "flex", gap: 12, alignItems: "flex-start",
         transition: "all 0.2s ease-in-out",
         outline: "none",
       }}
-      onMouseOver={e => { if (!isActive) e.currentTarget.style.background = "var(--surface-hover)"; }}
+      onMouseOver={e => { if (!isActive) e.currentTarget.style.background = "var(--fc-surface-hover)"; }}
       onMouseOut={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
-      onFocus={e => { e.currentTarget.style.outline = "2px solid var(--glass-border)"; e.currentTarget.style.outlineOffset = "2px"; }}
+      onFocus={e => { e.currentTarget.style.outline = "2px solid var(--fc-glass-border)"; e.currentTarget.style.outlineOffset = "2px"; }}
       onBlur={e => { e.currentTarget.style.outline = "none"; }}
     >
       {/* Avatar + Platform badge */}
@@ -91,7 +91,7 @@ function ConversationRow({ conv, isActive, onClick }: { conv: Conversation; isAc
         <div style={{
           position: "absolute", bottom: -3, right: -3,
           width: 19, height: 19, borderRadius: "50%",
-          background: "var(--background)", border: "2px solid var(--background)",
+          background: "var(--fc-bg)", border: "2px solid var(--fc-bg)",
           display: "flex", alignItems: "center", justifyContent: "center",
           overflow: "hidden",
         }}>
@@ -101,7 +101,7 @@ function ConversationRow({ conv, isActive, onClick }: { conv: Conversation; isAc
           <div style={{
             position: "absolute", top: 0, left: 0,
             width: 10, height: 10, borderRadius: "50%",
-            background: "var(--cyan)", border: "2px solid var(--background)",
+            background: "var(--fc-accent)", boxShadow: "0 0 15px var(--fc-accent-dim)", border: "2px solid var(--fc-bg)",
           }} aria-hidden="true" />
         )}
       </div>
@@ -109,8 +109,8 @@ function ConversationRow({ conv, isActive, onClick }: { conv: Conversation; isAc
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 3 }}>
           <span style={{
-            fontSize: 13, fontWeight: conv.unread ? 700 : 500,
-            color: conv.unread ? "var(--foreground)" : "var(--text-secondary)",
+            fontSize: 13, fontWeight: conv.unread ? 700 : 500, fontFamily: "var(--font-display)", letterSpacing: "-0.01em",
+            color: conv.unread ? "var(--fc-text)" : "var(--fc-text-secondary)",
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
             maxWidth: "calc(100% - 38px)",
           }}>
@@ -120,8 +120,8 @@ function ConversationRow({ conv, isActive, onClick }: { conv: Conversation; isAc
             dateTime={conv.lastMessageTime.toISOString()}
             style={{
               fontSize: 10, flexShrink: 0, marginLeft: 4,
-              color: conv.unread ? "var(--cyan)" : "var(--text-muted)",
-              fontWeight: conv.unread ? 600 : 400,
+              color: conv.unread ? "var(--fc-accent)" : "var(--fc-text-muted)",
+              fontWeight: conv.unread ? 600 : 500, fontFamily: "var(--font-mono)",
             }}
           >
             {relativeTime(conv.lastMessageTime)}
@@ -130,7 +130,7 @@ function ConversationRow({ conv, isActive, onClick }: { conv: Conversation; isAc
         <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
           <p style={{
             fontSize: 11, margin: 0, flex: 1,
-            color: conv.unread ? "var(--text-secondary)" : "var(--text-muted)",
+            color: conv.unread ? "var(--fc-text-secondary)" : "var(--fc-text-muted)",
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
             fontWeight: conv.unread ? 500 : 400, lineHeight: 1.4,
           }}>
@@ -141,8 +141,8 @@ function ConversationRow({ conv, isActive, onClick }: { conv: Conversation; isAc
           <span style={{
             display: "inline-block", fontSize: 8, fontWeight: 700,
             padding: "1px 5px", marginTop: 3,
-            background: "var(--surface-hover)", color: "var(--text-muted)",
-            border: "1px solid var(--hairline)", borderRadius: 3,
+            background: "var(--fc-surface-hover)", color: "var(--fc-text-muted)",
+            border: "1px solid var(--fc-border)", borderRadius: 3,
             letterSpacing: "0.04em",
           }}>CERRADO</span>
         )}
@@ -199,7 +199,7 @@ function ConnectDropdown({
         }}
         onMouseEnter={(e) => {
           if (buttonStyle?.background === "transparent") {
-            e.currentTarget.style.background = "var(--surface-hover)";
+            e.currentTarget.style.background = "var(--fc-surface-hover)";
           } else {
             e.currentTarget.style.filter = "brightness(1.15)";
           }
@@ -225,61 +225,61 @@ function ConnectDropdown({
             top: "calc(100% + 6px)",
             right: 0,
             width: 260,
-            background: "var(--panel-bg)",
-            backdropFilter: "blur(12px)",
-            border: "1px solid var(--glass-border)",
+            background: "var(--fc-surface)",
+            backdropFilter: "blur(20px)",
+            border: "1px solid var(--fc-glass-border)",
             borderRadius: 12,
-            boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+            boxShadow: "var(--fc-shadow-hard)",
             padding: "8px 0",
             zIndex: 100,
             display: "flex",
             flexDirection: "column",
           }}
         >
-          <div style={{ padding: "6px 14px 4px", fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "var(--text-muted)", letterSpacing: "0.05em" }}>
+          <div style={{ padding: "6px 14px 4px", fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "var(--fc-text-muted)", letterSpacing: "0.05em" }}>
             Selecciona plataforma
           </div>
           {/* Facebook: Messenger DMs + FB Comments */}
           <button
             onClick={() => { onConnectMeta(); setIsOpen(false); }}
-            style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "transparent", border: "none", cursor: "pointer", color: "var(--foreground)", fontFamily: "inherit", fontSize: 13, textAlign: "left", transition: "background 0.2s", width: "100%" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
+            style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "transparent", border: "none", cursor: "pointer", color: "var(--fc-text)", fontFamily: "inherit", fontSize: 13, textAlign: "left", transition: "background 0.2s", width: "100%" }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--fc-surface-hover)")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
             <FacebookIcon size={20} />
             <div style={{ display: "flex", flexDirection: "column" }}>
               <span style={{ fontWeight: 600 }}>Facebook</span>
-              <span style={{ fontSize: 10, color: "var(--text-muted)" }}>Messenger DMs + Comentarios</span>
+              <span style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>Messenger DMs + Comentarios</span>
             </div>
           </button>
 
           {/* Instagram: IG DMs + IG Comments (publisher_instagram) */}
           <button
             onClick={() => { onConnectInstagram(); setIsOpen(false); }}
-            style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "transparent", border: "none", cursor: "pointer", color: "var(--foreground)", fontFamily: "inherit", fontSize: 13, textAlign: "left", transition: "background 0.2s", width: "100%" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
+            style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "transparent", border: "none", cursor: "pointer", color: "var(--fc-text)", fontFamily: "inherit", fontSize: 13, textAlign: "left", transition: "background 0.2s", width: "100%" }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--fc-surface-hover)")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
             <InstagramIcon size={20} />
             <div style={{ display: "flex", flexDirection: "column" }}>
               <span style={{ fontWeight: 600 }}>Instagram</span>
-              <span style={{ fontSize: 10, color: "var(--text-muted)" }}>IG DMs + Comentarios (múltiples cuentas)</span>
+              <span style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>IG DMs + Comentarios (múltiples cuentas)</span>
             </div>
           </button>
 
-          <div style={{ height: 1, background: "var(--hairline)", margin: "4px 14px" }} />
+          <div style={{ height: 1, background: "var(--fc-border)", margin: "4px 14px" }} />
 
           {/* WhatsApp Business */}
           <button
             onClick={() => { onConnectWhatsApp(); setIsOpen(false); }}
-            style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "transparent", border: "none", cursor: "pointer", color: "var(--foreground)", fontFamily: "inherit", fontSize: 13, textAlign: "left", transition: "background 0.2s", width: "100%" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
+            style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "transparent", border: "none", cursor: "pointer", color: "var(--fc-text)", fontFamily: "inherit", fontSize: 13, textAlign: "left", transition: "background 0.2s", width: "100%" }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--fc-surface-hover)")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
             <WhatsAppIcon size={18} />
             <div style={{ display: "flex", flexDirection: "column" }}>
               <span style={{ fontWeight: 600 }}>WhatsApp Business</span>
-              <span style={{ fontSize: 10, color: "var(--text-muted)" }}>Mensajería directa oficial</span>
+              <span style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>Mensajería directa oficial</span>
             </div>
           </button>
         </div>
@@ -317,13 +317,13 @@ function ConnectedBanner({
     <div role="status" aria-label="Cuenta conectada" style={{
       display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px",
       padding: "12px 16px",
-      background: "var(--background)",
-      borderBottom: "1px solid var(--hairline)",
+      background: "var(--fc-bg)",
+      borderBottom: "1px solid var(--fc-border)",
       flexShrink: 0,
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <span style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)", lineHeight: 1.2 }}>Bandeja de Entrada</span>
+          <span style={{ fontSize: 16, fontWeight: 600, color: "var(--fc-text)", lineHeight: 1.2 }}>Bandeja de Entrada</span>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             {isMetaConnected ? (
               <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11, background: "rgba(37,99,235,0.12)", border: "1px solid rgba(37,99,235,0.25)", color: "#3b82f6", padding: "3px 10px", borderRadius: 12, fontWeight: 600 }}>
@@ -341,7 +341,7 @@ function ConnectedBanner({
               </span>
             ) : null}
             {!isMetaConnected && !isIgConnected && !isWaConnected ? (
-              <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
+              <span style={{ fontSize: 13, color: "var(--fc-text-muted)" }}>
                 Ninguna cuenta conectada
               </span>
             ) : null}
@@ -350,11 +350,11 @@ function ConnectedBanner({
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         {isMetaConnected && userProfile && (
-          <div style={{ display: "flex", alignItems: "center", gap: 8, paddingRight: 16, borderRight: "1px solid var(--hairline)" }}>
-            <Avatar src={userProfile.picture} name={userProfile.name || "Usuario"} size={32} color="var(--purple)" />
+          <div style={{ display: "flex", alignItems: "center", gap: 8, paddingRight: 16, borderRight: "1px solid var(--fc-border)" }}>
+            <Avatar src={userProfile.picture} name={userProfile.name || "Usuario"} size={32} color="var(--fc-module-aria)" />
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{userProfile.name || "Usuario"}</span>
-              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Perfil Meta</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--fc-text)" }}>{userProfile.name || "Usuario"}</span>
+              <span style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>Perfil Meta</span>
             </div>
           </div>
         )}
@@ -369,8 +369,8 @@ function ConnectedBanner({
               buttonStyle={{
                 padding: "8px 16px", borderRadius: 24,
                 background: "transparent",
-                border: "1px solid var(--primary)",
-                color: "var(--primary)",
+                border: "1px solid var(--fc-accent)",
+                color: "var(--fc-accent)",
                 fontSize: 13, fontWeight: 600,
               }}
               showPlusIcon={true}
@@ -380,8 +380,8 @@ function ConnectedBanner({
                 display: "flex", alignItems: "center", gap: 8,
                 padding: "8px 16px", borderRadius: 24,
                 background: "transparent",
-                border: "1px solid var(--red)",
-                color: "var(--red)",
+                border: "1px solid var(--fc-danger)",
+                color: "var(--fc-danger)",
                 fontSize: 13, fontWeight: 600,
                 cursor: disconnecting ? "not-allowed" : "pointer",
                 fontFamily: "inherit",
@@ -406,8 +406,8 @@ function ConnectedBanner({
             buttonStyle={{
               padding: "8px 16px", borderRadius: 24,
               background: "transparent",
-              border: "1px solid var(--primary)",
-              color: "var(--primary)",
+              border: "1px solid var(--fc-accent)",
+              color: "var(--fc-accent)",
               fontSize: 13, fontWeight: 600,
             }}
           />
@@ -430,17 +430,17 @@ function EmptyChat({
 }) {
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, padding: 48, textAlign: "center" }} role="status">
-      <div style={{ width: 60, height: 60, borderRadius: 14, background: "var(--surface-hover)", border: `1px solid var(--hairline)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: 60, height: 60, borderRadius: 14, background: "var(--fc-surface-hover)", border: `1px solid var(--fc-border)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
         {hasAnyConnection
-          ? <Wifi style={{ width: 26, height: 26, color: "var(--text-muted)" }} />
-          : <AlertCircle style={{ width: 26, height: 26, color: "var(--red)" }} />
+          ? <Wifi style={{ width: 26, height: 26, color: "var(--fc-text-muted)" }} />
+          : <Inbox style={{ width: 26, height: 26, color: "var(--fc-text-muted)" }} />
         }
       </div>
       <div>
-        <p style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", margin: "0 0 5px" }}>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "var(--fc-text)", margin: "0 0 5px" }}>
           {hasAnyConnection ? "Esperando mensajes" : "Sin cuentas conectadas"}
         </p>
-        <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, maxWidth: 260, lineHeight: 1.6 }}>
+        <p style={{ fontSize: 12, color: "var(--fc-text-muted)", margin: 0, maxWidth: 260, lineHeight: 1.6 }}>
           {hasAnyConnection
             ? "Los mensajes nuevos aparecerán en la lista izquierda automáticamente."
             : "Conecta Facebook, Instagram o WhatsApp para recibir mensajes."
@@ -456,8 +456,8 @@ function EmptyChat({
           showPlusIcon={true}
           buttonStyle={{
             padding: "9px 18px", borderRadius: 8,
-            background: "var(--primary)",
-            color: "var(--foreground)",
+            background: "var(--fc-accent)",
+            color: "var(--fc-on-accent)",
             border: "none",
             fontSize: 13, fontWeight: 600,
           }}
@@ -632,31 +632,31 @@ export function InboxLayout() {
       />
 
       {/* 3-PANEL LAYOUT — always visible */}
-      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+      <div className="glass-panel" style={{ display: "flex", flex: 1, minHeight: 0 }}>
         {/* LEFT: Conversation List */}
         <div
           className={`w-full md:w-[300px] md:min-w-[300px] flex-col ${selected && !isDesktop ? "hidden" : "flex"}`}
-          style={{ borderRight: "1px solid var(--hairline)", background: "transparent", overflow: "visible", position: "relative" }}
+          style={{ borderRight: "1px solid var(--fc-border)", background: "transparent", overflow: "visible", position: "relative" }}
           role="navigation" aria-label="Conversaciones"
         >
           {/* Page selector */}
           {connectedPages.length > 0 && (
-            <div style={{ padding: "8px 12px 6px", borderBottom: "1px solid var(--hairline)", flexShrink: 0, position: "relative", zIndex: 100 }}>
+            <div style={{ padding: "8px 12px 6px", borderBottom: "1px solid var(--fc-border)", flexShrink: 0, position: "relative", zIndex: 100 }}>
               <PageSelector pages={connectedPages} selectedPage={selectedPage} onSelect={setSelectedPage} />
             </div>
           )}
 
           {/* Platform filter */}
-          <div style={{ borderBottom: "1px solid var(--hairline)", flexShrink: 0 }}>
+          <div style={{ borderBottom: "1px solid var(--fc-border)", flexShrink: 0 }}>
             <button
               onClick={() => setChannelFilterOpen(o => !o)}
               aria-expanded={channelFilterOpen}
-              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "7px 12px", background: "transparent", border: "none", color: "var(--text-secondary)", fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", cursor: "pointer", fontFamily: "inherit", textTransform: "uppercase" }}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "7px 12px", background: "transparent", border: "none", color: "var(--fc-text-secondary)", fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", cursor: "pointer", fontFamily: "inherit", textTransform: "uppercase" }}
             >
               <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
                 <Filter style={{ width: 9, height: 9 }} />
                 Plataforma
-                {channelFilter !== "all" && <span style={{ width: 5, height: 5, borderRadius: "50%", background: CHANNEL_TABS.find(t => t.key === channelFilter)?.color || "var(--primary)", display: "inline-block" }} />}
+                {channelFilter !== "all" && <span style={{ width: 5, height: 5, borderRadius: "50%", background: CHANNEL_TABS.find(t => t.key === channelFilter)?.color || "var(--fc-accent)", display: "inline-block" }} />}
               </span>
               {channelFilterOpen ? <ChevronUp style={{ width: 10, height: 10 }} /> : <ChevronDown style={{ width: 10, height: 10 }} />}
             </button>
@@ -673,9 +673,9 @@ export function InboxLayout() {
                       aria-pressed={isActive}
                       style={{
                         display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 8px", borderRadius: 6,
-                        border: `1px solid ${isActive ? `${tab.color}66` : "var(--hairline)"}`,
+                        border: `1px solid ${isActive ? `${tab.color}66` : "var(--fc-border)"}`,
                         background: isActive ? `${tab.color}16` : "transparent",
-                        color: isActive ? tab.color : "var(--text-muted)",
+                        color: isActive ? tab.color : "var(--fc-text-muted)",
                         fontSize: 10, fontWeight: isActive ? 700 : 500, cursor: "pointer", fontFamily: "inherit", transition: "all 0.12s",
                       }}
                     >
@@ -690,16 +690,16 @@ export function InboxLayout() {
           </div>
 
           {/* Search + Queue + Refresh */}
-          <div style={{ padding: "6px 10px 8px", display: "flex", gap: 5, alignItems: "center", borderBottom: "1px solid var(--hairline)", flexShrink: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 10px", flex: 1, background: "var(--surface-hover)", borderRadius: 7, border: "1px solid var(--hairline)" }}>
-              <Search style={{ width: 13, height: 13, color: "var(--text-muted)", flexShrink: 0 }} />
+          <div style={{ padding: "6px 10px 8px", display: "flex", gap: 5, alignItems: "center", borderBottom: "1px solid var(--fc-border)", flexShrink: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 10px", flex: 1, background: "var(--fc-surface-hover)", borderRadius: 7, border: "1px solid var(--fc-border)" }}>
+              <Search style={{ width: 13, height: 13, color: "var(--fc-text-muted)", flexShrink: 0 }} />
               <input
                 type="search" placeholder="Buscar..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                 aria-label="Buscar conversaciones"
-                style={{ background: "transparent", border: "none", outline: "none", color: "var(--foreground)", fontSize: 12, width: "100%", fontFamily: "inherit" }}
+                style={{ background: "transparent", border: "none", outline: "none", color: "var(--fc-text)", fontSize: 12, width: "100%", fontFamily: "inherit" }}
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery("")} aria-label="Limpiar" style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "var(--text-muted)", display: "flex" }}>
+                <button onClick={() => setSearchQuery("")} aria-label="Limpiar" style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "var(--fc-text-muted)", display: "flex" }}>
                   <X style={{ width: 11, height: 11 }} />
                 </button>
               )}
@@ -711,7 +711,7 @@ export function InboxLayout() {
                 const isF = queueFilter !== "all";
                 return (
                   <button onClick={() => setQueueMenuOpen(o => !o)} aria-haspopup="listbox" aria-expanded={queueMenuOpen} title={active.label}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "7px 7px", borderRadius: 7, border: `1px solid ${isF ? `${active.color}55` : "var(--hairline)"}`, background: isF ? `${active.color}10` : "var(--surface-hover)", color: isF ? active.color : "var(--text-muted)", cursor: "pointer", fontFamily: "inherit" }}>
+                    style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "7px 7px", borderRadius: 7, border: `1px solid ${isF ? `${active.color}55` : "var(--fc-border)"}`, background: isF ? `${active.color}10` : "var(--fc-surface-hover)", color: isF ? active.color : "var(--fc-text-muted)", cursor: "pointer", fontFamily: "inherit" }}>
                     <Filter style={{ width: 12, height: 12 }} />
                     {isF && <div style={{ width: 5, height: 5, borderRadius: "50%", background: active.color }} />}
                     <ChevronDown style={{ width: 9, height: 9, opacity: 0.7 }} />
@@ -719,7 +719,7 @@ export function InboxLayout() {
                 );
               })()}
               {queueMenuOpen && (
-                <div role="listbox" style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, minWidth: 195, background: "var(--panel-bg)",  border: "1px solid var(--glass-border)", borderRadius: 10, zIndex: 9999, overflow: "hidden", boxShadow: "var(--shadow-hard)" }}>
+                <div role="listbox" style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, minWidth: 195, background: "var(--fc-surface)",  border: "1px solid var(--fc-glass-border)", borderRadius: 10, zIndex: 9999, overflow: "hidden", boxShadow: "var(--fc-shadow-hard)" }}>
                   {QUEUE_TABS.map(tab => {
                     const count = conversations.filter(c => {
                       if (tab.key === "all") return true;
@@ -732,9 +732,9 @@ export function InboxLayout() {
                     const isA = queueFilter === tab.key;
                     return (
                       <button key={tab.key} role="option" aria-selected={isA} onClick={() => { setQueueFilter(tab.key as QueueFilter); setQueueMenuOpen(false); }}
-                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", padding: "8px 14px", background: isA ? `${tab.color}10` : "transparent", border: "none", borderBottom: "1px solid var(--hairline)", borderLeft: isA ? `3px solid ${tab.color}` : "3px solid transparent", color: isA ? tab.color : "var(--text-secondary)", fontSize: 12, fontWeight: isA ? 600 : 400, cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}>
+                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", padding: "8px 14px", background: isA ? `${tab.color}10` : "transparent", border: "none", borderBottom: "1px solid var(--fc-border)", borderLeft: isA ? `3px solid ${tab.color}` : "3px solid transparent", color: isA ? tab.color : "var(--fc-text-secondary)", fontSize: 12, fontWeight: isA ? 600 : 400, cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}>
                         {tab.label}
-                        <span style={{ minWidth: 18, height: 18, borderRadius: 9, padding: "0 5px", display: "inline-flex", alignItems: "center", justifyContent: "center", background: isA ? `${tab.color}25` : "var(--surface-hover)", color: isA ? tab.color : "var(--text-secondary)", fontSize: 10, fontWeight: 700 }}>{count}</span>
+                        <span style={{ minWidth: 18, height: 18, borderRadius: 9, padding: "0 5px", display: "inline-flex", alignItems: "center", justifyContent: "center", background: isA ? `${tab.color}25` : "var(--fc-surface-hover)", color: isA ? tab.color : "var(--fc-text-secondary)", fontSize: 10, fontWeight: 700 }}>{count}</span>
                       </button>
                     );
                   })}
@@ -743,7 +743,7 @@ export function InboxLayout() {
             </div>
             
             <button onClick={() => fetchConversations()} disabled={isRefreshing} title="Actualizar" aria-label="Actualizar conversaciones"
-              style={{ padding: 7, borderRadius: 7, border: "1px solid var(--hairline)", background: "var(--surface-hover)", cursor: "pointer", color: "var(--text-muted)", display: "flex", opacity: isRefreshing ? 0.5 : 1 }}>
+              style={{ padding: 7, borderRadius: 7, border: "1px solid var(--fc-border)", background: "var(--fc-surface-hover)", cursor: "pointer", color: "var(--fc-text-muted)", display: "flex", opacity: isRefreshing ? 0.5 : 1 }}>
               <RefreshCw style={{ width: 12, height: 12, animation: isRefreshing ? "spin 0.6s linear infinite" : "none" }} />
             </button>
           </div>
@@ -754,26 +754,15 @@ export function InboxLayout() {
               <ConversationSkeleton />
             ) : filtered.length === 0 ? (
               <div style={{ padding: "28px 16px", textAlign: "center" }}>
-                <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "0 0 6px" }}>
+                <p style={{ fontSize: 12, color: "var(--fc-text-muted)", margin: "0 0 6px" }}>
                   {searchQuery ? "Sin resultados" : channelFilter !== "all" ? "Sin mensajes en este canal" : "Sin conversaciones aún"}
                 </p>
-                {searchQuery && <button onClick={() => setSearchQuery("")} style={{ fontSize: 11, color: "var(--primary)", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}>Limpiar búsqueda</button>}
+                {searchQuery && <button onClick={() => setSearchQuery("")} style={{ fontSize: 11, color: "var(--fc-accent)", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}>Limpiar búsqueda</button>}
                 {!hasAnyConnection && !searchQuery && (
                   <div style={{ marginTop: 10 }}>
-                    <ConnectDropdown
-                      onConnectMeta={() => openConnectPopup("community", handleConnectSuccess)}
-                      onConnectInstagram={handleConnectInstagram}
-                      onConnectWhatsApp={() => window.location.href = "/dashboard/integrations/whatsapp"}
-                      buttonText="Conectar cuenta"
-                      showPlusIcon={true}
-                      buttonStyle={{
-                        padding: "7px 14px", borderRadius: 7,
-                        background: "var(--primary)",
-                        color: "var(--foreground)",
-                        border: "none",
-                        fontSize: 11, fontWeight: 600,
-                      }}
-                    />
+                    <p style={{ fontSize: 11, color: "var(--fc-text-secondary)" }}>
+                      Conecta una cuenta para empezar
+                    </p>
                   </div>
                 )}
               </div>
@@ -790,13 +779,13 @@ export function InboxLayout() {
         {/* CENTER: Chat / Post view */}
         <div
           className={`flex-1 flex-col min-w-0 ${selected || isDesktop ? "flex" : "hidden"}`}
-          style={{ background: "var(--background)" }}
+          style={{ background: "transparent" }}
           role="main" aria-label="Conversación activa"
         >
           <ErrorBoundary name="InboxConversation" fallback={
             <div style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 40, textAlign: "center" }}>
-              <AlertCircle style={{ width: 28, height: 28, color: "var(--red)" }} />
-              <p style={{ fontSize: 13, color: "var(--text-secondary)", maxWidth: 280 }}>No se pudo mostrar esta conversación.</p>
+              <AlertCircle style={{ width: 28, height: 28, color: "var(--fc-danger)" }} />
+              <p style={{ fontSize: 13, color: "var(--fc-text-secondary)", maxWidth: 280 }}>No se pudo mostrar esta conversación.</p>
             </div>
           }>
             {!selected ? (
@@ -818,7 +807,7 @@ export function InboxLayout() {
         {showProfile && selected && (
           <div
             className="absolute inset-y-0 right-0 z-20 w-[280px] md:static md:w-[280px] md:min-w-[280px] shadow-2xl md:shadow-none flex flex-col"
-            style={{ background: "var(--background)", borderLeft: "1px solid var(--glass-border)", overflow: "hidden" }}
+            style={{ background: "var(--fc-surface)", borderLeft: "1px solid var(--fc-glass-border)", overflow: "hidden", backdropFilter: "blur(20px)" }}
             role="complementary" aria-label="Perfil del contacto"
           >
             <ContactProfile conversation={selected} onAssign={(member) => handleAssign(selected, member)} onAddTag={(tag) => handleAddTag(selected, tag)} onRemoveTag={(tag) => handleRemoveTag(selected, tag)} onAddNote={(content) => handleAddNote(selected, content)} onDeleteNote={(noteId) => handleDeleteNote(selected, noteId)} onClose={toggleProfile} />
@@ -827,10 +816,10 @@ export function InboxLayout() {
       </div>
 
       {connectToast && (
-        <div role="alert" aria-live="polite" style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: "var(--green)", color: "var(--foreground)", padding: "10px 18px", borderRadius: 10, fontSize: 13, fontWeight: 600, boxShadow: "0 8px 32px rgba(0,0,0,0.4)", zIndex: 999, display: "flex", alignItems: "center", gap: 8 }}>
+        <div role="alert" aria-live="polite" style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: "var(--fc-success)", color: "var(--fc-text)", padding: "10px 18px", borderRadius: 10, fontSize: 13, fontWeight: 600, boxShadow: "0 8px 32px rgba(0,0,0,0.4)", zIndex: 999, display: "flex", alignItems: "center", gap: 8 }}>
           <CheckCircle2 style={{ width: 15, height: 15 }} />
           {connectToast}
-          <button onClick={() => setConnectToast(null)} aria-label="Cerrar" style={{ background: "none", border: "none", color: "var(--foreground)", cursor: "pointer", padding: 2, display: "flex" }}>
+          <button onClick={() => setConnectToast(null)} aria-label="Cerrar" style={{ background: "none", border: "none", color: "var(--fc-text)", cursor: "pointer", padding: 2, display: "flex" }}>
             <X style={{ width: 13, height: 13 }} />
           </button>
         </div>

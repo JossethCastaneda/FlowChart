@@ -269,7 +269,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
           }
 
           return (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 8, background: "var(--red-dim)", border: "1px solid var(--fc-danger)", color: "var(--fc-danger)", fontSize: 12, marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 8, background: "var(--fc-danger-wash)", border: "1px solid var(--fc-danger)", color: "var(--fc-danger)", fontSize: 12, marginBottom: 16 }}>
               <AlertCircle size={13} /> {errorMsg}
             </div>
           );
@@ -462,7 +462,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
         </div>
       )}
       {errorMsg && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 8, background: "var(--red-dim)", border: "1px solid var(--fc-danger)", color: "var(--fc-danger)", fontSize: 12, marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 8, background: "var(--fc-danger-wash)", border: "1px solid var(--fc-danger)", color: "var(--fc-danger)", fontSize: 12, marginBottom: 16 }}>
           <AlertCircle size={13} /> {errorMsg}
         </div>
       )}
@@ -557,7 +557,7 @@ function ResourceRow({
           }} />
           <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--fc-text)" }}>{label}</p>
           {configured && (
-            <span style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--fc-success)", background: "var(--emerald-dim)", padding: "1px 6px", borderRadius: 4 }}>
+            <span style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--fc-success)", background: "var(--fc-success-wash)", padding: "1px 6px", borderRadius: 4 }}>
               VINCULADO
             </span>
           )}

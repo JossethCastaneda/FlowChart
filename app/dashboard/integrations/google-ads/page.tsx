@@ -251,7 +251,7 @@ export default function GoogleAdsPage() {
             <div style={{
               display: "flex", alignItems: "center", gap: 10,
               padding: "12px 16px", borderRadius: 10,
-              background: "var(--red-dim)", border: "1px solid var(--fc-danger)",
+              background: "var(--fc-danger-wash)", border: "1px solid var(--fc-danger)",
               color: "var(--fc-danger)", fontSize: 12, marginBottom: 20,
             }}>
               <AlertCircle size={14} />
@@ -315,7 +315,7 @@ export default function GoogleAdsPage() {
                   <div style={{
                     width: 20, height: 20, borderRadius: 4, border: `1px solid ${selectedIds.includes(account.id) ? "var(--fc-accent)" : "var(--fc-border-hover)"}`,
                     background: selectedIds.includes(account.id) ? "var(--fc-accent)" : "transparent",
-                    display: "flex", alignItems: "center", justifyContent: "center", color: "var(--background)",
+                    display: "flex", alignItems: "center", justifyContent: "center", color: "var(--fc-bg)",
                     transition: "all 0.2s"
                   }}>
                     {selectedIds.includes(account.id) && <CheckCircle2 size={14} />}
@@ -330,7 +330,7 @@ export default function GoogleAdsPage() {
                     disabled={saving}
                     style={{
                       padding: "10px 20px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: saving ? "wait" : "pointer",
-                      background: "var(--fc-accent)", color: "var(--background)", border: "none",
+                      background: "var(--fc-accent)", color: "var(--fc-bg)", border: "none",
                       display: "flex", alignItems: "center", gap: 8
                     }}
                   >
@@ -361,7 +361,7 @@ export default function GoogleAdsPage() {
                     disabled={!manualId}
                     style={{
                       padding: "8px 16px", borderRadius: 8,
-                      background: "var(--fc-text)", color: "var(--background)",
+                      background: "var(--fc-text)", color: "var(--fc-bg)",
                       fontSize: 12, fontWeight: 600, border: "none", cursor: (!manualId) ? "not-allowed" : "pointer",
                       opacity: (!manualId) ? 0.6 : 1,
                     }}

@@ -49,7 +49,7 @@ export default function ResetPasswordPage() {
 
   const containerStyle: React.CSSProperties = {
     minHeight: "100vh",
-    background: "var(--background)",
+    background: "var(--fc-bg)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -57,7 +57,7 @@ export default function ResetPasswordPage() {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: "var(--surface)", 
+    background: "var(--fc-surface)", 
     border: "1px solid rgba(91,155,255, 0.1)",
     borderRadius: "16px",
     padding: "40px",
@@ -68,10 +68,10 @@ export default function ResetPasswordPage() {
   const inputStyle: React.CSSProperties = {
     width: "100%",
     padding: "12px 16px",
-    background: "var(--surface)", 
+    background: "var(--fc-surface)", 
     border: "1px solid var(--border-strong)",
     borderRadius: "8px",
-    color: "var(--foreground)",
+    color: "var(--fc-text)",
     fontSize: "14px",
     outline: "none",
     marginBottom: "12px",
@@ -99,7 +99,7 @@ export default function ResetPasswordPage() {
           <h1 style={{ color: "var(--c-brand)", fontSize: "20px", marginBottom: "16px", textAlign: "center" }}>
              Contraseña actualizada
           </h1>
-          <p style={{ color: "var(--text-secondary)", textAlign: "center", fontSize: "14px" }}>
+          <p style={{ color: "var(--fc-text-secondary)", textAlign: "center", fontSize: "14px" }}>
             Redirigiendo al login...
           </p>
         </div>
@@ -121,7 +121,7 @@ export default function ResetPasswordPage() {
            FLOWCHART
         </h1>
         <p style={{
-          color: "var(--text-secondary)",
+          color: "var(--fc-text-secondary)",
           fontSize: "14px",
           textAlign: "center",
           marginBottom: "32px",
@@ -149,7 +149,7 @@ export default function ResetPasswordPage() {
           />
 
           {error && (
-            <p style={{ color: "var(--red)", fontSize: "12px", margin: "8px 0" }}>
+            <p style={{ color: "var(--fc-danger)", fontSize: "12px", margin: "8px 0" }}>
               {error}
             </p>
           )}

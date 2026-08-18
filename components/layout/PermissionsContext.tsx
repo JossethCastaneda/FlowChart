@@ -68,3 +68,28 @@ export function PermissionGuard({
 
   return <>{children}</>;
 }
+
+export function AdminGuard({
+  children,
+  fallback,
+}: {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}) {
+  const { role, loading } = usePermissions();
+
+  if (loading) return null;
+
+  if (role !== "ADMIN" && role !== "OWNER") {
+    if (fallback !== undefined) return <>{fallback}</>;
+    return (
+      <div style={{ padding: 40, textAlign: "center" }}>
+        <h2 style={{ fontSize: 20, color: "var(--fc-text)", marginBottom: 10 }}>Acceso denegado</h2>
+        <p style={{ color: "var(--fc-text-secondary)", fontSize: 14 }}>Esta sección es exclusiva para administradores del Workspace.</p>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+

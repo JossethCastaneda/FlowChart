@@ -3,7 +3,7 @@ tags: [home, índice]
 created: 2026-08-11
 ---
 
-# FlowChart / Zefirus — Base de Conocimiento
+# FlowChart / FlowChart — Base de Conocimiento
 
 > SaaS multi-tenant de marketing en Meta (Facebook + Instagram).
 > **Producción:** [flowchart.lat](https://flowchart.lat) · **Hosting:** Vercel · **DB:** PostgreSQL (Neon)
@@ -16,6 +16,7 @@ created: 2026-08-11
 - [[architecture/README|Índice de Arquitectura]]
 - [[architecture/stack|Stack Tecnológico]]
 - [[architecture/multi-tenant|Modelo Multi-Tenant]]
+- [[architecture/database-migration-policy|Política de Migraciones]]
 
 ### 📦 Módulos
 - [[modules/README|Índice de Módulos]]
@@ -36,6 +37,11 @@ created: 2026-08-11
 - [[design-system|Design System — FlowChart Ink]]
 - [[design-system/FlowChart Sistema de Marca.html|Sistema Visual de Marca (HTML)]]
 - [[pendientes-humanos|Pendientes que requieren intervención humana]]
+- [[audits/2026-08-17-codex-migration-zero-trust|Auditoría zero-trust de migraciones]]
+- [[audits/2026-08-17-codex-isolated-baseline-proof-final|Prueba final de baseline aislado]]
+- [[audits/2026-08-17-codex-final-canonical-migration-history|Finalización del historial canónico de migraciones]]
+- [[audits/2026-08-17-production-baseline-metadata-cutover|Cierre del cutover de metadata en producción]]
+- [[incidents/2026-08-aiusage-data-loss|Incidente y recuperación AiUsage]]
 
 ### ⚙️ Operaciones
 - [[vercel-env|Variables de entorno (Vercel)]]

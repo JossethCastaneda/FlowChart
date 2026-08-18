@@ -217,7 +217,7 @@ export default function MetaAdsPage() {
             <div style={{
               display: "flex", alignItems: "center", gap: 10,
               padding: "12px 16px", borderRadius: 10,
-              background: "var(--red-dim)", border: "1px solid var(--fc-danger)",
+              background: "var(--fc-danger-wash)", border: "1px solid var(--fc-danger)",
               color: "var(--fc-danger)", fontSize: 12, marginBottom: 20,
             }}>
               <AlertCircle size={14} />

@@ -37,7 +37,7 @@ export async function checkAiLimit(workspaceId: string): Promise<{ allowed: bool
     return { allowed: true, message: "" };
   } catch (err) {
     logger.error("[METERING] Error checkAiLimit", { workspaceId, error: String(err) });
-    return { allowed: true, message: "" }; // Fallback a true para no bloquear si hay error interno
+    return { allowed: false, message: "Error verificando cuota de IA. Por seguridad, la solicitud fue bloqueada." }; // Fail-closed
   }
 }
 
@@ -52,15 +52,12 @@ export async function recordAiUsage(
   tokensOut: number,
   opts?: {
     provider?: string;
-    estimatedCostUsd?: number;
     feature?: string;
   }
 ) {
   try {
-    // FIXME: Los campos provider/estimatedCostUsd/feature existen en el schema
-    // y en .prisma/client, pero @prisma/client/index.d.ts (pre-generado por npm)
-    // puede no incluirlos hasta el próximo `npm install`. Usamos spread para que
-    // los campos undefined no rompan la query, y `as any` para el type-check.
+    // Legacy estimatedCostUsd is intentionally not accepted here: it is neither
+    // proven provider cost nor an approved customer charge.
     const data: Record<string, unknown> = {
       workspaceId,
       route,
@@ -69,11 +66,10 @@ export async function recordAiUsage(
       tokensOut,
     };
     if (opts?.provider) data.provider = opts.provider;
-    if (opts?.estimatedCostUsd != null) data.estimatedCostUsd = opts.estimatedCostUsd;
     if (opts?.feature) data.feature = opts.feature;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
-    await prisma.aiUsage.create({ data: data as any });
+    const usageData = data as import("@prisma/client").Prisma.AiUsageUncheckedCreateInput;
+    await prisma.aiUsage.create({ data: usageData });
   } catch (err) {
     logger.error("[METERING] Error al guardar AiUsage", { workspaceId, route, error: String(err) });
   }

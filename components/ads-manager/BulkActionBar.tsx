@@ -26,7 +26,7 @@ export function BulkActionBar({ selectedCount, onClearSelection, onAction }: Bul
         bottom: "24px",
         left: "50%",
         transform: "translateX(-50%)",
-        background: "var(--surface)",
+        background: "var(--fc-surface)",
         
         border: "1px solid var(--border-strong)",
         borderRadius: "999px",
@@ -45,7 +45,7 @@ export function BulkActionBar({ selectedCount, onClearSelection, onAction }: Bul
           style={{
             background: "none",
             border: "none",
-            color: "var(--text-secondary)",
+            color: "var(--fc-text-secondary)",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
@@ -58,12 +58,12 @@ export function BulkActionBar({ selectedCount, onClearSelection, onAction }: Bul
         >
           <X className="w-4 h-4" />
         </button>
-        <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--foreground)", fontFamily: "var(--font-display)" }}>
+        <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--fc-text)", fontFamily: "var(--font-display)" }}>
           {selectedCount} Seleccionado{selectedCount > 1 ? "s" : ""}
         </span>
       </div>
 
-      <div style={{ width: "1px", height: "16px", background: "var(--border)" }} />
+      <div style={{ width: "1px", height: "16px", background: "var(--fc-border)" }} />
 
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         <ActionButton
@@ -76,14 +76,14 @@ export function BulkActionBar({ selectedCount, onClearSelection, onAction }: Bul
           icon={<Play className="w-3.5 h-3.5" />}
           label="Activar"
           loading={loading === "activate"}
-          color="var(--emerald)"
+          color="var(--fc-success)"
           onClick={() => handleAction("activate")}
         />
         <ActionButton
           icon={<Pause className="w-3.5 h-3.5" />}
           label="Pausar"
           loading={loading === "pause"}
-          color="var(--amber)"
+          color="var(--fc-warning)"
           onClick={() => handleAction("pause")}
         />
         <ActionButton
@@ -96,7 +96,7 @@ export function BulkActionBar({ selectedCount, onClearSelection, onAction }: Bul
           icon={<Trash2 className="w-3.5 h-3.5" />}
           label="Eliminar"
           loading={loading === "delete"}
-          color="var(--red)"
+          color="var(--fc-danger)"
           onClick={() => {
             if (confirm(`¿Estás seguro de que deseas eliminar ${selectedCount} elemento(s)?`)) {
               handleAction("delete");
@@ -130,10 +130,10 @@ function ActionButton({
         alignItems: "center",
         gap: "6px",
         padding: "6px 12px",
-        background: "var(--surface)",
-        border: "1px solid var(--border)",
+        background: "var(--fc-surface)",
+        border: "1px solid var(--fc-border)",
         borderRadius: "999px",
-        color: loading ? "var(--text-muted)" : color || "var(--text-secondary)",
+        color: loading ? "var(--fc-text-muted)" : color || "var(--fc-text-secondary)",
         fontSize: "10px",
         fontWeight: 600,
         textTransform: "uppercase",
@@ -144,15 +144,15 @@ function ActionButton({
       onMouseEnter={(e) => {
         if (!loading) {
           e.currentTarget.style.background = "rgba(255,255,255,0.08)";
-          e.currentTarget.style.borderColor = color || "var(--cyan)";
+          e.currentTarget.style.borderColor = color || "var(--fc-accent)";
           e.currentTarget.style.color = "white";
         }
       }}
       onMouseLeave={(e) => {
         if (!loading) {
           e.currentTarget.style.background = "rgba(255, 255, 255, 0.03)";
-          e.currentTarget.style.borderColor = "var(--border)";
-          e.currentTarget.style.color = color || "var(--text-secondary)";
+          e.currentTarget.style.borderColor = "var(--fc-border)";
+          e.currentTarget.style.color = color || "var(--fc-text-secondary)";
         }
       }}
     >
@@ -162,7 +162,7 @@ function ActionButton({
             width: "12px",
             height: "12px",
             border: "2px solid rgba(255,255,255,0.65)",
-            borderTopColor: "var(--cyan)",
+            borderTopColor: "var(--fc-accent)",
             borderRadius: "50%",
             animation: "spin 1s linear infinite",
           }}

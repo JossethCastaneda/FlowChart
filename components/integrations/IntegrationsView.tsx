@@ -13,7 +13,7 @@ import { openConnectPopup } from "@/lib/connect-popup";
 import { CustomCrmModal } from "@/components/integrations/CustomCrmModal";
 import { useLanguage } from "@/components/layout/LanguageContext";
 import {
-  MetaIcon,
+  MetaIcon, FacebookIcon, GoogleIcon,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   MessengerIcon,
   InstagramIcon,
@@ -70,24 +70,24 @@ function TokenModal({ provider, label, isConnected, onClose, onSuccess, onDiscon
   };
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "var(--overlay-dark)",  display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 400, borderRadius: 14, background: "var(--background)", border: "1px solid var(--hairline)", padding: 24 }}>
-        <p style={{ fontSize: 15, fontWeight: 700, color: "var(--foreground)", margin: "0 0 6px" }}>Conectar {label}</p>
-        <p style={{ fontSize: 11, color: "var(--text-muted)", margin: "0 0 16px" }}>Ingresa el token de acceso de tu cuenta</p>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 400, borderRadius: 14, background: "var(--fc-bg)", border: "1px solid var(--hairline)", padding: 24 }}>
+        <p style={{ fontSize: 15, fontWeight: 700, color: "var(--fc-text)", margin: "0 0 6px" }}>Conectar {label}</p>
+        <p style={{ fontSize: 11, color: "var(--fc-text-muted)", margin: "0 0 16px" }}>Ingresa el token de acceso de tu cuenta</p>
         <input
           value={token} onChange={(e) => setToken(e.target.value)}
           placeholder="Token de acceso..."
-          style={{ width: "100%", padding: "9px 12px", borderRadius: 8, fontSize: 12, background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--foreground)", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }}
+          style={{ width: "100%", padding: "9px 12px", borderRadius: 8, fontSize: 12, background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--fc-text)", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }}
         />
         {error && (
-          <p style={{ fontSize: 11, color: "var(--red)", margin: "10px 0 0", lineHeight: 1.4 }}>{error}</p>
+          <p style={{ fontSize: 11, color: "var(--fc-danger)", margin: "10px 0 0", lineHeight: 1.4 }}>{error}</p>
         )}
         <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
           {isConnected && onDisconnect ? (
-            <button onClick={onDisconnect} style={{ flex: 1, padding: "9px", borderRadius: 8, fontSize: 12, background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--red)", cursor: "pointer", fontFamily: "inherit" }}>Desconectar</button>
+            <button onClick={onDisconnect} style={{ flex: 1, padding: "9px", borderRadius: 8, fontSize: 12, background: "var(--fc-danger-wash)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--fc-danger)", cursor: "pointer", fontFamily: "inherit" }}>Desconectar</button>
           ) : (
-            <button onClick={onClose} style={{ flex: 1, padding: "9px", borderRadius: 8, fontSize: 12, background: "transparent", border: "1px solid var(--hairline)", color: "var(--text-muted)", cursor: "pointer", fontFamily: "inherit" }}>Cancelar</button>
+            <button onClick={onClose} style={{ flex: 1, padding: "9px", borderRadius: 8, fontSize: 12, background: "transparent", border: "1px solid var(--hairline)", color: "var(--fc-text-muted)", cursor: "pointer", fontFamily: "inherit" }}>Cancelar</button>
           )}
-          <button onClick={save} disabled={!token.trim() || saving} style={{ flex: 2, padding: "9px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.25)", color: "var(--cyan)", cursor: !token.trim() || saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "inherit", opacity: !token.trim() || saving ? 0.6 : 1 }}>
+          <button onClick={save} disabled={!token.trim() || saving} style={{ flex: 2, padding: "9px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.25)", color: "var(--fc-accent)", cursor: !token.trim() || saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "inherit", opacity: !token.trim() || saving ? 0.6 : 1 }}>
             {saving && <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />}
             Guardar y conectar
           </button>
@@ -117,24 +117,24 @@ const ALL_CHANNELS: ChannelDef[] = [
   {
     provider: "meta_ads",
     name: "Meta Ads",
-    description: "Campañas publicitarias, audiencias y presupuestos en Meta.",
-    Icon: MetaIcon, iconBg: "#0081FB",
-    badges: [{ label: "ADS", color: "var(--cyan)" }],
+      description: "Campañas publicitarias, audiencias y presupuestos en Meta.",
+      Icon: MetaIcon, iconBg: "#0081FB",
+    badges: [{ label: "ADS", color: "var(--fc-accent)" }],
     managePage: "/dashboard/integrations/meta-ads",
   },
   {
     provider: "meta_community",
     name: "Facebook Pages",
     description: "Gestiona páginas, publicaciones y comentarios de Facebook.",
-    Icon: MetaIcon, iconBg: "#2563eb",
-    badges: [{ label: "PÁGINAS", color: "var(--cyan)" }],
+    Icon: FacebookIcon, iconBg: "#ffffff", iconLight: true,
+    badges: [{ label: "PÁGINAS", color: "var(--fc-accent)" }],
     managePage: "/dashboard/integrations/facebook",
   },
   {
     provider: "instagram",
     name: "Instagram",
     description: "Automatiza conversaciones, responde mensajes y comentarios.",
-    Icon: InstagramIcon, iconBg: "linear-gradient(135deg,#833AB4,#FD1D1D,#F77737)",
+    Icon: InstagramIcon, iconBg: "#ffffff", iconLight: true,
     badges: [{ label: "POSTS", color: "#bc5fb2" }, { label: "DMS", color: "#bc5fb2" }],
     managePage: "/dashboard/integrations/instagram",
   },
@@ -144,7 +144,7 @@ const ALL_CHANNELS: ChannelDef[] = [
     name: "WhatsApp Business",
     description: "Envía mensajes, plantillas y responde con la API Cloud oficial.",
     Icon: WhatsAppIcon, iconBg: "#075E54",
-    badges: [{ label: "TEXTO", color: "var(--emerald)" }],
+    badges: [{ label: "TEXTO", color: "var(--fc-success)" }],
     managePage: "/dashboard/integrations/whatsapp",
   },
   // Google
@@ -161,7 +161,7 @@ const ALL_CHANNELS: ChannelDef[] = [
     name: "Google Analytics 4",
     description: "Sesiones, conversiones y engagement en tiempo real.",
     Icon: GA4Icon, iconBg: "#ffffff", iconLight: true,
-    badges: [{ label: "DATA", color: "var(--amber)" }],
+    badges: [{ label: "DATA", color: "var(--fc-warning)" }],
     managePage: "/dashboard/integrations/google-analytics",
   },
   {
@@ -169,7 +169,7 @@ const ALL_CHANNELS: ChannelDef[] = [
     name: "Tag Manager",
     description: "Contenedores, tags y triggers sin tocar el código.",
     Icon: GTMIcon, iconBg: "#ffffff", iconLight: true,
-    badges: [{ label: "TAGS", color: "var(--emerald)" }],
+    badges: [{ label: "TAGS", color: "var(--fc-success)" }],
     managePage: "/dashboard/integrations/tag-manager",
   },
   // Mensajería
@@ -188,7 +188,7 @@ const ALL_CHANNELS: ChannelDef[] = [
     provider: "custom_crm", name: "CRM Custom",
     description: "Conecta tu propio CRM vía API endpoint personalizado.",
     Icon: ({ size = 20 }) => <Database size={size} color="white" />, iconBg: "#10B981",
-    badges: [{ label: "API", color: "var(--emerald)" }],
+    badges: [{ label: "API", color: "var(--fc-success)" }],
   },
   { provider: "hubspot", name: "HubSpot", description: "Email automation y CRM sync.", Icon: HubSpotIcon, iconBg: "#FF5C35", comingSoon: true },
 ];
@@ -316,19 +316,19 @@ export function IntegrationsView() {
         {/* ── Summary ─── */}
         <div style={{ display: "flex", alignItems: "center", gap: "16px", padding: "16px 20px", borderRadius: "14px", background: "var(--row-hover)", border: "1px solid var(--hairline)", boxShadow: "0 4px 20px rgba(0,0,0,0.06)" }}>
           {loading ? (
-            <Loader2 size={16} style={{ color: "var(--text-secondary)", animation: "spin 1s linear infinite" }} />
+            <Loader2 size={16} style={{ color: "var(--fc-text-secondary)", animation: "spin 1s linear infinite" }} />
           ) : (
             <>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
-                <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: uniqueConnected > 0 ? "var(--emerald)" : "var(--text-secondary)", boxShadow: uniqueConnected > 0 ? "0 0 10px var(--emerald)" : "none" }} />
-                <span style={{ fontSize: "14px", color: "var(--text-secondary)" }}>
-                  <strong style={{ color: "var(--foreground)", fontWeight: 800 }}>{uniqueConnected}</strong> {lang === "es" ? `de ${totalActive} canales conectados` : `of ${totalActive} connected channels`}
+                <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: uniqueConnected > 0 ? "var(--fc-success)" : "var(--fc-text-secondary)", boxShadow: uniqueConnected > 0 ? "0 0 10px var(--fc-success)" : "none" }} />
+                <span style={{ fontSize: "14px", color: "var(--fc-text-secondary)" }}>
+                  <strong style={{ color: "var(--fc-text)", fontWeight: 800 }}>{uniqueConnected}</strong> {lang === "es" ? `de ${totalActive} canales conectados` : `of ${totalActive} connected channels`}
                 </span>
               </div>
               <div style={{ flex: 1, height: "6px", borderRadius: "3px", background: "var(--surface-hover)", overflow: "hidden" }}>
-                <motion.div initial={{ width: 0 }} animate={{ width: `${totalActive > 0 ? (uniqueConnected / totalActive) * 100 : 0}%` }} transition={{ duration: 1, ease: "easeOut" }} style={{ height: "100%", borderRadius: "3px", background: "linear-gradient(90deg,var(--cyan),#2563eb,#bc5fb2)", boxShadow: "0 0 10px rgba(59,130,246,0.5)" }} />
+                <motion.div initial={{ width: 0 }} animate={{ width: `${totalActive > 0 ? (uniqueConnected / totalActive) * 100 : 0}%` }} transition={{ duration: 1, ease: "easeOut" }} style={{ height: "100%", borderRadius: "3px", background: "linear-gradient(90deg,var(--fc-accent),#2563eb,#bc5fb2)", boxShadow: "0 0 10px rgba(59,130,246,0.5)" }} />
               </div>
-              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={loadIntegrations} style={{ background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: "8px", cursor: "pointer", color: "var(--foreground)", display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 600, padding: "6px 12px", transition: "background 0.2s" }}>
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={loadIntegrations} style={{ background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: "8px", cursor: "pointer", color: "var(--fc-text)", display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 600, padding: "6px 12px", transition: "background 0.2s" }}>
                 <RefreshCw size={12} /> {lang === "es" ? "Refrescar" : "Refresh"}
               </motion.button>
             </>
@@ -364,7 +364,7 @@ export function IntegrationsView() {
                   display: "flex", flexDirection: "column",
                   padding: "24px 22px 20px", borderRadius: "18px",
                   background: connected ? "rgba(16, 185, 129, 0.05)" : "var(--bg-raised)",
-                  border: connected ? "1px solid rgba(16, 185, 129, 0.25)" : "1px solid var(--border)",
+                  border: connected ? "1px solid rgba(16, 185, 129, 0.25)" : "1px solid var(--fc-border)",
                   opacity: ch.comingSoon ? 0.55 : 1,
                   position: "relative", overflow: "hidden",
                   boxShadow: connected ? "0 10px 30px rgba(16,185,129,0.1)" : "0 4px 14px rgba(0,0,0,0.06)",
@@ -373,12 +373,12 @@ export function IntegrationsView() {
               >
                 {/* top green accent when connected */}
                 {connected && (
-                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg,transparent,var(--emerald),transparent)", borderRadius: "14px 14px 0 0" }} />
+                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg,transparent,var(--fc-success),transparent)", borderRadius: "14px 14px 0 0" }} />
                 )}
 
                 {/* PRONTO badge */}
                 {ch.comingSoon && (
-                  <span style={{ position: "absolute", top: 10, right: 10, fontSize: 8, fontWeight: 800, padding: "2px 6px", borderRadius: 4, background: "var(--surface)", border: "1px solid rgba(155,123,232,0.2)", color: "var(--purple)", letterSpacing: "0.08em" }}>
+                  <span style={{ position: "absolute", top: 10, right: 10, fontSize: 8, fontWeight: 800, padding: "2px 6px", borderRadius: 4, background: "var(--fc-surface)", border: "1px solid rgba(155,123,232,0.2)", color: "var(--fc-module-aria)", letterSpacing: "0.08em" }}>
                     {lang === "es" ? "PRONTO" : "SOON"}
                   </span>
                 )}
@@ -417,8 +417,8 @@ export function IntegrationsView() {
  
                 {/* Name + description */}
                 <div style={{ flex: 1 }}>
-                  <h3 style={{ fontSize: "16px", fontWeight: 800, color: "var(--foreground)", margin: "0 0 6px", letterSpacing: "-0.01em" }}>{ch.name}</h3>
-                  <p style={{ fontSize: "12px", color: "var(--text-secondary)", margin: 0, lineHeight: 1.6 }}>
+                  <h3 style={{ fontSize: "16px", fontWeight: 800, color: "var(--fc-text)", margin: "0 0 6px", letterSpacing: "-0.01em" }}>{ch.name}</h3>
+                  <p style={{ fontSize: "12px", color: "var(--fc-text-secondary)", margin: 0, lineHeight: 1.6 }}>
                     {getTranslatedChannelDesc(ch.name, ch.description, lang)}
                   </p>
                 </div>
@@ -430,13 +430,13 @@ export function IntegrationsView() {
                       <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--surface-hover)" }} />
                     ) : connected ? (
                       <>
-                        <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 10px var(--emerald)" }} />
-                        <span style={{ fontSize: "12px", color: "var(--emerald)", fontWeight: 700 }}>{lang === "es" ? "Conectado" : "Connected"}</span>
+                        <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--fc-success)", boxShadow: "0 0 10px var(--fc-success)" }} />
+                        <span style={{ fontSize: "12px", color: "var(--fc-success)", fontWeight: 700 }}>{lang === "es" ? "Conectado" : "Connected"}</span>
                       </>
                     ) : (
                       <>
-                        <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--text-secondary)" }} />
-                        <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: 600 }}>{lang === "es" ? "Sin conectar" : "Not connected"}</span>
+                        <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--fc-text-secondary)" }} />
+                        <span style={{ fontSize: "12px", color: "var(--fc-text-muted)", fontWeight: 600 }}>{lang === "es" ? "Sin conectar" : "Not connected"}</span>
                       </>
                     )}
                   </div>
@@ -452,9 +452,9 @@ export function IntegrationsView() {
                       style={{
                         padding: "8px 18px", borderRadius: "8px",
                         fontSize: "12px", fontWeight: 700,
-                        background: connected ? "var(--surface-hover)" : "linear-gradient(135deg, var(--cyan), #2563eb)",
+                        background: connected ? "var(--surface-hover)" : "linear-gradient(135deg, var(--fc-accent), #2563eb)",
                         border: connected ? "1px solid var(--hairline)" : "none",
-                        color: connected ? "var(--foreground)" : "white",
+                        color: connected ? "var(--fc-text)" : "white",
                         cursor: "pointer", fontFamily: "inherit",
                         boxShadow: connected ? "none" : "0 4px 14px rgba(59,130,246,0.4)",
                       }}

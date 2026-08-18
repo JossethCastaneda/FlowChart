@@ -42,7 +42,7 @@ export function FormatSelector({ value, onChange }: Props) {
                 border: isActive
                   ? "1px solid rgba(59,130,246,0.4)"
                   : "1px solid var(--hairline)",
-                color: isActive ? "var(--cyan)" : "var(--text-secondary)",
+                color: isActive ? "var(--fc-accent)" : "var(--fc-text-secondary)",
                 fontSize: 13,
                 fontWeight: isActive ? 600 : 500,
                 cursor: "pointer",
@@ -67,8 +67,8 @@ export function FormatSelector({ value, onChange }: Props) {
                 fontSize: 10,
                 padding: "2px 8px",
                 borderRadius: 10,
-                background: "var(--cyan-dim)",
-                color: "var(--cyan)",
+                background: "var(--fc-accent-wash)",
+                color: "var(--fc-accent)",
                 border: "1px solid rgba(59,130,246,0.2)",
                 fontWeight: 500,
                 fontFamily: "var(--font-sans)",

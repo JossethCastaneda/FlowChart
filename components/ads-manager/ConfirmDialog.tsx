@@ -19,26 +19,26 @@ const VARIANTS = {
   danger: {
     border: "rgba(229,72,77,0.25)",
     bg: "rgba(229,72,77,0.06)",
-    icon: "var(--red)",
+    icon: "var(--fc-danger)",
     btn: "rgba(229,72,77,0.15)",
     btnBorder: "rgba(229,72,77,0.35)",
-    btnColor: "var(--red)",
+    btnColor: "var(--fc-danger)",
   },
   warning: {
     border: "rgba(251,191,36,0.25)",
     bg: "rgba(251,191,36,0.06)",
-    icon: "var(--amber)",
+    icon: "var(--fc-warning)",
     btn: "rgba(251,191,36,0.15)",
     btnBorder: "rgba(251,191,36,0.35)",
-    btnColor: "var(--amber)",
+    btnColor: "var(--fc-warning)",
   },
   info: {
     border: "rgba(59,130,246,0.25)",
     bg: "rgba(59,130,246,0.06)",
-    icon: "var(--cyan)",
+    icon: "var(--fc-accent)",
     btn: "rgba(59,130,246,0.15)",
     btnBorder: "rgba(59,130,246,0.35)",
-    btnColor: "var(--cyan)",
+    btnColor: "var(--fc-accent)",
   },
 };
 
@@ -68,7 +68,7 @@ export function ConfirmDialog({
           position: "fixed", top: "50%", left: "50%",
           transform: "translate(-50%, -50%)", zIndex: 201,
           width: "380px", maxWidth: "90vw",
-          background: "var(--surface)", 
+          background: "var(--fc-surface)", 
           border: `1px solid ${v.border}`, borderRadius: "12px",
           padding: "24px",
           boxShadow: `0 20px 60px -12px rgba(0,0,0,0.7), 0 0 20px ${v.bg}`,
@@ -84,10 +84,10 @@ export function ConfirmDialog({
             <AlertTriangle className="w-5 h-5" style={{ color: v.icon }} />
           </div>
           <div>
-            <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--foreground)", marginBottom: "6px" }}>
+            <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--fc-text)", marginBottom: "6px" }}>
               {title}
             </div>
-            <div style={{ fontSize: "12px", color: "var(--text-secondary)", lineHeight: "1.5" }}>
+            <div style={{ fontSize: "12px", color: "var(--fc-text-secondary)", lineHeight: "1.5" }}>
               {message}
             </div>
           </div>
@@ -100,7 +100,7 @@ export function ConfirmDialog({
             style={{
               padding: "8px 16px", fontSize: "11px", fontWeight: 600,
               background: "var(--surface-hover)", border: "1px solid var(--hairline)",
-              borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer",
+              borderRadius: "6px", color: "var(--fc-text-secondary)", cursor: "pointer",
               transition: "all 0.15s",
             }}
           >

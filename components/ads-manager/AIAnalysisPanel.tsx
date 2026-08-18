@@ -136,12 +136,12 @@ function ScoreGauge({ score, status }: { score: number; status: string }) {
   const circumference = 2 * Math.PI * radius;
   const progress = (score / 100) * circumference;
   const colors: Record<string, string> = {
-    excellent: "var(--emerald)",
-    good: "var(--cyan)",
-    warning: "var(--amber)",
-    critical: "var(--red)",
+    excellent: "var(--fc-success)",
+    good: "var(--fc-accent)",
+    warning: "var(--fc-warning)",
+    critical: "var(--fc-danger)",
   };
-  const color = colors[status] || "var(--cyan)";
+  const color = colors[status] || "var(--fc-accent)";
 
   return (
     <div style={{ position: "relative", width: 90, height: 90 }}>
@@ -165,7 +165,7 @@ function ScoreGauge({ score, status }: { score: number; status: string }) {
         <div style={{ fontSize: "22px", fontWeight: 800, color, letterSpacing: "-0.02em" }}>
           {score}
         </div>
-        <div style={{ fontSize: "7px", color: "var(--text-muted)", fontWeight: 600, letterSpacing: "0.08em" }}>
+        <div style={{ fontSize: "7px", color: "var(--fc-text-muted)", fontWeight: 600, letterSpacing: "0.08em" }}>
           SCORE IA
         </div>
       </div>
@@ -198,7 +198,7 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
     }}>
       <div style={{
         display: "flex", alignItems: "center", gap: "6px", marginBottom: "14px",
-        fontSize: "10px", fontWeight: 700, color: "var(--cyan)",
+        fontSize: "10px", fontWeight: 700, color: "var(--fc-accent)",
         letterSpacing: "0.06em",
       }}>
         <Brain className="w-4 h-4" />
@@ -210,8 +210,8 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
           padding: "30px", gap: "10px",
         }}>
-          <RefreshCw className="w-5 h-5 animate-spin" style={{ color: "var(--cyan)" }} />
-          <span style={{ fontSize: "10px", color: "var(--text-muted)", letterSpacing: "0.08em" }}>
+          <RefreshCw className="w-5 h-5 animate-spin" style={{ color: "var(--fc-accent)" }} />
+          <span style={{ fontSize: "10px", color: "var(--fc-text-muted)", letterSpacing: "0.08em" }}>
             El Consejo Jedi está analizando tus campañas...
           </span>
         </div>
@@ -221,7 +221,7 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
           <div style={{ display: "flex", gap: "14px", alignItems: "center", marginBottom: "16px" }}>
             <ScoreGauge score={analysis.score} status={analysis.status} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "11px", color: "var(--text-secondary)", lineHeight: "1.5", marginBottom: "6px" }}>
+              <div style={{ fontSize: "11px", color: "var(--fc-text-secondary)", lineHeight: "1.5", marginBottom: "6px" }}>
                 {analysis.summary}
               </div>
             </div>
@@ -230,14 +230,14 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
           {/* Problems */}
           {analysis.problems.length > 0 && (
             <div style={{ marginBottom: "12px" }}>
-              <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--red)", marginBottom: "6px", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: "4px" }}>
+              <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--fc-danger)", marginBottom: "6px", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: "4px" }}>
                 <AlertTriangle className="w-3 h-3" /> PROBLEMAS DETECTADOS
               </div>
               {analysis.problems.map((p, i) => (
                 <div key={i} style={{
-                  fontSize: "10px", color: "var(--text-secondary)", lineHeight: "1.5",
+                  fontSize: "10px", color: "var(--fc-text-secondary)", lineHeight: "1.5",
                   padding: "6px 8px", marginBottom: "4px", borderRadius: "4px",
-                  background: "var(--red-dim)", borderLeft: "2px solid rgba(229,72,77,0.3)",
+                  background: "var(--fc-danger-wash)", borderLeft: "2px solid rgba(229,72,77,0.3)",
                 }}>
                   {p}
                 </div>
@@ -247,14 +247,14 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
 
           {/* Opportunities */}
           <div style={{ marginBottom: "12px" }}>
-            <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--emerald)", marginBottom: "6px", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: "4px" }}>
+            <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--fc-success)", marginBottom: "6px", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: "4px" }}>
               <TrendingUp className="w-3 h-3" /> OPORTUNIDADES
             </div>
             {analysis.opportunities.map((o, i) => (
               <div key={i} style={{
-                fontSize: "10px", color: "var(--text-secondary)", lineHeight: "1.5",
+                fontSize: "10px", color: "var(--fc-text-secondary)", lineHeight: "1.5",
                 padding: "6px 8px", marginBottom: "4px", borderRadius: "4px",
-                background: "var(--surface)", borderLeft: "2px solid rgba(52,211,153,0.3)",
+                background: "var(--fc-surface)", borderLeft: "2px solid rgba(52,211,153,0.3)",
               }}>
                 {o}
               </div>
@@ -263,14 +263,14 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
 
           {/* Actions */}
           <div>
-            <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--amber)", marginBottom: "6px", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: "4px" }}>
+            <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--fc-warning)", marginBottom: "6px", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: "4px" }}>
               <Lightbulb className="w-3 h-3" /> ACCIONES RECOMENDADAS
             </div>
             {analysis.actions.map((a, i) => (
               <div key={i} style={{
-                fontSize: "10px", color: "var(--text-secondary)", lineHeight: "1.5",
+                fontSize: "10px", color: "var(--fc-text-secondary)", lineHeight: "1.5",
                 padding: "6px 8px", marginBottom: "4px", borderRadius: "4px",
-                background: "var(--surface)", borderLeft: "2px solid rgba(251,191,36,0.3)",
+                background: "var(--fc-surface)", borderLeft: "2px solid rgba(251,191,36,0.3)",
               }}>
                 {i + 1}. {a}
               </div>

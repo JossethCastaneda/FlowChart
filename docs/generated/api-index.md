@@ -8,7 +8,7 @@ tags: [generado, api, endpoints]
 > No lo edites manualmente — se sobreescribe en cada generación.
 > Fuente: `scripts/docs-graph.mjs`
 
-Total: **145 route handlers** en 30 grupos.
+Total: **162 route handlers** en 32 grupos.
 
 ## `/api/ads/`
 
@@ -32,6 +32,13 @@ Total: **145 route handlers** en 30 grupos.
 | `/api/auth/forgot-password` | `POST` | `app/api/auth/forgot-password/route.ts` |
 | `/api/auth/register` | `POST` | `app/api/auth/register/route.ts` |
 | `/api/auth/reset-password` | `POST` | `app/api/auth/reset-password/route.ts` |
+
+## `/api/billing/`
+
+| Ruta | Métodos | Archivo |
+|------|---------|--------|
+| `/api/billing/checkout` | `POST` | `app/api/billing/checkout/route.ts` |
+| `/api/billing/portal` | `POST` | `app/api/billing/portal/route.ts` |
 
 ## `/api/briefs/`
 
@@ -65,6 +72,7 @@ Total: **145 route handlers** en 30 grupos.
 
 | Ruta | Métodos | Archivo |
 |------|---------|--------|
+| `/api/cron/billing` | `GET` | `app/api/cron/billing/route.ts` |
 | `/api/cron/instagram-resubscribe` | `GET` | `app/api/cron/instagram-resubscribe/route.ts` |
 | `/api/cron/mmm-ingest` | `GET` | `app/api/cron/mmm-ingest/route.ts` |
 | `/api/cron/sync-ads` | `GET` | `app/api/cron/sync-ads/route.ts` |
@@ -203,6 +211,22 @@ Total: **145 route handlers** en 30 grupos.
 | `/api/ops/okrs` | `GET` `POST` | `app/api/ops/okrs/route.ts` |
 | `/api/ops/stream` | `GET` | `app/api/ops/stream/route.ts` |
 
+## `/api/optimization/`
+
+| Ruta | Métodos | Archivo |
+|------|---------|--------|
+| `/api/optimization/actions/[actionId]/approval` | `POST` | `app/api/optimization/actions/[actionId]/approval/route.ts` |
+| `/api/optimization/actions/[actionId]/execute` | `POST` | `app/api/optimization/actions/[actionId]/execute/route.ts` |
+| `/api/optimization/actions/[actionId]/rollback` | `POST` | `app/api/optimization/actions/[actionId]/rollback/route.ts` |
+| `/api/optimization/audit` | `GET` | `app/api/optimization/audit/route.ts` |
+| `/api/optimization/clients` | `GET` `POST` | `app/api/optimization/clients/route.ts` |
+| `/api/optimization/evaluations` | `GET` `POST` | `app/api/optimization/evaluations/route.ts` |
+| `/api/optimization/objectives` | `GET` `POST` | `app/api/optimization/objectives/route.ts` |
+| `/api/optimization/overview` | `GET` | `app/api/optimization/overview/route.ts` |
+| `/api/optimization/recommendations` | `GET` `POST` | `app/api/optimization/recommendations/route.ts` |
+| `/api/optimization/results` | `GET` `POST` | `app/api/optimization/results/route.ts` |
+| `/api/optimization/snapshots` | `GET` `POST` | `app/api/optimization/snapshots/route.ts` |
+
 ## `/api/projects/`
 
 | Ruta | Métodos | Archivo |
@@ -263,6 +287,7 @@ Total: **145 route handlers** en 30 grupos.
 
 | Ruta | Métodos | Archivo |
 |------|---------|--------|
+| `/api/user/avatar` | `POST` `DELETE` | `app/api/user/avatar/route.ts` |
 | `/api/user/profile` | `GET` `PATCH` | `app/api/user/profile/route.ts` |
 
 ## `/api/webhooks/`
@@ -271,6 +296,7 @@ Total: **145 route handlers** en 30 grupos.
 |------|---------|--------|
 | `/api/webhooks/meta` | `GET` `POST` | `app/api/webhooks/meta/route.ts` |
 | `/api/webhooks/resubscribe` | `POST` | `app/api/webhooks/resubscribe/route.ts` |
+| `/api/webhooks/stripe` | `POST` | `app/api/webhooks/stripe/route.ts` |
 | `/api/webhooks/subscribe` | `GET` `POST` | `app/api/webhooks/subscribe/route.ts` |
 | `/api/webhooks/tiktok` | `GET` `POST` | `app/api/webhooks/tiktok/route.ts` |
 | `/api/webhooks/whatsapp` | `GET` `POST` | `app/api/webhooks/whatsapp/route.ts` |
@@ -298,6 +324,7 @@ Total: **145 route handlers** en 30 grupos.
 | `/api/workspace/[workspaceId]/members` | `GET` `DELETE` | `app/api/workspace/[workspaceId]/members/route.ts` |
 | `/api/workspace/[workspaceId]/members/permissions` | `PATCH` | `app/api/workspace/[workspaceId]/members/permissions/route.ts` |
 | `/api/workspace/[workspaceId]/members/role` | `PATCH` | `app/api/workspace/[workspaceId]/members/role/route.ts` |
+| `/api/workspace/branding/logo` | `POST` `DELETE` | `app/api/workspace/branding/logo/route.ts` |
 | `/api/workspace/integrations` | `GET` `POST` `DELETE` | `app/api/workspace/integrations/route.ts` |
 | `/api/workspace/integrations/test-crm` | `POST` | `app/api/workspace/integrations/test-crm/route.ts` |
 | `/api/workspace/members/status` | `GET` `PUT` | `app/api/workspace/members/status/route.ts` |

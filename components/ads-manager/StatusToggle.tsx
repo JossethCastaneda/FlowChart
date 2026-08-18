@@ -33,7 +33,7 @@ export function StatusToggle({ status, onToggle }: StatusToggleProps) {
         background: loading
           ? "rgba(148,163,184,0.22)"
           : isActive
-          ? "var(--cyan)"
+          ? "var(--fc-accent)"
           : "rgba(148,163,184,0.65)",
         border: "none",
         padding: "2px",

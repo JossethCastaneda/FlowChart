@@ -31,7 +31,7 @@ export function FirstCommentExpander({ value, onChange, visible }: Props) {
           gap: 8,
           width: "100%",
           padding: "10px 20px",
-          background: "var(--surface)",
+          background: "var(--fc-surface)",
           border: "1px solid var(--hairline)",
           borderBottom: expanded ? "1px solid rgba(255,255,255,0.06)" : "none",
           borderLeft: "none",
@@ -74,13 +74,13 @@ export function FirstCommentExpander({ value, onChange, visible }: Props) {
             style={{
               width: "100%",
               minHeight: 90,
-              background: "var(--surface)",
+              background: "var(--fc-surface)",
               border: "1px solid rgba(225,48,108,0.15)",
               borderRadius: 8,
               outline: "none",
               resize: "none",
               padding: "12px 14px",
-              color: "var(--foreground)",
+              color: "var(--fc-text)",
               fontSize: 13,
               lineHeight: 1.6,
               fontFamily: "var(--font-sans)",
@@ -109,10 +109,10 @@ export function FirstCommentExpander({ value, onChange, visible }: Props) {
                 fontSize: 11,
                 fontWeight: 500,
                 color: isOverLimit
-                  ? "var(--red)"
+                  ? "var(--fc-danger)"
                   : isNearLimit
-                  ? "var(--amber)"
-                  : "var(--text-muted)",
+                  ? "var(--fc-warning)"
+                  : "var(--fc-text-muted)",
               }}
             >
               {charCount.toLocaleString()} / {MAX_CHARS.toLocaleString()}
@@ -132,9 +132,9 @@ export function FirstCommentExpander({ value, onChange, visible }: Props) {
                   height: "100%",
                   borderRadius: 2,
                   background: isOverLimit
-                    ? "var(--red)"
+                    ? "var(--fc-danger)"
                     : isNearLimit
-                    ? "var(--amber)"
+                    ? "var(--fc-warning)"
                     : "#E1306C",
                   transition: "all 0.3s",
                 }}
@@ -147,7 +147,7 @@ export function FirstCommentExpander({ value, onChange, visible }: Props) {
             style={{
               marginTop: 10,
               fontSize: 11,
-              color: "var(--text-muted)",
+              color: "var(--fc-text-muted)",
               fontStyle: "italic",
               display: "flex",
               alignItems: "center",

@@ -25,7 +25,7 @@ if (databaseUrl && directUrlRaw) {
     const dbHost = new URL(databaseUrl).host.replace("-pooler", "");
     const dirHost = new URL(directUrlRaw).host.replace("-pooler", "");
     if (dbHost !== dirHost) {
-      console.warn(`[Prisma] Host mismatch! DATABASE_URL (${dbHost}) != DIRECT_URL (${dirHost}). Forcing directUrl to match DATABASE_URL.`);
+      console.warn("[Prisma] Database target mismatch detected; refusing the alternate direct target.");
       const url = new URL(databaseUrl);
       url.host = url.host.replace("-pooler", "");
       directUrl = url.toString();

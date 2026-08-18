@@ -61,10 +61,10 @@ export function WidgetBuilderModal({ onClose, onAdd, availableMetrics }: WidgetB
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-[var(--background)] border border-[var(--border)] rounded-xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
-          <h2 className="text-lg font-bold text-[var(--foreground)]">Añadir Gráfico</h2>
-          <button onClick={onClose} className="p-1 hover:bg-[var(--surface-hover)] rounded-md text-[var(--text-muted)]">
+      <div className="bg-[var(--fc-bg)] border border-[var(--fc-border)] rounded-xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between p-4 border-b border-[var(--fc-border)]">
+          <h2 className="text-lg font-bold text-[var(--fc-text)]">Añadir Gráfico</h2>
+          <button onClick={onClose} className="p-1 hover:bg-[var(--surface-hover)] rounded-md text-[var(--fc-text-muted)]">
             <X size={18} />
           </button>
         </div>
@@ -72,27 +72,27 @@ export function WidgetBuilderModal({ onClose, onAdd, availableMetrics }: WidgetB
         <div className="p-5 overflow-y-auto">
           {step === 1 && (
             <div className="space-y-4">
-              <p className="text-sm text-[var(--text-secondary)]">Selecciona el tipo de visualización:</p>
+              <p className="text-sm text-[var(--fc-text-secondary)]">Selecciona el tipo de visualización:</p>
               
               <button
-                className={`w-full flex items-center gap-4 p-4 rounded-lg border text-left transition-colors ${selectedType === "DynamicComposedChart" ? "border-[var(--brand)] bg-[var(--brand)]/10" : "border-[var(--border)] hover:bg-[var(--surface-hover)]"}`}
+                className={`w-full flex items-center gap-4 p-4 rounded-lg border text-left transition-colors ${selectedType === "DynamicComposedChart" ? "border-[var(--brand)] bg-[var(--brand)]/10" : "border-[var(--fc-border)] hover:bg-[var(--surface-hover)]"}`}
                 onClick={() => setSelectedType("DynamicComposedChart")}
               >
-                <div className="p-2 bg-[var(--surface)] rounded-md"><BarChart2 size={24} className="text-[var(--brand)]" /></div>
+                <div className="p-2 bg-[var(--fc-surface)] rounded-md"><BarChart2 size={24} className="text-[var(--brand)]" /></div>
                 <div>
-                  <h3 className="font-semibold text-[var(--foreground)]">Gráfico de Líneas/Barras</h3>
-                  <p className="text-xs text-[var(--text-muted)]">Compara métricas a lo largo del tiempo</p>
+                  <h3 className="font-semibold text-[var(--fc-text)]">Gráfico de Líneas/Barras</h3>
+                  <p className="text-xs text-[var(--fc-text-muted)]">Compara métricas a lo largo del tiempo</p>
                 </div>
               </button>
 
               <button
-                className={`w-full flex items-center gap-4 p-4 rounded-lg border text-left transition-colors ${selectedType === "DynamicKpiCard" ? "border-[var(--brand)] bg-[var(--brand)]/10" : "border-[var(--border)] hover:bg-[var(--surface-hover)]"}`}
+                className={`w-full flex items-center gap-4 p-4 rounded-lg border text-left transition-colors ${selectedType === "DynamicKpiCard" ? "border-[var(--brand)] bg-[var(--brand)]/10" : "border-[var(--fc-border)] hover:bg-[var(--surface-hover)]"}`}
                 onClick={() => setSelectedType("DynamicKpiCard")}
               >
-                <div className="p-2 bg-[var(--surface)] rounded-md"><Hash size={24} className="text-[var(--brand)]" /></div>
+                <div className="p-2 bg-[var(--fc-surface)] rounded-md"><Hash size={24} className="text-[var(--brand)]" /></div>
                 <div>
-                  <h3 className="font-semibold text-[var(--foreground)]">Tarjeta de KPI</h3>
-                  <p className="text-xs text-[var(--text-muted)]">Muestra un único valor totalizado</p>
+                  <h3 className="font-semibold text-[var(--fc-text)]">Tarjeta de KPI</h3>
+                  <p className="text-xs text-[var(--fc-text-muted)]">Muestra un único valor totalizado</p>
                 </div>
               </button>
             </div>
@@ -101,19 +101,19 @@ export function WidgetBuilderModal({ onClose, onAdd, availableMetrics }: WidgetB
           {step === 2 && (
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Título del Widget</label>
+                <label className="block text-sm font-medium text-[var(--fc-text)] mb-1">Título del Widget</label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Ej: Evolución de Resultados"
-                  className="w-full bg-[var(--surface)] border border-[var(--border)] rounded-md px-3 py-2 text-sm text-[var(--foreground)] focus:outline-none focus:border-[var(--brand)]"
+                  className="w-full bg-[var(--fc-surface)] border border-[var(--fc-border)] rounded-md px-3 py-2 text-sm text-[var(--fc-text)] focus:outline-none focus:border-[var(--brand)]"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)] mb-1">Métricas</label>
-                <p className="text-xs text-[var(--text-muted)] mb-2">
+                <label className="block text-sm font-medium text-[var(--fc-text)] mb-1">Métricas</label>
+                <p className="text-xs text-[var(--fc-text-muted)] mb-2">
                   {selectedType === "DynamicKpiCard" ? "Selecciona 1 métrica" : "Selecciona hasta 2 métricas"}
                 </p>
                 <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
@@ -137,9 +137,9 @@ export function WidgetBuilderModal({ onClose, onAdd, availableMetrics }: WidgetB
                               }
                             }
                           }}
-                          className="rounded border-[var(--border)] bg-[var(--surface)] text-[var(--brand)] focus:ring-[var(--brand)]"
+                          className="rounded border-[var(--fc-border)] bg-[var(--fc-surface)] text-[var(--brand)] focus:ring-[var(--brand)]"
                         />
-                        <span className="text-sm text-[var(--foreground)]">{m.label}</span>
+                        <span className="text-sm text-[var(--fc-text)]">{m.label}</span>
                       </label>
                     );
                   })}
@@ -149,9 +149,9 @@ export function WidgetBuilderModal({ onClose, onAdd, availableMetrics }: WidgetB
           )}
         </div>
 
-        <div className="p-4 border-t border-[var(--border)] flex justify-end gap-3 bg-[var(--surface)]/50">
+        <div className="p-4 border-t border-[var(--fc-border)] flex justify-end gap-3 bg-[var(--fc-surface)]/50">
           {step === 2 && (
-            <button onClick={() => setStep(1)} className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--foreground)]">
+            <button onClick={() => setStep(1)} className="px-4 py-2 text-sm font-medium text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)]">
               Atrás
             </button>
           )}

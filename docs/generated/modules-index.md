@@ -8,7 +8,7 @@ tags: [generado, módulos]
 > No lo edites manualmente — se sobreescribe en cada generación.
 > Fuente: `scripts/docs-graph.mjs`
 
-Total: **21 módulos** en 4 grupos.
+Total: **22 módulos** en 4 grupos.
 
 ## Operación
 
@@ -38,6 +38,7 @@ Total: **21 módulos** en 4 grupos.
 | **Escucha** | `/dashboard/listening` | radar |
 | **En vivo** | `/dashboard/streams` | columns-3 |
 | **Aria IA** | `/dashboard/crecimiento` | brain-circuit |
+| **Optimización** | `/dashboard/optimization` | gauge |
 | **Reportes** | `/dashboard/reportes` | file-text |
 | **Datos** | `/dashboard/datos` | database |
 | **Competidores** | `/dashboard/listening/competidores` | swords |

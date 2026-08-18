@@ -147,7 +147,7 @@ const TRANSLATIONS = {
     aparienciaTitulo: "Apariencia",
     modoOscuro: "Original (Oscuro)",
     modoClaro: "Claro",
-    modoAzul: "Azul Medianoche",
+    modoSistema: "Sistema",
   },
   en: {
     inicio: "Home",
@@ -183,7 +183,7 @@ const TRANSLATIONS = {
     aparienciaTitulo: "Appearance",
     modoOscuro: "Original (Dark)",
     modoClaro: "Light",
-    modoAzul: "Midnight Blue",
+    modoSistema: "System",
   }
 };
 
@@ -277,14 +277,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
     return () => media.removeEventListener("change", syncViewport);
   }, []);
   
-  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>(() => {
-    const initial: Record<string, boolean> = {};
-    NAV_GROUPS.forEach(g => {
-      const hasActive = g.items.some(m => pathname === m.route || pathname?.startsWith(m.route + "/"));
-      initial[g.key] = !hasActive; // true means collapsed
-    });
-    return initial;
-  });
+
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
   const [mounted, setMounted] = useState(false);
@@ -306,22 +299,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
-  // Ensure the active group is uncollapsed when navigating
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- TODO: [React] Refactor de hooks anti-patrón
-    setCollapsedGroups(prev => {
-      const next = { ...prev };
-      let changed = false;
-      NAV_GROUPS.forEach(g => {
-        const hasActive = g.items.some(m => pathname === m.route || pathname?.startsWith(m.route + "/"));
-        if (hasActive && next[g.key]) {
-          next[g.key] = false;
-          changed = true;
-        }
-      });
-      return changed ? next : prev;
-    });
-  }, [pathname]);
+
 
   // Detect iframe on mount (client-side only)
   useEffect(() => {
@@ -581,43 +559,23 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           </div>
           <nav aria-label={lang === "es" ? "Navegación principal" : "Main navigation"} className="flex flex-1 flex-col px-3 pb-4 space-y-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
             {NAV_GROUPS.map((group) => {
-              const isCollapsed = collapsedGroups[group.key];
+              if (group.items.length === 0) return null;
               return (
                 <div key={group.key} className={group.key === "sistema" ? "mt-auto pt-4 border-t border-[var(--fc-border)]" : "mt-2"}>
-                  <div 
-                    className="sidebar-group-header px-2 pb-2 flex items-center justify-between cursor-pointer group/nav"
-                    role="button"
-                    tabIndex={0}
-                    aria-expanded={!isCollapsed}
-                    onClick={() => setCollapsedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        setCollapsedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }));
-                      }
-                    }}
-                  >
+                  <div className="sidebar-group-header px-2 pb-2">
                     <span style={{
                       fontFamily: "var(--fc-font-mono)",
                       fontSize: "9px",
                       fontWeight: 600,
-                      letterSpacing: "0.3em",
+                      letterSpacing: "0.12em",
                       textTransform: "uppercase",
-                      color: "var(--fc-text-muted)",
-                      transition: "color 0.2s"
-                    }} className="group-hover/nav:text-[var(--fc-text)]">
+                      color: "var(--fc-text-muted)"
+                    }}>
                       {group.title}
                     </span>
-                    <ChevronDown className={`w-3 h-3 text-[var(--fc-text-muted)] transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} />
                   </div>
-                  
-                  <div className="sidebar-group-content" style={{
-                    display: "grid",
-                    gridTemplateRows: isCollapsed ? "0fr" : "1fr",
-                    transition: "grid-template-rows 0.2s ease-out",
-                  }}>
-                    <div style={{ overflow: "hidden" }}>
-                      {group.items.map((m) => {
+                  <div className="flex flex-col space-y-[2px]">
+                    {group.items.map((m) => {
                         const isActive = pathname === m.route || pathname?.startsWith(m.route + "/");
                         const Icon = ICON_MAP[m.icon] || LayoutDashboard;
 
@@ -629,26 +587,27 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                             className={`nav-item ${isActive ? "active" : ""}`}
                             aria-current={isActive ? "page" : undefined}
                             data-mod={m.key}
-                            onClick={() => {
-                              setSidebarOpen(false);
-                            }}
-                            style={isActive ? { "--nav-color": m.color } as React.CSSProperties : {}}
+                            onClick={() => setSidebarOpen(false)}
+                            style={isActive ? { 
+                              backgroundColor: `color-mix(in srgb, ${m.color} 12%, transparent)`, 
+                              color: m.color,
+                              borderLeftColor: "transparent"
+                            } as React.CSSProperties : {}}
                           >
                             <HoloIcon
                               icon={Icon}
                               isActive={isActive}
                               className="w-[18px] h-[18px]"
-                              style={isActive ? { color: "var(--fc-text)" } : undefined}
+                              style={isActive ? { color: m.color } : undefined}
                             />
                             <span className="nav-full-name">{m.label}</span>
                             <span className="nav-short-name" aria-hidden="true">{m.label.slice(0, 3)}</span>
                             {isActive && (
-                              <HoloIcon icon={ChevronRight} isActive={true} className="w-3 h-3" style={{ opacity: 0.5, color: "var(--fc-text-secondary)" }} />
+                              <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: m.color, marginLeft: "auto" }}></div>
                             )}
                           </Link>
                         );
                       })}
-                    </div>
                   </div>
                 </div>
               );
@@ -699,43 +658,23 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         {/* Navigation */}
           <nav aria-label={lang === "es" ? "Navegación principal" : "Main navigation"} className="flex flex-1 flex-col px-3 pb-4 space-y-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
           {NAV_GROUPS.map((group) => {
-            const isCollapsed = collapsedGroups[group.key];
+            if (group.items.length === 0) return null;
             return (
               <div key={group.key} className={group.key === "sistema" ? "mt-auto pt-4 border-t border-[var(--fc-border-subtle)]" : "mt-2"}>
-                <div 
-                  className="sidebar-group-header px-2 pb-2 flex items-center justify-between cursor-pointer group/nav"
-                  role="button"
-                  tabIndex={0}
-                  aria-expanded={!isCollapsed}
-                  onClick={() => setCollapsedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      setCollapsedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }));
-                    }
-                  }}
-                >
+                <div className="sidebar-group-header px-2 pb-2">
                   <span style={{
-                    fontFamily: "var(--fc-font-sans)",
+                    fontFamily: "var(--fc-font-mono)",
                     fontSize: "9px",
                     fontWeight: 600,
-                    letterSpacing: "0.3em",
+                    letterSpacing: "0.12em",
                     textTransform: "uppercase",
-                    color: "var(--fc-text-muted)",
-                    transition: "color 0.2s"
-                  }} className="group-hover/nav:text-[var(--fc-text)]">
+                    color: "var(--fc-text-muted)"
+                  }}>
                     {group.title}
                   </span>
-                  <ChevronDown className={`w-3 h-3 text-[var(--fc-text-muted)] transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} />
                 </div>
-                
-                <div className="sidebar-group-content" style={{
-                  display: "grid",
-                  gridTemplateRows: isCollapsed ? "0fr" : "1fr",
-                  transition: "grid-template-rows 0.2s ease-out",
-                }}>
-                  <div style={{ overflow: "hidden" }}>
-                    {group.items.map((m) => {
+                <div className="flex flex-col space-y-[2px]">
+                  {group.items.map((m) => {
                 const isActive = pathname === m.route || pathname?.startsWith(m.route + "/");
                 const Icon = ICON_MAP[m.icon] || LayoutDashboard;
 
@@ -750,23 +689,26 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     onClick={() => {
                       if (!sidebarPinned) setSidebarOpen(false);
                     }}
-                    style={isActive ? { "--nav-color": m.color } as React.CSSProperties : {}}
+                    style={isActive ? { 
+                      backgroundColor: `color-mix(in srgb, ${m.color} 12%, transparent)`, 
+                      color: m.color,
+                      borderLeftColor: "transparent"
+                    } as React.CSSProperties : {}}
                   >
                     <HoloIcon
                       icon={Icon}
                       isActive={isActive}
                       className="w-[18px] h-[18px]"
-                      style={isActive ? { color: "var(--fc-text)" } : undefined}
+                      style={isActive ? { color: m.color } : undefined}
                     />
                     <span className="nav-full-name">{m.label}</span>
                     <span className="nav-short-name" aria-hidden="true">{m.label.slice(0, 3)}</span>
                     {isActive && (
-                      <HoloIcon icon={ChevronRight} isActive={true} className="w-3 h-3" style={{ opacity: 0.5, color: "var(--fc-text-secondary)" }} />
+                      <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: m.color, marginLeft: "auto" }}></div>
                     )}
                   </Link>
                 );
               })}
-                  </div>
                 </div>
               </div>
             );
@@ -920,14 +862,14 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-5 ml-auto">
 
 
-          <Link href="/dashboard/inbox" className="text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] transition-colors" title="Conversaciones">
-            <HoloIcon icon={MessageSquarePlus} variant="cyan" isActive={true} className="w-[18px] h-[18px]" />
+          <Link href="/dashboard/inbox" className="text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] transition-colors" title="Conversaciones" style={{ display: "flex", alignItems: "center" }}>
+            <MessageSquarePlus className="w-[18px] h-[18px]" />
           </Link>
 
           <AlertBellButton />
 
-          <button className="text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] transition-colors" title="Ayuda" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
-            <HoloIcon icon={HelpCircle} variant="emerald" isActive={true} className="w-[18px] h-[18px]" />
+          <button className="text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] transition-colors" title="Ayuda" style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex", alignItems: "center" }}>
+            <HelpCircle className="w-[18px] h-[18px]" />
           </button>
 
           {/* User Menu Trigger */}
@@ -938,7 +880,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
               style={{ background: "transparent", border: "none" }}
             >
               <div style={{ position: "relative" }}>
-                <div className="w-[32px] h-[32px] rounded-full overflow-hidden border border-[var(--fc-border)]" style={{ background: "linear-gradient(135deg,var(--fc-accent),var(--fc-accent-deep))" }}>
+                <div className="w-[32px] h-[32px] rounded-full overflow-hidden" style={{ background: "linear-gradient(135deg,var(--fc-accent),var(--fc-accent-deep))" }}>
                   {session?.user?.image && !avatarError ? (
                     // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
                     <img
@@ -949,7 +891,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     />
                   ) : null}
                   {(!session?.user?.image || avatarError) && (
-                    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-[var(--fc-text)]">
+                    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-white">
                       {session?.user?.name?.charAt(0).toUpperCase() || "C"}
                     </div>
                   )}
@@ -962,7 +904,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                   height: 10,
                   borderRadius: "50%",
                   background: currentStatusCfg.color,
-                  border: "1.5px solid var(--fc-bg)",
+                  border: "1.5px solid var(--fc-surface)",
                 }} />
               </div>
 
@@ -999,7 +941,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                   <>
                     {/* User Header */}
                     <div className="px-5 pb-4 flex items-center gap-3">
-                      <div className="w-[48px] h-[48px] rounded-full overflow-hidden border-2 border-[var(--fc-border)]" style={{ background: "linear-gradient(135deg,var(--fc-accent-deep),var(--fc-module-aria))", flexShrink: 0 }}>
+                      <div className="w-[48px] h-[48px] rounded-full overflow-hidden" style={{ background: "linear-gradient(135deg,var(--fc-accent),var(--fc-accent-deep))", flexShrink: 0 }}>
                           {session?.user?.image && !avatarError ? (
                             // eslint-disable-next-line @next/next/no-img-element -- TODO: Deuda técnica
                             <img
@@ -1010,7 +952,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                             />
                           ) : null}
                           {(!session?.user?.image || avatarError) && (
-                            <div className="w-full h-full flex items-center justify-center text-sm font-bold text-[var(--fc-text)]">
+                            <div className="w-full h-full flex items-center justify-center text-sm font-bold text-white">
                               {session?.user?.name?.charAt(0).toUpperCase() || "C"}
                             </div>
                           )}
@@ -1193,12 +1135,12 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                         {theme === 'light' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                       <button
-                        onClick={() => changeTheme('azul')}
+                        onClick={() => changeTheme('system')}
                         className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--fc-surface-hover)] text-left text-xs transition-colors"
                         style={{ background: "none", border: "none", color: "var(--fc-text-secondary)", cursor: "pointer" }}
                       >
-                        <span>{t.modoAzul}</span>
-                        {theme === 'azul' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
+                        <span>{t.modoSistema}</span>
+                        {theme === 'system' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                     </div>
                   </div>

@@ -29,10 +29,10 @@ const CTA_OPTIONS = [
 
 const inp: React.CSSProperties = {
   width: "100%", padding: "9px 12px", background: "var(--surface-hover)",
-  border: "1px solid var(--hairline)", borderRadius: 6, color: "var(--foreground)",
+  border: "1px solid var(--hairline)", borderRadius: 6, color: "var(--fc-text)",
   fontSize: 13, outline: "none", fontFamily: "inherit",
 };
-const lbl: React.CSSProperties = { fontSize: 11, color: "var(--text-secondary)", display: "block", marginBottom: 5, fontWeight: 500 };
+const lbl: React.CSSProperties = { fontSize: 11, color: "var(--fc-text-secondary)", display: "block", marginBottom: 5, fontWeight: 500 };
 
 export function CreateAdModal({ adAccountId, adsets, onClose, onCreated }: Props) {
   // State
@@ -112,13 +112,13 @@ export function CreateAdModal({ adAccountId, adsets, onClose, onCreated }: Props
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "4vh 16px", background: "var(--overlay-dark)" }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 600, background: "var(--surface)", border: "1px solid rgba(52,199,89,0.25)", borderRadius: 10, animation: "fadeInScale 0.2s ease-out" }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 600, background: "var(--fc-surface)", border: "1px solid rgba(52,199,89,0.25)", borderRadius: 10, animation: "fadeInScale 0.2s ease-out" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 22px", borderBottom: "1px solid var(--hairline)" }}>
-          <span style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 14, fontWeight: 700, color: "var(--fc-text)" }}>
             <Send style={{ width: 16, height: 16, color: "#34c759" }} /> Crear anuncio
           </span>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--fc-text-muted)", cursor: "pointer" }}>
             <X style={{ width: 18, height: 18 }} />
           </button>
         </div>
@@ -140,7 +140,7 @@ export function CreateAdModal({ adAccountId, adsets, onClose, onCreated }: Props
           <div>
             <label style={lbl}>Página de Facebook * (identidad del anuncio)</label>
             {loadingPages ? (
-              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-muted)", padding: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--fc-text-muted)", padding: 8 }}>
                 <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> Cargando páginas…
               </div>
             ) : pages.length > 0 ? (
@@ -148,7 +148,7 @@ export function CreateAdModal({ adAccountId, adsets, onClose, onCreated }: Props
                 {pages.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             ) : (
-              <div style={{ fontSize: 11, color: "var(--amber)", padding: 8 }}>
+              <div style={{ fontSize: 11, color: "var(--fc-warning)", padding: 8 }}>
                 No se encontraron páginas vinculadas. Conecta una en Integraciones.
               </div>
             )}
@@ -161,7 +161,7 @@ export function CreateAdModal({ adAccountId, adsets, onClose, onCreated }: Props
           </div>
 
           {/* Divider: Creative */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text-muted)", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--fc-text-muted)", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
             <ImageIcon style={{ width: 13, height: 13 }} /> Contenido del anuncio
             <div style={{ flex: 1, height: 1, background: "var(--hairline)" }} />
           </div>
@@ -221,7 +221,7 @@ export function CreateAdModal({ adAccountId, adsets, onClose, onCreated }: Props
               style={{
                 display: "flex", alignItems: "center", gap: 6, padding: "8px 14px",
                 background: "var(--row-hover)", border: "1px solid var(--hairline)", borderRadius: 6,
-                color: "var(--text-secondary)", fontSize: 12, cursor: "pointer", fontFamily: "inherit",
+                color: "var(--fc-text-secondary)", fontSize: 12, cursor: "pointer", fontFamily: "inherit",
               }}
             >
               <Eye style={{ width: 14, height: 14 }} /> {showPreview ? "Ocultar preview" : "Ver preview"}
@@ -231,15 +231,15 @@ export function CreateAdModal({ adAccountId, adsets, onClose, onCreated }: Props
           {showPreview && (
             <div style={{ background: "var(--row-hover)", borderRadius: 10, border: "1px solid var(--hairline)", padding: 16 }}>
               <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "var(--text-muted)" }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "var(--fc-text-muted)" }}>
                   {selectedPage?.name?.[0]?.toUpperCase() || "P"}
                 </div>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{selectedPage?.name || "Página"}</div>
-                  <div style={{ fontSize: 10, color: "var(--text-muted)" }}>Patrocinado</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--fc-text)" }}>{selectedPage?.name || "Página"}</div>
+                  <div style={{ fontSize: 10, color: "var(--fc-text-muted)" }}>Patrocinado</div>
                 </div>
               </div>
-              {message && <div style={{ fontSize: 13, color: "var(--foreground)", marginBottom: 10, lineHeight: 1.5 }}>{message}</div>}
+              {message && <div style={{ fontSize: 13, color: "var(--fc-text)", marginBottom: 10, lineHeight: 1.5 }}>{message}</div>}
               {imageUrl && (
                 <div style={{ borderRadius: 6, overflow: "hidden", marginBottom: 10 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -248,10 +248,10 @@ export function CreateAdModal({ adAccountId, adsets, onClose, onCreated }: Props
               )}
               {(headline || description || link) && (
                 <div style={{ background: "var(--surface-hover)", borderRadius: 6, padding: 12, border: "1px solid var(--hairline)" }}>
-                  {link && <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 3, textTransform: "uppercase" }}>{(() => { try { return new URL(link).hostname; } catch { return link; } })()}</div>}
-                  {headline && <div style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)" }}>{headline}</div>}
-                  {description && <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>{description}</div>}
-                  <div style={{ marginTop: 8, display: "inline-block", padding: "6px 16px", borderRadius: 4, background: "rgba(0,129,251,0.1)", border: "1px solid rgba(0,129,251,0.3)", color: "var(--cyan)", fontSize: 12, fontWeight: 600 }}>
+                  {link && <div style={{ fontSize: 10, color: "var(--fc-text-muted)", marginBottom: 3, textTransform: "uppercase" }}>{(() => { try { return new URL(link).hostname; } catch { return link; } })()}</div>}
+                  {headline && <div style={{ fontSize: 14, fontWeight: 600, color: "var(--fc-text)" }}>{headline}</div>}
+                  {description && <div style={{ fontSize: 12, color: "var(--fc-text-secondary)", marginTop: 2 }}>{description}</div>}
+                  <div style={{ marginTop: 8, display: "inline-block", padding: "6px 16px", borderRadius: 4, background: "rgba(0,129,251,0.1)", border: "1px solid rgba(0,129,251,0.3)", color: "var(--fc-accent)", fontSize: 12, fontWeight: 600 }}>
                     {CTA_OPTIONS.find(o => o.value === cta)?.label || cta}
                   </div>
                 </div>
@@ -260,24 +260,24 @@ export function CreateAdModal({ adAccountId, adsets, onClose, onCreated }: Props
           )}
 
           {/* Safety warning */}
-          <div style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "10px 12px", borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(251,191,36,0.18)" }}>
-            <PauseCircle style={{ width: 16, height: 16, color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
-            <div style={{ fontSize: 11, color: "var(--amber)" }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "10px 12px", borderRadius: 8, background: "var(--fc-surface)", border: "1px solid rgba(251,191,36,0.18)" }}>
+            <PauseCircle style={{ width: 16, height: 16, color: "var(--fc-warning)", flexShrink: 0, marginTop: 1 }} />
+            <div style={{ fontSize: 11, color: "var(--fc-warning)" }}>
               El anuncio se crea <strong>en pausa</strong>. No se publica ni gasta hasta que actives toda la cadena (campaña → conjunto → anuncio) en Meta.
             </div>
           </div>
 
           {error && (
-            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 12px", borderRadius: 6, background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.2)" }}>
-              <AlertTriangle style={{ width: 14, height: 14, color: "var(--red)", flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: "var(--red)" }}>{error}</span>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 12px", borderRadius: 6, background: "var(--fc-danger-wash)", border: "1px solid rgba(229,72,77,0.2)" }}>
+              <AlertTriangle style={{ width: 14, height: 14, color: "var(--fc-danger)", flexShrink: 0 }} />
+              <span style={{ fontSize: 12, color: "var(--fc-danger)" }}>{error}</span>
             </div>
           )}
         </div>
 
         {/* Footer */}
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "14px 22px", borderTop: "1px solid var(--hairline)" }}>
-          <button onClick={onClose} style={{ padding: "9px 18px", background: "transparent", border: "1px solid var(--border)", color: "var(--text-secondary)", cursor: "pointer", fontSize: 12, borderRadius: 6, fontFamily: "inherit" }}>
+          <button onClick={onClose} style={{ padding: "9px 18px", background: "transparent", border: "1px solid var(--fc-border)", color: "var(--fc-text-secondary)", cursor: "pointer", fontSize: 12, borderRadius: 6, fontFamily: "inherit" }}>
             Cancelar
           </button>
           <button

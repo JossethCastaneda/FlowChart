@@ -104,12 +104,12 @@ export function ConfirmModalContainer() {
     <div className="modal-overlay" onClick={handleCancel}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-          {config.danger && <AlertTriangle size={20} style={{ color: "var(--red)", flexShrink: 0 }} />}
-          <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>
+          {config.danger && <AlertTriangle size={20} style={{ color: "var(--fc-danger)", flexShrink: 0 }} />}
+          <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--fc-text)", margin: 0 }}>
             {config.title}
           </h3>
         </div>
-        <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: config.inputPlaceholder ? 12 : 20, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 13, color: "var(--fc-text-secondary)", marginBottom: config.inputPlaceholder ? 12 : 20, lineHeight: 1.5 }}>
           {config.message}
         </p>
         {config.inputPlaceholder && (
@@ -122,8 +122,8 @@ export function ConfirmModalContainer() {
             onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
             style={{
               width: "100%", padding: "10px 14px", marginBottom: 20, boxSizing: "border-box",
-              background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.15)",
-              color: "var(--foreground)", fontSize: 13, outline: "none", borderRadius: 6,
+              background: "var(--fc-accent-wash)", border: "1px solid rgba(59,130,246,0.15)",
+              color: "var(--fc-text)", fontSize: 13, outline: "none", borderRadius: 6,
             }}
           />
         )}
@@ -133,7 +133,7 @@ export function ConfirmModalContainer() {
             style={{
               padding: "8px 16px", borderRadius: 6, fontSize: 12, fontWeight: 500,
               background: "var(--surface-hover)", border: "1px solid var(--hairline)",
-              color: "var(--text-secondary)", cursor: "pointer",
+              color: "var(--fc-text-secondary)", cursor: "pointer",
             }}
           >
             {config.cancelLabel || "Cancelar"}
@@ -144,7 +144,7 @@ export function ConfirmModalContainer() {
               padding: "8px 16px", borderRadius: 6, fontSize: 12, fontWeight: 600,
               background: config.danger ? "rgba(229,72,77,0.15)" : "rgba(59,130,246,0.12)",
               border: `1px solid ${config.danger ? "rgba(229,72,77,0.3)" : "rgba(59,130,246,0.25)"}`,
-              color: config.danger ? "var(--red)" : "var(--cyan)", cursor: "pointer",
+              color: config.danger ? "var(--fc-danger)" : "var(--fc-accent)", cursor: "pointer",
             }}
           >
             {config.confirmLabel || "Confirmar"}

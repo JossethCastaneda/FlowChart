@@ -22,17 +22,17 @@ type SaveState = "idle" | "saving" | "saved" | "error";
 const fmtCurrency = (n: number) => n.toLocaleString("es-MX", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 const fmtPct = (n: number) => (n * 100).toFixed(1) + "%";
 // ─── Color tokens (aligned with 1A Comando design system) ────────────────────
-const VIOLET        = "var(--purple)";
+const VIOLET        = "var(--fc-module-aria)";
 const VIOLET_LIGHT  = "var(--purple-dim)";
 const VIOLET_BORDER = "rgba(139,141,242,0.25)";
 const GREEN         = "var(--fc-success)";
-const GREEN_DIM     = "var(--emerald-dim)";
+const GREEN_DIM     = "var(--fc-success-wash)";
 const GREEN_BORDER  = "rgba(52,183,124,0.25)";
 const AMBER         = "var(--fc-warning)";
-const AMBER_DIM     = "var(--amber-dim)";
+const AMBER_DIM     = "var(--fc-warning-wash)";
 const AMBER_BORDER  = "rgba(224,168,60,0.25)";
 const RED           = "var(--fc-danger)";
-const RED_DIM       = "var(--red-dim)";
+const RED_DIM       = "var(--fc-danger-wash)";
 const RED_BORDER    = "rgba(229,72,77,0.25)";
 const SAVE_DEBOUNCE = 2500;
 
@@ -498,7 +498,7 @@ function TabSimulador({ model, channels, rows }: { model: MmmModel | null; chann
           <p style={{ fontSize: 13, fontWeight: 700, color: "var(--fc-text)", margin: "0 0 20px" }}>Simular Incremento de Budget</p>
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24 }}>
             <span style={{ fontSize: 13, color: "var(--fc-text-secondary)" }}>Aumento:</span>
-            <input type="range" min={5} max={200} step={5} value={increasePct} onChange={e => setIncreasePct(parseInt(e.target.value))} style={{ flex: 1, accentColor: "var(--purple)" }} />
+            <input type="range" min={5} max={200} step={5} value={increasePct} onChange={e => setIncreasePct(parseInt(e.target.value))} style={{ flex: 1, accentColor: "var(--fc-module-aria)" }} />
             <span style={{ fontSize: 18, fontWeight: 800, color: VIOLET, minWidth: 60 }}>+{increasePct}%</span>
           </div>
           {scenBResult && (
@@ -833,7 +833,7 @@ export default function MediaMixPage() {
                 value={selectedClient}
                 onChange={e => setSelectedClient(e.target.value)}
                 title="Cliente cuyo media mix se está modelando"
-                style={{ padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: VIOLET_LIGHT, border: `1px solid ${VIOLET_BORDER}`, color: "var(--purple)", fontFamily: "inherit", cursor: "pointer", maxWidth: 200 }}
+                style={{ padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: VIOLET_LIGHT, border: `1px solid ${VIOLET_BORDER}`, color: "var(--fc-module-aria)", fontFamily: "inherit", cursor: "pointer", maxWidth: 200 }}
               >
                 {filteredClients.map(c => <option key={c.name} value={c.name}>{c.name}{c.vertical ? ` · ${c.vertical}` : ""}</option>)}
               </select>
@@ -873,7 +873,7 @@ export default function MediaMixPage() {
               <p style={{ fontSize: 13, margin: "0 0 20px", maxWidth: 420, marginLeft: "auto", marginRight: "auto" }}>
                 El Media Mix se construye sobre tus <strong>clientes y verticales reales</strong>. Crea al menos un proyecto con cliente asignado en Proyectos para empezar.
               </p>
-              <button onClick={() => router.push("/dashboard/proyectos")} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 18px", borderRadius: 8, fontSize: 13, fontWeight: 600, background: VIOLET_LIGHT, border: `1px solid ${VIOLET_BORDER}`, color: "var(--purple)", cursor: "pointer", fontFamily: "inherit" }}>
+              <button onClick={() => router.push("/dashboard/proyectos")} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 18px", borderRadius: 8, fontSize: 13, fontWeight: 600, background: VIOLET_LIGHT, border: `1px solid ${VIOLET_BORDER}`, color: "var(--fc-module-aria)", cursor: "pointer", fontFamily: "inherit" }}>
                 <Plus size={14} /> Ir a Proyectos
               </button>
             </div>

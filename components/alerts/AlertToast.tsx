@@ -14,10 +14,10 @@ interface ToastProps {
 const SEVERITY_CONFIG: Record<AlertSeverity, {
   bg: string; border: string; text: string; icon: React.FC<{ size?: number; className?: string; color?: string }>;
 }> = {
-  danger:  { bg: "rgba(226,68,92,0.12)", border: "rgba(226,68,92,0.4)", text: "var(--red)",     icon: AlertCircle },
-  warning: { bg: "rgba(251,191,36,0.12)", border: "rgba(251,191,36,0.4)", text: "var(--amber)",  icon: AlertTriangle },
-  info:    { bg: "rgba(59,130,246,0.12)", border: "rgba(59,130,246,0.4)", text: "var(--cyan)",   icon: Info },
-  success: { bg: "rgba(0,200,117,0.12)",  border: "rgba(0,200,117,0.4)",  text: "var(--emerald)", icon: CheckCircle },
+  danger:  { bg: "rgba(226,68,92,0.12)", border: "rgba(226,68,92,0.4)", text: "var(--fc-danger)",     icon: AlertCircle },
+  warning: { bg: "rgba(251,191,36,0.12)", border: "rgba(251,191,36,0.4)", text: "var(--fc-warning)",  icon: AlertTriangle },
+  info:    { bg: "rgba(59,130,246,0.12)", border: "rgba(59,130,246,0.4)", text: "var(--fc-accent)",   icon: Info },
+  success: { bg: "rgba(0,200,117,0.12)",  border: "rgba(0,200,117,0.4)",  text: "var(--fc-success)", icon: CheckCircle },
 };
 
 function Toast({ alert, onDismiss }: ToastProps) {
@@ -66,11 +66,11 @@ function Toast({ alert, onDismiss }: ToastProps) {
           {alert.title}
         </p>
         {alert.message && (
-          <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: "3px 0 0", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+          <p style={{ fontSize: 11, color: "var(--fc-text-secondary)", margin: "3px 0 0", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
             {alert.message}
           </p>
         )}
-        <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>
+        <p style={{ fontSize: 9, color: "var(--fc-text-muted)", marginTop: 4 }}>
           {alert.source} - {new Date(alert.timestamp).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}
         </p>
       </div>
@@ -78,7 +78,7 @@ function Toast({ alert, onDismiss }: ToastProps) {
         onClick={(e) => { e.stopPropagation(); handleClose(); }}
         style={{
           background: "none", border: "none", padding: 2, cursor: "pointer",
-          color: "var(--text-muted)", flexShrink: 0,
+          color: "var(--fc-text-muted)", flexShrink: 0,
         }}
       >
         <X size={12} />
@@ -177,27 +177,23 @@ export function AlertBellButton() {
       <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
         <button
           onClick={() => setOpen(!open)}
-        style={{
-          position: "relative",
-          background: "none",
-          border: "1px solid var(--border)",
-          borderRadius: 8,
-          padding: "6px 8px",
-          cursor: "pointer",
-          color: "var(--text-secondary)",
-          display: "flex",
-          alignItems: "center",
-          gap: 4,
-          transition: "all 0.15s",
-        }}
-        onMouseEnter={e => { e.currentTarget.style.background = "var(--surface-hover)"; e.currentTarget.style.color = "var(--foreground)"; }}
-        onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "var(--text-secondary)"; }}
-      >
-        <Bell size={14} />
+          className="text-[var(--fc-text-secondary)] hover:text-[var(--fc-text)] transition-colors"
+          style={{
+            position: "relative",
+            background: "none",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+          }}
+          title="Alertas"
+        >
+          <Bell size={18} />
         {unreadCount > 0 && (
           <span style={{
             position: "absolute", top: -4, right: -4,
-            background: "var(--red)", color: "white",
+            background: "var(--fc-danger)", color: "white",
             fontSize: 9, fontWeight: 700, borderRadius: "50%",
             minWidth: 16, height: 16, display: "flex",
             alignItems: "center", justifyContent: "center",
@@ -212,18 +208,18 @@ export function AlertBellButton() {
       {open && (
         <div style={{
           position: "absolute",
-          top: "100%",
+          top: "calc(100% + 12px)",
           right: 0,
-          marginTop: 8,
-          width: 380,
-          maxHeight: 500,
+          width: 400,
+          maxHeight: "80vh",
           overflowY: "auto",
-          background: "var(--panel-bg)",
-          border: "1px solid var(--border)",
-          borderRadius: 12,
-          boxShadow: "0 10px 40px var(--overlay-dark)",
+          background: "var(--fc-surface)",
+          backdropFilter: "blur(20px)",
+          border: "1px solid var(--fc-glass-border)",
+          borderRadius: 14,
+          boxShadow: "var(--fc-shadow-hard)",
           zIndex: 9999,
-          padding: 16
+          padding: 20
         }}>
           <AlertsPanel />
         </div>

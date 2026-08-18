@@ -10,13 +10,13 @@ import { Plug, Check, Loader2, ExternalLink } from "lucide-react";
 const MODULE_CONFIG: Record<string, { label: string; color: string; description: string; permissions: string[] }> = {
   social: {
     label: "Social Channels",
-    color: "var(--emerald)",
+    color: "var(--fc-success)",
     description: "Publicar y gestionar contenido en Facebook e Instagram",
     permissions: ["instagram_content_publish", "pages_manage_posts", "instagram_manage_comments"],
   },
   ads: {
     label: "Meta Ads Manager",
-    color: "var(--purple)",
+    color: "var(--fc-module-aria)",
     description: "Gestionar campañas publicitarias y presupuestos",
     permissions: ["ads_management", "ads_read"],
   },
@@ -28,7 +28,7 @@ const MODULE_CONFIG: Record<string, { label: string; color: string; description:
   },
   community: {
     label: "Community Management",
-    color: "var(--purple)",
+    color: "var(--fc-module-aria)",
     description: "Inbox, mensajes, menciones y monitoreo social",
     permissions: ["pages_messaging", "instagram_manage_messages", "instagram_manage_comments"],
   },
@@ -88,8 +88,8 @@ export function ConnectModuleBanner({ module, onConnected }: ConnectModuleBanner
         borderRadius: 8, background: "var(--row-hover)",
         border: "1px solid var(--hairline)",
       }}>
-        <Loader2 style={{ width: 14, height: 14, color: "var(--text-muted)", animation: "spin 1s linear infinite" }} />
-        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Verificando conexión...</span>
+        <Loader2 style={{ width: 14, height: 14, color: "var(--fc-text-muted)", animation: "spin 1s linear infinite" }} />
+        <span style={{ fontSize: 12, color: "var(--fc-text-muted)" }}>Verificando conexión...</span>
       </div>
     );
   }
@@ -106,7 +106,7 @@ export function ConnectModuleBanner({ module, onConnected }: ConnectModuleBanner
           {config.label} conectado
         </span>
         {pages.length > 0 && (
-          <span style={{ fontSize: 11, color: "var(--text-secondary)", marginLeft: 4 }}>
+          <span style={{ fontSize: 11, color: "var(--fc-text-secondary)", marginLeft: 4 }}>
             · {pages.length} {pages.length === 1 ? "página" : "páginas"}
           </span>
         )}
@@ -115,7 +115,7 @@ export function ConnectModuleBanner({ module, onConnected }: ConnectModuleBanner
           style={{
             marginLeft: "auto", padding: "4px 10px", borderRadius: 6,
             background: "var(--surface-hover)", border: "1px solid var(--hairline)",
-            color: "var(--text-secondary)", fontSize: 11, cursor: "pointer",
+            color: "var(--fc-text-secondary)", fontSize: 11, cursor: "pointer",
           }}
         >
           Reconectar
@@ -132,17 +132,17 @@ export function ConnectModuleBanner({ module, onConnected }: ConnectModuleBanner
     }}>
       <Plug style={{ width: 18, height: 18, color: config.color, flexShrink: 0 }} />
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", marginBottom: 2 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--fc-text)", marginBottom: 2 }}>
           Conectar {config.label}
         </div>
-        <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+        <div style={{ fontSize: 11, color: "var(--fc-text-secondary)" }}>
           {config.description}
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 6 }}>
           {config.permissions.map(p => (
             <span key={p} style={{
               fontSize: 9, padding: "2px 6px", borderRadius: 4,
-              background: "var(--surface-hover)", color: "var(--text-secondary)",
+              background: "var(--surface-hover)", color: "var(--fc-text-secondary)",
               fontFamily: "var(--font-mono)",
             }}>
               {p}
@@ -154,7 +154,7 @@ export function ConnectModuleBanner({ module, onConnected }: ConnectModuleBanner
         onClick={() => window.location.href = `/api/connect/${module}`}
         style={{
           padding: "10px 18px", borderRadius: 8,
-          background: config.color, color: "var(--background)",
+          background: config.color, color: "var(--fc-bg)",
           fontWeight: 600, fontSize: 13, border: "none", cursor: "pointer",
           display: "flex", alignItems: "center", gap: 6,
           transition: "opacity 0.2s",

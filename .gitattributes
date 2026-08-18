@@ -5,3 +5,11 @@
 *.md text eol=lf
 *.ts text eol=lf
 *.tsx text eol=lf
+
+# Prisma checksums are byte-sensitive. Keep canonical and forensic SQL stable
+# across Windows, macOS, and Linux checkouts.
+prisma/schema.prisma text eol=lf
+prisma/migrations/**/*.sql text eol=lf
+# The forensic archive intentionally preserves the original mixed line endings.
+# Treat it as binary so Git neither normalizes nor flags historical CRLF bytes.
+docs/migrations/legacy/**/*.sql binary

@@ -40,14 +40,14 @@ export default function DashboardError({
         <div style={{
           position: "absolute", top: -60, left: -60,
           width: 180, height: 180,
-          background: "var(--red-dim)", filter: "blur(60px)",
+          background: "var(--fc-danger-wash)", filter: "blur(60px)",
           borderRadius: "50%", pointerEvents: "none",
         }} />
 
         {/* Icon */}
         <div style={{
           width: "60px", height: "60px", borderRadius: "16px",
-          background: "var(--red-dim)",
+          background: "var(--fc-danger-wash)",
           border: "1px solid rgba(229,72,77,0.3)",
           display: "flex", alignItems: "center", justifyContent: "center",
           margin: "0 auto 20px",

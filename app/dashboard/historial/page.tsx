@@ -58,7 +58,7 @@ function StatusBadge({ status, error }: { status: Post["status"]; error?: string
       icon: <XCircle size={11} />, label: "Error",
     },
     Scheduled: {
-      color: "var(--purple)", bg: "rgba(139,141,242,0.1)", border: "rgba(139,141,242,0.3)",
+      color: "var(--fc-module-aria)", bg: "rgba(139,141,242,0.1)", border: "rgba(139,141,242,0.3)",
       icon: <Calendar size={11} />, label: "Programado",
     },
     Processing: {
@@ -110,7 +110,7 @@ function ChannelIcons({ channels }: { channels: string[] }) {
         return (
           <span key={ch} title={ch} style={{
             width: 22, height: 22, borderRadius: 2,
-            background: "var(--border-neutral)", border: "1px solid var(--fc-border)",
+            background: "var(--fc-border-subtle)", border: "1px solid var(--fc-border)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <Globe size={11} color="var(--fc-text-secondary)" />
@@ -290,7 +290,7 @@ export default function DeploymentHistoryPage() {
           <div style={{ padding: 40, textAlign: "center" }}>
             {[...Array(8)].map((_, i) => (
               <div key={i} style={{
-                height: 48, background: "var(--border-neutral)", borderRadius: 2,
+                height: 48, background: "var(--fc-border-subtle)", borderRadius: 2,
                 marginBottom: 1, animation: "pulse 1.5s ease-in-out infinite",
                 animationDelay: `${i * 0.1}s`,
               }} />
@@ -432,7 +432,7 @@ export default function DeploymentHistoryPage() {
                     {post.error ? (
                       <>
                         <p style={{ fontSize: 9, color: "var(--fc-danger)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 6 }}>ERROR</p>
-                        <p style={{ fontSize: 11, color: "var(--fc-danger)", lineHeight: 1.5, background: "var(--red-dim)", padding: "8px 10px", borderRadius: 3, border: "1px solid rgba(229,72,77,0.2)" }}>
+                        <p style={{ fontSize: 11, color: "var(--fc-danger)", lineHeight: 1.5, background: "var(--fc-danger-wash)", padding: "8px 10px", borderRadius: 3, border: "1px solid rgba(229,72,77,0.2)" }}>
                           {post.error}
                         </p>
                       </>
@@ -457,7 +457,7 @@ export default function DeploymentHistoryPage() {
                         {post.mediaUrls.slice(0, 4).map((url, i) => (
                           <div key={i} style={{
                             width: 48, height: 48, borderRadius: 3, overflow: "hidden",
-                            border: "1px solid var(--fc-border)", background: "var(--background)",
+                            border: "1px solid var(--fc-border)", background: "var(--fc-bg)",
                           }}>
                                                         <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                           </div>
@@ -465,7 +465,7 @@ export default function DeploymentHistoryPage() {
                         {post.mediaUrls.length > 4 && (
                           <div style={{
                             width: 48, height: 48, borderRadius: 3,
-                            background: "var(--border-neutral)", border: "1px solid var(--fc-border)",
+                            background: "var(--fc-border-subtle)", border: "1px solid var(--fc-border)",
                             display: "flex", alignItems: "center", justifyContent: "center",
                             fontSize: 11, color: "var(--fc-text-muted)",
                           }}>
@@ -493,7 +493,7 @@ export default function DeploymentHistoryPage() {
           { label: "Total", value: stats.total, color: "var(--fc-text)" },
           { label: "Publicados", value: stats.published, color: "var(--fc-success)" },
           { label: "Fallidos", value: stats.failed, color: "var(--fc-danger)" },
-          { label: "Programados", value: stats.scheduled, color: "var(--purple)" },
+          { label: "Programados", value: stats.scheduled, color: "var(--fc-module-aria)" },
           { label: "Borradores", value: stats.drafts, color: "var(--fc-text-muted)" },
         ].map(({ label, value, color }) => (
           <div key={label} style={{ display: "flex", alignItems: "center", gap: 8 }}>

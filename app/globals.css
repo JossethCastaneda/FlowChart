@@ -64,6 +64,14 @@
   --color-slate-500: var(--fc-text-disabled);
   --color-gray-400: var(--fc-text-tertiary);
   --color-gray-500: var(--fc-text-disabled);
+
+  /* Radios de borde (marca) */
+  --radius-sm: var(--fc-radius-sm);
+  --radius-md: var(--fc-radius-md);
+  --radius-lg: var(--fc-radius-lg);
+  --radius-xl: var(--fc-radius-xl);
+  --radius-2xl: var(--fc-radius-xl); /* Cap ceiling per tokens */
+  --radius-3xl: var(--fc-radius-xl);
 }
 
 @layer base {
@@ -1955,3 +1963,26 @@ svg.lucide:hover { transform: scale(1.05); }
     display: block; left: 50%; top: auto; bottom: 3px; transform: translateX(-50%);
   }
 }
+@keyframes fcIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes fcOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-10px) scale(.985)}}
+@keyframes fcRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes fcBar{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes fcSpin{to{transform:rotate(360deg)}}
+@keyframes fcB1{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.72)}}
+@keyframes fcB2{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.5)}}
+@keyframes fcB3{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.56)}}
+@keyframes fcPop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+@keyframes fcDraw{from{stroke-dashoffset:34}to{stroke-dashoffset:0}}
+
+/* ── Brand Icons: colores con data-theme (next-themes usa attribute="data-theme") ── */
+
+/* Facebook: azul en light, blanco en dark */
+.fc-brand-facebook path { fill: #0866FF; }
+[data-theme="dark"] .fc-brand-facebook path { fill: #FFFFFF; }
+
+/* Google: colores en light, blanco en dark */
+[data-theme="dark"] .fc-brand-google .fc-g-blue,
+[data-theme="dark"] .fc-brand-google .fc-g-green,
+[data-theme="dark"] .fc-brand-google .fc-g-yellow,
+[data-theme="dark"] .fc-brand-google .fc-g-red { fill: #FFFFFF; }
+

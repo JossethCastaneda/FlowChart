@@ -1,17 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
-import type { Task, Member } from "./types"; // We will extract types to types.ts
+import type { Task, Member, ProjectLight } from "./types"; // We will extract types to types.ts
 
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
+  const [projects, setProjects] = useState<ProjectLight[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchTasks = useCallback(async () => {
     try {
-      const r = await fetch("/api/ops");
+      const ts = Date.now();
+      const r = await fetch(`/api/ops?_t=${ts}`, { headers: { "Cache-Control": "no-cache, no-store, must-revalidate" } });
       const d = await r.json();
       if (Array.isArray(d.data?.tasks)) setTasks(d.data.tasks);
       if (Array.isArray(d.data?.members)) setMembers(d.data.members);
+      if (Array.isArray(d.data?.projects)) setProjects(d.data.projects);
     } catch {
       /* silent — error will surface as empty state */
     } finally {
@@ -77,14 +80,32 @@ export function useTasks() {
     return patchTask(id, updates);
   };
 
+  /**
+   * Crea una tarea. Lanza si el servidor la rechaza.
+   *
+   * Antes se ignoraba la respuesta: un 403 (sin permiso en el área) o un error
+   * de validación se tragaban en silencio y el usuario veía que "no pasa nada"
+   * y que la tarea no aparecía, sin ninguna pista del motivo.
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO: [Arquitectura] Refactor de tipos Meta Graph API
   const createTask = async (data: any) => {
-    await fetch("/api/ops", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    fetchTasks();
+    let res: Response;
+    try {
+      res = await fetch("/api/ops", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+    } catch {
+      throw new Error("No se pudo conectar con el servidor. Revisa tu conexión.");
+    }
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      throw new Error(body?.error || `No se pudo crear la tarea (error ${res.status}).`);
+    }
+
+    await fetchTasks();
   };
 
   const createSubtask = async (parentId: string, title: string) => {
@@ -114,6 +135,7 @@ export function useTasks() {
   return {
     tasks,
     members,
+    projects,
     loading,
     fetchTasks,
     patchTask,

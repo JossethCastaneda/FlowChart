@@ -7,10 +7,10 @@ import { useAlertsStore, type FlowChartAlert, type AlertSeverity } from "@/store
 const SEVERITY_CONFIG: Record<AlertSeverity, {
   bg: string; border: string; text: string; label: string; icon: React.FC<{ size?: number; style?: React.CSSProperties; color?: string }>;
 }> = {
-  danger:  { bg: "rgba(226,68,92,0.06)", border: "rgba(226,68,92,0.2)", text: "var(--red)",     label: "Critico",       icon: AlertCircle },
-  warning: { bg: "rgba(251,191,36,0.06)", border: "rgba(251,191,36,0.2)", text: "var(--amber)",  label: "Advertencia", icon: AlertTriangle },
-  info:    { bg: "rgba(59,130,246,0.06)", border: "rgba(59,130,246,0.2)", text: "var(--cyan)",   label: "Info",        icon: Info },
-  success: { bg: "rgba(0,200,117,0.06)",  border: "rgba(0,200,117,0.2)",  text: "var(--emerald)", label: "Exito",      icon: CheckCircle },
+  danger:  { bg: "rgba(226,68,92,0.06)", border: "rgba(226,68,92,0.2)", text: "var(--fc-danger)",     label: "Critico",       icon: AlertCircle },
+  warning: { bg: "rgba(251,191,36,0.06)", border: "rgba(251,191,36,0.2)", text: "var(--fc-warning)",  label: "Advertencia", icon: AlertTriangle },
+  info:    { bg: "rgba(59,130,246,0.06)", border: "rgba(59,130,246,0.2)", text: "var(--fc-accent)",   label: "Info",        icon: Info },
+  success: { bg: "rgba(0,200,117,0.06)",  border: "rgba(0,200,117,0.2)",  text: "var(--fc-success)", label: "Exito",      icon: CheckCircle },
 };
 
 type FilterType = "all" | AlertSeverity;
@@ -52,22 +52,22 @@ export default function AlertsPanel() {
     borderRadius: 6,
     fontSize: 10,
     fontWeight: active ? 700 : 500,
-    background: active ? "var(--surface-hover)" : "transparent",
-    color: active ? "var(--foreground)" : "var(--text-muted)",
-    border: active ? "1px solid var(--border)" : "1px solid transparent",
+    background: active ? "var(--fc-surface-hover)" : "transparent",
+    color: active ? "var(--fc-text)" : "var(--fc-text-muted)",
+    border: active ? "1px solid var(--fc-border)" : "1px solid transparent",
     cursor: "pointer",
     transition: "all 0.15s",
   });
 
   return (
-    <div style={{ maxWidth: 700, margin: "0 auto", padding: "16px 0" }}>
+    <div style={{ padding: 0 }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <div>
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "var(--fc-text)", margin: 0 }}>
             Centro de Alertas
           </h2>
-          <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+          <p style={{ fontSize: 11, color: "var(--fc-text-muted)", marginTop: 2 }}>
             {unreadCount > 0 ? `${unreadCount} sin leer` : "Todo al dia"}
             {" "} - {counts.all} total
           </p>
@@ -79,8 +79,8 @@ export default function AlertsPanel() {
             style={{
               display: "flex", alignItems: "center", gap: 4,
               padding: "5px 10px", borderRadius: 6, fontSize: 10, fontWeight: 600,
-              color: soundEnabled ? "var(--emerald)" : "var(--text-muted)",
-              background: "var(--surface-hover)", border: "1px solid var(--border)",
+              color: soundEnabled ? "var(--fc-success)" : "var(--fc-text-muted)",
+              background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border)",
               cursor: "pointer",
             }}
           >
@@ -91,8 +91,8 @@ export default function AlertsPanel() {
             <button onClick={markAllRead} style={{
               display: "flex", alignItems: "center", gap: 4,
               padding: "5px 10px", borderRadius: 6, fontSize: 10, fontWeight: 600,
-              color: "var(--cyan)", background: "var(--surface-hover)",
-              border: "1px solid var(--border)", cursor: "pointer",
+              color: "var(--fc-accent)", background: "var(--fc-surface-hover)",
+              border: "1px solid var(--fc-border)", cursor: "pointer",
             }}>
               <CheckCheck size={11} /> Marcar todo leido
             </button>
@@ -101,8 +101,8 @@ export default function AlertsPanel() {
             <button onClick={clearAll} style={{
               display: "flex", alignItems: "center", gap: 4,
               padding: "5px 10px", borderRadius: 6, fontSize: 10, fontWeight: 600,
-              color: "var(--red)", background: "var(--surface-hover)",
-              border: "1px solid var(--border)", cursor: "pointer",
+              color: "var(--fc-danger)", background: "var(--fc-surface-hover)",
+              border: "1px solid var(--fc-border)", cursor: "pointer",
             }}>
               <Trash2 size={11} /> Limpiar
             </button>
@@ -112,26 +112,26 @@ export default function AlertsPanel() {
 
       {/* Filters */}
       <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 12, flexWrap: "wrap" }}>
-        <Filter size={11} style={{ color: "var(--text-muted)", marginRight: 4 }} />
+        <Filter size={11} style={{ color: "var(--fc-text-muted)", marginRight: 4 }} />
         <button onClick={() => setFilter("all")} style={filterBtnStyle(filter === "all")}>
           Todas ({counts.all})
         </button>
-        <button onClick={() => setFilter("danger")} style={{ ...filterBtnStyle(filter === "danger"), color: filter === "danger" ? "var(--red)" : undefined }}>
+        <button onClick={() => setFilter("danger")} style={{ ...filterBtnStyle(filter === "danger"), color: filter === "danger" ? "var(--fc-danger)" : undefined }}>
           Criticas ({counts.danger})
         </button>
-        <button onClick={() => setFilter("warning")} style={{ ...filterBtnStyle(filter === "warning"), color: filter === "warning" ? "var(--amber)" : undefined }}>
+        <button onClick={() => setFilter("warning")} style={{ ...filterBtnStyle(filter === "warning"), color: filter === "warning" ? "var(--fc-warning)" : undefined }}>
           Advertencias ({counts.warning})
         </button>
-        <button onClick={() => setFilter("info")} style={{ ...filterBtnStyle(filter === "info"), color: filter === "info" ? "var(--cyan)" : undefined }}>
+        <button onClick={() => setFilter("info")} style={{ ...filterBtnStyle(filter === "info"), color: filter === "info" ? "var(--fc-accent)" : undefined }}>
           Info ({counts.info})
         </button>
         <div style={{ flex: 1 }} />
-        <label style={{ fontSize: 10, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }}>
+        <label style={{ fontSize: 10, color: "var(--fc-text-muted)", display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }}>
           <input
             type="checkbox"
             checked={showRead}
             onChange={() => setShowRead(!showRead)}
-            style={{ accentColor: "var(--cyan)" }}
+            style={{ accentColor: "var(--fc-accent)" }}
           />
           Mostrar leidas
         </label>
@@ -141,8 +141,8 @@ export default function AlertsPanel() {
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {filtered.length === 0 && (
           <div style={{
-            padding: 40, textAlign: "center", color: "var(--text-muted)", fontSize: 12,
-            background: "var(--surface)", borderRadius: 10, border: "1px solid var(--border)",
+            padding: 40, textAlign: "center", color: "var(--fc-text-muted)", fontSize: 12,
+            background: "var(--fc-surface)", borderRadius: 10, border: "1px solid var(--fc-border)",
           }}>
             {counts.all === 0 ? "No hay alertas registradas" : "No hay alertas con este filtro"}
           </div>
@@ -160,8 +160,8 @@ export default function AlertsPanel() {
                 gap: 10,
                 padding: "10px 14px",
                 borderRadius: 8,
-                background: alert.read ? "var(--surface)" : config.bg,
-                border: `1px solid ${alert.read ? "var(--border)" : config.border}`,
+                background: alert.read ? "var(--fc-surface)" : config.bg,
+                border: `1px solid ${alert.read ? "var(--fc-border)" : config.border}`,
                 cursor: alert.read ? "default" : "pointer",
                 opacity: alert.read ? 0.7 : 1,
                 transition: "all 0.15s",
@@ -172,7 +172,7 @@ export default function AlertsPanel() {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: alert.read ? "var(--text-secondary)" : config.text, margin: 0 }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: alert.read ? "var(--fc-text-secondary)" : config.text, margin: 0 }}>
                     {alert.title}
                   </p>
                   {!alert.read && (
@@ -183,19 +183,19 @@ export default function AlertsPanel() {
                   )}
                 </div>
                 {alert.message && (
-                  <p style={{ fontSize: 11, color: "var(--text-muted)", margin: "2px 0 0", lineHeight: 1.4 }}>
+                  <p style={{ fontSize: 11, color: "var(--fc-text-muted)", margin: "2px 0 0", lineHeight: 1.4 }}>
                     {alert.message}
                   </p>
                 )}
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-                  <span style={{ fontSize: 9, color: "var(--text-muted)" }}>{formatTime(alert.timestamp)}</span>
+                  <span style={{ fontSize: 9, color: "var(--fc-text-muted)" }}>{formatTime(alert.timestamp)}</span>
                   <span style={{
                     fontSize: 8, fontWeight: 600, padding: "1px 5px", borderRadius: 3,
-                    background: "var(--surface-hover)", color: "var(--text-muted)",
+                    background: "var(--surface-hover)", color: "var(--fc-text-muted)",
                     textTransform: "uppercase", letterSpacing: "0.08em",
                   }}>{alert.source}</span>
                   {alert.projectName && (
-                    <span style={{ fontSize: 9, color: "var(--text-secondary)" }}>{alert.projectName}</span>
+                    <span style={{ fontSize: 9, color: "var(--fc-text-secondary)" }}>{alert.projectName}</span>
                   )}
                 </div>
               </div>
@@ -203,7 +203,7 @@ export default function AlertsPanel() {
                 onClick={(e) => { e.stopPropagation(); dismiss(alert.id); }}
                 style={{
                   background: "none", border: "none", padding: 4, cursor: "pointer",
-                  color: "var(--text-muted)", flexShrink: 0,
+                  color: "var(--fc-text-muted)", flexShrink: 0,
                   opacity: 0.5, transition: "opacity 0.15s",
                 }}
                 onMouseEnter={e => { e.currentTarget.style.opacity = "1"; }}

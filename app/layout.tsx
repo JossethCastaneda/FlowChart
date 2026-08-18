@@ -32,7 +32,7 @@ const manrope = Manrope({ subsets: ["latin"], display: "swap", variable: "--font
 const jbMono = JetBrains_Mono({ subsets: ["latin"], display: "swap", variable: "--font-jbmono" });
 
 export const viewport: Viewport = {
-  themeColor: "var(--background)",
+  themeColor: "var(--fc-bg)",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -150,7 +150,7 @@ export default function RootLayout({
         className="antialiased"
         suppressHydrationWarning
       >
-        <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem themes={["light", "dark"]}>
+        <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem themes={["light", "dark"]} storageKey="fc-theme">
         <FlowChartBrandDefs />
         <AuthProvider>
           <LanguageProvider>

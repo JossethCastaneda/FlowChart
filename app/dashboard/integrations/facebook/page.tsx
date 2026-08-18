@@ -150,7 +150,7 @@ function PageAvatar({ name, picture, pageId }: { name: string; picture: string |
   return (
     <div style={{
       width: 38, height: 38, borderRadius: "50%", flexShrink: 0,
-      background: "linear-gradient(135deg, var(--fc-accent), var(--purple))",
+      background: "linear-gradient(135deg, var(--fc-accent), var(--fc-module-aria))",
       display: "flex", alignItems: "center", justifyContent: "center",
       fontSize: 15, fontWeight: 700, color: "var(--fc-text)", border: "2px solid var(--fc-border-hover)",
     }}>
@@ -342,7 +342,7 @@ export default function FacebookPagesPage() {
             <div style={{
               display: "flex", alignItems: "center", gap: 10,
               padding: "12px 16px", borderRadius: 10,
-              background: "var(--red-dim)", border: "1px solid var(--fc-danger)",
+              background: "var(--fc-danger-wash)", border: "1px solid var(--fc-danger)",
               color: "var(--fc-danger)", fontSize: 12, marginBottom: 20,
             }}>
               <AlertCircle size={14} />
@@ -407,7 +407,7 @@ export default function FacebookPagesPage() {
               {/* Missing scopes warning */}
               {missingScopes.length > 0 && (
                 <div style={{
-                  padding: "16px 20px", borderRadius: 12, background: "var(--red-dim)", border: "1px solid var(--fc-danger)",
+                  padding: "16px 20px", borderRadius: 12, background: "var(--fc-danger-wash)", border: "1px solid var(--fc-danger)",
                   marginBottom: 20, display: "flex", alignItems: "flex-start", gap: 12
                 }}>
                   <AlertCircle size={18} style={{ color: "var(--fc-danger)", marginTop: 2, flexShrink: 0 }} />
@@ -416,7 +416,7 @@ export default function FacebookPagesPage() {
                     <p style={{ fontSize: 12, color: "var(--fc-danger)", opacity: 0.9, margin: "0 0 10px" }}>{t.missingScopesMsg}</p>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                       {missingScopes.map(scope => (
-                        <span key={scope} style={{ background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.3)", padding: "2px 8px", borderRadius: 6, fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--fc-danger)" }}>
+                        <span key={scope} style={{ background: "var(--fc-danger-wash)", border: "1px solid rgba(229,72,77,0.3)", padding: "2px 8px", borderRadius: 6, fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--fc-danger)" }}>
                           {scope}
                         </span>
                       ))}
@@ -472,7 +472,7 @@ export default function FacebookPagesPage() {
                           display: "grid",
                           gridTemplateColumns: "1fr 180px 180px",
                           padding: "16px 20px",
-                          borderTop: idx > 0 ? "1px solid var(--border-neutral)" : "none",
+                          borderTop: idx > 0 ? "1px solid var(--fc-border-subtle)" : "none",
                           background: "transparent",
                           transition: "background 0.15s",
                           alignItems: "center",
@@ -486,7 +486,7 @@ export default function FacebookPagesPage() {
                             <div style={{
                               position: "absolute", bottom: -1, right: -1,
                               width: 14, height: 14, borderRadius: "50%",
-                              background: "var(--background)", border: "1.5px solid var(--fc-border)",
+                              background: "var(--fc-bg)", border: "1.5px solid var(--fc-border)",
                               display: "flex", alignItems: "center", justifyContent: "center",
                             }}>
                               <div style={{ width: 6, height: 2, background: "var(--fc-text-muted)", borderRadius: 1 }} />
@@ -501,7 +501,7 @@ export default function FacebookPagesPage() {
                               <p style={{ fontSize: 11, color: "var(--fc-text-secondary)", margin: 0 }}>{page.category}</p>
                             )}
                             {page.instagram && (
-                              <p style={{ fontSize: 10, color: "var(--purple)", margin: 0 }}>@{page.instagram.username}</p>
+                              <p style={{ fontSize: 10, color: "var(--fc-module-aria)", margin: 0 }}>@{page.instagram.username}</p>
                             )}
                           </div>
                         </div>

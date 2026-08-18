@@ -19,13 +19,13 @@ export function ThemeSwitcher() {
   }
 
   return (
-    <div className="flex items-center gap-1 p-1 rounded-lg border border-[var(--border)] bg-[var(--surface)]">
+    <div className="flex items-center gap-1 p-1 rounded-lg border border-[var(--fc-border)] bg-[var(--fc-surface)]">
       <button
         onClick={() => setTheme("light")}
         className={`p-1.5 rounded-md transition-colors ${
           theme === "light"
-            ? "bg-[var(--cyan-dim)] text-[var(--cyan)]"
-            : "text-[var(--text-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
+            ? "bg-[var(--fc-accent-wash)] text-[var(--fc-accent)]"
+            : "text-[var(--fc-text-muted)] hover:text-[var(--fc-text)] hover:bg-[var(--surface-hover)]"
         }`}
         title="Modo Claro"
       >
@@ -35,8 +35,8 @@ export function ThemeSwitcher() {
         onClick={() => setTheme("dark")}
         className={`p-1.5 rounded-md transition-colors ${
           theme === "dark"
-            ? "bg-[var(--cyan-dim)] text-[var(--cyan)]"
-            : "text-[var(--text-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
+            ? "bg-[var(--fc-accent-wash)] text-[var(--fc-accent)]"
+            : "text-[var(--fc-text-muted)] hover:text-[var(--fc-text)] hover:bg-[var(--surface-hover)]"
         }`}
         title="Modo Oscuro (Ink)"
       >
@@ -46,8 +46,8 @@ export function ThemeSwitcher() {
         onClick={() => setTheme("system")}
         className={`p-1.5 rounded-md transition-colors ${
           theme === "system"
-            ? "bg-[var(--cyan-dim)] text-[var(--cyan)]"
-            : "text-[var(--text-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
+            ? "bg-[var(--fc-accent-wash)] text-[var(--fc-accent)]"
+            : "text-[var(--fc-text-muted)] hover:text-[var(--fc-text)] hover:bg-[var(--surface-hover)]"
         }`}
         title="Usar Sistema"
       >

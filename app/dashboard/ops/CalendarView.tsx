@@ -60,7 +60,7 @@ export function CalendarView({ tasks, members, lang, onTaskClick }: CalendarView
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 1, background: "var(--fc-border)", border: "1px solid var(--fc-border)", borderRadius: 8, overflow: "hidden", flex: 1, minHeight: 600 }}>
         {["L", "M", "X", "J", "V", "S", "D"].map(day => (
-          <div key={day} style={{ background: "var(--fc-surface-hover)", padding: "10px", textAlign: "center", fontSize: 12, fontWeight: 700, color: "var(--fc-text-secondary)" }}>
+          <div key={day} style={{ background: "var(--surface-hover)", padding: "10px", textAlign: "center", fontSize: 12, fontWeight: 700, color: "var(--fc-text-secondary)" }}>
             {day}
           </div>
         ))}
@@ -79,7 +79,7 @@ export function CalendarView({ tasks, members, lang, onTaskClick }: CalendarView
 
           return (
             <div key={i} style={{ 
-              background: isToday ? "var(--fc-surface-hover)" : "var(--fc-surface)", 
+              background: isToday ? "var(--surface-hover)" : "var(--fc-surface)", 
               padding: "8px", 
               minHeight: 100,
               opacity: isCurrentMonth ? 1 : 0.4
@@ -96,7 +96,7 @@ export function CalendarView({ tasks, members, lang, onTaskClick }: CalendarView
                       fontSize: 11, 
                       padding: "4px 6px", 
                       borderRadius: 4, 
-                      background: t.status === "Done" ? "var(--emerald-dim)" : "rgba(0, 212, 255, 0.1)", 
+                      background: t.status === "Done" ? "var(--fc-success-wash)" : "var(--fc-accent-wash)", 
                       color: t.status === "Done" ? "var(--fc-success)" : "var(--fc-accent)",
                       cursor: "pointer",
                       whiteSpace: "nowrap",

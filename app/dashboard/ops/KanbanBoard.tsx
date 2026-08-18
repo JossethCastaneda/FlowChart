@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
-import { DndContext, DragOverlay, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors, DragStartEvent, DragOverEvent, DragEndEvent } from "@dnd-kit/core";
+import { DndContext, DragOverlay, closestCorners, KeyboardSensor, PointerSensor, useSensor, useSensors, DragStartEvent, DragOverEvent, DragEndEvent, useDroppable } from "@dnd-kit/core";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- TODO: Limpieza manual requerida
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -14,10 +14,28 @@ function sla(due: string | null, status: string, lang: "es" | "en") {
   if (!due || status === "Done") return { i: "none", bg: "transparent", c: "transparent", l: "" };
   const d = new Date(due).getTime() - new Date().getTime();
   const days = Math.ceil(d / (1000 * 3600 * 24));
-  if (days < 0) return { i: "danger", bg: "var(--red-dim)", c: "var(--fc-danger)", l: lang === "es" ? "Vencida" : "Overdue" };
-  if (days === 0) return { i: "warning", bg: "var(--amber-dim)", c: "var(--fc-warning)", l: lang === "es" ? "Hoy" : "Today" };
-  if (days <= 2) return { i: "warning", bg: "var(--amber-dim)", c: "var(--fc-warning)", l: lang === "es" ? `En ${days}d` : `In ${days}d` };
-  return { i: "ok", bg: "var(--fc-surface-hover)", c: "var(--fc-text-secondary)", l: lang === "es" ? `En ${days}d` : `In ${days}d` };
+  if (days < 0) return { i: "danger", bg: "var(--fc-danger-wash)", c: "var(--fc-danger)", l: lang === "es" ? "Vencida" : "Overdue" };
+  if (days === 0) return { i: "warning", bg: "var(--fc-warning-wash)", c: "var(--fc-warning)", l: lang === "es" ? "Hoy" : "Today" };
+  if (days <= 2) return { i: "warning", bg: "var(--fc-warning-wash)", c: "var(--fc-warning)", l: lang === "es" ? `En ${days}d` : `In ${days}d` };
+  return { i: "ok", bg: "var(--surface-hover)", c: "var(--fc-text-secondary)", l: lang === "es" ? `En ${days}d` : `In ${days}d` };
+}
+
+// ─── DROPPABLE COLUMN ───
+function DroppableColumn({ id, children }: { id: string; children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({ id });
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={{ 
+        flex: 1, display: "flex", flexDirection: "column", gap: 10, 
+        padding: "0 10px 10px", minHeight: 150,
+        background: isOver ? "var(--surface-hover)" : "transparent",
+        borderRadius: 8, transition: "background 0.2s"
+      }}
+    >
+      {children}
+    </div>
+  );
 }
 
 // ─── SORTABLE CARD ───
@@ -50,7 +68,7 @@ function SortableKanbanCard({ task, onEdit, lang }: { task: Task; onEdit: (t: Ta
       {...attributes}
       {...listeners}
       onClick={() => onEdit(task)}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--fc-border-hover)"; e.currentTarget.style.background = "var(--fc-surface-hover)"; }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--border-strong)"; e.currentTarget.style.background = "var(--surface-hover)"; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--fc-border)"; e.currentTarget.style.background = "var(--fc-surface)"; }}
     >
       <p style={{ fontSize: 13, fontWeight: 600, color: "var(--fc-text)", marginBottom: 8, lineHeight: 1.4 }}>{task.title}</p>
@@ -61,7 +79,7 @@ function SortableKanbanCard({ task, onEdit, lang }: { task: Task; onEdit: (t: Ta
       </div>
       {task.tags?.length > 0 && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 3, marginTop: 8 }}>
-          {task.tags.map((tg, i) => <span key={i} style={{ fontSize: 8, padding: "1px 6px", background: "rgba(0, 212, 255, 0.1)", color: "var(--fc-accent)", border: "1px solid var(--fc-border)", borderRadius: 4 }}>{tg}</span>)}
+          {task.tags.map((tg, i) => <span key={i} style={{ fontSize: 8, padding: "1px 6px", background: "var(--fc-accent-wash)", color: "var(--fc-accent)", border: "1px solid var(--fc-border)", borderRadius: 4 }}>{tg}</span>)}
         </div>
       )}
       {childTotal > 0 && (
@@ -170,7 +188,7 @@ export function KanbanBoard({ tasks, dynamicGroups, myPerms, lang, onTaskClick, 
               <div style={{ padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: g.color }}>{g.label}</span>
-                  <span style={{ fontSize: 10, color: g.wipLimit && gt.length > g.wipLimit ? "var(--fc-danger)" : "var(--fc-text-muted)", background: g.wipLimit && gt.length > g.wipLimit ? "var(--red-dim)" : "var(--fc-border)", padding: "1px 6px", borderRadius: 8 }}>
+                  <span style={{ fontSize: 10, color: g.wipLimit && gt.length > g.wipLimit ? "var(--fc-danger)" : "var(--fc-text-muted)", background: g.wipLimit && gt.length > g.wipLimit ? "var(--fc-danger-wash)" : "var(--fc-border)", padding: "1px 6px", borderRadius: 8 }}>
                     {gt.length} {g.wipLimit ? `/ ${g.wipLimit}` : ""}
                   </span>
                 </div>
@@ -182,7 +200,7 @@ export function KanbanBoard({ tasks, dynamicGroups, myPerms, lang, onTaskClick, 
               </div>
               
               <SortableContext id={g.key} items={gt.map(t => t.id)} strategy={verticalListSortingStrategy}>
-                <div style={{ padding: "0 10px 10px", display: "flex", flexDirection: "column", gap: 10, flex: 1, overflowY: "auto", minHeight: 150 }}>
+                <DroppableColumn id={g.key}>
                   {gt.map(tsk => <SortableKanbanCard key={tsk.id} task={tsk} onEdit={onTaskClick} lang={lang} />)}
                   {addingIn === g.key && (
                     <input
@@ -203,10 +221,10 @@ export function KanbanBoard({ tasks, dynamicGroups, myPerms, lang, onTaskClick, 
                         setAddingIn(null); setNewTitle(""); 
                       }}
                       placeholder={lang === "es" ? "Nombre..." : "Name..."}
-                      style={{ background: "var(--fc-surface-hover)", border: "1px solid var(--fc-border)", borderRadius: 6, padding: "8px 10px", color: "var(--fc-text)", fontSize: 12, outline: "none" }}
+                      style={{ background: "var(--surface-hover)", border: "1px solid var(--fc-border)", borderRadius: 6, padding: "8px 10px", color: "var(--fc-text)", fontSize: 12, outline: "none" }}
                     />
                   )}
-                </div>
+                </DroppableColumn>
               </SortableContext>
             </div>
           );

@@ -1,91 +1,99 @@
+---
+tags: [base-de-datos, migraciones, prisma, seguridad]
+---
+
 # Baseline de migraciones Prisma → Neon
 
-## Estado actual (julio 2026)
+## Estado final del repositorio — 2026-08-17 (histórico, ver actualización abajo)
 
-El proyecto usa **`prisma db push`** (aditivo, no-destructivo) vía `scripts/db-sync.mjs`
-en cada build de Vercel. Las 5 migraciones en `prisma/migrations/` son un baseline
-histórico (mayo–junio 2026); todo lo posterior se aplicó vía push.
+- Producción tenía esquema y datos, pero no tenía `_prisma_migrations`.
+- La cadena activa contiene solo `20260817000000_canonical_baseline`.
+- Las seis migraciones anteriores se conservan byte-for-byte en
+  [[migrations/legacy/README|un archivo forense no ejecutable]].
+- La migración FinOps histórica permanece `DANGEROUS_TO_REPLAY` y ya no puede
+  ser descubierta por Prisma desde el path activo.
+- `schema.prisma` fue reconciliado localmente con los objetos productivos que el
+  runtime necesita o que deben preservarse. Esto no aplicó DDL a producción.
+- `scripts/db-sync.mjs` es ahora un tombstone que rechaza la operación y no conecta.
 
-El esquema tiene **74 modelos**. La última migración formal es del 8 de junio.
-`migrate deploy` no se usa porque nunca se hizo baseline contra la DB de producción.
+## Política obligatoria
 
-## Migraciones pendientes
+1. Código y migración versionada.
+2. Clone dedicado identificado por `MIGRATION_TEST_DB_URL`.
+3. Snapshot de esquema y conteos antes de la prueba.
+4. Aplicación aislada con estrategia EXPAND → BACKFILL → VERIFY → CUTOVER.
+5. Revisión humana del SQL, locks, backfill y verificación.
+6. Gate humano para producción.
+7. Deploy explícito y verificación read-only.
+8. CONTRACT LATER en otra ventana, nunca como limpieza automática.
 
-| Archivo | Descripción | Estado |
-|---|---|---|
-| `docs/pending-migrations/add-ai-usage.sql` | Crea tabla `AiUsage` para metering de IA | ⏳ Pendiente |
+Build y release no mutan esquema. Una base desconocida es `REAL_SHARED`.
+Recovery y safety se conservan como evidencia; no son shadow databases.
 
-## Procedimiento para aplicar
+## Estrategias evaluadas
 
-### Paso 0 — Verificar contra qué host apunta tu entorno
+### A. Baseline canónico limpio (seleccionada y probada)
 
-```bash
-# Verificar que NO estás apuntando a producción
-node -e "const u = new URL(process.env.DATABASE_URL); console.log('Host:', u.host); console.log('Database:', u.pathname.slice(1)); console.log('Branch:', u.searchParams.get('options') || 'main')"
-```
+La migración activa construye desde vacío el schema canónico. Las seis
+migraciones anteriores están fuera del path activo con hashes inmutables. En una
+base nueva, Prisma ejecuta el baseline completo. En una producción equivalente,
+un humano registraría únicamente ese baseline como aplicado, sin ejecutar DDL,
+después de repetir los preconditions read-only.
 
-**Esperado para dev:** host = `ep-xxxx-xxxx-NNNN.us-east-2.aws.neon.tech`
-**PELIGRO si ves:** el host de producción (verificar en Neon Console → Settings).
+Ventajas: checksums honestos desde el nuevo punto cero, replay determinista y
+historia futura simple. Coste: transición deliberada del path activo y mutación
+de metadata productiva durante el gate humano.
 
-### Paso 1 — Crear un branch de seguridad en Neon
+### B. Cadena histórica + bridge forward (no elegible hoy)
 
-```bash
-# En Neon Console → Branches → Create Branch
-# Nombre: backup-pre-migration-YYYYMMDD
-# Desde: main (el branch de producción)
-```
+Conservar las seis migraciones activas y añadir un bridge que transforme el
+schema resultante hasta el estado canónico. Puede validarse desde una DB vacía,
+pero baselinar producción exigiría marcar como aplicada una migración FinOps que
+no representa su historia real. Se rechaza mientras esa equivalencia no pueda
+demostrarse; no debe usarse solo para silenciar `migrate status`.
 
-Esto crea un snapshot instantáneo. Si la migración sale mal, puedes apuntar
-`DATABASE_URL` al branch de seguridad y redesplegar.
+## Pruebas del layout activo completadas
 
-### Paso 2 — Aplicar la migración
+`MIGRATION_TEST_DB_URL` fue detectada y clasificada como un clon dedicado con
+host distinto de todos los targets protegidos. El clon coincidió exactamente con
+producción actual antes de la prueba. La adopción metadata-only, el replay desde
+vacío, el diff vacío, el status limpio y el future migration canary pasaron.
 
-**Opción A — Via db push (recomendado para cambios aditivos):**
-```bash
-npx prisma db push
-```
+El SQL activo conserva SHA-256
+`6e6d81662656a91704e977de1b541b37d56a0d6d8c09026cccdeaaa8bced7c6e`.
+El clon recibió una única fila de metadata; esquema y datos de aplicación
+tuvieron cero mutaciones. La base disposable fue eliminada y producción recibió
+cero mutaciones.
 
-**Opción B — Via SQL directo (más control):**
-```bash
-psql $DATABASE_URL -f docs/pending-migrations/add-ai-usage.sql
-```
+Después de promover exactamente esos bytes a `prisma/migrations/`, el layout
+final volvió a pasar adopción sobre el clon con schema/data mutations `0/0`,
+replay desde otra DB vacía, status limpio, diff EMPTY, fingerprint semántico,
+future migration canary y simulación de checkout fresco sin dependencia del
+baseline en `.tmp`.
 
-### Paso 3 — Verificar
+El orden físico de columnas difiere en 24 tablas históricas entre producción y
+una instalación nueva; las 1,292 columnas semánticas, constraints, índices y
+enums son idénticos y Prisma reporta diff EMPTY.
 
-```bash
-npx prisma db pull          # leer esquema de la DB
-npx prisma validate         # comparar con schema.prisma
-npx prisma generate         # regenerar el cliente
-```
+Falta auditoría humana y autorización separada para registrar metadata en
+producción. Ver [[audits/2026-08-17-codex-isolated-baseline-proof-final|la
+primera prueba]] y el informe final de layout activo.
 
-### Paso 4 — Si sale mal (REVERSA)
+## Actualización — cutover completado (2026-08-17)
 
-1. **No hagas nada más en la DB.**
-2. En Neon Console → Branches → selecciona el branch de seguridad.
-3. Cambia `DATABASE_URL` en Vercel para apuntar al branch de seguridad.
-4. Redesplegar: `git push origin <rama>:main` (o trigger manual en Vercel).
-5. Investiga qué falló antes de intentar de nuevo.
+La autorización humana llegó y el registro metadata-only se ejecutó una única
+vez: `prisma migrate resolve --applied 20260817000000_canonical_baseline`.
+Producción ahora tiene `_prisma_migrations` con exactamente una fila
+(`applied_steps_count = 0`, sin DDL ejecutado). Verificación read-only
+posterior confirmó cero mutaciones de esquema o datos de aplicación. Detalle
+completo, comando exacto y todos los gates de cierre en
+[[audits/2026-08-17-production-baseline-metadata-cutover|el registro de
+cierre]].
 
-Si la migración fue destructiva (DROP TABLE, ALTER COLUMN tipo incompatible),
-el branch de seguridad es tu única vía de reversa. Por eso se crea ANTES.
+`PRODUCTION_MIGRATION_READY` sigue en `NO`: cada migración forward futura
+requiere su propio artefacto, prueba aislada y gate humano independiente.
 
-## Para migrar a `prisma migrate deploy` (futuro)
-
-Si se quiere pasar de `db push` a migraciones formales:
-
-1. Crear una migración base:
-   ```bash
-   npx prisma migrate diff --from-empty --to-schema prisma/schema.prisma --script > prisma/migrations/00000000000000_baseline/migration.sql
-   ```
-2. Marcarla como ya aplicada:
-   ```bash
-   npx prisma migrate resolve --applied 00000000000000_baseline
-   ```
-3. Verificar:
-   ```bash
-   npx prisma migrate status
-   ```
-4. Solo entonces reemplazar `db push` por `migrate deploy` en el pipeline.
-
-**⚠️ No hacer esto sin antes verificar que las 5 migraciones existentes están
-consistentes con el estado actual de la DB.** Usar `migrate status` para confirmar.
+Relacionado: [[architecture/database-migration-policy|Política de migraciones]] ·
+[[incidents/2026-08-aiusage-data-loss|Incidente AiUsage]] ·
+[[migrations/README|Arquitectura activa]] ·
+[[audits/2026-08-17-production-baseline-metadata-cutover|Cierre del cutover]]
