@@ -206,7 +206,7 @@ export function WhatsAppConnectCard() {
   const handleUnlinkLine = async (phoneNumberId: string) => {
     const ok = await showConfirm({
       title: "Desvincular línea",
-      message: "Dejará de recibir y enviar mensajes desde Sodare Core.",
+      message: "Dejará de recibir y enviar mensajes desde FlowChart Core.",
       confirmLabel: "Desvincular",
       danger: true,
     });
