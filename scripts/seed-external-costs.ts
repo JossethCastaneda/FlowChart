@@ -1,85 +1,88 @@
-import { Prisma } from "@prisma/client";
-import prisma from "../lib/prisma";
+import { PrismaClient } from "@prisma/client";
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
+import * as dotenv from "dotenv";
 
-const models = [
-  {
-    provider: "openai",
-    providerModelId: "gpt-4o-2024-08-06",
-    inputPrice: new Prisma.Decimal(2.50), // Per 1M tokens
-    outputPrice: new Prisma.Decimal(10.00),
-    cachedInputPrice: new Prisma.Decimal(1.25),
-  },
-  {
-    provider: "openai",
-    providerModelId: "gpt-4o-mini-2024-07-18",
-    inputPrice: new Prisma.Decimal(0.15),
-    outputPrice: new Prisma.Decimal(0.60),
-    cachedInputPrice: new Prisma.Decimal(0.075),
-  },
-  {
-    provider: "anthropic",
-    providerModelId: "claude-3-5-sonnet-20240620",
-    inputPrice: new Prisma.Decimal(3.00),
-    outputPrice: new Prisma.Decimal(15.00),
-    cachedInputPrice: new Prisma.Decimal(0.30),
-  },
-  {
-    provider: "anthropic",
-    providerModelId: "claude-3-haiku-20240307",
-    inputPrice: new Prisma.Decimal(0.25),
-    outputPrice: new Prisma.Decimal(1.25),
-    cachedInputPrice: new Prisma.Decimal(0.025),
-  },
-  {
-    provider: "google",
-    providerModelId: "gemini-1.5-pro-001",
-    inputPrice: new Prisma.Decimal(3.50),
-    outputPrice: new Prisma.Decimal(10.50),
-    cachedInputPrice: new Prisma.Decimal(1.75),
-  },
-  {
-    provider: "google",
-    providerModelId: "gemini-1.5-flash-001",
-    inputPrice: new Prisma.Decimal(0.075),
-    outputPrice: new Prisma.Decimal(0.30),
-    cachedInputPrice: new Prisma.Decimal(0.0375),
-  }
+dotenv.config();
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
+
+const rates = [
+  // ── OPENAI ──
+  { provider: "OpenAI", component: "GPT-5.6-input", unit: "1M_tokens", amount: 2.50, currency: "USD" },
+  { provider: "OpenAI", component: "GPT-5.6-output", unit: "1M_tokens", amount: 10.00, currency: "USD" },
+
+  // ── ANTHROPIC ──
+  { provider: "Anthropic", component: "Claude-3.5-Sonnet-input", unit: "1M_tokens", amount: 3.00, currency: "USD" },
+  { provider: "Anthropic", component: "Claude-3.5-Sonnet-output", unit: "1M_tokens", amount: 15.00, currency: "USD" },
+
+  // ── GOOGLE ──
+  { provider: "Google", component: "Gemini-1.5-Pro-input", unit: "1M_tokens", amount: 3.50, currency: "USD" },
+  { provider: "Google", component: "Gemini-1.5-Pro-output", unit: "1M_tokens", amount: 10.50, currency: "USD" },
+  { provider: "Google", component: "Gemini-1.5-Flash-input", unit: "1M_tokens", amount: 0.35, currency: "USD" },
+  { provider: "Google", component: "Gemini-1.5-Flash-output", unit: "1M_tokens", amount: 1.05, currency: "USD" },
+
+  // ── VERCEL ──
+  { provider: "Vercel", component: "pro-seat", unit: "month", amount: 20.00, currency: "USD" },
+
+  // ── NEON ──
+  { provider: "Neon", component: "compute", unit: "CU-hour", amount: 0.106, currency: "USD" },
+  { provider: "Neon", component: "storage", unit: "GB-month", amount: 0.35, currency: "USD" },
+
+  // ── STRIPE MEXICO ──
+  { provider: "Stripe", component: "card_processing_percentage", unit: "percentage", amount: 3.6, currency: "MXN", notes: "+ 3.00 MXN fixed" },
+  { provider: "Stripe", component: "card_processing_fixed", unit: "charge", amount: 3.00, currency: "MXN" },
+  { provider: "Stripe", component: "billing_starter", unit: "percentage", amount: 0.4, currency: "USD", notes: "Invoice fee" },
+  { provider: "Stripe", component: "tax", unit: "percentage", amount: 0.5, currency: "USD", notes: "Stripe Tax automation per transaction" },
 ];
 
-async function seed() {
-  console.log("Seeding External AI Costs with Prisma.Decimal...");
-  
-  for (const model of models) {
-    await prisma.aiModelPricing.upsert({
+async function seedRates() {
+  console.log("Seeding External Cost Rates (Idempotent)...");
+  for (const rate of rates) {
+    const existing = await prisma.externalCostRate.findFirst({
       where: {
-        provider_providerModelId_effectiveFrom: {
-          provider: model.provider,
-          providerModelId: model.providerModelId,
-          effectiveFrom: new Date("2024-01-01T00:00:00Z")
-        }
-      },
-      update: {
-        inputPrice: model.inputPrice,
-        outputPrice: model.outputPrice,
-        cachedInputPrice: model.cachedInputPrice,
-        currency: "USD",
-      },
-      create: {
-        provider: model.provider,
-        providerModelId: model.providerModelId,
-        inputPrice: model.inputPrice,
-        outputPrice: model.outputPrice,
-        cachedInputPrice: model.cachedInputPrice,
-        effectiveFrom: new Date("2024-01-01T00:00:00Z"),
-        currency: "USD",
+        provider: rate.provider,
+        component: rate.component,
+        unit: rate.unit,
       }
     });
-    console.log(`Seeded ${model.providerModelId}`);
+
+    if (existing) {
+      await prisma.externalCostRate.update({
+        where: { id: existing.id },
+        data: {
+          amount: rate.amount,
+          currency: rate.currency,
+          notes: rate.notes,
+          effectiveFrom: (rate as any).effectiveFrom,
+          effectiveTo: (rate as any).effectiveTo
+        }
+      });
+    } else {
+      await prisma.externalCostRate.create({
+        data: {
+          provider: rate.provider,
+          component: rate.component,
+          unit: rate.unit,
+          amount: rate.amount,
+          currency: rate.currency,
+          notes: rate.notes,
+          effectiveFrom: (rate as any).effectiveFrom,
+          effectiveTo: (rate as any).effectiveTo
+        }
+      });
+    }
   }
-  
-  console.log("Successfully seeded official AI costs.");
+  console.log("Done.");
 }
 
-seed().catch(console.error).finally(async () => {
-  await prisma.$disconnect();
-});
+seedRates()
+  .catch(e => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

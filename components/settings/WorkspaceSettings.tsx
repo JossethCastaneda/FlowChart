@@ -116,7 +116,7 @@ export function WorkspaceSettings() {
       {/* ── Identidad ── */}
       <SettingsCard
         title="General"
-        description="Identidad de tu espacio de trabajo dentro de FlowChart."
+        description="Identidad de tu espacio de trabajo dentro de Sodare."
         icon={<Globe className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
         <div className="w-full space-y-6">

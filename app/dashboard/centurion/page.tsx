@@ -19,24 +19,7 @@ type Tab = "resumen" | "datos" | "modelo" | "simulador" | "config";
 type SimScenario = "A" | "B" | "C";
 type SaveState = "idle" | "saving" | "saved" | "error";
 
-const fmtCurrency = (n: number) => n.toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 });
-
-function FormattedNumberInput({ value, onChange, style }: { value: number; onChange: (e: { target: { value: string } }) => void; style?: React.CSSProperties }) {
-  const [focused, setFocused] = React.useState(false);
-  const [local, setLocal] = React.useState(String(value));
-  React.useEffect(() => { if (!focused) setLocal(String(value)); }, [value, focused]);
-  const display = focused ? local : new Intl.NumberFormat("es-MX", { maximumFractionDigits: 2 }).format(value);
-  return (
-    <input
-      type={focused ? "number" : "text"}
-      value={display}
-      onFocus={() => { setFocused(true); setLocal(String(value)); }}
-      onBlur={() => { setFocused(false); onChange({ target: { value: local }}); }}
-      onChange={(e) => { if (focused) { setLocal(e.target.value); onChange(e); } }}
-      style={style}
-    />
-  );
-}
+const fmtCurrency = (n: number) => n.toLocaleString("es-MX", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 const fmtPct = (n: number) => (n * 100).toFixed(1) + "%";
 // ─── Color tokens (aligned with 1A Comando design system) ────────────────────
 const VIOLET        = "var(--fc-module-aria)";
@@ -320,8 +303,8 @@ function TabDatos({ rows, setRows, channels, onImport }: { rows: WeeklyRow[]; se
                     {row.label}
                   </div>
                 </td>
-                {enabledCh.map(ch => <td key={ch.id} style={{ padding: "3px 3px" }}><FormattedNumberInput value={row.spend[ch.id] ?? 0} onChange={e => upSpend(ri, ch.id, e.target.value)} style={{ ...iStyle, color: ch.color }} /></td>)}
-                <td style={{ padding: "3px 3px" }}><FormattedNumberInput value={row.outcome} onChange={e => upOutcome(ri, e.target.value)} style={{ ...iStyle, color: GREEN, fontWeight: 700 }} /></td>
+                {enabledCh.map(ch => <td key={ch.id} style={{ padding: "3px 3px" }}><input type="number" value={row.spend[ch.id] ?? 0} onChange={e => upSpend(ri, ch.id, e.target.value)} style={{ ...iStyle, color: ch.color }} /></td>)}
+                <td style={{ padding: "3px 3px" }}><input type="number" value={row.outcome} onChange={e => upOutcome(ri, e.target.value)} style={{ ...iStyle, color: GREEN, fontWeight: 700 }} /></td>
                 <td style={{ padding: "3px 3px" }}><input type="text" value={row.note ?? ""} onChange={e => upNote(ri, e.target.value)} placeholder="Nota..." style={{ ...iStyle, textAlign: "left", fontSize: 11, color: "var(--fc-text-muted)", width: 90 }} /></td>
                 <td style={{ padding: "3px 8px", textAlign: "center" }}>
                   <button onClick={() => toggleOutlier(ri)} title={row.isOutlier ? "Incluir en modelo" : "Excluir del modelo"} style={{ background: row.isOutlier ? RED_DIM : "transparent", border: row.isOutlier ? `1px solid ${RED_BORDER}` : "1px solid var(--fc-border)", cursor: "pointer", borderRadius: 5, padding: "3px 6px", fontSize: 9, fontWeight: 700, color: row.isOutlier ? RED : "var(--fc-text-muted)" }}>

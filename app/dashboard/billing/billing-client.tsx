@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export function BillingClient({ 
   initialWorkspaceId,
@@ -15,9 +16,16 @@ export function BillingClient({
   budgetBalance: { spentUsd: number; reservedUsd: number };
 }) {
   const { data: session } = useSession();
-  const workspaceId = initialWorkspaceId;
+  const router = useRouter();
+  const [workspaceId, setWorkspaceId] = useState<string | null>(initialWorkspaceId);
   const [loadingPortal, setLoadingPortal] = useState(false);
   const [loadingCheckout, setLoadingCheckout] = useState(false);
+
+  useEffect(() => {
+    if (initialWorkspaceId) {
+      setWorkspaceId(initialWorkspaceId);
+    }
+  }, [initialWorkspaceId]);
 
   const handleManageBilling = async () => {
     if (!workspaceId) return;

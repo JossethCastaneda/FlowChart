@@ -161,7 +161,7 @@ export function ProfileSettings() {
     <SettingsStack>
       <SettingsCard
         title="Perfil"
-        description="Cómo te ven tus compañeros dentro de FlowChart."
+        description="Cómo te ven tus compañeros dentro de Sodare."
         icon={<User className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
         {/* Identidad + avatar */}
@@ -271,7 +271,7 @@ export function ProfileSettings() {
             }}
             placeholder="5215512345678"
             error={errors.phone}
-            hint="FlowChart te avisa por WhatsApp cuando te asignan tareas o vence un SLA. Déjalo vacío para desactivarlo."
+            hint="Sodare te avisa por WhatsApp cuando te asignan tareas o vence un SLA. Déjalo vacío para desactivarlo."
           />
 
           <div className="pt-1 flex items-center gap-3">

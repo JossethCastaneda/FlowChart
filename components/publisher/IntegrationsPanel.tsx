@@ -491,7 +491,7 @@ export function IntegrationsPanel() {
           }}>
             <AlertTriangle style={{ width: 15, height: 15, color: "var(--fc-danger)", flexShrink: 0 }} />
             <div style={{ flex: 1, fontSize: 11, color: "var(--fc-danger)" }}>
-              Esto <strong>revoca el acceso de FlowChart Core a Meta</strong> y desconecta todas las páginas y cuentas. Podrás volver a conectar cuando quieras.
+              Esto <strong>revoca el acceso de Sodare Core a Meta</strong> y desconecta todas las páginas y cuentas. Podrás volver a conectar cuando quieras.
             </div>
             <button
               onClick={() => setConfirmUnlink(false)}

@@ -10,7 +10,7 @@ export default function IntegrationsPage() {
     <SettingsStack>
       <SettingsCard
         title="Integraciones"
-        description="Conecta las cuentas de anuncios, analítica y contenido que alimentan los módulos de FlowChart."
+        description="Conecta las cuentas de anuncios, analítica y contenido que alimentan los módulos de Sodare."
         icon={<Plug className="w-5 h-5 text-[var(--fc-accent)]" />}
       >
         <IntegrationsView />
