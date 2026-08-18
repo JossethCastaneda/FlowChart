@@ -36,7 +36,7 @@ export interface CatalogProvider {
   envVar: string;
 }
 
-export const DEFAULT_MODEL = "gemini-3.7-flash"; // Realigned to real 2026 models
+export const DEFAULT_MODEL = "claude-opus-5"; // Realigned to real 2026 models
 
 export const AI_CATALOG: CatalogProvider[] = [
   {

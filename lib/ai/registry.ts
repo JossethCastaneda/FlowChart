@@ -32,8 +32,8 @@ const PROVIDERS: Record<ProviderId, LLMProvider> = {
   anthropic: anthropicProvider,
 };
 
-// Orden de fallback cuando no se fija ARIA_LLM_PROVIDER. Gemini primero (key actual).
-const PREFERENCE: ProviderId[] = ["gemini", "anthropic", "openai"];
+// Orden de fallback cuando no se fija ARIA_LLM_PROVIDER. Anthropic primero.
+const PREFERENCE: ProviderId[] = ["anthropic", "gemini", "openai"];
 
 function isProviderId(v: string): v is ProviderId {
   return v === "openai" || v === "gemini" || v === "anthropic";
@@ -58,7 +58,7 @@ export function getActiveProvider(): LLMProvider {
       return PROVIDERS[id];
     }
   }
-  return PROVIDERS["gemini"]; // fallback to default even if not configured
+  return PROVIDERS["anthropic"]; // fallback to default even if not configured
 }
 
 export function hasAnyProvider(): boolean {
