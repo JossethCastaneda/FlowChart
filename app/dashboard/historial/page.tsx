@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
     CheckCircle2, XCircle, Clock, RefreshCw, Filter, Search,
   Globe, Play, Image, AlignLeft, ChevronDown,
-    ExternalLink, Zap, Calendar, GitBranch, Activity,
+    ExternalLink, Zap, Calendar, GitBranch, Activity, FileDown,
 } from "lucide-react";
 
 /* ─── Types ─── */
@@ -137,6 +137,7 @@ export default function DeploymentHistoryPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [channelFilter, setChannelFilter] = useState("All");
+  const [formatFilter, setFormatFilter] = useState("All");
   const [refreshing, setRefreshing] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -145,7 +146,10 @@ export default function DeploymentHistoryPage() {
     try {
       const res = await fetch("/api/publisher/posts?limit=200");
       const data = await res.json();
-      setPosts(data.posts || []);
+      // La API responde { success, data: { posts, approvalCounts } } — este fetch
+      // leía data.posts (siempre undefined) en vez de data.data.posts, así que la
+      // tabla nunca mostraba nada real.
+      setPosts(data.data?.posts || []);
     } catch {
       /* ignore */
     } finally {
@@ -164,8 +168,35 @@ export default function DeploymentHistoryPage() {
       (p.pageName || "").toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "All" || p.status === statusFilter;
     const matchChannel = channelFilter === "All" || p.channels.includes(channelFilter);
-    return matchSearch && matchStatus && matchChannel;
+    const matchFormat = formatFilter === "All" || (p.type || "post") === formatFilter;
+    return matchSearch && matchStatus && matchChannel && matchFormat;
   });
+
+  function exportCsv() {
+    const headers = ["id", "contenido", "canales", "formato", "estado", "pagina", "programado", "publicado"];
+    const rows = filtered.map((p) => [
+      p.id,
+      p.content.replace(/\r?\n/g, " ").replace(/"/g, '""'),
+      p.channels.join("|"),
+      p.type || "post",
+      p.status,
+      p.pageName || "",
+      p.scheduledAt || "",
+      p.publishedAt || "",
+    ]);
+    const csv = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell)}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "historial-publicacion.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
 
   const stats = {
     total: posts.length,
@@ -241,6 +272,42 @@ export default function DeploymentHistoryPage() {
             </select>
             <ChevronDown size={10} color="var(--fc-text-muted)" style={{ position: "absolute", right: 7, pointerEvents: "none" }} />
           </div>
+
+          {/* Format filter */}
+          <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+            <AlignLeft size={11} color="var(--fc-text-muted)" style={{ position: "absolute", left: 9, pointerEvents: "none" }} />
+            <select
+              value={formatFilter}
+              onChange={e => setFormatFilter(e.target.value)}
+              style={{
+                paddingLeft: 26, paddingRight: 22, paddingTop: 6, paddingBottom: 6,
+                fontSize: 11, color: "var(--fc-text-secondary)", cursor: "pointer",
+                background: "var(--fc-surface)", border: "1px solid var(--fc-border)",
+                borderRadius: 3, appearance: "none",
+              }}
+            >
+              {["All", "post", "reel", "story", "carousel"].map(f => (
+                <option key={f} value={f}>{f === "All" ? "All Formats" : f.charAt(0).toUpperCase() + f.slice(1)}</option>
+              ))}
+            </select>
+            <ChevronDown size={10} color="var(--fc-text-muted)" style={{ position: "absolute", right: 7, pointerEvents: "none" }} />
+          </div>
+
+          {/* Export CSV */}
+          <button
+            onClick={exportCsv}
+            disabled={filtered.length === 0}
+            title="Exportar CSV"
+            style={{
+              display: "flex", alignItems: "center", gap: 6, padding: "6px 12px",
+              fontSize: 11, fontWeight: 600, color: "var(--fc-text-secondary)",
+              background: "var(--fc-surface)", border: "1px solid var(--fc-border)",
+              borderRadius: 3, cursor: filtered.length === 0 ? "not-allowed" : "pointer",
+              opacity: filtered.length === 0 ? 0.5 : 1,
+            }}
+          >
+            <FileDown size={12} /> Exportar CSV
+          </button>
 
           {/* Status count pills */}
           <div style={{
