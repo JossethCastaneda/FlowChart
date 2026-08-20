@@ -1,10 +1,10 @@
 "use client";
 
-import React, { Suspense, useCallback } from "react";
+import React, { Suspense, useCallback, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Calendar, CheckCircle2, Clock, Images, Zap, Users } from "lucide-react";
-import { Composer } from "./Composer";
+import { Composer, type PublishTarget } from "./Composer";
 import { ScheduledCalendar } from "./ScheduledCalendar";
 import { ApprovalsPanel } from "./ApprovalsPanel";
 import { MediaLibrary } from "./MediaLibrary";
@@ -51,6 +51,19 @@ function PublisherTabsInner() {
       router.replace(`/dashboard/publisher${query ? `?${query}` : ""}`, { scroll: false });
     },
     [router, searchParams]
+  );
+
+  // Cuentas precargadas cuando el usuario elige "Publicar en el grupo →" en Grupos
+  // (o "Abrir en Redactor" en Calendario, más adelante): Composer las consume una
+  // vez al montar y avisa via onConsumeInitialTargets para que se limpien aquí.
+  const [pendingComposerTargets, setPendingComposerTargets] = useState<PublishTarget[] | null>(null);
+
+  const publishToGroup = useCallback(
+    (targets: PublishTarget[]) => {
+      setPendingComposerTargets(targets);
+      setActiveTab("composer");
+    },
+    [setActiveTab]
   );
 
   return (
@@ -138,11 +151,16 @@ function PublisherTabsInner() {
       <PlannerOverview />
 
       <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-        {activeTab === "composer" && <Composer />}
+        {activeTab === "composer" && (
+          <Composer
+            initialTargets={pendingComposerTargets}
+            onConsumeInitialTargets={() => setPendingComposerTargets(null)}
+          />
+        )}
         {activeTab === "calendar" && <ScheduledCalendar />}
         {activeTab === "approvals" && <ApprovalsPanel />}
         {activeTab === "library" && <MediaLibrary />}
-        {activeTab === "groups" && <AssetGroupManager />}
+        {activeTab === "groups" && <AssetGroupManager onPublishToGroup={publishToGroup} />}
       </div>
     </div>
   );

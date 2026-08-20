@@ -55,7 +55,7 @@ interface MetaPage {
 }
 
 /** A "publishable target" — one FB page or one IG account derived from a page */
-interface PublishTarget {
+export interface PublishTarget {
   key: string;            // unique: `fb_${pageId}` or `ig_${igId}`
   platform: "facebook" | "instagram";
   pageId: string;
@@ -184,10 +184,17 @@ function ComposerConnectDropdown({
   );
 }
 
-export function Composer() {
+interface ComposerProps {
+  /** Cuentas precargadas al abrir el Redactor (p. ej. desde "Publicar en el grupo →"). */
+  initialTargets?: PublishTarget[] | null;
+  /** Se llama una vez al montar si initialTargets tenía datos, para que el llamador limpie su estado. */
+  onConsumeInitialTargets?: () => void;
+}
+
+export function Composer({ initialTargets, onConsumeInitialTargets }: ComposerProps = {}) {
   /* ── State ──────────────────────────────────────────── */
   const [content, setContent] = useState("");
-  const [selectedTargets, setSelectedTargets] = useState<PublishTarget[]>([]);
+  const [selectedTargets, setSelectedTargets] = useState<PublishTarget[]>(() => initialTargets || []);
   const [mediaFiles, setMediaFiles] = useState<UploadedMedia[]>([]);
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState("");
@@ -224,6 +231,15 @@ export function Composer() {
   useEffect(() => {
     loadAssetGroups();
   }, [loadAssetGroups]);
+
+  // Consumir una sola vez las cuentas precargadas por el llamador (p. ej. "Publicar
+  // en el grupo →" desde la pestaña Grupos). El estado inicial ya las tomó via
+  // useState(() => initialTargets || []); esto solo le avisa al padre que las limpie.
+  useEffect(() => {
+    if (initialTargets && initialTargets.length > 0) {
+      onConsumeInitialTargets?.();
+    }
+  }, []);
 
   const selectAssetGroup = (group: any) => {
     if (!group.assets || !Array.isArray(group.assets)) return;
