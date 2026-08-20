@@ -17,6 +17,7 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status");
   const channel = searchParams.get("channel");
+  const approvalStatus = searchParams.get("approvalStatus");
   // limit no numérico daba NaN → take: NaN → 500. Se clampa a [1, 500] con default 100.
   const limitRaw = parseInt(searchParams.get("limit") || "100", 10);
   const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? Math.min(limitRaw, 500) : 100;
@@ -28,14 +29,42 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   if (channel) {
     where.channels = { has: channel };
   }
+  // Antes este filtro era un no-op: el where nunca consideraba approvalStatus,
+  // así que el panel de Aprobaciones mostraba TODOS los posts, no solo los pendientes.
+  if (approvalStatus && approvalStatus !== "all") {
+    where.approvalStatus = approvalStatus;
+  }
 
-  const posts = await prisma.scheduledPost.findMany({
-    where,
-    orderBy: [{ scheduledAt: "desc" }, { createdAt: "desc" }],
-    take: limit,
-  });
+  const countsWhere: Prisma.ScheduledPostWhereInput = { workspaceId: ctx.workspaceId };
+  if (channel) countsWhere.channels = { has: channel };
 
-  return apiSuccess({ posts });
+  const [posts, approvalGroups] = await Promise.all([
+    prisma.scheduledPost.findMany({
+      where,
+      orderBy: [{ scheduledAt: "desc" }, { createdAt: "desc" }],
+      take: limit,
+    }),
+    prisma.scheduledPost.groupBy({
+      by: ["approvalStatus"],
+      where: countsWhere,
+      _count: { _all: true },
+    }),
+  ]);
+
+  // Conteos para las pills de Aprobaciones (Pendientes/Aprobados/Devueltos/Todos).
+  // "total" solo suma los tres estados de aprobación conocidos, no los posts sin
+  // flujo de aprobación (approvalStatus null en workspaces que no lo requieren).
+  const approvalCounts = { pending: 0, approved: 0, rejected: 0, total: 0 };
+  for (const group of approvalGroups) {
+    const count = group._count._all;
+    if (group.approvalStatus === "pending") approvalCounts.pending = count;
+    else if (group.approvalStatus === "approved") approvalCounts.approved = count;
+    else if (group.approvalStatus === "rejected") approvalCounts.rejected = count;
+    else continue;
+    approvalCounts.total += count;
+  }
+
+  return apiSuccess({ posts, approvalCounts });
 });
 
 // POST /api/publisher/posts - create a new post

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useCallback } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Calendar, CheckCircle2, Clock, Images, Zap, Users } from "lucide-react";
 import { Composer } from "./Composer";
 import { ScheduledCalendar } from "./ScheduledCalendar";
@@ -17,8 +18,40 @@ const TABS = [
   { key: "groups", label: "Grupos", icon: Users, color: "var(--fc-accent)" },
 ] as const;
 
+type TabKey = (typeof TABS)[number]["key"];
+
+const TAB_KEYS = TABS.map((t) => t.key) as TabKey[];
+
+function isTabKey(value: string | null): value is TabKey {
+  return !!value && (TAB_KEYS as string[]).includes(value);
+}
+
 export function PublisherTabs() {
-  const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["key"]>("composer");
+  return (
+    <Suspense fallback={null}>
+      <PublisherTabsInner />
+    </Suspense>
+  );
+}
+
+function PublisherTabsInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeTab: TabKey = isTabKey(searchParams.get("tab")) ? (searchParams.get("tab") as TabKey) : "composer";
+
+  const setActiveTab = useCallback(
+    (key: TabKey) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (key === "composer") {
+        params.delete("tab");
+      } else {
+        params.set("tab", key);
+      }
+      const query = params.toString();
+      router.replace(`/dashboard/publisher${query ? `?${query}` : ""}`, { scroll: false });
+    },
+    [router, searchParams]
+  );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10, height: "100%", minHeight: 0 }}>
