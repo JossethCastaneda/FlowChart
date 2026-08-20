@@ -20,7 +20,10 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Sheet } from "@/components/ui/Sheet";
+import { Tag } from "@/components/ui/Tag";
 import { BoostModal, type BoostResult } from "./BoostModal";
+import { Copy, ArrowUpRight } from "lucide-react";
 
 /* ── Social Icons (not in lucide-react) ───────────────── */
 const FacebookIcon = ({ style }: { style?: React.CSSProperties }) => (
@@ -85,16 +88,19 @@ const toDateKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).pa
 /* ══════════════════════════════════════════════════════════
    SCHEDULED CALENDAR COMPONENT
    ══════════════════════════════════════════════════════════ */
-export function ScheduledCalendar() {
+export function ScheduledCalendar({ onOpenInComposer }: { onOpenInComposer?: (postId: string) => void } = {}) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"month" | "list">("month");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterChannel, setFilterChannel] = useState<string>("all");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [banner, setBanner] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [dragOverDay, setDragOverDay] = useState<string | null>(null);
+  const [detailPost, setDetailPost] = useState<Post | null>(null);
+  const [rescheduleDraft, setRescheduleDraft] = useState("");
 
   // Boost state
   const [boostTarget, setBoostTarget] = useState<Post | null>(null);
@@ -132,8 +138,15 @@ export function ScheduledCalendar() {
   }, [banner]);
 
   /* ── Filter posts ─────────────────────────────────────── */
+  const channelCounts = posts.reduce<Record<string, number>>((acc, p) => {
+    for (const ch of p.channels) acc[ch] = (acc[ch] || 0) + 1;
+    return acc;
+  }, {});
+  const availableChannels = Object.keys(channelCounts).sort();
+
   const filtered = posts.filter((p) => {
     if (filterStatus !== "all" && p.status !== filterStatus) return false;
+    if (filterChannel !== "all" && !p.channels.includes(filterChannel)) return false;
     return true;
   });
 
@@ -299,6 +312,65 @@ export function ScheduledCalendar() {
     }
   };
 
+  const duplicatePost = async (post: Post) => {
+    setActionLoading(post.id);
+    try {
+      const res = await fetch("/api/publisher/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: post.content,
+          channels: post.channels,
+          mediaUrls: post.mediaUrls,
+          type: post.type,
+          hashtags: post.hashtags,
+          pageName: post.pageName || undefined,
+          pageId: post.pageId || undefined,
+          status: "Draft",
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setBanner({ type: "success", message: "Duplicado como borrador." });
+        setDetailPost(null);
+        fetchData();
+      } else {
+        setBanner({ type: "error", message: data.error || "No se pudo duplicar." });
+      }
+    } catch {
+      setBanner({ type: "error", message: "Error de red al duplicar." });
+    }
+    setActionLoading(null);
+  };
+
+  const reschedulePost = async (post: Post, newIso: string) => {
+    if (!newIso) return;
+    setActionLoading(post.id);
+    try {
+      const res = await fetch(`/api/publisher/posts/${post.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scheduledAt: newIso, status: "Scheduled" }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPosts((prev) => prev.map((p) => (p.id === post.id ? data.data?.post || p : p)));
+        setDetailPost(data.data?.post || null);
+        setBanner({ type: "success", message: `Reprogramada para el ${fmtDate(new Date(newIso))}.` });
+      } else {
+        setBanner({ type: "error", message: data.error || "No se pudo reprogramar." });
+      }
+    } catch {
+      setBanner({ type: "error", message: "Error de red al reprogramar." });
+    }
+    setActionLoading(null);
+  };
+
+  const openDetail = (post: Post) => {
+    setDetailPost(post);
+    setRescheduleDraft(post.scheduledAt ? post.scheduledAt.slice(0, 16) : "");
+  };
+
   /* ── Status badge ─────────────────────────────────────── */
   const StatusBadge = ({ status }: { status: string }) => {
     const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.Draft;
@@ -336,6 +408,7 @@ export function ScheduledCalendar() {
     return (
       <div
         draggable={isEditable && !post.isExternal}
+        onClick={() => openDetail(post)}
         onDragStart={(e) => {
           if (isEditable && !post.isExternal) {
             e.stopPropagation();
@@ -345,10 +418,10 @@ export function ScheduledCalendar() {
         }}
         style={{
           display: "flex", gap: 12, padding: "12px 14px",
-          background: post.isExternal ? "linear-gradient(to right, rgba(24,119,242,0.03), rgba(225,48,108,0.03))" : "var(--surface-hover)", 
+          background: post.isExternal ? "linear-gradient(to right, rgba(24,119,242,0.03), rgba(225,48,108,0.03))" : "var(--surface-hover)",
           border: post.isExternal ? "1px solid rgba(24,119,242,0.2)" : "1px solid var(--hairline)",
           borderRadius: 8, marginBottom: 8, transition: "border-color 0.2s",
-          cursor: (isEditable && !post.isExternal) ? "grab" : "default",
+          cursor: (isEditable && !post.isExternal) ? "grab" : "pointer",
         }}
         onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; }}
         onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}
@@ -411,7 +484,7 @@ export function ScheduledCalendar() {
         </div>
 
         {/* Actions */}
-        <div style={{ display: "flex", gap: 4, alignItems: "flex-start", flexShrink: 0 }}>
+        <div onClick={(e) => e.stopPropagation()} style={{ display: "flex", gap: 4, alignItems: "flex-start", flexShrink: 0 }}>
           {isEditable && !post.isExternal && (
             <>
               {/* El botón "Editar" se retiró: era un console.log sin flujo de edición
@@ -524,6 +597,16 @@ export function ScheduledCalendar() {
                 <FilterPill label="Fallido" active={filterStatus === "Failed"} onClick={() => setFilterStatus("Failed")} />
       </div>
 
+      {availableChannels.length > 0 && (
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <span style={{ fontSize: 11, color: "var(--fc-text-muted)", fontWeight: 500 }}>Canal:</span>
+          <FilterPill label={`Todos (${posts.length})`} active={filterChannel === "all"} onClick={() => setFilterChannel("all")} />
+          {availableChannels.map((ch) => (
+            <FilterPill key={ch} label={`${ch} (${channelCounts[ch]})`} active={filterChannel === ch} onClick={() => setFilterChannel(ch)} />
+          ))}
+        </div>
+      )}
+
       {/* Loading */}
       {loading && (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -614,6 +697,10 @@ export function ScheduledCalendar() {
                       <div
                         key={p.id}
                         draggable={["Draft", "Scheduled"].includes(p.status) && !p.isExternal}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openDetail(p);
+                        }}
                         onDragStart={(e) => {
                           e.stopPropagation();
                           e.dataTransfer.setData("text/plain", p.id);
@@ -622,10 +709,10 @@ export function ScheduledCalendar() {
                         style={{
                           display: "flex", alignItems: "center", gap: 3, padding: "2px 5px", marginBottom: 2,
                           borderRadius: 3, fontSize: 8, fontWeight: 500, color: cfg.color,
-                          background: p.isExternal ? "rgba(24,119,242,0.1)" : cfg.bg, 
+                          background: p.isExternal ? "rgba(24,119,242,0.1)" : cfg.bg,
                           border: p.isExternal ? "1px solid rgba(24,119,242,0.4)" : `1px solid ${cfg.border}`,
                           overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis",
-                          cursor: (["Draft", "Scheduled"].includes(p.status) && !p.isExternal) ? "grab" : "default",
+                          cursor: (["Draft", "Scheduled"].includes(p.status) && !p.isExternal) ? "grab" : "pointer",
                         }}
                       >
                         {p.channels.map((ch) => <span key={ch}>{CHANNEL_ICON[ch]}</span>)}
@@ -703,6 +790,91 @@ export function ScheduledCalendar() {
           onSuccess={handleBoostSuccess}
         />
       )}
+
+      {/* ── DETAIL SHEET ── */}
+      <Sheet isOpen={!!detailPost} onClose={() => setDetailPost(null)} title="Detalle de la publicación" position="right">
+        {detailPost && (() => {
+          const post = detailPost;
+          const d = post.scheduledAt ? new Date(post.scheduledAt) : post.publishedAt ? new Date(post.publishedAt) : null;
+          const media = post.mediaUrls?.[0] || post.mediaUrl;
+          const isEditable = ["Draft", "Scheduled"].includes(post.status) && !post.isExternal;
+          const rows: [string, string][] = [
+            ["Canal", post.channels.join(", ") || "—"],
+            ["Destino", post.pageName || "—"],
+            ["Formato", post.type],
+            ["Fecha", d ? `${fmtDate(d)} · ${fmtTime(d)}` : "Sin fecha"],
+            ["Caracteres", String(post.content.length)],
+          ];
+          return (
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, minWidth: 320 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: 4 }}>
+                  {post.channels.map((ch) => <span key={ch}>{CHANNEL_ICON[ch]}</span>)}
+                </div>
+                <StatusBadge status={post.status} />
+              </div>
+
+              {media && (
+                <div style={{ width: "100%", aspectRatio: "1/1", borderRadius: 10, overflow: "hidden", background: "var(--fc-bg)" }}>
+                  <img src={media} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </div>
+              )}
+
+              <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: "var(--fc-text)", whiteSpace: "pre-wrap" }}>{post.content}</p>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, borderTop: "1px solid var(--hairline)", paddingTop: 10 }}>
+                {rows.map(([label, value]) => (
+                  <div key={label} style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 11.5 }}>
+                    <span style={{ color: "var(--fc-text-muted)" }}>{label}</span>
+                    <span style={{ color: "var(--fc-text)", fontWeight: 600, textAlign: "right" }}>{value}</span>
+                  </div>
+                ))}
+              </div>
+
+              {post.error && <Tag variant="danger">{post.error}</Tag>}
+
+              {isEditable && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, borderTop: "1px solid var(--hairline)", paddingTop: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <input
+                      type="datetime-local"
+                      value={rescheduleDraft}
+                      onChange={(e) => setRescheduleDraft(e.target.value)}
+                      style={{ flex: 1, padding: "7px 10px", borderRadius: 8, border: "1px solid var(--hairline)", background: "var(--fc-bg)", color: "var(--fc-text)", fontSize: 12, colorScheme: "dark" }}
+                    />
+                    <button
+                      onClick={() => rescheduleDraft && reschedulePost(post, new Date(rescheduleDraft).toISOString())}
+                      disabled={!rescheduleDraft || actionLoading === post.id}
+                      style={{ padding: "7px 12px", borderRadius: 8, background: "var(--fc-accent)", color: "var(--fc-bg)", border: "none", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+                    >
+                      Reprogramar
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button
+                  onClick={() => {
+                    setDetailPost(null);
+                    onOpenInComposer?.(post.id);
+                  }}
+                  style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 14px", borderRadius: 10, background: "var(--fc-accent)", color: "var(--fc-bg)", border: "none", fontSize: 12.5, fontWeight: 700, cursor: "pointer" }}
+                >
+                  <ArrowUpRight size={14} /> Abrir en Redactor
+                </button>
+                <button
+                  onClick={() => duplicatePost(post)}
+                  disabled={actionLoading === post.id}
+                  style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 14px", borderRadius: 10, background: "transparent", color: "var(--fc-text)", border: "1px solid var(--hairline)", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}
+                >
+                  <Copy size={14} /> Duplicar
+                </button>
+              </div>
+            </div>
+          );
+        })()}
+      </Sheet>
     </div>
   );
 }

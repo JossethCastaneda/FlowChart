@@ -53,14 +53,26 @@ function PublisherTabsInner() {
     [router, searchParams]
   );
 
-  // Cuentas precargadas cuando el usuario elige "Publicar en el grupo →" en Grupos
-  // (o "Abrir en Redactor" en Calendario, más adelante): Composer las consume una
-  // vez al montar y avisa via onConsumeInitialTargets para que se limpien aquí.
+  // Cuentas precargadas cuando el usuario elige "Publicar en el grupo →" en Grupos:
+  // Composer las consume una vez al montar y avisa via onConsumeInitialTargets para
+  // que se limpien aquí.
   const [pendingComposerTargets, setPendingComposerTargets] = useState<PublishTarget[] | null>(null);
 
   const publishToGroup = useCallback(
     (targets: PublishTarget[]) => {
       setPendingComposerTargets(targets);
+      setActiveTab("composer");
+    },
+    [setActiveTab]
+  );
+
+  // Id del post a precargar cuando el usuario elige "Abrir en Redactor" desde
+  // Calendario (crea una pieza nueva a partir de ese post, no lo edita in-place).
+  const [pendingEditPostId, setPendingEditPostId] = useState<string | null>(null);
+
+  const openInRedactor = useCallback(
+    (postId: string) => {
+      setPendingEditPostId(postId);
       setActiveTab("composer");
     },
     [setActiveTab]
@@ -155,9 +167,11 @@ function PublisherTabsInner() {
           <Composer
             initialTargets={pendingComposerTargets}
             onConsumeInitialTargets={() => setPendingComposerTargets(null)}
+            prefillFromPostId={pendingEditPostId}
+            onConsumePrefillFromPostId={() => setPendingEditPostId(null)}
           />
         )}
-        {activeTab === "calendar" && <ScheduledCalendar />}
+        {activeTab === "calendar" && <ScheduledCalendar onOpenInComposer={openInRedactor} />}
         {activeTab === "approvals" && <ApprovalsPanel />}
         {activeTab === "library" && <MediaLibrary />}
         {activeTab === "groups" && <AssetGroupManager onPublishToGroup={publishToGroup} />}

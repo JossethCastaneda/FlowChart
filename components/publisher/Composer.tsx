@@ -192,9 +192,17 @@ interface ComposerProps {
   initialTargets?: PublishTarget[] | null;
   /** Se llama una vez al montar si initialTargets tenía datos, para que el llamador limpie su estado. */
   onConsumeInitialTargets?: () => void;
+  /**
+   * Id de un post existente desde el que precargar el Redactor (p. ej. "Abrir en
+   * Redactor" desde Calendario). Guardar desde aquí crea una pieza NUEVA — no es
+   * edición in-place del post original (Calendario ya tiene "Reprogramar" para eso,
+   * que sí actualiza el post existente vía PUT). Se avisa al usuario con un banner.
+   */
+  prefillFromPostId?: string | null;
+  onConsumePrefillFromPostId?: () => void;
 }
 
-export function Composer({ initialTargets, onConsumeInitialTargets }: ComposerProps = {}) {
+export function Composer({ initialTargets, onConsumeInitialTargets, prefillFromPostId, onConsumePrefillFromPostId }: ComposerProps = {}) {
   /* ── State ──────────────────────────────────────────── */
   const [content, setContent] = useState("");
   const [selectedTargets, setSelectedTargets] = useState<PublishTarget[]>(() => initialTargets || []);
@@ -272,6 +280,82 @@ export function Composer({ initialTargets, onConsumeInitialTargets }: ComposerPr
 
   // Feedback
   const [banner, setBanner] = useState<Banner | null>(null);
+
+  // "Abrir en Redactor" desde Calendario: precarga contenido/formato/canales de un
+  // post existente. NO es edición in-place — guardar desde aquí crea una pieza
+  // nueva (Calendario ya tiene "Reprogramar" para mutar el post original vía PUT).
+  const [prefillApplied, setPrefillApplied] = useState(false);
+  useEffect(() => {
+    if (!prefillFromPostId || prefillApplied || allTargets.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/publisher/posts/${prefillFromPostId}`);
+        if (!res.ok) throw new Error("No se pudo cargar la publicación de origen");
+        const payload = await res.json();
+        const post = payload.data?.post;
+        if (!post || cancelled) return;
+
+        setContent(post.content || "");
+        if (post.type) setFormat(post.type);
+        if (Array.isArray(post.hashtags)) setHashtags(post.hashtags);
+        if (post.firstComment) setFirstComment(post.firstComment);
+        if (post.contentByPlatform && typeof post.contentByPlatform === "object") {
+          setCustomizeByPlatform(true);
+          setFbContent(post.contentByPlatform.facebook || "");
+          setIgContent(post.contentByPlatform.instagram || "");
+        }
+        if (Array.isArray(post.mediaUrls) && post.mediaUrls.length > 0) {
+          const VIDEO_EXT = /\.(mp4|mov|webm|avi)(\?|$)/i;
+          setMediaFiles(
+            post.mediaUrls.map((url: string, i: number) => ({
+              url,
+              type: VIDEO_EXT.test(url) ? "video" : "image",
+              name: `media-${i + 1}`,
+            }))
+          );
+        }
+
+        // Reconstrucción best-effort de canales: el post no guarda el igId exacto
+        // de la cuenta usada, solo pageId (Facebook) y la lista de plataformas.
+        // Se empareja Facebook por pageId exacto; Instagram se toma de la cuenta
+        // ligada a esa misma página si existe, o la primera disponible si no.
+        const matched: PublishTarget[] = [];
+        if (Array.isArray(post.channels)) {
+          if (post.channels.includes("facebook") && post.pageId) {
+            const fb = allTargets.find((t) => t.platform === "facebook" && t.pageId === post.pageId);
+            if (fb) matched.push(fb);
+          }
+          if (post.channels.includes("instagram")) {
+            const igSamePage = post.pageId
+              ? allTargets.find((t) => t.platform === "instagram" && t.pageId === post.pageId)
+              : undefined;
+            const ig = igSamePage || allTargets.find((t) => t.platform === "instagram" && !t.disconnected);
+            if (ig) matched.push(ig);
+          }
+        }
+        if (matched.length > 0) setSelectedTargets(matched);
+
+        setBanner({
+          type: "success",
+          message:
+            matched.length === post.channels?.length
+              ? "Publicación precargada. Se guardará como una pieza nueva."
+              : "Publicación precargada, pero revisa los canales — no se pudo confirmar la cuenta exacta de alguna plataforma.",
+        });
+      } catch {
+        setBanner({ type: "error", message: "No se pudo precargar la publicación de origen." });
+      } finally {
+        if (!cancelled) {
+          setPrefillApplied(true);
+          onConsumePrefillFromPostId?.();
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [prefillFromPostId, prefillApplied, allTargets, onConsumePrefillFromPostId]);
 
   // Drag & drop
   const [isDragging, setIsDragging] = useState(false);
