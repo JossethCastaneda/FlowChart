@@ -36,6 +36,7 @@ import { FormatSelector, type PostFormat } from "./FormatSelector";
 import { PlatformContentTabs } from "./PlatformContentTabs";
 import { FirstCommentExpander } from "./FirstCommentExpander";
 import { PostPreview, platformLabel, platformColors, Facebook, Instagram } from "./PostPreview";
+import { ComposerChecklist } from "./ComposerChecklist";
 import DeviceEmulator, { DeviceType } from "@/components/ui/DeviceEmulator";
 
 /* ── Social Icons (imported from PostPreview) ───────────── */
@@ -64,6 +65,8 @@ export interface PublishTarget {
   igId?: string;
   igUsername?: string;
   igPicture?: string;
+  /** El cliente apagó publicar desde esta cuenta o el token expiró — se muestra, no se descarta en silencio. */
+  disconnected?: boolean;
 }
 
 interface UploadedMedia {
@@ -309,9 +312,6 @@ export function Composer({ initialTargets, onConsumeInitialTargets }: ComposerPr
     // no depende de ninguna página de Facebook.
     for (const acc of igAccounts) {
       if (!acc?.id || seenIg.has(acc.id)) continue;
-      // El cliente puede haber apagado las publicaciones de esta cuenta: no se
-      // ofrece como destino. El servidor lo vuelve a comprobar al publicar.
-      if (acc.capabilities?.publish === false) continue;
       seenIg.add(acc.id);
       targets.push({
         key: `ig_${acc.id}`,
@@ -322,6 +322,10 @@ export function Composer({ initialTargets, onConsumeInitialTargets }: ComposerPr
         igId: acc.id,
         igUsername: acc.username || undefined,
         igPicture: acc.picture || undefined,
+        // El cliente puede haber apagado las publicaciones de esta cuenta o el
+        // token expiró: se muestra con afordancia de reconectar en vez de
+        // descartarla en silencio (el servidor lo vuelve a comprobar al publicar).
+        disconnected: acc.capabilities?.publish === false,
       });
     }
 
@@ -409,6 +413,7 @@ export function Composer({ initialTargets, onConsumeInitialTargets }: ComposerPr
 
   /* ── Target toggle (multi-select) ───────────────────── */
   const toggleTarget = (target: PublishTarget) => {
+    if (target.disconnected) return; // se reconecta, no se selecciona
     setSelectedTargets((prev) => {
       const exists = prev.find((t) => t.key === target.key);
       if (exists) return prev.filter((t) => t.key !== target.key);
@@ -881,7 +886,7 @@ export function Composer({ initialTargets, onConsumeInitialTargets }: ComposerPr
 
                     {/* Scrollable account list */}
                     <div style={{ flex: 1, overflowY: "auto", maxHeight: 300 }}>
-                    {/* Asset Groups section */}
+                    {/* Asset Groups section — chips de selección rápida "Por grupo" */}
                     {assetGroups.length > 0 && (
                       <>
                         <div style={{
@@ -890,20 +895,24 @@ export function Composer({ initialTargets, onConsumeInitialTargets }: ComposerPr
                           background: "var(--surface-hover)",
                           position: "sticky", top: 0, zIndex: 1,
                         }}>
-                          Grupos de Activos
+                          Por grupo
                         </div>
-                        {assetGroups.map((group) => (
-                          <button key={group.id} onClick={() => selectAssetGroup(group)} style={{
-                            display: "flex", alignItems: "center", gap: 10, width: "100%",
-                            padding: "10px 16px", background: "transparent",
-                            border: "1px solid var(--hairline)",
-                            color: "var(--fc-accent)", fontSize: 13, cursor: "pointer", textAlign: "left",
-                            transition: "background 0.15s",
-                            fontWeight: 600
-                          }}>
-                            <span style={{ flex: 1 }}>{group.name}</span>
-                          </button>
-                        ))}
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "8px 16px" }}>
+                          {assetGroups.map((group) => (
+                            <button key={group.id} onClick={() => selectAssetGroup(group)} style={{
+                              display: "flex", alignItems: "center", gap: 6,
+                              padding: "6px 12px", borderRadius: 999,
+                              background: "rgba(53,211,217,0.1)", border: "1px solid rgba(53,211,217,0.35)",
+                              color: "var(--fc-accent)", fontSize: 12, cursor: "pointer",
+                              fontWeight: 700,
+                            }}>
+                              {group.name}
+                              <span style={{ fontSize: 10, opacity: 0.75, fontFamily: "var(--fc-font-mono, monospace)" }}>
+                                {Array.isArray(group.assets) ? group.assets.length : 0}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
                       </>
                     )}
 
@@ -963,6 +972,35 @@ export function Composer({ initialTargets, onConsumeInitialTargets }: ComposerPr
                         </div>
                         {allTargets.filter((t) => t.platform === "instagram").map((target) => {
                           const isSelected = selectedTargets.some((t) => t.key === target.key);
+                          if (target.disconnected) {
+                            return (
+                              <div key={target.key} style={{
+                                display: "flex", alignItems: "center", gap: 10, width: "100%",
+                                padding: "10px 16px", background: "transparent",
+                                border: "1px solid var(--hairline)", opacity: 0.7,
+                              }}>
+                                <img
+                                  src={
+                                    target.igPicture ||
+                                    target.pagePicture ||
+                                    `https://ui-avatars.com/api/?name=${encodeURIComponent(target.igUsername || target.pageName || "IG")}&background=random`
+                                  }
+                                  alt=""
+                                  style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", border: "2px solid transparent", filter: "grayscale(1)" }}
+                                />
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontWeight: 500, color: "var(--fc-text-muted)" }}>{target.igUsername ? `@${target.igUsername}` : target.pageName}</div>
+                                  <div style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>Sin permiso para publicar</div>
+                                </div>
+                                <button
+                                  onClick={() => openConnectPopup("publisher_instagram", loadPages)}
+                                  style={{ background: "none", border: "none", color: "var(--fc-warning)", fontSize: 10.5, fontWeight: 800, letterSpacing: "0.04em", cursor: "pointer", flex: "none" }}
+                                >
+                                  RECONECTAR
+                                </button>
+                              </div>
+                            );
+                          }
                           return (
                             <button key={target.key} onClick={() => toggleTarget(target)} style={{
                               display: "flex", alignItems: "center", gap: 10, width: "100%",
@@ -1263,6 +1301,18 @@ export function Composer({ initialTargets, onConsumeInitialTargets }: ComposerPr
                   <X style={{ width: 13, height: 13 }} />
                 </button>
               )}
+              <button
+                disabled
+                title="Próximamente: se activa cuando haya suficiente historial de engagement por horario."
+                style={{
+                  display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 8,
+                  background: "transparent", border: "1px solid var(--hairline)", color: "var(--fc-text-muted)",
+                  fontSize: 11, fontWeight: 600, cursor: "not-allowed", opacity: 0.6,
+                }}
+              >
+                <Clock style={{ width: 12, height: 12 }} />
+                Mejor hora
+              </button>
             </div>
 
             {/* Right: actions */}
@@ -1432,6 +1482,10 @@ export function Composer({ initialTargets, onConsumeInitialTargets }: ComposerPr
                   </div>
                 );
               })
+            )}
+
+            {selectedTargets.length > 0 && (
+              <ComposerChecklist charCount={charCount} charLimit={charLimit} selectedTargets={selectedTargets} />
             )}
           </div>
         </div>
