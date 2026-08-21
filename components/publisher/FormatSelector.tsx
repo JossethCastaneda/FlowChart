@@ -1,84 +1,111 @@
-﻿"use client";
+"use client";
 import React from "react";
-import { FileText, Video, Camera, Images } from "lucide-react";
 
 export type PostFormat = "post" | "reel" | "story" | "carousel";
 
 interface Props {
   value: PostFormat;
   onChange: (f: PostFormat) => void;
+  /** Plataformas seleccionadas, para la nota de formatos soportados. */
+  platforms?: string[];
 }
 
-const FORMATS: { key: PostFormat; icon: React.ElementType; label: string; badges?: string[] }[] = [
-  { key: "post", icon: FileText, label: "Post" },
-  { key: "reel", icon: Video, label: "Reel", badges: ["9:16", "máx 90s"] },
-  { key: "story", icon: Camera, label: "Story", badges: ["9:16", "24h"] },
-  { key: "carousel", icon: Images, label: "Carousel", badges: ["2-10 items"] },
+const FORMATS: { key: PostFormat; label: string }[] = [
+  { key: "post", label: "Post" },
+  { key: "reel", label: "Reel" },
+  { key: "story", label: "Story" },
+  { key: "carousel", label: "Carrusel" },
 ];
 
-export function FormatSelector({ value, onChange }: Props) {
-  const activeFormat = FORMATS.find((f) => f.key === value);
+/**
+ * Formatos que cada plataforma admite hoy por la vía de publicación de la app.
+ * Facebook Pages e Instagram Business soportan los cuatro; el mapa existe para
+ * que agregar una plataforma con menos formatos no requiera tocar la UI.
+ */
+const SUPPORTED_BY_PLATFORM: Record<string, PostFormat[]> = {
+  facebook: ["post", "reel", "story", "carousel"],
+  instagram: ["post", "reel", "story", "carousel"],
+};
+
+const PLATFORM_LABEL: Record<string, string> = {
+  facebook: "Facebook",
+  instagram: "Instagram",
+};
+
+export function FormatSelector({ value, onChange, platforms = [] }: Props) {
+  // Un formato se ofrece si TODAS las plataformas elegidas lo admiten: publicar
+  // en bloque a un canal que no lo soporta fallaría solo para ese canal.
+  const known = platforms.filter((p) => SUPPORTED_BY_PLATFORM[p]);
+  const supported: PostFormat[] = known.length
+    ? FORMATS.map((f) => f.key).filter((f) => known.every((p) => SUPPORTED_BY_PLATFORM[p].includes(f)))
+    : FORMATS.map((f) => f.key);
+
+  const note = known.length
+    ? `${known.map((p) => PLATFORM_LABEL[p] ?? p).join(" + ")} admite ${supported.length} de ${FORMATS.length} formatos`
+    : null;
 
   return (
-    <div>
-      {/* Pill row */}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: "var(--fc-text-secondary)",
+          }}
+        >
+          Formato de publicación
+        </span>
+        {note && (
+          <span style={{ fontFamily: "var(--fc-font-mono, monospace)", fontSize: 11, color: "var(--fc-text-muted)" }}>
+            {note}
+          </span>
+        )}
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          padding: 4,
+          borderRadius: 12,
+          background: "var(--fc-bg)",
+          border: "1px solid var(--hairline)",
+        }}
+      >
         {FORMATS.map((fmt) => {
           const isActive = value === fmt.key;
-          const Icon = fmt.icon;
+          const ok = supported.includes(fmt.key);
           return (
             <button
               key={fmt.key}
-              onClick={() => onChange(fmt.key)}
+              onClick={() => ok && onChange(fmt.key)}
+              disabled={!ok}
+              title={ok ? undefined : "El canal seleccionado no admite este formato"}
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 7,
-                padding: "8px 16px",
-                borderRadius: 20,
-                background: isActive
-                  ? "linear-gradient(135deg, rgba(59,130,246,0.15), rgba(0,119,182,0.15))"
-                  : "rgba(255,255,255,0.06)",
-                border: isActive
-                  ? "1px solid rgba(59,130,246,0.4)"
-                  : "1px solid var(--hairline)",
-                color: isActive ? "var(--fc-accent)" : "var(--fc-text-secondary)",
-                fontSize: 13,
-                fontWeight: isActive ? 600 : 500,
-                cursor: "pointer",
-                transition: "all 0.2s",
-                fontFamily: "var(--font-sans)",
+                flex: 1,
+                padding: "7px 0",
+                borderRadius: 9,
+                textAlign: "center",
+                border: "none",
+                fontFamily: "inherit",
+                fontSize: 12,
+                fontWeight: isActive ? 800 : 700,
+                cursor: ok ? "pointer" : "not-allowed",
+                transition: "all 140ms cubic-bezier(.2,.8,.2,1)",
+                background: isActive && ok ? "var(--fc-accent)" : "transparent",
+                color: isActive && ok ? "var(--fc-bg)" : ok ? "var(--fc-text-secondary)" : "var(--fc-text-muted)",
+                opacity: ok ? 1 : 0.5,
               }}
             >
-              <Icon style={{ width: 15, height: 15 }} />
               {fmt.label}
             </button>
           );
         })}
       </div>
-
-      {/* Badges for active format */}
-      {activeFormat?.badges && activeFormat.badges.length > 0 && (
-        <div style={{ display: "flex", gap: 6, marginTop: 8, paddingLeft: 4 }}>
-          {activeFormat.badges.map((badge) => (
-            <span
-              key={badge}
-              style={{
-                fontSize: 10,
-                padding: "2px 8px",
-                borderRadius: 10,
-                background: "var(--fc-accent-wash)",
-                color: "var(--fc-accent)",
-                border: "1px solid rgba(59,130,246,0.2)",
-                fontWeight: 500,
-                fontFamily: "var(--font-sans)",
-              }}
-            >
-              {badge}
-            </span>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

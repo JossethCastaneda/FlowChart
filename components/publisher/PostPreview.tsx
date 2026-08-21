@@ -43,7 +43,7 @@ interface Props {
   igUsername?: string;
   igAvatar?: string;
   firstComment?: string;
-  os?: "ios" | "android";
+  os?: "ios" | "android" | "tablet";
 }
 
 /* ── Helpers ─────────────────────────────────────────── */
@@ -63,9 +63,10 @@ export const platformColors = (platform: "facebook" | "instagram") => ({
 // PlatformLabelBar removed (handled in Composer.tsx now)
 
 /* ── App Headers ───────────────────────────────────── */
-function FacebookAppHeader({ os, pageAvatar }: { os?: "ios" | "android", pageAvatar?: string }) {
-  const pt = os === "ios" ? 44 : 36;
-  if (os === "ios") {
+function FacebookAppHeader({ os, pageAvatar }: { os?: "ios" | "android" | "tablet", pageAvatar?: string }) {
+  const iosLike = os === "ios" || os === "tablet";
+  const pt = iosLike ? 44 : 36;
+  if (iosLike) {
     return (
       <div style={{ paddingTop: pt, paddingLeft: 16, paddingRight: 16, paddingBottom: 12, background: "var(--fc-surface)", borderBottom: "4px solid var(--hairline)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
@@ -141,8 +142,8 @@ function FacebookAppHeader({ os, pageAvatar }: { os?: "ios" | "android", pageAva
   );
 }
 
-function InstagramAppHeader({ os }: { os?: "ios" | "android" }) {
-  const pt = os === "ios" ? 44 : 36;
+function InstagramAppHeader({ os }: { os?: "ios" | "android" | "tablet" }) {
+  const pt = (os === "ios" || os === "tablet") ? 44 : 36;
   return (
     <div style={{ paddingTop: pt, paddingLeft: 16, paddingRight: 16, paddingBottom: 12, background: "#000", borderBottom: "1px solid #262626" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>

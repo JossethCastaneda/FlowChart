@@ -8,7 +8,7 @@ tags: [generado, módulos]
 > No lo edites manualmente — se sobreescribe en cada generación.
 > Fuente: `scripts/docs-graph.mjs`
 
-Total: **22 módulos** en 4 grupos.
+Total: **20 módulos** en 4 grupos.
 
 ## Operación
 
@@ -25,8 +25,6 @@ Total: **22 módulos** en 4 grupos.
 |--------|------|-------|
 | **Briefs IA** | `/dashboard/briefing` | sparkles |
 | **Publicación** | `/dashboard/publisher` | rocket |
-| **Aprobaciones** | `/dashboard/aprobaciones` | check-check |
-| **Biblioteca** | `/dashboard/publisher/biblioteca` | folder-open |
 | **Link-in-bio** | `/dashboard/portal` | link |
 
 ## Crecimiento

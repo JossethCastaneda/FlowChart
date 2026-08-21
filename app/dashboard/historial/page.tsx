@@ -5,8 +5,9 @@ import { useState, useEffect, useCallback } from "react";
 import {
     CheckCircle2, XCircle, Clock, RefreshCw, Filter, Search,
   Globe, Play, Image, AlignLeft, ChevronDown,
-    ExternalLink, Zap, Calendar, GitBranch, Activity,
+    ExternalLink, Zap, Calendar, Activity, FileDown,
 } from "lucide-react";
+import { PublisherSubnav } from "@/components/publisher/PublisherTabs";
 
 /* ─── Types ─── */
 interface Post {
@@ -24,6 +25,12 @@ interface Post {
   externalIds?: Record<string, string>;
   createdAt: string;
   updatedAt: string;
+}
+
+interface PostInsights {
+  reach: number | null;
+  interactions: number | null;
+  engagementPct: number | null;
 }
 
 /* ─── Helpers ─── */
@@ -137,22 +144,76 @@ export default function DeploymentHistoryPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [channelFilter, setChannelFilter] = useState("All");
+  const [formatFilter, setFormatFilter] = useState("All");
   const [refreshing, setRefreshing] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Métricas reales (Alcance/Interacciones/Engagement) visibles en cada fila,
+  // como en el diseño. Se piden en UN solo lote tras cargar las publicaciones:
+  // el endpoint resuelve la caché de una sola vez, reutiliza el token por
+  // plataforma y acota la concurrencia contra la Graph API.
+  const [insights, setInsights] = useState<Record<string, PostInsights | null>>({});
+  const [insightsUnavailable, setInsightsUnavailable] = useState<Record<string, string>>({});
+  const [insightsLoadingAll, setInsightsLoadingAll] = useState(false);
+
+  const loadInsightsBatch = useCallback(async (postIds: string[]) => {
+    if (postIds.length === 0) return;
+    setInsightsLoadingAll(true);
+    try {
+      const res = await fetch("/api/publisher/insights", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postIds: postIds.slice(0, 200) }),
+      });
+      const payload = await res.json();
+      const results: Record<string, { available: boolean; insights?: PostInsights; reason?: string }> =
+        payload.data?.results || {};
+      const ok: Record<string, PostInsights | null> = {};
+      const bad: Record<string, string> = {};
+      for (const [id, r] of Object.entries(results)) {
+        if (r.available && r.insights) ok[id] = r.insights;
+        else bad[id] = r.reason || "No disponible.";
+      }
+      setInsights((prev) => ({ ...prev, ...ok }));
+      setInsightsUnavailable((prev) => ({ ...prev, ...bad }));
+    } catch {
+      /* la tabla sigue siendo utilizable sin métricas */
+    } finally {
+      setInsightsLoadingAll(false);
+    }
+  }, []);
+
+  function toggleExpand(postId: string) {
+    setExpandedId(expandedId === postId ? null : postId);
+  }
+
+  // Engagement promedio sobre las publicaciones que sí devolvieron métricas.
+  const reviewedEngagements = Object.values(insights)
+    .filter((i): i is PostInsights => !!i && i.engagementPct !== null)
+    .map((i) => i.engagementPct as number);
+  const avgEngagement = reviewedEngagements.length
+    ? reviewedEngagements.reduce((a, b) => a + b, 0) / reviewedEngagements.length
+    : null;
 
   const fetchPosts = useCallback(async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true);
     try {
       const res = await fetch("/api/publisher/posts?limit=200");
       const data = await res.json();
-      setPosts(data.posts || []);
+      // La API responde { success, data: { posts, approvalCounts } } — este fetch
+      // leía data.posts (siempre undefined) en vez de data.data.posts, así que la
+      // tabla nunca mostraba nada real.
+      const loaded: Post[] = data.data?.posts || [];
+      setPosts(loaded);
+      // Solo tiene sentido pedir métricas de lo ya publicado.
+      void loadInsightsBatch(loaded.filter((p) => p.status === "Published").map((p) => p.id));
     } catch {
       /* ignore */
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [loadInsightsBatch]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => { fetchPosts(); }, [fetchPosts]);
@@ -164,8 +225,46 @@ export default function DeploymentHistoryPage() {
       (p.pageName || "").toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === "All" || p.status === statusFilter;
     const matchChannel = channelFilter === "All" || p.channels.includes(channelFilter);
-    return matchSearch && matchStatus && matchChannel;
+    const matchFormat = formatFilter === "All" || (p.type || "post") === formatFilter;
+    return matchSearch && matchStatus && matchChannel && matchFormat;
   });
+
+  function exportCsv() {
+    const headers = [
+      "id", "contenido", "canales", "formato", "estado", "pagina",
+      "programado", "publicado", "alcance", "interacciones", "engagement_pct",
+    ];
+    const rows = filtered.map((p) => {
+      const m = insights[p.id];
+      return [
+        p.id,
+        p.content.replace(/\r?\n/g, " ").replace(/"/g, '""'),
+        p.channels.join("|"),
+        p.type || "post",
+        p.status,
+        p.pageName || "",
+        p.scheduledAt || "",
+        p.publishedAt || "",
+        // Vacío (no cero) cuando no hay dato: un 0 en la hoja de cálculo se
+        // leería como "alcance cero", que es una afirmación distinta.
+        m?.reach ?? "",
+        m?.interactions ?? "",
+        m?.engagementPct != null ? m.engagementPct.toFixed(2) : "",
+      ];
+    });
+    const csv = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell)}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "historial-publicacion.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
 
   const stats = {
     total: posts.length,
@@ -177,6 +276,10 @@ export default function DeploymentHistoryPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 0, height: "100%" }}>
+
+      {/* Subnav del módulo: Historial es ruta propia, pero en el diseño es una
+          pestaña más de Publicación, así que la barra no debe desaparecer. */}
+      <PublisherSubnav />
 
       {/* ── TOP BAR ── */}
       <div style={{
@@ -242,6 +345,57 @@ export default function DeploymentHistoryPage() {
             <ChevronDown size={10} color="var(--fc-text-muted)" style={{ position: "absolute", right: 7, pointerEvents: "none" }} />
           </div>
 
+          {/* Format filter */}
+          <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+            <AlignLeft size={11} color="var(--fc-text-muted)" style={{ position: "absolute", left: 9, pointerEvents: "none" }} />
+            <select
+              value={formatFilter}
+              onChange={e => setFormatFilter(e.target.value)}
+              style={{
+                paddingLeft: 26, paddingRight: 22, paddingTop: 6, paddingBottom: 6,
+                fontSize: 11, color: "var(--fc-text-secondary)", cursor: "pointer",
+                background: "var(--fc-surface)", border: "1px solid var(--fc-border)",
+                borderRadius: 3, appearance: "none",
+              }}
+            >
+              {["All", "post", "reel", "story", "carousel"].map(f => (
+                <option key={f} value={f}>{f === "All" ? "All Formats" : f.charAt(0).toUpperCase() + f.slice(1)}</option>
+              ))}
+            </select>
+            <ChevronDown size={10} color="var(--fc-text-muted)" style={{ position: "absolute", right: 7, pointerEvents: "none" }} />
+          </div>
+
+          {/* Export CSV */}
+          <button
+            onClick={exportCsv}
+            disabled={filtered.length === 0}
+            title="Exportar CSV"
+            style={{
+              display: "flex", alignItems: "center", gap: 6, padding: "6px 12px",
+              fontSize: 11, fontWeight: 600, color: "var(--fc-text-secondary)",
+              background: "var(--fc-surface)", border: "1px solid var(--fc-border)",
+              borderRadius: 3, cursor: filtered.length === 0 ? "not-allowed" : "pointer",
+              opacity: filtered.length === 0 ? 0.5 : 1,
+            }}
+          >
+            <FileDown size={12} /> Exportar CSV
+          </button>
+
+          {/* Engagement promedio — solo de las publicaciones cuya fila ya se
+              expandió (fetch perezoso); nunca fuerza consultar todas de golpe. */}
+          {avgEngagement !== null && (
+            <div
+              title={`Promedio de ${reviewedEngagements.length} publicación${reviewedEngagements.length === 1 ? "" : "es"} revisada${reviewedEngagements.length === 1 ? "" : "s"}`}
+              style={{
+                display: "flex", alignItems: "center", gap: 6, padding: "4px 10px",
+                background: "var(--fc-surface)", border: "1px solid var(--fc-border)",
+                borderRadius: 3, fontSize: 11, fontWeight: 600, color: "var(--fc-success)",
+              }}
+            >
+              <Activity size={11} /> Engagement {avgEngagement.toFixed(1)}%
+            </div>
+          )}
+
           {/* Status count pills */}
           <div style={{
             display: "flex", alignItems: "center", gap: 0,
@@ -270,13 +424,13 @@ export default function DeploymentHistoryPage() {
       {/* ── TABLE HEADER ── */}
       <div style={{
         display: "grid",
-        gridTemplateColumns: "2fr 90px 100px 130px 120px 110px 100px",
+        gridTemplateColumns: "2fr 82px 90px 118px 96px 88px 88px 96px 92px",
         gap: 0,
         padding: "8px 20px",
         borderBottom: "1px solid rgba(59,130,246,0.08)",
         background: "rgba(0, 212, 255, 0.1)",
       }}>
-        {["Contenido", "Canales", "Formato", "Estado", "Página", "Publicado", "ID"].map(h => (
+        {["Contenido", "Canales", "Formato", "Estado", "Página", "Alcance", "Interac.", "Engagement", "Publicado"].map(h => (
           <span key={h} style={{
             fontSize: 9, fontWeight: 700, letterSpacing: "0.18em",
             textTransform: "uppercase", color: "var(--fc-text-secondary)",
@@ -308,10 +462,10 @@ export default function DeploymentHistoryPage() {
           filtered.map((post, i) => (
             <div key={post.id}>
               <div
-                onClick={() => setExpandedId(expandedId === post.id ? null : post.id)}
+                onClick={() => toggleExpand(post.id)}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "2fr 90px 100px 130px 120px 110px 100px",
+                  gridTemplateColumns: "2fr 82px 90px 118px 96px 88px 88px 96px 92px",
                   gap: 0,
                   padding: "12px 20px",
                   border: "1px solid var(--fc-border-subtle)",
@@ -376,6 +530,46 @@ export default function DeploymentHistoryPage() {
                   </span>
                 </div>
 
+                {/* Métricas reales (Alcance / Interacciones / Engagement) */}
+                {(() => {
+                  const m = insights[post.id];
+                  const pending = insightsLoadingAll && !m && !insightsUnavailable[post.id];
+                  const cell = (value: React.ReactNode, color?: string) => (
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <span style={{
+                        fontSize: 11, fontWeight: 600, fontFamily: "var(--font-mono)",
+                        color: color || "var(--fc-text-secondary)",
+                      }}>
+                        {value}
+                      </span>
+                    </div>
+                  );
+                  const dash = pending
+                    ? <span style={{ color: "var(--fc-text-muted)", opacity: 0.5 }}>···</span>
+                    : "—";
+                  if (!m) {
+                    return (
+                      <>
+                        {cell(dash)}
+                        {cell(dash)}
+                        {cell(dash)}
+                      </>
+                    );
+                  }
+                  const pct = m.engagementPct;
+                  const pctColor = pct === null ? undefined
+                    : pct >= 3.6 ? "var(--fc-success)"
+                    : pct >= 2.5 ? "var(--fc-text)"
+                    : "var(--fc-warning)";
+                  return (
+                    <>
+                      {cell(m.reach === null ? "—" : m.reach.toLocaleString())}
+                      {cell(m.interactions === null ? "—" : m.interactions.toLocaleString())}
+                      {cell(pct === null ? "—" : `${pct.toFixed(1)}%`, pctColor)}
+                    </>
+                  );
+                })()}
+
                 {/* Published At */}
                 <div style={{ display: "flex", alignItems: "center" }}>
                   <span style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>
@@ -383,13 +577,6 @@ export default function DeploymentHistoryPage() {
                   </span>
                 </div>
 
-                {/* ID */}
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <GitBranch size={10} color="var(--fc-text-secondary)" />
-                  <span style={{ fontSize: 10, color: "var(--fc-text-secondary)", fontFamily: "var(--font-mono)" }}>
-                    {post.id.slice(0, 8)}
-                  </span>
-                </div>
               </div>
 
               {/* Expanded row */}
@@ -399,13 +586,32 @@ export default function DeploymentHistoryPage() {
                   borderBottom: "1px solid rgba(59,130,246,0.08)",
                   background: "var(--fc-surface-hover)",
                   display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
+                  gridTemplateColumns: "1fr 1fr 1fr 1fr",
                   gap: 16,
                 }}>
                   {/* Content full */}
                   <div>
                     <p style={{ fontSize: 9, color: "var(--fc-text-secondary)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 6 }}>CONTENIDO</p>
                     <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", lineHeight: 1.6 }}>{post.content}</p>
+                  </div>
+
+                  {/* Métricas: los valores viven en la fila; aquí solo se
+                      explica POR QUÉ faltan cuando no se pudieron obtener. */}
+                  <div>
+                    <p style={{ fontSize: 9, color: "var(--fc-text-secondary)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 6 }}>MÉTRICAS</p>
+                    {insights[post.id] ? (
+                      <p style={{ fontSize: 10.5, color: "var(--fc-text-muted)", lineHeight: 1.5 }}>
+                        Alcance, interacciones y engagement se muestran en la fila.
+                      </p>
+                    ) : insightsLoadingAll ? (
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--fc-text-muted)" }}>
+                        <RefreshCw size={11} className="animate-spin" /> Consultando Meta…
+                      </div>
+                    ) : (
+                      <p style={{ fontSize: 10.5, color: "var(--fc-text-muted)", lineHeight: 1.5 }}>
+                        {insightsUnavailable[post.id] || "Métricas no disponibles."}
+                      </p>
+                    )}
                   </div>
 
                   {/* Meta */}

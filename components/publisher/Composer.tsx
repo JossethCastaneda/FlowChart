@@ -28,6 +28,7 @@ import {
     CheckCircle,
     XCircle,
     ChevronUp,
+    Sparkles,
 } from "lucide-react";
 import { openConnectPopup } from "@/lib/connect-popup";
 
@@ -36,6 +37,7 @@ import { FormatSelector, type PostFormat } from "./FormatSelector";
 import { PlatformContentTabs } from "./PlatformContentTabs";
 import { FirstCommentExpander } from "./FirstCommentExpander";
 import { PostPreview, platformLabel, platformColors, Facebook, Instagram } from "./PostPreview";
+import { ComposerChecklist } from "./ComposerChecklist";
 import DeviceEmulator, { DeviceType } from "@/components/ui/DeviceEmulator";
 
 /* ── Social Icons (imported from PostPreview) ───────────── */
@@ -55,7 +57,7 @@ interface MetaPage {
 }
 
 /** A "publishable target" — one FB page or one IG account derived from a page */
-interface PublishTarget {
+export interface PublishTarget {
   key: string;            // unique: `fb_${pageId}` or `ig_${igId}`
   platform: "facebook" | "instagram";
   pageId: string;
@@ -64,6 +66,8 @@ interface PublishTarget {
   igId?: string;
   igUsername?: string;
   igPicture?: string;
+  /** El cliente apagó publicar desde esta cuenta o el token expiró — se muestra, no se descarta en silencio. */
+  disconnected?: boolean;
 }
 
 interface UploadedMedia {
@@ -184,10 +188,25 @@ function ComposerConnectDropdown({
   );
 }
 
-export function Composer() {
+interface ComposerProps {
+  /** Cuentas precargadas al abrir el Redactor (p. ej. desde "Publicar en el grupo →"). */
+  initialTargets?: PublishTarget[] | null;
+  /** Se llama una vez al montar si initialTargets tenía datos, para que el llamador limpie su estado. */
+  onConsumeInitialTargets?: () => void;
+  /**
+   * Id de un post existente desde el que precargar el Redactor (p. ej. "Abrir en
+   * Redactor" desde Calendario). Guardar desde aquí crea una pieza NUEVA — no es
+   * edición in-place del post original (Calendario ya tiene "Reprogramar" para eso,
+   * que sí actualiza el post existente vía PUT). Se avisa al usuario con un banner.
+   */
+  prefillFromPostId?: string | null;
+  onConsumePrefillFromPostId?: () => void;
+}
+
+export function Composer({ initialTargets, onConsumeInitialTargets, prefillFromPostId, onConsumePrefillFromPostId }: ComposerProps = {}) {
   /* ── State ──────────────────────────────────────────── */
   const [content, setContent] = useState("");
-  const [selectedTargets, setSelectedTargets] = useState<PublishTarget[]>([]);
+  const [selectedTargets, setSelectedTargets] = useState<PublishTarget[]>(() => initialTargets || []);
   const [mediaFiles, setMediaFiles] = useState<UploadedMedia[]>([]);
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState("");
@@ -205,6 +224,11 @@ export function Composer() {
   // Pages
   const [pages, setPages] = useState<MetaPage[]>([]);
   const [allTargets, setAllTargets] = useState<PublishTarget[]>([]);
+  // Las cuentas sin permiso de publicar SÍ se muestran en el selector (con la
+  // afordancia RECONECTAR), pero nunca deben entrar a la selección: el servidor
+  // no re-valida capabilities.publish al publicar, así que enviarlas provocaría
+  // un fallo real. Todo lo que selecciona en bloque debe usar esta lista.
+  const publishableTargets = allTargets.filter((t) => !t.disconnected);
   const [pagesLoading, setPagesLoading] = useState(false);
   const [requestingApproval, setRequestingApproval] = useState(false);
   const [showAccountPicker, setShowAccountPicker] = useState(false);
@@ -225,10 +249,21 @@ export function Composer() {
     loadAssetGroups();
   }, [loadAssetGroups]);
 
+  // Consumir una sola vez las cuentas precargadas por el llamador (p. ej. "Publicar
+  // en el grupo →" desde la pestaña Grupos). El estado inicial ya las tomó via
+  // useState(() => initialTargets || []); esto solo le avisa al padre que las limpie.
+  useEffect(() => {
+    if (initialTargets && initialTargets.length > 0) {
+      onConsumeInitialTargets?.();
+    }
+  }, []);
+
   const selectAssetGroup = (group: any) => {
     if (!group.assets || !Array.isArray(group.assets)) return;
-    const newTargets = allTargets.filter(t => 
-      group.assets.some((a: any) => 
+    // Solo cuentas publicables: un grupo puede incluir una cuenta que perdió el
+    // permiso desde que se creó el grupo — se omite en vez de romper la publicación.
+    const newTargets = publishableTargets.filter(t =>
+      group.assets.some((a: any) =>
         a.provider === t.platform && a.externalId === (t.platform === "facebook" ? t.pageId : t.igId)
       )
     );
@@ -253,6 +288,86 @@ export function Composer() {
 
   // Feedback
   const [banner, setBanner] = useState<Banner | null>(null);
+
+  // "Abrir en Redactor" desde Calendario: precarga contenido/formato/canales de un
+  // post existente. NO es edición in-place — guardar desde aquí crea una pieza
+  // nueva (Calendario ya tiene "Reprogramar" para mutar el post original vía PUT).
+  const [prefillApplied, setPrefillApplied] = useState(false);
+  useEffect(() => {
+    if (!prefillFromPostId || prefillApplied || allTargets.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/publisher/posts/${prefillFromPostId}`);
+        if (!res.ok) throw new Error("No se pudo cargar la publicación de origen");
+        const payload = await res.json();
+        const post = payload.data?.post;
+        if (!post || cancelled) return;
+
+        setContent(post.content || "");
+        // ScheduledPost.type es un String libre en el schema y hay filas legacy
+        // con valores fuera del set del selector (p. ej. "video"). Sin este
+        // guard, el selector se quedaría sin ningún formato activo.
+        const VALID_FORMATS: PostFormat[] = ["post", "reel", "story", "carousel"];
+        if (VALID_FORMATS.includes(post.type)) setFormat(post.type as PostFormat);
+        if (Array.isArray(post.hashtags)) setHashtags(post.hashtags);
+        if (post.firstComment) setFirstComment(post.firstComment);
+        if (post.contentByPlatform && typeof post.contentByPlatform === "object") {
+          setCustomizeByPlatform(true);
+          setFbContent(post.contentByPlatform.facebook || "");
+          setIgContent(post.contentByPlatform.instagram || "");
+        }
+        if (Array.isArray(post.mediaUrls) && post.mediaUrls.length > 0) {
+          const VIDEO_EXT = /\.(mp4|mov|webm|avi)(\?|$)/i;
+          setMediaFiles(
+            post.mediaUrls.map((url: string, i: number) => ({
+              url,
+              type: VIDEO_EXT.test(url) ? "video" : "image",
+              name: `media-${i + 1}`,
+            }))
+          );
+        }
+
+        // Reconstrucción best-effort de canales: el post no guarda el igId exacto
+        // de la cuenta usada, solo pageId (Facebook) y la lista de plataformas.
+        // Se empareja Facebook por pageId exacto; Instagram se toma de la cuenta
+        // ligada a esa misma página si existe, o la primera disponible si no.
+        const matched: PublishTarget[] = [];
+        if (Array.isArray(post.channels)) {
+          if (post.channels.includes("facebook") && post.pageId) {
+            const fb = allTargets.find((t) => t.platform === "facebook" && t.pageId === post.pageId);
+            if (fb) matched.push(fb);
+          }
+          if (post.channels.includes("instagram")) {
+            const igSamePage = post.pageId
+              ? allTargets.find((t) => t.platform === "instagram" && t.pageId === post.pageId)
+              : undefined;
+            const ig = igSamePage || allTargets.find((t) => t.platform === "instagram" && !t.disconnected);
+            if (ig) matched.push(ig);
+          }
+        }
+        if (matched.length > 0) setSelectedTargets(matched);
+
+        setBanner({
+          type: "success",
+          message:
+            matched.length === post.channels?.length
+              ? "Publicación precargada. Se guardará como una pieza nueva."
+              : "Publicación precargada, pero revisa los canales — no se pudo confirmar la cuenta exacta de alguna plataforma.",
+        });
+      } catch {
+        setBanner({ type: "error", message: "No se pudo precargar la publicación de origen." });
+      } finally {
+        if (!cancelled) {
+          setPrefillApplied(true);
+          onConsumePrefillFromPostId?.();
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [prefillFromPostId, prefillApplied, allTargets, onConsumePrefillFromPostId]);
 
   // Drag & drop
   const [isDragging, setIsDragging] = useState(false);
@@ -293,9 +408,6 @@ export function Composer() {
     // no depende de ninguna página de Facebook.
     for (const acc of igAccounts) {
       if (!acc?.id || seenIg.has(acc.id)) continue;
-      // El cliente puede haber apagado las publicaciones de esta cuenta: no se
-      // ofrece como destino. El servidor lo vuelve a comprobar al publicar.
-      if (acc.capabilities?.publish === false) continue;
       seenIg.add(acc.id);
       targets.push({
         key: `ig_${acc.id}`,
@@ -306,6 +418,10 @@ export function Composer() {
         igId: acc.id,
         igUsername: acc.username || undefined,
         igPicture: acc.picture || undefined,
+        // El cliente puede haber apagado las publicaciones de esta cuenta o el
+        // token expiró: se muestra con afordancia de reconectar en vez de
+        // descartarla en silencio (el servidor lo vuelve a comprobar al publicar).
+        disconnected: acc.capabilities?.publish === false,
       });
     }
 
@@ -393,6 +509,7 @@ export function Composer() {
 
   /* ── Target toggle (multi-select) ───────────────────── */
   const toggleTarget = (target: PublishTarget) => {
+    if (target.disconnected) return; // se reconecta, no se selecciona
     setSelectedTargets((prev) => {
       const exists = prev.find((t) => t.key === target.key);
       if (exists) return prev.filter((t) => t.key !== target.key);
@@ -406,7 +523,7 @@ export function Composer() {
 
   const clearAllTargets = () => setSelectedTargets([]);
 
-  const selectAllTargets = () => setSelectedTargets([...allTargets]);
+  const selectAllTargets = () => setSelectedTargets([...publishableTargets]);
 
   /* ── File upload ────────────────────────────────────── */
   const uploadFile = async (file: File): Promise<UploadedMedia | null> => {
@@ -493,9 +610,17 @@ export function Composer() {
     return content + "\n\n" + hashtags.map((t) => `#${t}`).join(" ");
   };
 
+  /* ── Destinos efectivos ─────────────────────────────────
+     Red de seguridad: aunque la UI ya evita seleccionar cuentas desconectadas,
+     todo lo que se publica/valida se deriva solo de las publicables — es lo que
+     el checklist le promete al usuario ("se omitirán") y evita mandar al
+     servidor un destino que fallaría (allá no hay re-validación de
+     capabilities.publish). */
+  const activeTargets = selectedTargets.filter((t) => !t.disconnected);
+
   /* ── Character count helpers ────────────────────────── */
   const charCount = fullContent().length;
-  const hasIg = selectedTargets.some((t) => t.platform === "instagram");
+  const hasIg = activeTargets.some((t) => t.platform === "instagram");
   const charLimit = hasIg ? CHAR_LIMITS.instagram : CHAR_LIMITS.facebook;
   const charPercent = Math.min((charCount / charLimit) * 100, 100);
   const isOverLimit = charCount > charLimit;
@@ -509,20 +634,20 @@ export function Composer() {
   };
 
   /* ── Actions ────────────────────────────────────────── */
-  const selectedChannels = [...new Set(selectedTargets.map((t) => t.platform))];
-  const firstFbTarget = selectedTargets.find((t) => t.platform === "facebook");
+  const selectedChannels = [...new Set(activeTargets.map((t) => t.platform))];
+  const firstFbTarget = activeTargets.find((t) => t.platform === "facebook");
 
   const validateForm = (): string | null => {
     if (!content.trim()) return "Misión vacía. El contenido es obligatorio para transmitir.";
-    if (selectedTargets.length === 0) return "Destinos no definidos. Asigna canales de transmisión.";
+    if (activeTargets.length === 0) return "Destinos no definidos. Asigna canales de transmisión.";
     if (isOverLimit) return `Desbordamiento de datos: la transmisión excede el límite de ${charLimit.toLocaleString()} caracteres.`;
     return null;
   };
 
   const buildPayload = (status: "Draft" | "Scheduled") => {
-    const fallbackTarget = selectedTargets[0];
+    const fallbackTarget = activeTargets[0];
     // Multi-cuenta: el post recuerda a qué cuenta de Instagram va.
-    const firstIgTarget = selectedTargets.find((t) => t.platform === "instagram");
+    const firstIgTarget = activeTargets.find((t) => t.platform === "instagram");
     return {
       content: fullContent(),
       contentByPlatform: customizeByPlatform ? { facebook: fbContent, instagram: igContent } : undefined,
@@ -536,7 +661,7 @@ export function Composer() {
       pageName: firstFbTarget?.pageName || fallbackTarget?.pageName || null,
       pageId: firstFbTarget?.pageId || fallbackTarget?.pageId || null,
       igUserId: firstIgTarget?.igId || undefined,
-      targets: selectedTargets.map((t) => ({
+      targets: activeTargets.map((t) => ({
         key: t.key,
         platform: t.platform,
         pageId: t.pageId,
@@ -637,16 +762,17 @@ export function Composer() {
       if (format === "reel" || format === "story") {
         // For reels/stories, we publish directly per-platform
         pubEndpoint = format === "reel" ? "/api/publisher/reels" : "/api/publisher/stories";
-        const igTarget = selectedTargets.find((t) => t.platform === "instagram");
-                const fbTarget = selectedTargets.find((t) => t.platform === "facebook");
+        const igTarget = activeTargets.find((t) => t.platform === "instagram");
+                const fbTarget = activeTargets.find((t) => t.platform === "facebook");
         const mediaUrl = mediaFiles[0]?.url || "";
                 const caption = customizeByPlatform
           ? (igTarget ? igContent : fbContent)
           : fullContent();
 
-        // Publish to each selected platform
+        // Publish to each selected platform (solo las publicables — una cuenta
+        // sin permiso fallaría en la Graph API y ensuciaría el resultado).
                 const results: any[] = [];
-        for (const target of selectedTargets) {
+        for (const target of activeTargets) {
           const platformCaption = customizeByPlatform
             ? (target.platform === "facebook" ? fbContent : igContent) || fullContent()
             : fullContent();
@@ -724,7 +850,7 @@ export function Composer() {
             body: JSON.stringify({
               mediaId: publishPayload.published.instagram,
               comment: firstComment,
-              igUserId: selectedTargets.find((t) => t.platform === "instagram")?.igId,
+              igUserId: activeTargets.find((t) => t.platform === "instagram")?.igId,
             }),
           }).catch(() => {});
         }
@@ -780,16 +906,23 @@ export function Composer() {
             padding: "14px 20px", borderBottom: "1px solid var(--hairline)",
             background: "var(--row-hover)",
           }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--fc-text-secondary)", fontFamily: "var(--font-display)", letterSpacing: "0.1em" }}>CANALES DE PUBLICACIÓN</span>
-              {selectedTargets.length > 0 && (
-                <button onClick={clearAllTargets} style={{
-                  background: "none", border: "none", color: "var(--fc-text-muted)", fontSize: 11,
-                  cursor: "pointer", textDecoration: "underline", padding: 0,
-                }}>
-                  Limpiar selección
-                </button>
-              )}
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, marginBottom: 10, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--fc-text-secondary)" }}>
+                Canales de publicación
+              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ fontFamily: "var(--fc-font-mono, monospace)", fontSize: 11, color: "var(--fc-text-muted)" }}>
+                  {activeTargets.length} de {publishableTargets.length} canales activos
+                </span>
+                {selectedTargets.length > 0 && (
+                  <button onClick={clearAllTargets} style={{
+                    background: "none", border: "none", color: "var(--fc-text-muted)", fontSize: 11,
+                    cursor: "pointer", textDecoration: "underline", padding: 0,
+                  }}>
+                    Limpiar selección
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Selected chips */}
@@ -855,17 +988,17 @@ export function Composer() {
                       display: "flex", justifyContent: "space-between", alignItems: "center",
                     }}>
                       <span style={{ fontSize: 12, fontWeight: 600, color: "var(--fc-text)" }}>Seleccionar cuentas</span>
-                      <button onClick={selectedTargets.length === allTargets.length ? clearAllTargets : selectAllTargets} style={{
+                      <button onClick={selectedTargets.length === publishableTargets.length ? clearAllTargets : selectAllTargets} style={{
                         background: "none", border: "none", color: "var(--fc-accent)",
                         fontSize: 11, cursor: "pointer", padding: 0,
                       }}>
-                        {selectedTargets.length === allTargets.length ? "Despejar canales" : "Elegir todo el cuadrante"}
+                        {selectedTargets.length === publishableTargets.length ? "Despejar canales" : "Elegir todo el cuadrante"}
                       </button>
                     </div>
 
                     {/* Scrollable account list */}
                     <div style={{ flex: 1, overflowY: "auto", maxHeight: 300 }}>
-                    {/* Asset Groups section */}
+                    {/* Asset Groups section — chips de selección rápida "Por grupo" */}
                     {assetGroups.length > 0 && (
                       <>
                         <div style={{
@@ -874,20 +1007,24 @@ export function Composer() {
                           background: "var(--surface-hover)",
                           position: "sticky", top: 0, zIndex: 1,
                         }}>
-                          Grupos de Activos
+                          Por grupo
                         </div>
-                        {assetGroups.map((group) => (
-                          <button key={group.id} onClick={() => selectAssetGroup(group)} style={{
-                            display: "flex", alignItems: "center", gap: 10, width: "100%",
-                            padding: "10px 16px", background: "transparent",
-                            border: "1px solid var(--hairline)",
-                            color: "var(--fc-accent)", fontSize: 13, cursor: "pointer", textAlign: "left",
-                            transition: "background 0.15s",
-                            fontWeight: 600
-                          }}>
-                            <span style={{ flex: 1 }}>{group.name}</span>
-                          </button>
-                        ))}
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "8px 16px" }}>
+                          {assetGroups.map((group) => (
+                            <button key={group.id} onClick={() => selectAssetGroup(group)} style={{
+                              display: "flex", alignItems: "center", gap: 6,
+                              padding: "6px 12px", borderRadius: 999,
+                              background: "rgba(53,211,217,0.1)", border: "1px solid rgba(53,211,217,0.35)",
+                              color: "var(--fc-accent)", fontSize: 12, cursor: "pointer",
+                              fontWeight: 700,
+                            }}>
+                              {group.name}
+                              <span style={{ fontSize: 10, opacity: 0.75, fontFamily: "var(--fc-font-mono, monospace)" }}>
+                                {Array.isArray(group.assets) ? group.assets.length : 0}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
                       </>
                     )}
 
@@ -947,6 +1084,35 @@ export function Composer() {
                         </div>
                         {allTargets.filter((t) => t.platform === "instagram").map((target) => {
                           const isSelected = selectedTargets.some((t) => t.key === target.key);
+                          if (target.disconnected) {
+                            return (
+                              <div key={target.key} style={{
+                                display: "flex", alignItems: "center", gap: 10, width: "100%",
+                                padding: "10px 16px", background: "transparent",
+                                border: "1px solid var(--hairline)", opacity: 0.7,
+                              }}>
+                                <img
+                                  src={
+                                    target.igPicture ||
+                                    target.pagePicture ||
+                                    `https://ui-avatars.com/api/?name=${encodeURIComponent(target.igUsername || target.pageName || "IG")}&background=random`
+                                  }
+                                  alt=""
+                                  style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", border: "2px solid transparent", filter: "grayscale(1)" }}
+                                />
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontWeight: 500, color: "var(--fc-text-muted)" }}>{target.igUsername ? `@${target.igUsername}` : target.pageName}</div>
+                                  <div style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>Sin permiso para publicar</div>
+                                </div>
+                                <button
+                                  onClick={() => openConnectPopup("publisher_instagram", loadPages)}
+                                  style={{ background: "none", border: "none", color: "var(--fc-warning)", fontSize: 10.5, fontWeight: 800, letterSpacing: "0.04em", cursor: "pointer", flex: "none" }}
+                                >
+                                  RECONECTAR
+                                </button>
+                              </div>
+                            );
+                          }
                           return (
                             <button key={target.key} onClick={() => toggleTarget(target)} style={{
                               display: "flex", alignItems: "center", gap: 10, width: "100%",
@@ -1028,12 +1194,12 @@ export function Composer() {
             </div>
           </div>
 
-          {/* ── Format Selector (Post / Reel / Story / Carousel) ── */}
+          {/* ── Format Selector (Post / Reel / Story / Carrusel) ── */}
           <div style={{
-            padding: "10px 20px", border: "1px solid var(--hairline)",
+            padding: "14px 20px", borderBottom: "1px solid var(--hairline)",
             background: "var(--fc-surface)",
           }}>
-            <FormatSelector value={format} onChange={setFormat} />
+            <FormatSelector value={format} onChange={setFormat} platforms={selectedChannels} />
           </div>
 
           {/* ── Text area with toolbar ──────────────────────── */}
@@ -1175,6 +1341,24 @@ export function Composer() {
                     </button>
                   )}
                 </div>
+
+                {/* El diseño incluye "Generar con IA", pero no existe ningún
+                    endpoint de generación de copy en la app (app/api/ai/ no
+                    existe; briefs es CRUD de briefs). Se deja visible pero
+                    deshabilitado en vez de una afordancia falsa. */}
+                <button
+                  disabled
+                  title="Próximamente: requiere un endpoint de generación de copy, que aún no existe en la app."
+                  style={{
+                    padding: "6px 10px", borderRadius: 6,
+                    background: "transparent", border: "1px solid var(--hairline)",
+                    color: "var(--fc-text-muted)", cursor: "not-allowed", opacity: 0.6,
+                    display: "flex", alignItems: "center", gap: 4, fontSize: 12,
+                  }}
+                >
+                  <Sparkles style={{ width: 14, height: 14 }} />
+                  <span>Generar con IA</span>
+                </button>
               </div>
 
               {/* Right: char count */}
@@ -1247,6 +1431,18 @@ export function Composer() {
                   <X style={{ width: 13, height: 13 }} />
                 </button>
               )}
+              <button
+                disabled
+                title="Próximamente: se activa cuando haya suficiente historial de engagement por horario."
+                style={{
+                  display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 8,
+                  background: "transparent", border: "1px solid var(--hairline)", color: "var(--fc-text-muted)",
+                  fontSize: 11, fontWeight: 600, cursor: "not-allowed", opacity: 0.6,
+                }}
+              >
+                <Clock style={{ width: 12, height: 12 }} />
+                Mejor hora
+              </button>
             </div>
 
             {/* Right: actions */}
@@ -1324,34 +1520,31 @@ export function Composer() {
               {format}
             </span>
             
-            {/* Device Toggle */}
+            {/* Device Toggle — iPhone / Android / iPad, como en el diseño */}
             <div style={{ marginLeft: "auto", display: "flex", background: "var(--surface-hover)", borderRadius: 8, padding: 2, border: "1px solid var(--hairline)" }}>
-              <button 
-                onClick={() => setDeviceView("ios")}
-                style={{
-                  background: deviceView === "ios" ? "var(--fc-surface)" : "transparent",
-                  color: deviceView === "ios" ? "var(--fc-text)" : "var(--fc-text-muted)",
-                  border: deviceView === "ios" ? "1px solid var(--fc-border)" : "1px solid transparent",
-                  borderRadius: 6, fontSize: 10, fontWeight: 600, padding: "2px 8px", cursor: "pointer",
-                  boxShadow: deviceView === "ios" ? "var(--fc-shadow-sm)" : "none",
-                  transition: "all 0.2s"
-                }}
-              >
-                iOS
-              </button>
-              <button 
-                onClick={() => setDeviceView("android")}
-                style={{
-                  background: deviceView === "android" ? "var(--fc-surface)" : "transparent",
-                  color: deviceView === "android" ? "var(--fc-text)" : "var(--fc-text-muted)",
-                  border: deviceView === "android" ? "1px solid var(--fc-border)" : "1px solid transparent",
-                  borderRadius: 6, fontSize: 10, fontWeight: 600, padding: "2px 8px", cursor: "pointer",
-                  boxShadow: deviceView === "android" ? "var(--fc-shadow-sm)" : "none",
-                  transition: "all 0.2s"
-                }}
-              >
-                Android
-              </button>
+              {([
+                { key: "ios", label: "iPhone" },
+                { key: "android", label: "Android" },
+                { key: "tablet", label: "iPad" },
+              ] as { key: DeviceType; label: string }[]).map((d) => {
+                const on = deviceView === d.key;
+                return (
+                  <button
+                    key={d.key}
+                    onClick={() => setDeviceView(d.key)}
+                    style={{
+                      background: on ? "var(--fc-surface)" : "transparent",
+                      color: on ? "var(--fc-text)" : "var(--fc-text-muted)",
+                      border: on ? "1px solid var(--fc-border)" : "1px solid transparent",
+                      borderRadius: 6, fontSize: 10, fontWeight: on ? 700 : 600, padding: "2px 8px", cursor: "pointer",
+                      boxShadow: on ? "var(--fc-shadow-sm)" : "none",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    {d.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -1416,6 +1609,10 @@ export function Composer() {
                   </div>
                 );
               })
+            )}
+
+            {selectedTargets.length > 0 && (
+              <ComposerChecklist charCount={charCount} charLimit={charLimit} selectedTargets={selectedTargets} />
             )}
           </div>
         </div>

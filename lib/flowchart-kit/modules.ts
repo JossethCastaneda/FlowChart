@@ -51,8 +51,12 @@ export const MODULES: ModuleDef[] = [
   { key: "briefs",      label: "Briefs IA",   code: "Nova",      route: "/dashboard/briefing",  color: "var(--fc-module-briefs)",   icon: "sparkles", tagline: "La parrilla nace aquí", group: "contenido", aiTier: "E2" },
   { key: "publicacion", label: "Publicación", code: "Lanzadera", route: "/dashboard/publisher", color: "var(--fc-module-publicar)", icon: "rocket", tagline: "Programa y despega", group: "contenido",
     tabs: [
-      { label: "Calendario", route: "" },
-      { label: "Historial",  route: "/historial" },
+      { label: "Redactor",     route: "?tab=composer" },
+      { label: "Calendario",   route: "?tab=calendar" },
+      { label: "Aprobaciones", route: "?tab=approvals" },
+      { label: "Biblioteca",   route: "?tab=library" },
+      { label: "Grupos",       route: "?tab=groups" },
+      { label: "Historial",    route: "/historial" },
     ] },
 
   // ── CRECIMIENTO — pauta y monitoreo ──
@@ -93,7 +97,10 @@ export const MODULES: ModuleDef[] = [
    - "Métricas de bots" (ex Bot Analytics) ya NO es ítem de menú → pestaña de Chatbots.
    - La ruta /dashboard/gridia se UNIFICA en Briefs IA (/dashboard/briefing). Eliminar el duplicado.
    - /dashboard/historial → pestaña de Publicación.
-   - /dashboard/analisis-resultados → vive como pestaña de Anuncios. */
+   - /dashboard/analisis-resultados → vive como pestaña de Anuncios.
+   - "aprobaciones" y "biblioteca" se PROMOVIERON de FUTURE_MODULES a pestañas reales
+     de Publicación (PublisherTabs.tsx, ?tab=approvals / ?tab=library) — ya no son
+     módulos planeados con ruta propia, no reintroducir sus entradas aquí. */
 
 export const MODULE_BY_KEY: Record<ModuleKey, ModuleDef> =
   Object.fromEntries(MODULES.map((m) => [m.key, m])) as Record<ModuleKey, ModuleDef>;
@@ -123,10 +130,6 @@ export interface FutureModuleDef extends ModuleDef {
 }
 
 export const FUTURE_MODULES: FutureModuleDef[] = [
-  // ── Fase 1 · cerrar la brecha de agencia ──
-  { key: "aprobaciones", label: "Aprobaciones", code: "Visto bueno", route: "/dashboard/aprobaciones", color: "#34b77c", icon: "check-check",  tagline: "Revisión y firma antes de publicar", group: "contenido",   status: "planned", phase: 1 },
-  { key: "biblioteca",   label: "Biblioteca",   code: "Bóveda",      route: "/dashboard/publisher/biblioteca", color: "#e0a83c", icon: "folder-open", tagline: "Activos de marca centralizados", group: "contenido", status: "planned", phase: 1, tabOf: "publicacion" },
-
   // ── Fase 2 · inteligencia & alcance ──
   { key: "datos", label: "Datos", code: "Telescopio", route: "/dashboard/datos", color: "#3898ac", icon: "database", tagline: "Todas tus métricas, una fuente", group: "crecimiento", status: "planned", phase: 2 },
   { key: "competidores", label: "Competidores", code: "Rivales", route: "/dashboard/listening/competidores", color: "#d9822b", icon: "swords", tagline: "Benchmark contra otras marcas", group: "crecimiento", status: "planned", phase: 2, tabOf: "escucha" },
@@ -141,9 +144,7 @@ export const FUTURE_MODULES: FutureModuleDef[] = [
 /** Acentos reservados para los módulos futuros — NO reutilizar en otra cosa. */
 export const RESERVED_ACCENTS: Record<string, string> = {
   datos:        "#3898ac",
-  aprobaciones: "#34b77c",
   reportes:     "#45aec2",
-  biblioteca:   "#e0a83c",
   competidores: "#d9822b",
   linkinbio:    "#45aec2",
 };
