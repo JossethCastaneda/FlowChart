@@ -144,6 +144,8 @@ export function ScheduledCalendar({ onOpenInComposer }: { onOpenInComposer?: (po
   }, {});
   const availableChannels = Object.keys(channelCounts).sort();
 
+  const hasActiveFilters = filterStatus !== "all" || filterChannel !== "all";
+
   const filtered = posts.filter((p) => {
     if (filterStatus !== "all" && p.status !== filterStatus) return false;
     if (filterChannel !== "all" && !p.channels.includes(filterChannel)) return false;
@@ -624,21 +626,44 @@ export function ScheduledCalendar({ onOpenInComposer }: { onOpenInComposer?: (po
             <button onClick={() => setCurrentMonth(new Date(year, month - 1, 1))} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--fc-text-secondary)", display: "flex", padding: 4 }}>
               <ChevronLeft style={{ width: 18, height: 18 }} />
             </button>
-            <h4 style={{ fontSize: 14, fontWeight: 600, color: "var(--fc-text)", margin: 0 }}>{fmtMonthYear(currentMonth)}</h4>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+              <h4 style={{ fontSize: 14, fontWeight: 600, color: "var(--fc-text)", margin: 0 }}>{fmtMonthYear(currentMonth)}</h4>
+              {/* Nota del diseño: cuántas publicaciones sobreviven a los filtros
+                  frente al total del mes, para que un mes "vacío" por filtros no
+                  se confunda con un mes sin publicaciones. */}
+              <span style={{ fontFamily: "var(--fc-font-mono, monospace)", fontSize: 10.5, color: "var(--fc-text-muted)" }}>
+                {(() => {
+                  const inMonth = (p: Post) => {
+                    const d = p.scheduledAt || p.createdAt;
+                    if (!d) return false;
+                    const dt = new Date(d);
+                    return dt.getFullYear() === year && dt.getMonth() === month;
+                  };
+                  const shown = filtered.filter(inMonth).length;
+                  const total = posts.filter(inMonth).length;
+                  const shownLabel = shown === 0
+                    ? "Ninguna publicación"
+                    : shown === 1 ? "1 publicación" : `${shown} publicaciones`;
+                  return hasActiveFilters
+                    ? `${shownLabel} con los filtros activos · ${total === 1 ? "1 en el mes" : `${total} en el mes`}`
+                    : `${total === 1 ? "1 publicación" : `${total} publicaciones`} en el mes`;
+                })()}
+              </span>
+            </div>
             <button onClick={() => setCurrentMonth(new Date(year, month + 1, 1))} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--fc-text-secondary)", display: "flex", padding: 4 }}>
               <ChevronRight style={{ width: 18, height: 18 }} />
             </button>
           </div>
 
           {/* DOW header */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6, padding: "0 10px" }}>
             {DOW.map((d) => (
               <div key={d} style={{ padding: "8px 4px", textAlign: "center", fontSize: 10, fontWeight: 600, color: "var(--fc-text-muted)", borderBottom: "1px solid var(--hairline)" }}>{d}</div>
             ))}
           </div>
 
           {/* Calendar grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6, padding: "0 10px 10px" }}>
             {calendarDays.map(({ date, isCurrentMonth }, idx) => {
               const key = toDateKey(date);
               const dayPosts = postsByDate[key] || [];
@@ -668,61 +693,98 @@ export function ScheduledCalendar({ onOpenInComposer }: { onOpenInComposer?: (po
                     }
                   }}
                   style={{
-                    minHeight: 80, padding: "4px 6px", cursor: "pointer",
-                    border: "1px solid var(--hairline)",
-                    borderRight: (idx + 1) % 7 !== 0 ? "1px solid rgba(255,255,255,0.03)" : "none",
-                    background: dragOverDay === key ? "rgba(59,130,246,0.08)" : isSelected ? "rgba(59,130,246,0.04)" : isToday ? "rgba(59,130,246,0.02)" : "transparent",
-                    outline: dragOverDay === key ? "2px dashed rgba(59,130,246,0.6)" : "none",
+                    display: "flex", flexDirection: "column", minWidth: 0,
+                    minHeight: 104, padding: 8, cursor: "pointer", borderRadius: 11,
+                    border: `1px solid ${isToday ? "var(--fc-accent)" : "var(--hairline)"}`,
+                    background: dragOverDay === key ? "rgba(53,211,217,0.1)" : isSelected ? "rgba(53,211,217,0.06)" : isToday ? "rgba(53,211,217,0.04)" : "transparent",
+                    outline: dragOverDay === key ? "2px dashed var(--fc-accent)" : "none",
                     outlineOffset: "-2px",
-                    opacity: isCurrentMonth ? 1 : 0.3,
+                    opacity: isCurrentMonth ? 1 : 0.45,
                     transition: "background 0.15s",
                   }}
                 >
-                  <div style={{
-                    fontSize: 11, fontWeight: isToday ? 700 : 400,
-                    color: isToday ? "var(--fc-accent)" : "var(--fc-text-secondary)",
-                    width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center",
-                    borderRadius: "50%",
-                    background: isToday ? "rgba(59,130,246,0.15)" : "none",
-                    marginBottom: 4,
-                  }}>
-                    {date.getDate()}
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 6, paddingBottom: 7 }}>
+                    <div style={{
+                      fontFamily: "var(--fc-font-mono, monospace)",
+                      fontSize: 12, fontWeight: isToday ? 700 : 500,
+                      color: isToday ? "var(--fc-accent)" : "var(--fc-text-muted)",
+                    }}>
+                      {date.getDate()}
+                    </div>
+                    <div style={{ fontFamily: "var(--fc-font-mono, monospace)", fontSize: 9.5, fontWeight: 500, color: "var(--fc-text-muted)", opacity: 0.7 }}>
+                      {DOW[(date.getDay() + 6) % 7]}
+                    </div>
                   </div>
 
-                  {/* Post pills */}
-                  {dayPosts.slice(0, 3).map((p) => {
-                    const cfg = STATUS_CONFIG[p.status] || STATUS_CONFIG.Draft;
-                    const t = p.scheduledAt ? new Date(p.scheduledAt) : null;
-                    return (
-                      <div
-                        key={p.id}
-                        draggable={["Draft", "Scheduled"].includes(p.status) && !p.isExternal}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openDetail(p);
-                        }}
-                        onDragStart={(e) => {
-                          e.stopPropagation();
-                          e.dataTransfer.setData("text/plain", p.id);
-                          e.dataTransfer.effectAllowed = "move";
-                        }}
-                        style={{
-                          display: "flex", alignItems: "center", gap: 3, padding: "2px 5px", marginBottom: 2,
-                          borderRadius: 3, fontSize: 8, fontWeight: 500, color: cfg.color,
-                          background: p.isExternal ? "rgba(24,119,242,0.1)" : cfg.bg,
-                          border: p.isExternal ? "1px solid rgba(24,119,242,0.4)" : `1px solid ${cfg.border}`,
-                          overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis",
-                          cursor: (["Draft", "Scheduled"].includes(p.status) && !p.isExternal) ? "grab" : "pointer",
-                        }}
-                      >
-                        {p.channels.map((ch) => <span key={ch}>{CHANNEL_ICON[ch]}</span>)}
-                        {t && <span>{fmtTime(t)}</span>}
+                  {/* Tarjetas del día: chip de plataforma + hora + punto de estado,
+                      título y destino, según el diseño. */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                    {dayPosts.slice(0, 3).map((p) => {
+                      const t = p.scheduledAt ? new Date(p.scheduledAt) : null;
+                      const dotColor =
+                        p.status === "Scheduled" ? "var(--fc-warning)"
+                        : p.status === "Draft" ? "var(--fc-text-muted)"
+                        : p.status === "Failed" ? "var(--fc-danger)"
+                        : "var(--fc-success)";
+                      const isSelectedPost = detailPost?.id === p.id;
+                      return (
+                        <div
+                          key={p.id}
+                          draggable={["Draft", "Scheduled"].includes(p.status) && !p.isExternal}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openDetail(p);
+                          }}
+                          onDragStart={(e) => {
+                            e.stopPropagation();
+                            e.dataTransfer.setData("text/plain", p.id);
+                            e.dataTransfer.effectAllowed = "move";
+                          }}
+                          style={{
+                            display: "flex", flexDirection: "column", gap: 4,
+                            padding: "7px 8px", borderRadius: 8,
+                            background: "var(--surface-hover)",
+                            outline: isSelectedPost ? "1px solid var(--fc-accent)" : "none",
+                            cursor: (["Draft", "Scheduled"].includes(p.status) && !p.isExternal) ? "grab" : "pointer",
+                            transition: "background 160ms cubic-bezier(.2,.8,.2,1)",
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                            {p.channels.slice(0, 2).map((ch) => <span key={ch} style={{ display: "flex" }}>{CHANNEL_ICON[ch]}</span>)}
+                            {t && (
+                              <span style={{ fontFamily: "var(--fc-font-mono, monospace)", fontSize: 9.5, fontWeight: 500, color: "var(--fc-text-secondary)" }}>
+                                {fmtTime(t)}
+                              </span>
+                            )}
+                            <span style={{ width: 6, height: 6, borderRadius: "50%", background: dotColor, flex: "none", marginLeft: "auto" }} />
+                          </div>
+                          <div style={{ fontSize: 11, fontWeight: 600, lineHeight: 1.35, color: "var(--fc-text)", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                            {p.content.slice(0, 48)}{p.content.length > 48 ? "…" : ""}
+                          </div>
+                          {p.pageName && (
+                            <div style={{ fontFamily: "var(--fc-font-mono, monospace)", fontSize: 9, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--fc-text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {p.pageName}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    {dayPosts.length > 3 && (
+                      <div style={{ fontSize: 9.5, color: "var(--fc-text-muted)", fontWeight: 500, paddingLeft: 2 }}>
+                        +{dayPosts.length - 3} más
                       </div>
-                    );
-                  })}
-                  {dayPosts.length > 3 && (
-                    <div style={{ fontSize: 8, color: "var(--fc-text-muted)", fontWeight: 500, padding: "1px 5px" }}>+{dayPosts.length - 3} más</div>
-                  )}
+                    )}
+
+                    {dayPosts.length === 0 && isCurrentMonth && (
+                      <div style={{
+                        padding: "10px 8px", borderRadius: 8, border: "1px dashed var(--hairline)",
+                        fontSize: 10.5, color: "var(--fc-text-muted)", textAlign: "center",
+                      }}>
+                        {hasActiveFilters ? "Nada con estos filtros" : "+"}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
