@@ -29,7 +29,7 @@ export interface PostInsights {
 }
 
 export type InsightsResult =
-  | { available: true; insights: PostInsights; cachedAt: string; stale: boolean }
+  | { available: true; insights: PostInsights; cachedAt: string }
   | { available: false; reason: string };
 
 /** Post mínimo necesario para resolver insights — evita acoplar a todo el modelo Prisma. */
@@ -128,7 +128,7 @@ export async function getOrFetchPostInsights(
   if (cached) {
     const age = Date.now() - cached.updatedAt.getTime();
     if (age < CACHE_TTL_MS) {
-      return { available: true, insights: cached.data as unknown as PostInsights, cachedAt: cached.updatedAt.toISOString(), stale: false };
+      return { available: true, insights: cached.data as unknown as PostInsights, cachedAt: cached.updatedAt.toISOString() };
     }
   }
 
@@ -137,24 +137,56 @@ export async function getOrFetchPostInsights(
   let reason = "No hay datos externos para esta publicación.";
 
   try {
+    // Un mismo post puede haberse publicado en Facebook Y en Instagram: se
+    // consultan ambas y se agregan (no `else if`, que solo contaba Facebook y
+    // subestimaba el alcance real de una publicación cruzada).
+    const parts: PostInsights[] = [];
+    const failures: string[] = [];
+
     if (post.channels.includes("facebook") && externalIds.facebook) {
       const token = await getMetaAccessToken(req, "publisher_facebook");
       if (!token) {
-        reason = "La cuenta de Facebook no está conectada o el token expiró.";
+        failures.push("la cuenta de Facebook no está conectada o el token expiró");
       } else {
-        insights = await fetchFacebookPostInsights(externalIds.facebook, token);
-        if (!insights) reason = "Meta no devolvió datos para esta publicación de Facebook.";
+        const fb = await fetchFacebookPostInsights(externalIds.facebook, token);
+        if (fb) parts.push(fb);
+        else failures.push("Meta no devolvió datos para la publicación de Facebook");
       }
-    } else if (post.channels.includes("instagram") && externalIds.instagram) {
+    }
+
+    if (post.channels.includes("instagram") && externalIds.instagram) {
       const token = await getMetaAccessToken(req, "publisher_instagram");
       if (!token) {
-        reason = "La cuenta de Instagram no está conectada o el token expiró.";
+        failures.push("la cuenta de Instagram no está conectada o el token expiró");
       } else {
-        insights = await fetchInstagramMediaInsights(externalIds.instagram, token);
-        if (!insights) reason = "Meta no devolvió datos para esta publicación de Instagram.";
+        const ig = await fetchInstagramMediaInsights(externalIds.instagram, token);
+        if (ig) parts.push(ig);
+        else failures.push("Meta no devolvió datos para la publicación de Instagram");
       }
+    }
+
+    if (parts.length > 0) {
+      // Suma entre plataformas (práctica estándar en reportería social). El
+      // engagement se recalcula sobre los totales, no se promedian porcentajes:
+      // promediar tasas de audiencias de distinto tamaño da un número falso.
+      const sum = (pick: (p: PostInsights) => number | null) =>
+        parts.reduce<number | null>((acc, p) => {
+          const v = pick(p);
+          if (v === null) return acc;
+          return (acc ?? 0) + v;
+        }, null);
+
+      const reach = sum((p) => p.reach);
+      const interactions = sum((p) => p.interactions);
+      insights = {
+        reach,
+        interactions,
+        engagementPct: reach && interactions !== null && reach > 0 ? (interactions / reach) * 100 : null,
+      };
     } else if (!post.channels.some((c) => c === "facebook" || c === "instagram")) {
       reason = "Las métricas reales solo están disponibles para Facebook e Instagram por ahora.";
+    } else if (failures.length > 0) {
+      reason = `No se pudieron obtener métricas: ${failures.join("; ")}.`;
     }
   } catch (error) {
     logger.error("[PUBLISHER] Error obteniendo insights", { postId: post.id, workspaceId, error });
@@ -173,5 +205,5 @@ export async function getOrFetchPostInsights(
     update: { data: insights as object },
   });
 
-  return { available: true, insights, cachedAt: updated.updatedAt.toISOString(), stale: false };
+  return { available: true, insights, cachedAt: updated.updatedAt.toISOString() };
 }

@@ -23,28 +23,44 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   const kind = searchParams.get("kind"); // "image" | "video" | null
   const unusedOnly = searchParams.get("unused") === "true";
 
-  const [assets, posts, drafts] = await Promise.all([
-    prisma.mediaAsset.findMany({
-      where: { workspaceId: ctx.workspaceId },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.scheduledPost.findMany({
-      where: { workspaceId: ctx.workspaceId },
-      select: { mediaUrls: true, mediaUrl: true },
-    }),
-    prisma.draftPost.findMany({
-      where: { workspaceId: ctx.workspaceId },
-      select: { baseMediaUrls: true },
-    }),
-  ]);
+  const assets = await prisma.mediaAsset.findMany({
+    where: { workspaceId: ctx.workspaceId },
+    orderBy: { createdAt: "desc" },
+  });
 
+  // "usado" = la URL del asset aparece en algún post/borrador. Se consulta solo
+  // por las URLs de esta biblioteca (hasSome) en vez de traer los mediaUrls de
+  // TODOS los posts: esos arrays pueden contener data: URLs base64 heredadas de
+  // varios MB cada una, y traerlas todas para descartarlas es desperdicio puro.
+  const assetUrls = assets.map((a) => a.url);
   const usedUrls = new Set<string>();
-  for (const post of posts) {
-    for (const url of post.mediaUrls) usedUrls.add(url);
-    if (post.mediaUrl) usedUrls.add(post.mediaUrl);
-  }
-  for (const draft of drafts) {
-    for (const url of draft.baseMediaUrls) usedUrls.add(url);
+
+  if (assetUrls.length > 0) {
+    const [posts, drafts] = await Promise.all([
+      prisma.scheduledPost.findMany({
+        where: {
+          workspaceId: ctx.workspaceId,
+          OR: [{ mediaUrls: { hasSome: assetUrls } }, { mediaUrl: { in: assetUrls } }],
+        },
+        select: { mediaUrls: true, mediaUrl: true },
+      }),
+      prisma.draftPost.findMany({
+        where: { workspaceId: ctx.workspaceId, baseMediaUrls: { hasSome: assetUrls } },
+        select: { baseMediaUrls: true },
+      }),
+    ]);
+
+    const assetUrlSet = new Set(assetUrls);
+    const track = (url: string | null) => {
+      if (url && assetUrlSet.has(url)) usedUrls.add(url);
+    };
+    for (const post of posts) {
+      post.mediaUrls.forEach(track);
+      track(post.mediaUrl);
+    }
+    for (const draft of drafts) {
+      draft.baseMediaUrls.forEach(track);
+    }
   }
 
   let items = assets.map((asset) => ({

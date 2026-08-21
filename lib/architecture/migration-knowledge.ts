@@ -44,7 +44,7 @@ export interface BillingRecoveryPolicyKnowledgeNode {
 
 export interface AssetGroupKnowledgeNode {
   consumer: PublisherAssetGroupUiKnowledgeNode;
-  api: MissingAssetGroupApiKnowledgeNode;
+  api: AssetGroupApiKnowledgeNode;
 }
 
 export interface MigrationPolicyKnowledgeNode {
@@ -61,7 +61,10 @@ export interface ModelDecisionPersistenceGapNode { readonly kind: "model-decisio
 export interface BillingRecoveryCaseKnowledgeNode { readonly kind: "billing-recovery-case" }
 export interface StripeMeterDispatcherKnowledgeNode { readonly kind: "stripe-meter-dispatcher" }
 export interface PublisherAssetGroupUiKnowledgeNode { readonly kind: "publisher-asset-group-ui" }
-export interface MissingAssetGroupApiKnowledgeNode { readonly kind: "missing-asset-group-api" }
+/** Antes "missing-asset-group-api": la UI llamaba a /api/workspace/asset-groups
+ *  y recibía 404. La ruta ya existe (GET/POST y PATCH/DELETE por id), así que
+ *  el nodo dejó de representar una brecha. */
+export interface AssetGroupApiKnowledgeNode { readonly kind: "asset-group-api" }
 export interface HumanDecisionRequiredNode { readonly kind: "human-decision-required" }
 export interface IncidentRecoveryKnowledgeNode { readonly kind: "incident-recovery" }
 export interface IsolatedBaselineProofKnowledgeNode { readonly kind: "isolated-baseline-proof" }
@@ -86,7 +89,7 @@ function billingRecoveryPolicyEntity(): void {}
 function billingRecoveryCaseEntity(): void {}
 function assetGroupEntity(): void {}
 function publisherAssetGroupUiEntity(): void {}
-function missingAssetGroupApiGap(): void {}
+function assetGroupApiEntity(): void {}
 function modelDecisionPersistenceGap(): void {}
 function migrationPolicyEntity(): void {}
 function incidentRecoveryEntity(): void {}
@@ -155,17 +158,17 @@ export function billingPolicyCreatesRecoveryCase(
   billingRecoveryCaseEntity();
 }
 
-export function assetGroupHasMissingApi(
+export function assetGroupHasApi(
   _group: AssetGroupKnowledgeNode,
   _ui: PublisherAssetGroupUiKnowledgeNode,
-  _missingApi: MissingAssetGroupApiKnowledgeNode,
+  _api: AssetGroupApiKnowledgeNode,
 ): void {
   void _group;
   void _ui;
-  void _missingApi;
+  void _api;
   assetGroupEntity();
   publisherAssetGroupUiEntity();
-  missingAssetGroupApiGap();
+  assetGroupApiEntity();
 }
 
 export function aiRunModelDecisionPersistenceIsPending(

@@ -8,7 +8,7 @@ tags: [generado, api, endpoints]
 > No lo edites manualmente — se sobreescribe en cada generación.
 > Fuente: `scripts/docs-graph.mjs`
 
-Total: **162 route handlers** en 32 grupos.
+Total: **167 route handlers** en 32 grupos.
 
 ## `/api/ads/`
 
@@ -250,6 +250,9 @@ Total: **162 route handlers** en 32 grupos.
 | `/api/publisher/diagnose` | `GET` | `app/api/publisher/diagnose/route.ts` |
 | `/api/publisher/filters` | `GET` | `app/api/publisher/filters/route.ts` |
 | `/api/publisher/first-comment` | `POST` | `app/api/publisher/first-comment/route.ts` |
+| `/api/publisher/insights/[id]` | `GET` | `app/api/publisher/insights/[id]/route.ts` |
+| `/api/publisher/library` | `GET` | `app/api/publisher/library/route.ts` |
+| `/api/publisher/library/[id]` | `PATCH` `DELETE` | `app/api/publisher/library/[id]/route.ts` |
 | `/api/publisher/posts` | `GET` `POST` | `app/api/publisher/posts/route.ts` |
 | `/api/publisher/posts/[id]` | `GET` `PUT` `DELETE` | `app/api/publisher/posts/[id]/route.ts` |
 | `/api/publisher/posts/[id]/approve` | `POST` | `app/api/publisher/posts/[id]/approve/route.ts` |
@@ -324,6 +327,8 @@ Total: **162 route handlers** en 32 grupos.
 | `/api/workspace/[workspaceId]/members` | `GET` `DELETE` | `app/api/workspace/[workspaceId]/members/route.ts` |
 | `/api/workspace/[workspaceId]/members/permissions` | `PATCH` | `app/api/workspace/[workspaceId]/members/permissions/route.ts` |
 | `/api/workspace/[workspaceId]/members/role` | `PATCH` | `app/api/workspace/[workspaceId]/members/role/route.ts` |
+| `/api/workspace/asset-groups` | `GET` `POST` | `app/api/workspace/asset-groups/route.ts` |
+| `/api/workspace/asset-groups/[id]` | `PATCH` `DELETE` | `app/api/workspace/asset-groups/[id]/route.ts` |
 | `/api/workspace/branding/logo` | `POST` `DELETE` | `app/api/workspace/branding/logo/route.ts` |
 | `/api/workspace/integrations` | `GET` `POST` `DELETE` | `app/api/workspace/integrations/route.ts` |
 | `/api/workspace/integrations/test-crm` | `POST` | `app/api/workspace/integrations/test-crm/route.ts` |

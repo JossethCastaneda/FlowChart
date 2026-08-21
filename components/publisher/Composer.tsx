@@ -223,6 +223,11 @@ export function Composer({ initialTargets, onConsumeInitialTargets, prefillFromP
   // Pages
   const [pages, setPages] = useState<MetaPage[]>([]);
   const [allTargets, setAllTargets] = useState<PublishTarget[]>([]);
+  // Las cuentas sin permiso de publicar SÍ se muestran en el selector (con la
+  // afordancia RECONECTAR), pero nunca deben entrar a la selección: el servidor
+  // no re-valida capabilities.publish al publicar, así que enviarlas provocaría
+  // un fallo real. Todo lo que selecciona en bloque debe usar esta lista.
+  const publishableTargets = allTargets.filter((t) => !t.disconnected);
   const [pagesLoading, setPagesLoading] = useState(false);
   const [requestingApproval, setRequestingApproval] = useState(false);
   const [showAccountPicker, setShowAccountPicker] = useState(false);
@@ -254,8 +259,10 @@ export function Composer({ initialTargets, onConsumeInitialTargets, prefillFromP
 
   const selectAssetGroup = (group: any) => {
     if (!group.assets || !Array.isArray(group.assets)) return;
-    const newTargets = allTargets.filter(t => 
-      group.assets.some((a: any) => 
+    // Solo cuentas publicables: un grupo puede incluir una cuenta que perdió el
+    // permiso desde que se creó el grupo — se omite en vez de romper la publicación.
+    const newTargets = publishableTargets.filter(t =>
+      group.assets.some((a: any) =>
         a.provider === t.platform && a.externalId === (t.platform === "facebook" ? t.pageId : t.igId)
       )
     );
@@ -297,7 +304,11 @@ export function Composer({ initialTargets, onConsumeInitialTargets, prefillFromP
         if (!post || cancelled) return;
 
         setContent(post.content || "");
-        if (post.type) setFormat(post.type);
+        // ScheduledPost.type es un String libre en el schema y hay filas legacy
+        // con valores fuera del set del selector (p. ej. "video"). Sin este
+        // guard, el selector se quedaría sin ningún formato activo.
+        const VALID_FORMATS: PostFormat[] = ["post", "reel", "story", "carousel"];
+        if (VALID_FORMATS.includes(post.type)) setFormat(post.type as PostFormat);
         if (Array.isArray(post.hashtags)) setHashtags(post.hashtags);
         if (post.firstComment) setFirstComment(post.firstComment);
         if (post.contentByPlatform && typeof post.contentByPlatform === "object") {
@@ -511,7 +522,7 @@ export function Composer({ initialTargets, onConsumeInitialTargets, prefillFromP
 
   const clearAllTargets = () => setSelectedTargets([]);
 
-  const selectAllTargets = () => setSelectedTargets([...allTargets]);
+  const selectAllTargets = () => setSelectedTargets([...publishableTargets]);
 
   /* ── File upload ────────────────────────────────────── */
   const uploadFile = async (file: File): Promise<UploadedMedia | null> => {
@@ -598,9 +609,17 @@ export function Composer({ initialTargets, onConsumeInitialTargets, prefillFromP
     return content + "\n\n" + hashtags.map((t) => `#${t}`).join(" ");
   };
 
+  /* ── Destinos efectivos ─────────────────────────────────
+     Red de seguridad: aunque la UI ya evita seleccionar cuentas desconectadas,
+     todo lo que se publica/valida se deriva solo de las publicables — es lo que
+     el checklist le promete al usuario ("se omitirán") y evita mandar al
+     servidor un destino que fallaría (allá no hay re-validación de
+     capabilities.publish). */
+  const activeTargets = selectedTargets.filter((t) => !t.disconnected);
+
   /* ── Character count helpers ────────────────────────── */
   const charCount = fullContent().length;
-  const hasIg = selectedTargets.some((t) => t.platform === "instagram");
+  const hasIg = activeTargets.some((t) => t.platform === "instagram");
   const charLimit = hasIg ? CHAR_LIMITS.instagram : CHAR_LIMITS.facebook;
   const charPercent = Math.min((charCount / charLimit) * 100, 100);
   const isOverLimit = charCount > charLimit;
@@ -614,20 +633,20 @@ export function Composer({ initialTargets, onConsumeInitialTargets, prefillFromP
   };
 
   /* ── Actions ────────────────────────────────────────── */
-  const selectedChannels = [...new Set(selectedTargets.map((t) => t.platform))];
-  const firstFbTarget = selectedTargets.find((t) => t.platform === "facebook");
+  const selectedChannels = [...new Set(activeTargets.map((t) => t.platform))];
+  const firstFbTarget = activeTargets.find((t) => t.platform === "facebook");
 
   const validateForm = (): string | null => {
     if (!content.trim()) return "Misión vacía. El contenido es obligatorio para transmitir.";
-    if (selectedTargets.length === 0) return "Destinos no definidos. Asigna canales de transmisión.";
+    if (activeTargets.length === 0) return "Destinos no definidos. Asigna canales de transmisión.";
     if (isOverLimit) return `Desbordamiento de datos: la transmisión excede el límite de ${charLimit.toLocaleString()} caracteres.`;
     return null;
   };
 
   const buildPayload = (status: "Draft" | "Scheduled") => {
-    const fallbackTarget = selectedTargets[0];
+    const fallbackTarget = activeTargets[0];
     // Multi-cuenta: el post recuerda a qué cuenta de Instagram va.
-    const firstIgTarget = selectedTargets.find((t) => t.platform === "instagram");
+    const firstIgTarget = activeTargets.find((t) => t.platform === "instagram");
     return {
       content: fullContent(),
       contentByPlatform: customizeByPlatform ? { facebook: fbContent, instagram: igContent } : undefined,
@@ -641,7 +660,7 @@ export function Composer({ initialTargets, onConsumeInitialTargets, prefillFromP
       pageName: firstFbTarget?.pageName || fallbackTarget?.pageName || null,
       pageId: firstFbTarget?.pageId || fallbackTarget?.pageId || null,
       igUserId: firstIgTarget?.igId || undefined,
-      targets: selectedTargets.map((t) => ({
+      targets: activeTargets.map((t) => ({
         key: t.key,
         platform: t.platform,
         pageId: t.pageId,
@@ -742,16 +761,17 @@ export function Composer({ initialTargets, onConsumeInitialTargets, prefillFromP
       if (format === "reel" || format === "story") {
         // For reels/stories, we publish directly per-platform
         pubEndpoint = format === "reel" ? "/api/publisher/reels" : "/api/publisher/stories";
-        const igTarget = selectedTargets.find((t) => t.platform === "instagram");
-                const fbTarget = selectedTargets.find((t) => t.platform === "facebook");
+        const igTarget = activeTargets.find((t) => t.platform === "instagram");
+                const fbTarget = activeTargets.find((t) => t.platform === "facebook");
         const mediaUrl = mediaFiles[0]?.url || "";
                 const caption = customizeByPlatform
           ? (igTarget ? igContent : fbContent)
           : fullContent();
 
-        // Publish to each selected platform
+        // Publish to each selected platform (solo las publicables — una cuenta
+        // sin permiso fallaría en la Graph API y ensuciaría el resultado).
                 const results: any[] = [];
-        for (const target of selectedTargets) {
+        for (const target of activeTargets) {
           const platformCaption = customizeByPlatform
             ? (target.platform === "facebook" ? fbContent : igContent) || fullContent()
             : fullContent();
@@ -829,7 +849,7 @@ export function Composer({ initialTargets, onConsumeInitialTargets, prefillFromP
             body: JSON.stringify({
               mediaId: publishPayload.published.instagram,
               comment: firstComment,
-              igUserId: selectedTargets.find((t) => t.platform === "instagram")?.igId,
+              igUserId: activeTargets.find((t) => t.platform === "instagram")?.igId,
             }),
           }).catch(() => {});
         }
@@ -960,11 +980,11 @@ export function Composer({ initialTargets, onConsumeInitialTargets, prefillFromP
                       display: "flex", justifyContent: "space-between", alignItems: "center",
                     }}>
                       <span style={{ fontSize: 12, fontWeight: 600, color: "var(--fc-text)" }}>Seleccionar cuentas</span>
-                      <button onClick={selectedTargets.length === allTargets.length ? clearAllTargets : selectAllTargets} style={{
+                      <button onClick={selectedTargets.length === publishableTargets.length ? clearAllTargets : selectAllTargets} style={{
                         background: "none", border: "none", color: "var(--fc-accent)",
                         fontSize: 11, cursor: "pointer", padding: 0,
                       }}>
-                        {selectedTargets.length === allTargets.length ? "Despejar canales" : "Elegir todo el cuadrante"}
+                        {selectedTargets.length === publishableTargets.length ? "Despejar canales" : "Elegir todo el cuadrante"}
                       </button>
                     </div>
 

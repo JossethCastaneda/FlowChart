@@ -87,26 +87,34 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     fileUrl = `data:${file.type};base64,${base64}`;
   }
 
+  // Solo se registra en Biblioteca cuando el archivo quedó en un almacenamiento
+  // real (Vercel Blob). El fallback base64 produce un data: URL de varios MB:
+  // guardarlo como fila de MediaAsset inflaría la base de datos y haría que el
+  // listado de Biblioteca devolviera megabytes por archivo. Ese fallback sigue
+  // sirviendo para adjuntar el medio al post, pero no es un activo de biblioteca.
+  const isPersistableUrl = !fileUrl.startsWith("data:");
   let assetId: string | null = null;
-  try {
-    const asset = await prisma.mediaAsset.create({
-      data: {
-        workspaceId: ctx.workspaceId,
-        userId: ctx.userId,
-        url: fileUrl,
-        fileName: file.name || "upload",
-        mimeType: file.type,
-        size: file.size,
-        width: width && Number.isFinite(width) ? width : null,
-        height: height && Number.isFinite(height) ? height : null,
-      },
-      select: { id: true },
-    });
-    assetId = asset.id;
-  } catch (persistError) {
-    // No bloquear la subida (el post puede seguir usando fileUrl) si falla el
-    // registro en Biblioteca — solo se pierde la entrada de la biblioteca.
-    logger.error("Failed to persist MediaAsset", { workspaceId: ctx.workspaceId, error: persistError });
+  if (isPersistableUrl) {
+    try {
+      const asset = await prisma.mediaAsset.create({
+        data: {
+          workspaceId: ctx.workspaceId,
+          userId: ctx.userId,
+          url: fileUrl,
+          fileName: file.name || "upload",
+          mimeType: file.type,
+          size: file.size,
+          width: width && Number.isFinite(width) ? width : null,
+          height: height && Number.isFinite(height) ? height : null,
+        },
+        select: { id: true },
+      });
+      assetId = asset.id;
+    } catch (persistError) {
+      // No bloquear la subida (el post puede seguir usando fileUrl) si falla el
+      // registro en Biblioteca — solo se pierde la entrada de la biblioteca.
+      logger.error("Failed to persist MediaAsset", { workspaceId: ctx.workspaceId, error: persistError });
+    }
   }
 
   return apiSuccess({
