@@ -107,11 +107,164 @@ async function fetchInstagramMediaInsights(mediaId: string, token: string): Prom
   return { reach, interactions, engagementPct };
 }
 
+/** Suma entre plataformas y recalcula el engagement sobre los totales. */
+function aggregate(parts: PostInsights[]): PostInsights {
+  const sum = (pick: (p: PostInsights) => number | null) =>
+    parts.reduce<number | null>((acc, p) => {
+      const v = pick(p);
+      if (v === null) return acc;
+      return (acc ?? 0) + v;
+    }, null);
+
+  const reach = sum((p) => p.reach);
+  const interactions = sum((p) => p.interactions);
+  return {
+    reach,
+    interactions,
+    engagementPct: reach && interactions !== null && reach > 0 ? (interactions / reach) * 100 : null,
+  };
+}
+
+/** Ejecuta tareas con concurrencia acotada: 200 llamadas paralelas a la Graph
+ *  API son un buen camino a que Meta nos limite por rate limit. */
+async function mapWithConcurrency<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (true) {
+      const i = cursor++;
+      if (i >= items.length) return;
+      results[i] = await fn(items[i]);
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
+
+interface PlatformTokens {
+  facebook?: string | null;
+  instagram?: string | null;
+}
+
+/** Consulta Meta para un post y agrega las plataformas en las que se publicó. */
+async function fetchFromMeta(
+  post: InsightablePost,
+  tokens: PlatformTokens
+): Promise<{ insights: PostInsights | null; reason: string }> {
+  const externalIds = post.externalIds || {};
+  const parts: PostInsights[] = [];
+  const failures: string[] = [];
+
+  if (post.channels.includes("facebook") && externalIds.facebook) {
+    if (!tokens.facebook) {
+      failures.push("la cuenta de Facebook no está conectada o el token expiró");
+    } else {
+      const fb = await fetchFacebookPostInsights(externalIds.facebook, tokens.facebook);
+      if (fb) parts.push(fb);
+      else failures.push("Meta no devolvió datos para la publicación de Facebook");
+    }
+  }
+
+  if (post.channels.includes("instagram") && externalIds.instagram) {
+    if (!tokens.instagram) {
+      failures.push("la cuenta de Instagram no está conectada o el token expiró");
+    } else {
+      const ig = await fetchInstagramMediaInsights(externalIds.instagram, tokens.instagram);
+      if (ig) parts.push(ig);
+      else failures.push("Meta no devolvió datos para la publicación de Instagram");
+    }
+  }
+
+  if (parts.length > 0) return { insights: aggregate(parts), reason: "" };
+  if (!post.channels.some((c) => c === "facebook" || c === "instagram")) {
+    return { insights: null, reason: "Las métricas reales solo están disponibles para Facebook e Instagram por ahora." };
+  }
+  if (failures.length > 0) {
+    return { insights: null, reason: `No se pudieron obtener métricas: ${failures.join("; ")}.` };
+  }
+  return { insights: null, reason: "No hay datos externos para esta publicación." };
+}
+
+/**
+ * Resuelve insights para MUCHOS posts de una sola vez (Historial los muestra en
+ * cada fila). Optimizaciones que hacen viable pedirlos todos:
+ *   - una sola consulta a la caché para todo el lote;
+ *   - el token se resuelve UNA vez por plataforma, no una por post;
+ *   - concurrencia acotada contra la Graph API;
+ *   - solo se consulta lo que no está en caché fresca (TTL 6h).
+ */
+export async function getPostInsightsBatch(
+  req: NextRequest,
+  workspaceId: string,
+  posts: InsightablePost[]
+): Promise<Record<string, InsightsResult>> {
+  const out: Record<string, InsightsResult> = {};
+
+  const publishable = posts.filter((p) => {
+    if (p.status !== "Published") {
+      out[p.id] = { available: false, reason: "La publicación aún no se ha enviado." };
+      return false;
+    }
+    return true;
+  });
+  if (publishable.length === 0) return out;
+
+  const cached = await prisma.metaAnalyticsCache.findMany({
+    where: { workspaceId, endpoint: "posts", paramsKey: { in: publishable.map((p) => p.id) } },
+  });
+  const cacheByKey = new Map(cached.map((c) => [c.paramsKey, c]));
+
+  const needFetch: InsightablePost[] = [];
+  for (const post of publishable) {
+    const hit = cacheByKey.get(post.id);
+    if (hit && Date.now() - hit.updatedAt.getTime() < CACHE_TTL_MS) {
+      out[post.id] = {
+        available: true,
+        insights: hit.data as unknown as PostInsights,
+        cachedAt: hit.updatedAt.toISOString(),
+      };
+    } else {
+      needFetch.push(post);
+    }
+  }
+  if (needFetch.length === 0) return out;
+
+  // Un token por plataforma para todo el lote.
+  const tokens: PlatformTokens = {};
+  if (needFetch.some((p) => p.channels.includes("facebook") && p.externalIds?.facebook)) {
+    tokens.facebook = await getMetaAccessToken(req, "publisher_facebook");
+  }
+  if (needFetch.some((p) => p.channels.includes("instagram") && p.externalIds?.instagram)) {
+    tokens.instagram = await getMetaAccessToken(req, "publisher_instagram");
+  }
+
+  await mapWithConcurrency(needFetch, 5, async (post) => {
+    try {
+      const { insights, reason } = await fetchFromMeta(post, tokens);
+      if (!insights) {
+        // No se cachea un fallo: se reintenta la próxima vez en vez de quedar
+        // atascado en un error temporal durante 6h.
+        out[post.id] = { available: false, reason };
+        return;
+      }
+      const updated = await prisma.metaAnalyticsCache.upsert({
+        where: { workspaceId_endpoint_paramsKey: { workspaceId, endpoint: "posts", paramsKey: post.id } },
+        create: { id: randomUUID(), workspaceId, endpoint: "posts", paramsKey: post.id, data: insights as object },
+        update: { data: insights as object },
+      });
+      out[post.id] = { available: true, insights, cachedAt: updated.updatedAt.toISOString() };
+    } catch (error) {
+      logger.error("[PUBLISHER] Error obteniendo insights (lote)", { postId: post.id, workspaceId, error });
+      out[post.id] = { available: false, reason: "Error al consultar Meta Graph API." };
+    }
+  });
+
+  return out;
+}
+
 /**
  * Obtiene insights de un post publicado, usando caché (MetaAnalyticsCache,
- * endpoint="posts", paramsKey=post.id) con TTL de 6h. Fetch perezoso — se
- * llama solo cuando el usuario expande la fila en Historial, no en cada carga
- * de la tabla.
+ * endpoint="posts", paramsKey=post.id) con TTL de 6h.
  */
 export async function getOrFetchPostInsights(
   req: NextRequest,

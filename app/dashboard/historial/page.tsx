@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import {
     CheckCircle2, XCircle, Clock, RefreshCw, Filter, Search,
   Globe, Play, Image, AlignLeft, ChevronDown,
-    ExternalLink, Zap, Calendar, GitBranch, Activity, FileDown,
+    ExternalLink, Zap, Calendar, Activity, FileDown,
 } from "lucide-react";
 import { PublisherSubnav } from "@/components/publisher/PublisherTabs";
 
@@ -148,38 +148,46 @@ export default function DeploymentHistoryPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // Métricas reales (Alcance/Interacciones/Engagement): fetch perezoso, solo al
-  // expandir una fila — nunca se piden todas de golpe al cargar la tabla.
+  // Métricas reales (Alcance/Interacciones/Engagement) visibles en cada fila,
+  // como en el diseño. Se piden en UN solo lote tras cargar las publicaciones:
+  // el endpoint resuelve la caché de una sola vez, reutiliza el token por
+  // plataforma y acota la concurrencia contra la Graph API.
   const [insights, setInsights] = useState<Record<string, PostInsights | null>>({});
-  const [insightsLoading, setInsightsLoading] = useState<Record<string, boolean>>({});
   const [insightsUnavailable, setInsightsUnavailable] = useState<Record<string, string>>({});
+  const [insightsLoadingAll, setInsightsLoadingAll] = useState(false);
 
-  const loadInsights = useCallback((postId: string) => {
-    if (postId in insights || insightsLoading[postId]) return;
-    setInsightsLoading((prev) => ({ ...prev, [postId]: true }));
-    fetch(`/api/publisher/insights/${postId}`)
-      .then((res) => res.json())
-      .then((payload) => {
-        const data = payload.data;
-        if (data?.available) {
-          setInsights((prev) => ({ ...prev, [postId]: data.insights }));
-        } else {
-          setInsightsUnavailable((prev) => ({ ...prev, [postId]: data?.reason || "No disponible." }));
-        }
-      })
-      .catch(() => setInsightsUnavailable((prev) => ({ ...prev, [postId]: "Error al consultar métricas." })))
-      .finally(() => setInsightsLoading((prev) => ({ ...prev, [postId]: false })));
-  }, [insights, insightsLoading]);
+  const loadInsightsBatch = useCallback(async (postIds: string[]) => {
+    if (postIds.length === 0) return;
+    setInsightsLoadingAll(true);
+    try {
+      const res = await fetch("/api/publisher/insights", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postIds: postIds.slice(0, 200) }),
+      });
+      const payload = await res.json();
+      const results: Record<string, { available: boolean; insights?: PostInsights; reason?: string }> =
+        payload.data?.results || {};
+      const ok: Record<string, PostInsights | null> = {};
+      const bad: Record<string, string> = {};
+      for (const [id, r] of Object.entries(results)) {
+        if (r.available && r.insights) ok[id] = r.insights;
+        else bad[id] = r.reason || "No disponible.";
+      }
+      setInsights((prev) => ({ ...prev, ...ok }));
+      setInsightsUnavailable((prev) => ({ ...prev, ...bad }));
+    } catch {
+      /* la tabla sigue siendo utilizable sin métricas */
+    } finally {
+      setInsightsLoadingAll(false);
+    }
+  }, []);
 
   function toggleExpand(postId: string) {
-    const next = expandedId === postId ? null : postId;
-    setExpandedId(next);
-    if (next) loadInsights(next);
+    setExpandedId(expandedId === postId ? null : postId);
   }
 
-  // "Engagement promedio (de las revisadas)": solo cuenta lo ya cacheado, nunca
-  // fuerza el fetch de todas las publicaciones — sería exactamente lo que el
-  // fetch perezoso busca evitar.
+  // Engagement promedio sobre las publicaciones que sí devolvieron métricas.
   const reviewedEngagements = Object.values(insights)
     .filter((i): i is PostInsights => !!i && i.engagementPct !== null)
     .map((i) => i.engagementPct as number);
@@ -195,14 +203,17 @@ export default function DeploymentHistoryPage() {
       // La API responde { success, data: { posts, approvalCounts } } — este fetch
       // leía data.posts (siempre undefined) en vez de data.data.posts, así que la
       // tabla nunca mostraba nada real.
-      setPosts(data.data?.posts || []);
+      const loaded: Post[] = data.data?.posts || [];
+      setPosts(loaded);
+      // Solo tiene sentido pedir métricas de lo ya publicado.
+      void loadInsightsBatch(loaded.filter((p) => p.status === "Published").map((p) => p.id));
     } catch {
       /* ignore */
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [loadInsightsBatch]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => { fetchPosts(); }, [fetchPosts]);
@@ -219,17 +230,28 @@ export default function DeploymentHistoryPage() {
   });
 
   function exportCsv() {
-    const headers = ["id", "contenido", "canales", "formato", "estado", "pagina", "programado", "publicado"];
-    const rows = filtered.map((p) => [
-      p.id,
-      p.content.replace(/\r?\n/g, " ").replace(/"/g, '""'),
-      p.channels.join("|"),
-      p.type || "post",
-      p.status,
-      p.pageName || "",
-      p.scheduledAt || "",
-      p.publishedAt || "",
-    ]);
+    const headers = [
+      "id", "contenido", "canales", "formato", "estado", "pagina",
+      "programado", "publicado", "alcance", "interacciones", "engagement_pct",
+    ];
+    const rows = filtered.map((p) => {
+      const m = insights[p.id];
+      return [
+        p.id,
+        p.content.replace(/\r?\n/g, " ").replace(/"/g, '""'),
+        p.channels.join("|"),
+        p.type || "post",
+        p.status,
+        p.pageName || "",
+        p.scheduledAt || "",
+        p.publishedAt || "",
+        // Vacío (no cero) cuando no hay dato: un 0 en la hoja de cálculo se
+        // leería como "alcance cero", que es una afirmación distinta.
+        m?.reach ?? "",
+        m?.interactions ?? "",
+        m?.engagementPct != null ? m.engagementPct.toFixed(2) : "",
+      ];
+    });
     const csv = [headers, ...rows]
       .map((row) => row.map((cell) => `"${String(cell)}"`).join(","))
       .join("\n");
@@ -402,13 +424,13 @@ export default function DeploymentHistoryPage() {
       {/* ── TABLE HEADER ── */}
       <div style={{
         display: "grid",
-        gridTemplateColumns: "2fr 90px 100px 130px 120px 110px 100px",
+        gridTemplateColumns: "2fr 82px 90px 118px 96px 88px 88px 96px 92px",
         gap: 0,
         padding: "8px 20px",
         borderBottom: "1px solid rgba(59,130,246,0.08)",
         background: "rgba(0, 212, 255, 0.1)",
       }}>
-        {["Contenido", "Canales", "Formato", "Estado", "Página", "Publicado", "ID"].map(h => (
+        {["Contenido", "Canales", "Formato", "Estado", "Página", "Alcance", "Interac.", "Engagement", "Publicado"].map(h => (
           <span key={h} style={{
             fontSize: 9, fontWeight: 700, letterSpacing: "0.18em",
             textTransform: "uppercase", color: "var(--fc-text-secondary)",
@@ -443,7 +465,7 @@ export default function DeploymentHistoryPage() {
                 onClick={() => toggleExpand(post.id)}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "2fr 90px 100px 130px 120px 110px 100px",
+                  gridTemplateColumns: "2fr 82px 90px 118px 96px 88px 88px 96px 92px",
                   gap: 0,
                   padding: "12px 20px",
                   border: "1px solid var(--fc-border-subtle)",
@@ -508,6 +530,46 @@ export default function DeploymentHistoryPage() {
                   </span>
                 </div>
 
+                {/* Métricas reales (Alcance / Interacciones / Engagement) */}
+                {(() => {
+                  const m = insights[post.id];
+                  const pending = insightsLoadingAll && !m && !insightsUnavailable[post.id];
+                  const cell = (value: React.ReactNode, color?: string) => (
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      <span style={{
+                        fontSize: 11, fontWeight: 600, fontFamily: "var(--font-mono)",
+                        color: color || "var(--fc-text-secondary)",
+                      }}>
+                        {value}
+                      </span>
+                    </div>
+                  );
+                  const dash = pending
+                    ? <span style={{ color: "var(--fc-text-muted)", opacity: 0.5 }}>···</span>
+                    : "—";
+                  if (!m) {
+                    return (
+                      <>
+                        {cell(dash)}
+                        {cell(dash)}
+                        {cell(dash)}
+                      </>
+                    );
+                  }
+                  const pct = m.engagementPct;
+                  const pctColor = pct === null ? undefined
+                    : pct >= 3.6 ? "var(--fc-success)"
+                    : pct >= 2.5 ? "var(--fc-text)"
+                    : "var(--fc-warning)";
+                  return (
+                    <>
+                      {cell(m.reach === null ? "—" : m.reach.toLocaleString())}
+                      {cell(m.interactions === null ? "—" : m.interactions.toLocaleString())}
+                      {cell(pct === null ? "—" : `${pct.toFixed(1)}%`, pctColor)}
+                    </>
+                  );
+                })()}
+
                 {/* Published At */}
                 <div style={{ display: "flex", alignItems: "center" }}>
                   <span style={{ fontSize: 11, color: "var(--fc-text-muted)" }}>
@@ -515,13 +577,6 @@ export default function DeploymentHistoryPage() {
                   </span>
                 </div>
 
-                {/* ID */}
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <GitBranch size={10} color="var(--fc-text-secondary)" />
-                  <span style={{ fontSize: 10, color: "var(--fc-text-secondary)", fontFamily: "var(--font-mono)" }}>
-                    {post.id.slice(0, 8)}
-                  </span>
-                </div>
               </div>
 
               {/* Expanded row */}
@@ -540,38 +595,17 @@ export default function DeploymentHistoryPage() {
                     <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", lineHeight: 1.6 }}>{post.content}</p>
                   </div>
 
-                  {/* Métricas reales (Meta Insights) */}
+                  {/* Métricas: los valores viven en la fila; aquí solo se
+                      explica POR QUÉ faltan cuando no se pudieron obtener. */}
                   <div>
                     <p style={{ fontSize: 9, color: "var(--fc-text-secondary)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 6 }}>MÉTRICAS</p>
-                    {insightsLoading[post.id] ? (
+                    {insights[post.id] ? (
+                      <p style={{ fontSize: 10.5, color: "var(--fc-text-muted)", lineHeight: 1.5 }}>
+                        Alcance, interacciones y engagement se muestran en la fila.
+                      </p>
+                    ) : insightsLoadingAll ? (
                       <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--fc-text-muted)" }}>
                         <RefreshCw size={11} className="animate-spin" /> Consultando Meta…
-                      </div>
-                    ) : insights[post.id] ? (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                        {[
-                          { label: "Alcance", value: insights[post.id]!.reach },
-                          { label: "Interacciones", value: insights[post.id]!.interactions },
-                        ].map(({ label, value }) => (
-                          <div key={label} style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-                            <span style={{ fontSize: 10, color: "var(--fc-text-secondary)" }}>{label}</span>
-                            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--fc-text)", fontFamily: "var(--font-mono)" }}>
-                              {value === null ? "—" : value.toLocaleString()}
-                            </span>
-                          </div>
-                        ))}
-                        {(() => {
-                          const pct = insights[post.id]!.engagementPct;
-                          const color = pct === null ? "var(--fc-text-muted)" : pct >= 3.6 ? "var(--fc-success)" : pct >= 2.5 ? "var(--fc-text)" : "var(--fc-warning)";
-                          return (
-                            <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-                              <span style={{ fontSize: 10, color: "var(--fc-text-secondary)" }}>Engagement</span>
-                              <span style={{ fontSize: 11, fontWeight: 700, color, fontFamily: "var(--font-mono)" }}>
-                                {pct === null ? "—" : `${pct.toFixed(1)}%`}
-                              </span>
-                            </div>
-                          );
-                        })()}
                       </div>
                     ) : (
                       <p style={{ fontSize: 10.5, color: "var(--fc-text-muted)", lineHeight: 1.5 }}>
