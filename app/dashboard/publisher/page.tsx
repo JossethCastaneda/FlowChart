@@ -9,7 +9,7 @@ export default function PublisherPage() {
     <PermissionGuard permKey="canAccessPublisher">
       <div style={{ display: "flex", flexDirection: "column", gap: 16, height: "100%", minHeight: 0 }}>
       <PageHeader
-        title="Planner"
+        title="Publicación"
         description="Planifica, redacta, programa y prepara aprobaciones para tus canales sociales."
         icon={<Zap className="w-6 h-6" style={{ color: "var(--fc-warning)" }} />}
         action={

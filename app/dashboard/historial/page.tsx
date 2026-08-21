@@ -7,6 +7,7 @@ import {
   Globe, Play, Image, AlignLeft, ChevronDown,
     ExternalLink, Zap, Calendar, GitBranch, Activity, FileDown,
 } from "lucide-react";
+import { PublisherSubnav } from "@/components/publisher/PublisherTabs";
 
 /* ─── Types ─── */
 interface Post {
@@ -253,6 +254,10 @@ export default function DeploymentHistoryPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 0, height: "100%" }}>
+
+      {/* Subnav del módulo: Historial es ruta propia, pero en el diseño es una
+          pestaña más de Publicación, así que la barra no debe desaparecer. */}
+      <PublisherSubnav />
 
       {/* ── TOP BAR ── */}
       <div style={{

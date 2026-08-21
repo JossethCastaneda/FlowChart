@@ -3,7 +3,7 @@
 import React from "react";
 import { Wifi, Battery, Signal } from "lucide-react";
 
-export type DeviceType = "ios" | "android";
+export type DeviceType = "ios" | "android" | "tablet";
 
 interface DeviceEmulatorProps {
   type: DeviceType;
@@ -13,17 +13,20 @@ interface DeviceEmulatorProps {
 
 export default function DeviceEmulator({ type, theme = "light", children }: DeviceEmulatorProps) {
   const isIOS = type === "ios";
+  // El tablet comparte el chrome de iOS (reloj a la izquierda, indicador de
+  // home) pero con marco más ancho y sin recorte de cámara frontal.
+  const isTablet = type === "tablet";
 
   // Simulate current time for the status bar
-  const time = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: isIOS });
+  const time = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: isIOS || isTablet });
 
   return (
     <div style={{
-      width: 320,
-      height: 640,
+      width: isTablet ? 420 : 320,
+      height: isTablet ? 600 : 640,
       background: "var(--background)",
-      borderRadius: isIOS ? 46 : 36,
-      border: "10px solid #1a1b23", // Device frame color
+      borderRadius: isTablet ? 26 : isIOS ? 46 : 36,
+      border: `${isTablet ? 12 : 10}px solid #1a1b23`, // Device frame color
       boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.1), inset 0 0 2px 2px rgba(255,255,255,0.05)",
       position: "relative",
       overflow: "hidden",
@@ -33,7 +36,13 @@ export default function DeviceEmulator({ type, theme = "light", children }: Devi
       flexShrink: 0,
     }}>
       {/* Device specific hardware */}
-      {isIOS ? (
+      {isTablet ? (
+        <>
+          {/* Botones laterales del tablet: sin isla dinámica ni hole-punch. */}
+          <div style={{ position: "absolute", top: 90, right: -14, width: 3, height: 46, background: "#1a1b23", borderRadius: "0 3px 3px 0" }} />
+          <div style={{ position: "absolute", top: 150, left: -14, width: 3, height: 62, background: "#1a1b23", borderRadius: "3px 0 0 3px" }} />
+        </>
+      ) : isIOS ? (
         <>
           {/* Action Button */}
           <div style={{ position: "absolute", top: 120, left: -12, width: 3, height: 26, background: "#1a1b23", borderRadius: "3px 0 0 3px" }} />
@@ -109,7 +118,7 @@ export default function DeviceEmulator({ type, theme = "light", children }: Devi
         zIndex: 30,
         pointerEvents: "none",
       }}>
-        {isIOS ? (
+        {isIOS || isTablet ? (
           <>
             <span style={{ fontSize: 13.5, letterSpacing: -0.5, paddingLeft: 10 }}>{time}</span>
             <div style={{ display: "flex", alignItems: "center", gap: 6, paddingRight: 6 }}>
@@ -158,7 +167,7 @@ export default function DeviceEmulator({ type, theme = "light", children }: Devi
       </div>
       
       {/* iOS Home Indicator / Android Nav Bar */}
-      {isIOS ? (
+      {isIOS || isTablet ? (
         <div style={{
           position: "absolute",
           bottom: 8,

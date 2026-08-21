@@ -28,6 +28,7 @@ import {
     CheckCircle,
     XCircle,
     ChevronUp,
+    Sparkles,
 } from "lucide-react";
 import { openConnectPopup } from "@/lib/connect-popup";
 
@@ -905,16 +906,23 @@ export function Composer({ initialTargets, onConsumeInitialTargets, prefillFromP
             padding: "14px 20px", borderBottom: "1px solid var(--hairline)",
             background: "var(--row-hover)",
           }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--fc-text-secondary)", fontFamily: "var(--font-display)", letterSpacing: "0.1em" }}>CANALES DE PUBLICACIÓN</span>
-              {selectedTargets.length > 0 && (
-                <button onClick={clearAllTargets} style={{
-                  background: "none", border: "none", color: "var(--fc-text-muted)", fontSize: 11,
-                  cursor: "pointer", textDecoration: "underline", padding: 0,
-                }}>
-                  Limpiar selección
-                </button>
-              )}
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, marginBottom: 10, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--fc-text-secondary)" }}>
+                Canales de publicación
+              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ fontFamily: "var(--fc-font-mono, monospace)", fontSize: 11, color: "var(--fc-text-muted)" }}>
+                  {activeTargets.length} de {publishableTargets.length} canales activos
+                </span>
+                {selectedTargets.length > 0 && (
+                  <button onClick={clearAllTargets} style={{
+                    background: "none", border: "none", color: "var(--fc-text-muted)", fontSize: 11,
+                    cursor: "pointer", textDecoration: "underline", padding: 0,
+                  }}>
+                    Limpiar selección
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Selected chips */}
@@ -1186,12 +1194,12 @@ export function Composer({ initialTargets, onConsumeInitialTargets, prefillFromP
             </div>
           </div>
 
-          {/* ── Format Selector (Post / Reel / Story / Carousel) ── */}
+          {/* ── Format Selector (Post / Reel / Story / Carrusel) ── */}
           <div style={{
-            padding: "10px 20px", border: "1px solid var(--hairline)",
+            padding: "14px 20px", borderBottom: "1px solid var(--hairline)",
             background: "var(--fc-surface)",
           }}>
-            <FormatSelector value={format} onChange={setFormat} />
+            <FormatSelector value={format} onChange={setFormat} platforms={selectedChannels} />
           </div>
 
           {/* ── Text area with toolbar ──────────────────────── */}
@@ -1333,6 +1341,24 @@ export function Composer({ initialTargets, onConsumeInitialTargets, prefillFromP
                     </button>
                   )}
                 </div>
+
+                {/* El diseño incluye "Generar con IA", pero no existe ningún
+                    endpoint de generación de copy en la app (app/api/ai/ no
+                    existe; briefs es CRUD de briefs). Se deja visible pero
+                    deshabilitado en vez de una afordancia falsa. */}
+                <button
+                  disabled
+                  title="Próximamente: requiere un endpoint de generación de copy, que aún no existe en la app."
+                  style={{
+                    padding: "6px 10px", borderRadius: 6,
+                    background: "transparent", border: "1px solid var(--hairline)",
+                    color: "var(--fc-text-muted)", cursor: "not-allowed", opacity: 0.6,
+                    display: "flex", alignItems: "center", gap: 4, fontSize: 12,
+                  }}
+                >
+                  <Sparkles style={{ width: 14, height: 14 }} />
+                  <span>Generar con IA</span>
+                </button>
               </div>
 
               {/* Right: char count */}
@@ -1494,34 +1520,31 @@ export function Composer({ initialTargets, onConsumeInitialTargets, prefillFromP
               {format}
             </span>
             
-            {/* Device Toggle */}
+            {/* Device Toggle — iPhone / Android / iPad, como en el diseño */}
             <div style={{ marginLeft: "auto", display: "flex", background: "var(--surface-hover)", borderRadius: 8, padding: 2, border: "1px solid var(--hairline)" }}>
-              <button 
-                onClick={() => setDeviceView("ios")}
-                style={{
-                  background: deviceView === "ios" ? "var(--fc-surface)" : "transparent",
-                  color: deviceView === "ios" ? "var(--fc-text)" : "var(--fc-text-muted)",
-                  border: deviceView === "ios" ? "1px solid var(--fc-border)" : "1px solid transparent",
-                  borderRadius: 6, fontSize: 10, fontWeight: 600, padding: "2px 8px", cursor: "pointer",
-                  boxShadow: deviceView === "ios" ? "var(--fc-shadow-sm)" : "none",
-                  transition: "all 0.2s"
-                }}
-              >
-                iOS
-              </button>
-              <button 
-                onClick={() => setDeviceView("android")}
-                style={{
-                  background: deviceView === "android" ? "var(--fc-surface)" : "transparent",
-                  color: deviceView === "android" ? "var(--fc-text)" : "var(--fc-text-muted)",
-                  border: deviceView === "android" ? "1px solid var(--fc-border)" : "1px solid transparent",
-                  borderRadius: 6, fontSize: 10, fontWeight: 600, padding: "2px 8px", cursor: "pointer",
-                  boxShadow: deviceView === "android" ? "var(--fc-shadow-sm)" : "none",
-                  transition: "all 0.2s"
-                }}
-              >
-                Android
-              </button>
+              {([
+                { key: "ios", label: "iPhone" },
+                { key: "android", label: "Android" },
+                { key: "tablet", label: "iPad" },
+              ] as { key: DeviceType; label: string }[]).map((d) => {
+                const on = deviceView === d.key;
+                return (
+                  <button
+                    key={d.key}
+                    onClick={() => setDeviceView(d.key)}
+                    style={{
+                      background: on ? "var(--fc-surface)" : "transparent",
+                      color: on ? "var(--fc-text)" : "var(--fc-text-muted)",
+                      border: on ? "1px solid var(--fc-border)" : "1px solid transparent",
+                      borderRadius: 6, fontSize: 10, fontWeight: on ? 700 : 600, padding: "2px 8px", cursor: "pointer",
+                      boxShadow: on ? "var(--fc-shadow-sm)" : "none",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    {d.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

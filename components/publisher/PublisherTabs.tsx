@@ -1,8 +1,7 @@
 "use client";
 
-import React, { Suspense, useCallback, useState } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import React, { Suspense, useCallback, useEffect, useState } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Calendar, CheckCircle2, Clock, Images, Zap, Users } from "lucide-react";
 import { Composer, type PublishTarget } from "./Composer";
 import { ScheduledCalendar } from "./ScheduledCalendar";
@@ -10,12 +9,21 @@ import { ApprovalsPanel } from "./ApprovalsPanel";
 import { MediaLibrary } from "./MediaLibrary";
 import { AssetGroupManager } from "./AssetGroupManager";
 
+/**
+ * Subnav del módulo Publicación.
+ *
+ * Estructura tomada del diseño (Modulo_Publicacion.dc.html): pestaña activa en
+ * color de acento con fondo tenue y esquinas superiores redondeadas, riel de
+ * 2.5px debajo, y contador de pendientes en Aprobaciones.
+ */
+
 const TABS = [
-  { key: "composer", label: "Redactor", icon: Zap, color: "var(--fc-warning)" },
-  { key: "calendar", label: "Calendario", icon: Calendar, color: "var(--fc-success)" },
-  { key: "approvals", label: "Aprobaciones", icon: CheckCircle2, color: "var(--fc-success)" },
-  { key: "library", label: "Biblioteca", icon: Images, color: "#bc5fb2" },
-  { key: "groups", label: "Grupos", icon: Users, color: "var(--fc-accent)" },
+  { key: "composer", label: "Redactor", icon: Zap },
+  { key: "calendar", label: "Calendario", icon: Calendar },
+  { key: "approvals", label: "Aprobaciones", icon: CheckCircle2 },
+  { key: "library", label: "Biblioteca", icon: Images },
+  { key: "groups", label: "Grupos", icon: Users },
+  { key: "historial", label: "Historial", icon: Clock },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -34,30 +42,64 @@ export function PublisherTabs() {
   );
 }
 
-function PublisherTabsInner() {
+/**
+ * Solo la barra de pestañas. La usa /dashboard/historial, que es ruta propia,
+ * para que la navegación del módulo no desaparezca al entrar en esa pestaña.
+ */
+export function PublisherSubnav() {
+  return (
+    <Suspense fallback={null}>
+      <PublisherTabsInner navOnly />
+    </Suspense>
+  );
+}
+
+function PublisherTabsInner({ navOnly = false }: { navOnly?: boolean }) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const activeTab: TabKey = isTabKey(searchParams.get("tab")) ? (searchParams.get("tab") as TabKey) : "composer";
+
+  // Historial vive en su propia ruta; cuando se está en ella, esa es la
+  // pestaña activa aunque no haya ?tab= en la URL.
+  const onHistorial = pathname?.startsWith("/dashboard/historial") ?? false;
+  const paramTab = searchParams.get("tab");
+  const activeTab: TabKey = onHistorial ? "historial" : isTabKey(paramTab) ? paramTab : "composer";
 
   const setActiveTab = useCallback(
     (key: TabKey) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (key === "composer") {
-        params.delete("tab");
-      } else {
-        params.set("tab", key);
+      if (key === "historial") {
+        router.push("/dashboard/historial");
+        return;
       }
+      const params = new URLSearchParams(searchParams.toString());
+      if (key === "composer") params.delete("tab");
+      else params.set("tab", key);
       const query = params.toString();
-      router.replace(`/dashboard/publisher${query ? `?${query}` : ""}`, { scroll: false });
+      const target = `/dashboard/publisher${query ? `?${query}` : ""}`;
+      if (onHistorial) router.push(target);
+      else router.replace(target, { scroll: false });
     },
-    [router, searchParams]
+    [router, searchParams, onHistorial]
   );
 
-  // Cuentas precargadas cuando el usuario elige "Publicar en el grupo →" en Grupos:
-  // Composer las consume una vez al montar y avisa via onConsumeInitialTargets para
-  // que se limpien aquí.
-  const [pendingComposerTargets, setPendingComposerTargets] = useState<PublishTarget[] | null>(null);
+  // Contador de pendientes para el badge de Aprobaciones (el endpoint ya
+  // devuelve approvalCounts junto al listado, así que no hay llamada extra).
+  const [pendingCount, setPendingCount] = useState(0);
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/publisher/posts?approvalStatus=pending&limit=1")
+      .then((r) => r.json())
+      .then((p) => {
+        if (!cancelled) setPendingCount(p.data?.approvalCounts?.pending ?? 0);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab]);
 
+  // Cuentas precargadas por "Publicar en el grupo →" (Grupos → Redactor).
+  const [pendingComposerTargets, setPendingComposerTargets] = useState<PublishTarget[] | null>(null);
   const publishToGroup = useCallback(
     (targets: PublishTarget[]) => {
       setPendingComposerTargets(targets);
@@ -66,10 +108,8 @@ function PublisherTabsInner() {
     [setActiveTab]
   );
 
-  // Id del post a precargar cuando el usuario elige "Abrir en Redactor" desde
-  // Calendario (crea una pieza nueva a partir de ese post, no lo edita in-place).
+  // Post a precargar por "Abrir en Redactor" (Calendario → Redactor).
   const [pendingEditPostId, setPendingEditPostId] = useState<string | null>(null);
-
   const openInRedactor = useCallback(
     (postId: string) => {
       setPendingEditPostId(postId);
@@ -79,89 +119,79 @@ function PublisherTabsInner() {
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10, height: "100%", minHeight: 0 }}>
+    <div
+      style={
+        navOnly
+          ? { display: "flex", flexDirection: "column" }
+          : { display: "flex", flexDirection: "column", gap: 18, height: "100%", minHeight: 0 }
+      }
+    >
       <div
         style={{
           display: "flex",
-          gap: 1,
+          alignItems: "stretch",
+          gap: 2,
           overflowX: "auto",
-          padding: 3,
-          borderRadius: 10,
-          background: "var(--surface-hover)",
-          border: "1px solid var(--hairline)",
+          borderBottom: "1px solid var(--hairline)",
         }}
       >
         {TABS.map((tab) => {
           const isActive = activeTab === tab.key;
           const Icon = tab.icon;
+          const showBadge = tab.key === "approvals" && pendingCount > 0;
           return (
-            <button
+            <div
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              style={{
-                position: "relative",
-                display: "flex",
-                alignItems: "center",
-                gap: 7,
-                padding: "9px 16px",
-                borderRadius: 8,
-                background: isActive ? "var(--surface-hover)" : "transparent",
-                border: "none",
-                color: isActive ? "var(--fc-text)" : "var(--fc-text-muted)",
-                fontSize: 12,
-                fontWeight: isActive ? 700 : 600,
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                whiteSpace: "nowrap",
-                flex: "none",
-              }}
+              style={{ display: "flex", flexDirection: "column", cursor: "pointer", flex: "none" }}
             >
-              <Icon style={{ width: 14, height: 14, color: isActive ? tab.color : "inherit" }} />
-              {tab.label}
-              {isActive && (
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: 0,
-                    left: "20%",
-                    right: "20%",
-                    height: 2,
-                    borderRadius: 1,
-                    background: tab.color,
-                    boxShadow: `0 0 8px ${tab.color}50`,
-                  }}
-                />
-              )}
-            </button>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "11px 15px",
+                  fontSize: 12.5,
+                  fontWeight: isActive ? 800 : 600,
+                  color: isActive ? "var(--fc-accent)" : "var(--fc-text-muted)",
+                  whiteSpace: "nowrap",
+                  borderRadius: "9px 9px 0 0",
+                  background: isActive ? "rgba(53,211,217,0.08)" : "transparent",
+                  transition: "all 160ms cubic-bezier(.2,.8,.2,1)",
+                }}
+              >
+                <Icon style={{ width: 14, height: 14, flex: "none" }} />
+                <span>{tab.label}</span>
+                {showBadge && (
+                  <span
+                    style={{
+                      padding: "2px 7px",
+                      borderRadius: 999,
+                      background: "rgba(242,169,59,0.14)",
+                      border: "1px solid rgba(242,169,59,0.32)",
+                      fontFamily: "var(--fc-font-mono, monospace)",
+                      fontSize: 10,
+                      fontWeight: 500,
+                      color: "var(--fc-warning)",
+                    }}
+                  >
+                    {pendingCount}
+                  </span>
+                )}
+              </div>
+              <div
+                style={{
+                  height: 2.5,
+                  borderRadius: "2px 2px 0 0",
+                  background: isActive ? "var(--fc-accent)" : "transparent",
+                }}
+              />
+            </div>
           );
         })}
-
-        {/* Historial vive en su propia ruta (/dashboard/historial) — enlace de pestaña */}
-        <Link
-          href="/dashboard/historial"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 7,
-            padding: "9px 16px",
-            borderRadius: 8,
-            background: "transparent",
-            border: "none",
-            color: "var(--fc-text-muted)",
-            fontSize: 12,
-            fontWeight: 600,
-            textDecoration: "none",
-            whiteSpace: "nowrap",
-            flex: "none",
-          }}
-        >
-          <Clock style={{ width: 14, height: 14 }} />
-          Historial
-        </Link>
       </div>
 
-      <PlannerOverview />
-
+      {!navOnly && (
       <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
         {activeTab === "composer" && (
           <Composer
@@ -176,31 +206,7 @@ function PublisherTabsInner() {
         {activeTab === "library" && <MediaLibrary />}
         {activeTab === "groups" && <AssetGroupManager onPublishToGroup={publishToGroup} />}
       </div>
-    </div>
-  );
-}
-function PlannerOverview() {
-  return (
-    <div
-      className="glass-panel"
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
-        gap: 1,
-        overflow: "hidden",
-        background: "var(--surface-hover)",
-      }}
-    >
-      {[
-        ["Hoy", "Revisa posts listos, aprobaciones y huecos del calendario."],
-        ["Mejor horario", "Usa Analytics para elegir ventanas antes de programar."],
-        ["Estado Meta", "Valida permisos en Integraciones si falta algun canal."],
-      ].map(([title, text]) => (
-        <div key={title} style={{ padding: 14, background: "var(--bg-raised)" }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: "var(--fc-text)" }}>{title}</div>
-          <div style={{ marginTop: 5, fontSize: 11, lineHeight: 1.45, color: "var(--fc-text-secondary)" }}>{text}</div>
-        </div>
-      ))}
+      )}
     </div>
   );
 }
