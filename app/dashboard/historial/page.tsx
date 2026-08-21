@@ -26,6 +26,12 @@ interface Post {
   updatedAt: string;
 }
 
+interface PostInsights {
+  reach: number | null;
+  interactions: number | null;
+  engagementPct: number | null;
+}
+
 /* ─── Helpers ─── */
 function relTime(dateStr?: string | null): string {
   if (!dateStr) return "—";
@@ -140,6 +146,45 @@ export default function DeploymentHistoryPage() {
   const [formatFilter, setFormatFilter] = useState("All");
   const [refreshing, setRefreshing] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Métricas reales (Alcance/Interacciones/Engagement): fetch perezoso, solo al
+  // expandir una fila — nunca se piden todas de golpe al cargar la tabla.
+  const [insights, setInsights] = useState<Record<string, PostInsights | null>>({});
+  const [insightsLoading, setInsightsLoading] = useState<Record<string, boolean>>({});
+  const [insightsUnavailable, setInsightsUnavailable] = useState<Record<string, string>>({});
+
+  const loadInsights = useCallback((postId: string) => {
+    if (postId in insights || insightsLoading[postId]) return;
+    setInsightsLoading((prev) => ({ ...prev, [postId]: true }));
+    fetch(`/api/publisher/insights/${postId}`)
+      .then((res) => res.json())
+      .then((payload) => {
+        const data = payload.data;
+        if (data?.available) {
+          setInsights((prev) => ({ ...prev, [postId]: data.insights }));
+        } else {
+          setInsightsUnavailable((prev) => ({ ...prev, [postId]: data?.reason || "No disponible." }));
+        }
+      })
+      .catch(() => setInsightsUnavailable((prev) => ({ ...prev, [postId]: "Error al consultar métricas." })))
+      .finally(() => setInsightsLoading((prev) => ({ ...prev, [postId]: false })));
+  }, [insights, insightsLoading]);
+
+  function toggleExpand(postId: string) {
+    const next = expandedId === postId ? null : postId;
+    setExpandedId(next);
+    if (next) loadInsights(next);
+  }
+
+  // "Engagement promedio (de las revisadas)": solo cuenta lo ya cacheado, nunca
+  // fuerza el fetch de todas las publicaciones — sería exactamente lo que el
+  // fetch perezoso busca evitar.
+  const reviewedEngagements = Object.values(insights)
+    .filter((i): i is PostInsights => !!i && i.engagementPct !== null)
+    .map((i) => i.engagementPct as number);
+  const avgEngagement = reviewedEngagements.length
+    ? reviewedEngagements.reduce((a, b) => a + b, 0) / reviewedEngagements.length
+    : null;
 
   const fetchPosts = useCallback(async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true);
@@ -309,6 +354,21 @@ export default function DeploymentHistoryPage() {
             <FileDown size={12} /> Exportar CSV
           </button>
 
+          {/* Engagement promedio — solo de las publicaciones cuya fila ya se
+              expandió (fetch perezoso); nunca fuerza consultar todas de golpe. */}
+          {avgEngagement !== null && (
+            <div
+              title={`Promedio de ${reviewedEngagements.length} publicación${reviewedEngagements.length === 1 ? "" : "es"} revisada${reviewedEngagements.length === 1 ? "" : "s"}`}
+              style={{
+                display: "flex", alignItems: "center", gap: 6, padding: "4px 10px",
+                background: "var(--fc-surface)", border: "1px solid var(--fc-border)",
+                borderRadius: 3, fontSize: 11, fontWeight: 600, color: "var(--fc-success)",
+              }}
+            >
+              <Activity size={11} /> Engagement {avgEngagement.toFixed(1)}%
+            </div>
+          )}
+
           {/* Status count pills */}
           <div style={{
             display: "flex", alignItems: "center", gap: 0,
@@ -375,7 +435,7 @@ export default function DeploymentHistoryPage() {
           filtered.map((post, i) => (
             <div key={post.id}>
               <div
-                onClick={() => setExpandedId(expandedId === post.id ? null : post.id)}
+                onClick={() => toggleExpand(post.id)}
                 style={{
                   display: "grid",
                   gridTemplateColumns: "2fr 90px 100px 130px 120px 110px 100px",
@@ -466,13 +526,53 @@ export default function DeploymentHistoryPage() {
                   borderBottom: "1px solid rgba(59,130,246,0.08)",
                   background: "var(--fc-surface-hover)",
                   display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
+                  gridTemplateColumns: "1fr 1fr 1fr 1fr",
                   gap: 16,
                 }}>
                   {/* Content full */}
                   <div>
                     <p style={{ fontSize: 9, color: "var(--fc-text-secondary)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 6 }}>CONTENIDO</p>
                     <p style={{ fontSize: 12, color: "var(--fc-text-secondary)", lineHeight: 1.6 }}>{post.content}</p>
+                  </div>
+
+                  {/* Métricas reales (Meta Insights) */}
+                  <div>
+                    <p style={{ fontSize: 9, color: "var(--fc-text-secondary)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 6 }}>MÉTRICAS</p>
+                    {insightsLoading[post.id] ? (
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--fc-text-muted)" }}>
+                        <RefreshCw size={11} className="animate-spin" /> Consultando Meta…
+                      </div>
+                    ) : insights[post.id] ? (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        {[
+                          { label: "Alcance", value: insights[post.id]!.reach },
+                          { label: "Interacciones", value: insights[post.id]!.interactions },
+                        ].map(({ label, value }) => (
+                          <div key={label} style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                            <span style={{ fontSize: 10, color: "var(--fc-text-secondary)" }}>{label}</span>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--fc-text)", fontFamily: "var(--font-mono)" }}>
+                              {value === null ? "—" : value.toLocaleString()}
+                            </span>
+                          </div>
+                        ))}
+                        {(() => {
+                          const pct = insights[post.id]!.engagementPct;
+                          const color = pct === null ? "var(--fc-text-muted)" : pct >= 3.6 ? "var(--fc-success)" : pct >= 2.5 ? "var(--fc-text)" : "var(--fc-warning)";
+                          return (
+                            <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                              <span style={{ fontSize: 10, color: "var(--fc-text-secondary)" }}>Engagement</span>
+                              <span style={{ fontSize: 11, fontWeight: 700, color, fontFamily: "var(--font-mono)" }}>
+                                {pct === null ? "—" : `${pct.toFixed(1)}%`}
+                              </span>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    ) : (
+                      <p style={{ fontSize: 10.5, color: "var(--fc-text-muted)", lineHeight: 1.5 }}>
+                        {insightsUnavailable[post.id] || "Métricas no disponibles."}
+                      </p>
+                    )}
                   </div>
 
                   {/* Meta */}
